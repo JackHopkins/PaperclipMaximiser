@@ -1,5 +1,4 @@
 # Building a Paperclip Maximiser 
-By Jack H
 
 ### Introduction
 
