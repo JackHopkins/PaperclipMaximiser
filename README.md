@@ -11,7 +11,7 @@ The drives of such an intelligent system are likely to include goal-content inte
 
 Interestingly, the game of Factorio implicitly or explicitly models each of the above.
 
-##### The Game
+### The Game
 
 Factorio is a game in which you build and maintain factories.
 
@@ -27,7 +27,7 @@ The size of factory you build is constrained by:
 
 This second factor results in two viable long-term strategies. First, by building aggressively and investing in defenses (walls, auto-turrets etc). Second, by building slowly and investing in energy sources that don't impact the neighbours and don't incur hostility.
 
-##### An RL Sandbox
+### An RL Sandbox
 
 The simple rules and infinite emergent complexity of Factorio make it an ideal RL sandbox:
 - The automated nature of the factory presents a dense reward function (i.e game resources update every tick).
