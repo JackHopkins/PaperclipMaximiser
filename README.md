@@ -4,7 +4,7 @@
 
 In AGI, instrumental convergence is the hypothetical tendency for sufficiently intelligent agents to pursue unbounded instrumental goals provided that their ultimate goals are themselves unlimited.
 
-One surprisingly harmful example of this is called the Paperclip Maximiser (Bostrum, 2003), in which a computer given the sole and unconstrained goal of maximising the number of paperclips a factory outputs could attempt to turn the Earth into one giant factory (and convert all humans into paperclips in the process). 
+One surprisingly harmful example of this is called the Paperclip Maximiser (Bostrum, 2003), in which a computer given the sole and unconstrained goal of maximising the number of paperclips a factory outputs, could attempt to turn the Earth into one giant factory (and convert all humans into paperclips in the process). 
 
 The drives of such an intelligent system are likely to include goal-content integrity, self-protection, freedom from interference, self-improvement, and non-satiable acquisition of additional resources.
 
