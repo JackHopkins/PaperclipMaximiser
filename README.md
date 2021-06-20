@@ -90,3 +90,9 @@ The RL agents will be implemented as clients, that interoperate with the Factori
 To avoid having to interface directly with the (reasonably) complex Factorio input-space and state-space representation, all client communication is shimmed by a custom mod. 
 
 As the custom mod abstracts the underlying game, a client would not have to built on-top of a running instance of the Factorio game, drastically improving performance and deployment flexibility.
+
+# Links
+
+https://github.com/m-chandler/factorio-spot-pricing
+
+#ssh -i "factorio.pem" ec2-user@ec2-18-133-239-115.eu-west-2.compute.amazonaws.com
