@@ -28,15 +28,16 @@ def get_command(file, parameters=[]):
     return script
 
 def send(command, parameters=[]):
-    response = client.send_command(get_command(command, parameters=parameters))
+    response = client.send_command(get_command(command, parameters=parameters)).split("\n")
     print(response)
     return response
 
 #response = client.send_command(get_command('give_item', parameters=["iron-plate", 1000]))
 
-send('count_item', parameters=["iron-plate"])
-send('clear_map', parameters=[50])
-send('random_map', parameters=[50, 10])
+#send('count_items', parameters=["iron-plate"])
+send('count', parameters=['iron-plate'])
+#send('clear_map', parameters=[50])
+#send('random_map', parameters=[50, 10])
 
 #response = client.send_command(get_command('random_map', parameters=[50, 10]))
 #response = client.send_command(get_command('random_map', parameters=["iron-plate"]))

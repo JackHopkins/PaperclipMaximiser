@@ -1,0 +1,59 @@
+# cluster.yaml
+
+# EKS cluster name
+cluster_name: factorio
+
+# AWS region
+region: eu-west-2
+
+# list of availability zones for your region
+availability_zones:  # default: 3 random availability zones in your region, e.g. [us-east-1a, us-east-1b, us-east-1c]
+
+node_groups:
+  - name: ng-cpu # name of the node group
+    instance_type: m4.large # instance type
+    min_instances: 1 # minimum number of instances
+    max_instances: 8   # maximum number of instances
+    instance_volume_size: 50 # disk storage size per instance (GB)
+    instance_volume_type: gp2 # instance volume type [gp2 | io1 | st1 | sc1]
+    # instance_volume_iops: 3000 # instance volume iops (only applicable to io1)
+    spot: false # enable spot instances
+
+# subnet visibility [public (instances will have public IPs) | private (instances will not have public IPs)]
+subnet_visibility: public
+
+# NAT gateway (required when using private subnets) [none | single | highly_available (a NAT gateway per availability zone)]
+nat_gateway: none
+
+# API load balancer scheme [internet-facing | internal]
+api_load_balancer_scheme: internet-facing
+
+# operator load balancer scheme [internet-facing | internal]
+# note: if using "internal", you must configure VPC Peering to connect your CLI to your cluster operator
+operator_load_balancer_scheme: internet-facing
+
+# to install Cortex in an existing VPC, you can provide a list of subnets for your cluster to use
+# subnet_visibility (specified above in this file) must match your subnets' visibility
+# this is an advanced feature (not recommended for first-time users) and requires your VPC to be configured correctly; see https://eksctl.io/usage/vpc-networking/#use-existing-vpc-other-custom-configuration
+# here is an example:
+# subnets:
+#   - availability_zone: us-west-2a
+#     subnet_id: subnet-060f3961c876872ae
+#   - availability_zone: us-west-2b
+#     subnet_id: subnet-0faed05adf6042ab7
+
+# additional tags to assign to AWS resources (all resources will automatically be tagged with cortex.dev/cluster-name: <cluster_name>)
+tags:  # <string>: <string> map of key/value pairs
+
+
+# SSL certificate ARN (only necessary when using a custom domain)
+ssl_certificate_arn:
+
+# primary CIDR block for the cluster's VPC
+vpc_cidr: 192.168.0.0/16
+
+#image_operator: quay.io/cortexlabs/operator:0.27.0
+#image_manager: quay.io/cortexlabs/manager:0.27.0
+#image_downloader: quay.io/cortexlabs/downloader:0.27.0
+#image_istio_proxy: quay.io/cortexlabs/istio-proxy:0.27.0
+#image_istio_pilot: quay.io/cortexlabs/istio-pilot:0.27.0

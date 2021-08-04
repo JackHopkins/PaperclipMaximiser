@@ -1,0 +1,8 @@
+# cortex.yaml
+
+- name: hello-world
+  kind: RealtimeAPI
+  pod:
+    containers:
+    - name: api
+      image: public.ecr.aws/y5j3i3w6/paperclip_client
