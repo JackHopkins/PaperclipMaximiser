@@ -37,30 +37,12 @@ jobs:
       - name: Login to Amazon ECR
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v1
-      - name: Build and push
-        uses: docker/build-push-action@v2
-        with:
-          context: ./client
-          platforms: linux/amd64,linux/arm64
-          push: true
-          tags: |
-            paperclip-client:latest
-            paperclip-client:1.0.0
-            216370203482.dkr.ecr.eu-west-2.amazonaws.com/paperclip-client:latest
-      - name: Docker ECR
-        # You may pin to the exact commit or the version.
-        # uses: appleboy/docker-ecr-action@174bc7ab545bf5c4f4492240c4d839a987643559
-        uses: appleboy/docker-ecr-action@v0.0.3
-        with:
-          # amazon access key
-          access_key: AKIATEYFLJNNLXEB3RVC
-          # amazon secret access key
-          secret_key: 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
-          # docker registry
-          registry: 216370203482.dkr.ecr.eu-west-2.amazonaws.com
-          # amazon region, defaults to us-east-1
-          region: eu-west2
-          # repository name for the image
-          repo: paperclip-client
-          # filename of ecr lifecycle json policy
+      - name: Build, tag, and push image to Amazon ECR
+          env:
+            ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+            ECR_REPOSITORY: paperclip-client
+            IMAGE_TAG: latest #${{ github.sha }}
+          run: |
+            docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
+            docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
           

@@ -1,0 +1,62 @@
+# This is a basic workflow to help you get started with Actions
+
+name: CI
+
+# Controls when the workflow will run
+on:
+  # Triggers the workflow on push or pull request events but only for the main branch
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+jobs:
+  # This workflow contains a single job called "build"
+  build:
+    # The type of runner that the job will run on
+    runs-on: ubuntu-latest
+
+    # Steps represent a sequence of tasks that will be executed as part of the job
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v1
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v1
+      - name: ECR Login
+        # You may pin to the exact commit or the version.
+        # uses: thalesvon/ecr-login@1c02070621b251e7ac6bab007960dd670d75c3f5
+        uses: thalesvon/ecr-login@1.0.0
+      - name: Docker ECR
+        # You may pin to the exact commit or the version.
+        # uses: appleboy/docker-ecr-action@174bc7ab545bf5c4f4492240c4d839a987643559
+        uses: appleboy/docker-ecr-action@v0.0.3
+        with:
+          # amazon access key
+          access_key: AKIATEYFLJNNLXEB3RVC
+          # amazon secret access key
+          secret_key: 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
+          # docker registry
+          registry: 216370203482.dkr.ecr.eu-west-2.amazonaws.com
+          # amazon region, defaults to us-east-1
+          region: eu-west2
+          # repository name for the image
+          repo: paperclip-client
+          # filename of ecr lifecycle json policy
+          lifecycle_policy: # optional
+          # filename of ecr repository json policy
+          repository_policy: # optional
+          # repository tag for the image, defaults to latest
+          tags: # optional, default is latest
+          # dockerfile to be used, defaults to Dockerfile
+          dockerfile: # optional, default is Dockerfile
+          # auth token for the registry
+          auth: # optional
+          # the context path to use, defaults to root of the git repo
+          context: # optional, default is .
+          # replace existing matched image tags
