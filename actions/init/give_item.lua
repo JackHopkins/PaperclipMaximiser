@@ -1,1 +1,0 @@
-game.players[1].insert{name="arg1", count=arg2}

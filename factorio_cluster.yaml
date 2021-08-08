@@ -1,6 +1,4 @@
-# cluster.yaml
-
-# EKS cluster name
+# cluster name
 cluster_name: factorio
 
 # AWS region
@@ -9,17 +7,20 @@ region: eu-west-2
 # list of availability zones for your region
 availability_zones:  # default: 3 random availability zones in your region, e.g. [us-east-1a, us-east-1b, us-east-1c]
 
+# list of cluster node groups;
 node_groups:
   - name: ng-cpu # name of the node group
     instance_type: m4.large # instance type
     min_instances: 1 # minimum number of instances
-    max_instances: 8   # maximum number of instances
+    max_instances: 2 # maximum number of instances
+    priority: 1 # priority of the node group; the higher the value, the higher the priority [1-100]
     instance_volume_size: 50 # disk storage size per instance (GB)
-    instance_volume_type: gp2 # instance volume type [gp2 | io1 | st1 | sc1]
-    # instance_volume_iops: 3000 # instance volume iops (only applicable to io1)
-    spot: false # enable spot instances
+    instance_volume_type: gp3 # instance volume type [gp2 | gp3 | io1 | st1 | sc1]
+    # instance_volume_iops: 3000 # instance volume iops (only applicable to io1/gp3)
+    # instance_volume_throughput: 125 # instance volume throughput (only applicable to gp3)
+    spot: false # whether to use spot instances
 
-# subnet visibility [public (instances will have public IPs) | private (instances will not have public IPs)]
+# subnet visibility for instances [public (instances will have public IPs) | private (instances will not have public IPs)]
 subnet_visibility: public
 
 # NAT gateway (required when using private subnets) [none | single | highly_available (a NAT gateway per availability zone)]
@@ -42,18 +43,23 @@ operator_load_balancer_scheme: internet-facing
 #   - availability_zone: us-west-2b
 #     subnet_id: subnet-0faed05adf6042ab7
 
+# restrict access to APIs by cidr blocks/ip address ranges
+api_load_balancer_cidr_white_list: [0.0.0.0/0]
+
+# restrict access to the Operator by cidr blocks/ip address ranges
+operator_load_balancer_cidr_white_list: [0.0.0.0/0]
+
 # additional tags to assign to AWS resources (all resources will automatically be tagged with cortex.dev/cluster-name: <cluster_name>)
 tags:  # <string>: <string> map of key/value pairs
-
 
 # SSL certificate ARN (only necessary when using a custom domain)
 ssl_certificate_arn:
 
+# list of IAM policies to attach to your Cortex APIs
+iam_policy_arns: ["arn:aws:iam::aws:policy/AmazonS3FullAccess"]
+
 # primary CIDR block for the cluster's VPC
 vpc_cidr: 192.168.0.0/16
 
-#image_operator: quay.io/cortexlabs/operator:0.27.0
-#image_manager: quay.io/cortexlabs/manager:0.27.0
-#image_downloader: quay.io/cortexlabs/downloader:0.27.0
-#image_istio_proxy: quay.io/cortexlabs/istio-proxy:0.27.0
-#image_istio_pilot: quay.io/cortexlabs/istio-pilot:0.27.0
+# instance type for prometheus (use an instance with more memory for clusters exceeding 300 nodes or 300 pods)
+prometheus_instance_type: "t3.medium"
