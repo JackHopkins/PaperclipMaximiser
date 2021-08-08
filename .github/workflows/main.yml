@@ -28,10 +28,15 @@ jobs:
         uses: docker/setup-qemu-action@v1
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v1
-      - name: ECR Login
-        # You may pin to the exact commit or the version.
-        # uses: thalesvon/ecr-login@1c02070621b251e7ac6bab007960dd670d75c3f5
-        uses: thalesvon/ecr-login@1.0.0
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: eu-west-2
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v1
       - name: Build and push
         uses: docker/build-push-action@v2
         with:
