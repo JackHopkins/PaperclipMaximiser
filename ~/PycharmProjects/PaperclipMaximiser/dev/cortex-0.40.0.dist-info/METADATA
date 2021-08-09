@@ -1,0 +1,28 @@
+Metadata-Version: 2.1
+Name: cortex
+Version: 0.40.0
+Summary: Cost-effective serverless computing
+Home-page: https://www.cortex.dev
+Author: cortex.dev
+Author-email: dev@cortex.dev
+License: Apache License 2.0
+Project-URL: Bug Reports, https://github.com/cortexlabs/cortex/issues
+Project-URL: Community, https://gitter.im/cortexlabs/cortex
+Project-URL: Docs, https://docs.cortex.dev
+Project-URL: Source Code, https://github.com/cortexlabs/cortex
+Platform: UNKNOWN
+Classifier: Operating System :: MacOS
+Classifier: Operating System :: POSIX :: Linux
+Classifier: Programming Language :: Python :: 3.6
+Classifier: Programming Language :: Python :: 3.7
+Classifier: Programming Language :: Python :: 3.8
+Classifier: Intended Audience :: Developers
+Requires-Python: >=3.6
+Description-Content-Type: text/markdown
+Requires-Dist: pyyaml (>=5.4.1)
+Requires-Dist: sentry-sdk (>=1.1.0)
+Requires-Dist: importlib-resources ; python_version < "3.7"
+
+Cost-effective serverless computing - [docs.cortex.dev](https://www.docs.cortex.dev)
+
+

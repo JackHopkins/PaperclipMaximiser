@@ -1,0 +1,104 @@
+Metadata-Version: 2.1
+Name: sentry-sdk
+Version: 1.3.1
+Summary: Python client for Sentry (https://sentry.io)
+Home-page: https://github.com/getsentry/sentry-python
+Author: Sentry Team and Contributors
+Author-email: hello@sentry.io
+License: BSD
+Project-URL: Documentation, https://docs.sentry.io/platforms/python/
+Project-URL: Changelog, https://github.com/getsentry/sentry-python/blob/master/CHANGELOG.md
+Platform: UNKNOWN
+Classifier: Development Status :: 5 - Production/Stable
+Classifier: Environment :: Web Environment
+Classifier: Intended Audience :: Developers
+Classifier: License :: OSI Approved :: BSD License
+Classifier: Operating System :: OS Independent
+Classifier: Programming Language :: Python
+Classifier: Programming Language :: Python :: 2
+Classifier: Programming Language :: Python :: 2.7
+Classifier: Programming Language :: Python :: 3
+Classifier: Programming Language :: Python :: 3.4
+Classifier: Programming Language :: Python :: 3.5
+Classifier: Programming Language :: Python :: 3.6
+Classifier: Programming Language :: Python :: 3.7
+Classifier: Programming Language :: Python :: 3.8
+Classifier: Programming Language :: Python :: 3.9
+Classifier: Topic :: Software Development :: Libraries :: Python Modules
+Description-Content-Type: text/markdown
+License-File: LICENSE
+Requires-Dist: urllib3 (>=1.10.0)
+Requires-Dist: certifi
+Provides-Extra: aiohttp
+Requires-Dist: aiohttp (>=3.5) ; extra == 'aiohttp'
+Provides-Extra: beam
+Requires-Dist: apache-beam (>=2.12) ; extra == 'beam'
+Provides-Extra: bottle
+Requires-Dist: bottle (>=0.12.13) ; extra == 'bottle'
+Provides-Extra: celery
+Requires-Dist: celery (>=3) ; extra == 'celery'
+Provides-Extra: chalice
+Requires-Dist: chalice (>=1.16.0) ; extra == 'chalice'
+Provides-Extra: django
+Requires-Dist: django (>=1.8) ; extra == 'django'
+Provides-Extra: falcon
+Requires-Dist: falcon (>=1.4) ; extra == 'falcon'
+Provides-Extra: flask
+Requires-Dist: flask (>=0.11) ; extra == 'flask'
+Requires-Dist: blinker (>=1.1) ; extra == 'flask'
+Provides-Extra: httpx
+Requires-Dist: httpx (>=0.16.0) ; extra == 'httpx'
+Provides-Extra: pure_eval
+Requires-Dist: pure-eval ; extra == 'pure_eval'
+Requires-Dist: executing ; extra == 'pure_eval'
+Requires-Dist: asttokens ; extra == 'pure_eval'
+Provides-Extra: pyspark
+Requires-Dist: pyspark (>=2.4.4) ; extra == 'pyspark'
+Provides-Extra: rq
+Requires-Dist: rq (>=0.6) ; extra == 'rq'
+Provides-Extra: sanic
+Requires-Dist: sanic (>=0.8) ; extra == 'sanic'
+Provides-Extra: sqlalchemy
+Requires-Dist: sqlalchemy (>=1.2) ; extra == 'sqlalchemy'
+Provides-Extra: tornado
+Requires-Dist: tornado (>=5) ; extra == 'tornado'
+
+<p align="center">
+    <a href="https://sentry.io" target="_blank" align="center">
+        <img src="https://sentry-brand.storage.googleapis.com/sentry-logo-black.png" width="280">
+    </a>
+</p>
+
+_Bad software is everywhere, and we're tired of it. Sentry is on a mission to help developers write better software faster, so we can get back to enjoying technology. If you want to join us [<kbd>**Check out our open positions**</kbd>](https://sentry.io/careers/)_
+
+# sentry-python - Sentry SDK for Python
+
+[![Build Status](https://travis-ci.com/getsentry/sentry-python.svg?branch=master)](https://travis-ci.com/getsentry/sentry-python)
+[![PyPi page link -- version](https://img.shields.io/pypi/v/sentry-sdk.svg)](https://pypi.python.org/pypi/sentry-sdk)
+[![Discord](https://img.shields.io/discord/621778831602221064)](https://discord.gg/cWnMQeA)
+
+This is the next line of the Python SDK for [Sentry](http://sentry.io/), intended to replace the `raven` package on PyPI.
+
+```python
+from sentry_sdk import init, capture_message
+
+init("https://mydsn@sentry.io/123")
+
+capture_message("Hello World")  # Will create an event.
+
+raise ValueError()  # Will also create an event.
+```
+
+- To learn more about how to use the SDK [refer to our docs](https://docs.sentry.io/platforms/python/)
+- Are you coming from raven-python? [Use this cheatsheet](https://docs.sentry.io/platforms/python/migration/)
+- To learn about internals use the [API Reference](https://getsentry.github.io/sentry-python/)
+
+# Contributing to the SDK
+
+Please refer to [CONTRIBUTING.md](https://github.com/getsentry/sentry-python/blob/master/CONTRIBUTING.md).
+
+# License
+
+Licensed under the BSD license, see [`LICENSE`](https://github.com/getsentry/sentry-python/blob/master/LICENSE)
+
+

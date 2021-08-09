@@ -13,6 +13,6 @@ class Data(BaseModel):
 def healthz():
     return PlainTextResponse("ok")
 
-@app.post("/")
+@app.post("/msg")
 def handle_post(data: Data):
     return data

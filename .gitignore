@@ -1,3 +1,5 @@
 /venv/
 cortex
 /dev/
+.idea
+.DS_Store

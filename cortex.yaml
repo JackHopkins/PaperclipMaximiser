@@ -5,7 +5,7 @@
   pod:
     containers:
       - name: api #infrastructureascode/hello-world
-        image: 216370203482.dkr.ecr.eu-west-2.amazonaws.com/paperclip-client #python:3.8-buster #public.ecr.aws/y5j3i3w6/paperclip_client:latest
+        image: 216370203482.dkr.ecr.eu-west-2.amazonaws.com/paperclip-client:latest #python:3.8-buster #public.ecr.aws/y5j3i3w6/paperclip_client:latest
         env:
           PYTHONUNBUFFERED: "1"
         compute:

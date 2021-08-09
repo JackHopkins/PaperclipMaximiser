@@ -1,0 +1,3 @@
+[console_scripts]
+cortex = cortex.binary:run
+
