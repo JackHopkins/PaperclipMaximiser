@@ -37,6 +37,7 @@ RUN set -ox pipefail \
     && adduser -u "$PUID" -G "$GROUP" -s /bin/sh -SDH "$USER" \
     && chown -R "$USER":"$GROUP" /opt/factorio /factorio
 
+COPY probe.sh /
 COPY config/*.sh /
 COPY config/config.ini /opt/factorio/config/config.ini
 COPY config/rconpw /opt/factorio/config/rconpw
