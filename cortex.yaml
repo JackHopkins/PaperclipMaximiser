@@ -2,22 +2,28 @@
 - name: hello-world
   kind: RealtimeAPI
   pod:
+    port: 8080
     containers:
       - name: api #infrastructureascode/hello-world
         image: 216370203482.dkr.ecr.eu-west-2.amazonaws.com/paperclip-client:latest #python:3.8-buster #public.ecr.aws/y5j3i3w6/paperclip_client:latest
         env:
           PYTHONUNBUFFERED: "1"
         compute:
-          cpu: 250m
+          cpu: 200m
           mem: 512Mi      #readiness_probe: # periodic probe of container readiness; traffic will not be sent into the pod unless all containers' readiness probes are succeeding (optional)
-        #http_get: # specifies an http endpoint which must respond with status code 200 (only one of http_get, tcp_socket, and exec may be specified)
-          #port: 8080
+        liveness_probe:
+          http_get:
+            path: "/healthz"
+            port: 8080
+        readiness_probe:
+          http_get:
+            path: "/healthz"
+            port: 8080
       - name: factorio-container
         image: 216370203482.dkr.ecr.eu-west-2.amazonaws.com/factorio:latest
         readiness_probe:
-          tcp_socket:
-            port: 27015
+          exec:
+            command: ["probe", "27015"]
         liveness_probe:
           exec:
-            command:
-              - "if (($(echo | lsof -i -P -n | grep 34197 | wc -c) > 0)); then echo 'Running on udp:34197'; exit; fi; echo 'Dead'; exit 1;"
+            command: ["probe", "34197"]
