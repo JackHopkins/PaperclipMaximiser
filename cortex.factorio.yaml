@@ -4,6 +4,28 @@
   pod:
     port: 27015
     containers:
+    - name: api
+      image: python:3.8-buster #public.ecr.aws/y5j3i3w6/paperclip_client:latest
+      env:
+        PYTHONUNBUFFERED: "1"
+      command:
+        - /bin/bash
+        - "-c"
+        - |
+          python - << EOF
+          import socket, os
+
+          sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+          server_address = ("localhost", int(os.getenv("CORTEX_PORT", "8080")))
+          print(f'starting up on %s port {server_address}')
+          sock.bind(server_address)
+          sock.listen(1)
+          while True:
+              connection, client_address = sock.accept()
+          EOF
+      compute:
+        cpu: 100m
+        mem: 128Mi      #readiness_probe: # periodic probe of container readiness; traffic will not be sent into the pod unless all containers' readiness probes are succeeding (optional)
     - name: factorio-container
       compute:
         cpu: 100m
