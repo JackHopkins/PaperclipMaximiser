@@ -2,8 +2,12 @@
 - name: factorio-only
   kind: RealtimeAPI
   pod:
+    port: 27015
     containers:
     - name: factorio-container
+      compute:
+        cpu: 100m
+        mem: 1024Mi
       image: 216370203482.dkr.ecr.eu-west-2.amazonaws.com/factorio:latest
       readiness_probe:
         exec:
