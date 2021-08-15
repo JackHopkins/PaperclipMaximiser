@@ -40,9 +40,9 @@ jobs:
       - name: Build, tag, and push image to Amazon ECR
         env:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-          ECR_REPOSITORY: paperclip-client
-          IMAGE_TAG: latest #${{ github.sha }}
+          ECR_REPOSITORY: factorio
+          IMAGE_TAG:   latest #${{ github.sha }}
         run: |
-          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG ./client
+          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG ./factorio
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
           
