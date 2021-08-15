@@ -19,6 +19,7 @@ script_dict = {}
 
 actions = list(chain.from_iterable(glob(os.path.join(x[0], '*.lua')) for x in
                                    os.walk('actions')))  # [file.split(".")[0] for file in os.listdir('actions')]
+print(actions)
 
 for filename in actions:
     with open(filename, "r") as file:
