@@ -2,5 +2,6 @@
 cortex
 /dev/
 .idea
+/.idea/
 .DS_Store
-~
+~/PycharmProjects/PaperclipMaximiser/dev/
