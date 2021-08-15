@@ -20,10 +20,13 @@
             path: "/healthz"
             port: 8080
       - name: factorio-container
+        compute:
+          cpu: 100m
+          mem: 1024Mi
         image: 216370203482.dkr.ecr.eu-west-2.amazonaws.com/factorio:latest
         readiness_probe:
           exec:
-            command: ["probe.sh", "27015"]
+            command: [ "sh", "probe.sh", "27015" ]
         liveness_probe:
           exec:
-            command: ["probe.sh", "34197"]
+            command: [ "sh", "probe.sh", "34197" ]
