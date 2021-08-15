@@ -10,7 +10,8 @@ from pydantic import BaseModel
 from fastapi.responses import PlainTextResponse
 from starlette.responses import JSONResponse
 
-rcon_client = factorio_rcon.RCONClient("ingressgateway-apis.istio-system.svc.cluster.local/factorio-container", 27015, "factorio")#"eSei2keed0aegai")
+rcon_client = factorio_rcon.RCONClient("localhost", 27015, "factorio")
+    #"ingressgateway-apis.istio-system.svc.cluster.local/factorio-container", 27015, "factorio")#"eSei2keed0aegai")
 
 character = "players[1]"
 
