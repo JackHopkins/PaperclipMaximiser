@@ -43,6 +43,20 @@ def healthz():
 def handle_post(data: Data):
     return data
 
+@app.get("/load")
+def load_actions():
+    actions = list(chain.from_iterable(glob(os.path.join(x[0], '*.lua')) for x in
+                                       os.walk('actions')))  # [file.split(".")[0] for file in os.listdir('actions')]
+    print(actions)
+
+    for filename in actions:
+        with open(filename, "r") as file:
+            script_string = "\n".join(file.readlines())
+            pruned = filename[8:-4].replace("init/", "")
+            script_dict[pruned] = script_string
+
+    print(script_dict)
+
 
 @app.get("/commands")
 def handle_commands():
