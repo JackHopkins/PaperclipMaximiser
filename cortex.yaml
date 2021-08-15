@@ -9,7 +9,7 @@
         env:
           PYTHONUNBUFFERED: "1"
         compute:
-          cpu: 200m
+          cpu: 100m
           mem: 512Mi      #readiness_probe: # periodic probe of container readiness; traffic will not be sent into the pod unless all containers' readiness probes are succeeding (optional)
         liveness_probe:
           http_get:
