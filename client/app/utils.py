@@ -5,7 +5,7 @@ from pathlib import Path
 import factorio_rcon
 from itertools import chain
 
-client = factorio_rcon.RCONClient("ingressgateway-apis.istio-system.svc.cluster.local/factorio-container", 27015, "eSei2keed0aegai")
+rcon_client = factorio_rcon.RCONClient("ingressgateway-apis.istio-system.svc.cluster.local/factorio-container", 27015, "eSei2keed0aegai")
 
 character = "players[1]"
 
@@ -27,6 +27,6 @@ def get_command(file, parameters=[]):
     return script
 
 def send(command, parameters=[]):
-    response = client.send_command(get_command(command, parameters=parameters)).split("\n")
+    response = rcon_client.send_command(get_command(command, parameters=parameters)).split("\n")
     print(response)
     return response
