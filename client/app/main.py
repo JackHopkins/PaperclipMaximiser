@@ -86,7 +86,9 @@ def send(command, parameters=[]):
             print("Defaulting password. Something is awry.")
 
     client.append(rcon_client)
-    response = client[0].send_command(get_command(command, parameters=parameters)).split("\n")
+    script = get_command(command, parameters=parameters)
+    print(script)
+    response = client[0].send_command(script)#.split("\n")
     print(response)
 
     return response
