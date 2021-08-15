@@ -10,12 +10,8 @@ from pydantic import BaseModel
 from fastapi.responses import PlainTextResponse
 from starlette.responses import JSONResponse
 
-try:
-    rcon_client = factorio_rcon.RCONClient("localhost", 27015, "factorio")
-except Exception as e:
-    rcon_client = factorio_rcon.RCONClient("localhost", 27015, "default")
-    print("Defaulting password. Something is awry.")
-    #"ingressgateway-apis.istio-system.svc.cluster.local/factorio-container", 27015, "factorio")#"eSei2keed0aegai")
+client = []
+# "ingressgateway-apis.istio-system.svc.cluster.local/factorio-container", 27015, "factorio")#"eSei2keed0aegai")
 
 character = "players[1]"
 
@@ -32,19 +28,23 @@ for filename in actions:
 
 app = FastAPI()
 
+
 class Data(BaseModel):
     msg: str
+
 
 @app.get("/healthz")
 def healthz():
     return PlainTextResponse("ok")
 
+
 @app.post("/msg")
 def handle_post(data: Data):
     return data
 
-@app.get("/chain")
-def handle_chain():
+
+@app.get("/commands")
+def handle_commands():
     give_item = send('give_item', parameters=["iron-plate", 1000])
     count = send('count', parameters=['iron-plate'])
     sanity = send('print')
@@ -54,13 +54,24 @@ def handle_chain():
         "sanity": sanity
     })
 
+
 def get_command(file, parameters=[]):
     script = "/c " + script_dict[file]
     for index in range(len(parameters)):
-        script = script.replace(f"arg{index+1}", str(parameters[index]))
+        script = script.replace(f"arg{index + 1}", str(parameters[index]))
     return script
 
+
 def send(command, parameters=[]):
-    response = rcon_client.send_command(get_command(command, parameters=parameters)).split("\n")
-    print(response)
+    if len(client) == 0:
+        try:
+            rcon_client = factorio_rcon.RCONClient("localhost", 27015, "factorio")
+        except Exception as e:
+            rcon_client = factorio_rcon.RCONClient("localhost", 27015, "default")
+            print("Defaulting password. Something is awry.")
+
+        client.append(rcon_client)
+        response = client[0].send_command(get_command(command, parameters=parameters)).split("\n")
+        print(response)
+
     return response

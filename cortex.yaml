@@ -8,7 +8,7 @@
         env:
           PYTHONUNBUFFERED: "1"
         compute:
-          cpu: 250m
+          cpu: 200m
           mem: 512Mi      #readiness_probe: # periodic probe of container readiness; traffic will not be sent into the pod unless all containers' readiness probes are succeeding (optional)
         #http_get: # specifies an http endpoint which must respond with status code 200 (only one of http_get, tcp_socket, and exec may be specified)
           #port: 8080
