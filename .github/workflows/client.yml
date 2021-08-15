@@ -43,6 +43,7 @@ jobs:
           ECR_REPOSITORY: paperclip-client
           IMAGE_TAG:   latest #${{ github.sha }}
         run: |
-          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG ./client
+          cd client
+          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
           
