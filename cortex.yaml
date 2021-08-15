@@ -23,7 +23,7 @@
         image: 216370203482.dkr.ecr.eu-west-2.amazonaws.com/factorio:latest
         readiness_probe:
           exec:
-            command: ["probe", "27015"]
+            command: ["probe.sh", "27015"]
         liveness_probe:
           exec:
-            command: ["probe", "34197"]
+            command: ["probe.sh", "34197"]

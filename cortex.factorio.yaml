@@ -2,14 +2,12 @@
 - name: factorio-only
   kind: RealtimeAPI
   pod:
-    #port: 27015
     containers:
-      - name: factorio
-        image: 216370203482.dkr.ecr.eu-west-2.amazonaws.com/factorio:latest
-        readiness_probe:
-          tcp_socket:
-            port: 27015
-        liveness_probe:
-          exec:
-            command:
-              - "if (($(echo | lsof -i -P -n | grep 34197 | wc -c) > 0)); then echo 'Running on udp:34197'; exit; fi; echo 'Dead'; exit 1;"
+    - name: factorio-container
+      image: 216370203482.dkr.ecr.eu-west-2.amazonaws.com/factorio:latest
+      readiness_probe:
+        exec:
+          command: [ "probe.sh", "27015" ]
+      liveness_probe:
+        exec:
+          command: [ "probe.sh", "34197" ]
