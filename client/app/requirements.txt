@@ -1,4 +1,4 @@
-# factorio-rcon-py==1.2.1
-# cortex==0.40.0
+factorio-rcon-py==1.2.1
+cortex==0.40.0
 uvicorn[standard]
 fastapi
