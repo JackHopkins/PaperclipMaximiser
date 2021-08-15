@@ -1,4 +1,6 @@
-if (($(echo | lsof -i -P -n | grep $1 | wc -c) > 0)); then
+lines=$(echo | lsof -i -P -n | grep $1 | wc -c)
+
+if [[ $lines -gt 0 ]]; then
   echo 'Running on' $1;
   exit;
 fi;
