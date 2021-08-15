@@ -11,7 +11,7 @@ RUN apt-get update \
 COPY app/requirements.txt /app/requirements.txt
 RUN pip install --no-cache-dir -r /app/requirements.txt
 
-COPY actions /actions
+COPY actions /
 COPY app /app
 WORKDIR /app/
 ENV PYTHONPATH=/app
