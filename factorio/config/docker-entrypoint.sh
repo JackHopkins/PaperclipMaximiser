@@ -15,7 +15,7 @@ mkdir -p "$SCRIPTOUTPUT"
 
 if [[ ! -f $CONFIG/rconpw ]]; then
   # Generate a new RCON password if none exists
-  pwgen 15 1 >"$CONFIG/rconpw"
+  "default" >"$CONFIG/rconpw"
 fi
 
 if [[ ! -f $CONFIG/server-settings.json ]]; then

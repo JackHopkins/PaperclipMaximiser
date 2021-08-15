@@ -7,3 +7,4 @@ docker context use default
 docker build . -t 216370203482.dkr.ecr.eu-west-2.amazonaws.com/factorio
 docker tag factorio 216370203482.dkr.ecr.eu-west-2.amazonaws.com/factorio
 docker push 216370203482.dkr.ecr.eu-west-2.amazonaws.com/factorio
+

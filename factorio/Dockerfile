@@ -45,6 +45,7 @@ COPY config/server-settings.json /opt/factorio/config/server-settings.json
 VOLUME /factorio
 EXPOSE $PORT/udp $RCON_PORT/tcp
 
+RUN ["cat", "/opt/factorio/config/rconpw"]
 RUN ["chmod", "+x", "/docker-entrypoint.sh"]
 
 ENTRYPOINT ["/docker-entrypoint.sh"]
