@@ -91,6 +91,6 @@ def get_command(file, parameters=[]):
 
 def send(command, parameters=[]):
     script = get_command(command, parameters=parameters)
-    response = client[0].send_command(script).split("\n")
+    response = client[0].send_command(script)#.split("\n")
 
     return response
