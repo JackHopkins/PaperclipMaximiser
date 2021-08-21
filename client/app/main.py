@@ -33,11 +33,21 @@ app = FastAPI()
 class Data(BaseModel):
     msg: str
 
+@app.get("/connect")
+def connect():
+    try:
+        rcon_client = factorio_rcon.RCONClient("localhost", 27015, "factorio")
+    except Exception as e:
+        rcon_client = factorio_rcon.RCONClient("localhost", 27015, "default")
+        print("Defaulting password. Something is awry.")
+
+    client.append(rcon_client)
+
+    return PlainTextResponse("ok")
 
 @app.get("/healthz")
 def healthz():
     return PlainTextResponse("ok")
-
 
 @app.post("/msg")
 def handle_post(data: Data):
@@ -63,9 +73,11 @@ def handle_commands():
     give_item = send('give_item', parameters=["iron-plate", 1000])
     count = send('count', parameters=['iron-plate'])
     sanity = send('print')
+    players = send("players")
     return JSONResponse({
         "give": give_item,
         "count": count,
+        "players": players,
         "sanity": sanity
     })
 
@@ -78,18 +90,7 @@ def get_command(file, parameters=[]):
 
 
 def send(command, parameters=[]):
-    if len(client) == 0:
-        try:
-            rcon_client = factorio_rcon.RCONClient("localhost", 27015, "factorio")
-        except Exception as e:
-            rcon_client = factorio_rcon.RCONClient("localhost", 27015, "default")
-            print("Defaulting password. Something is awry.")
-
-        client.append(rcon_client)
-
     script = get_command(command, parameters=parameters)
-    print(script)
-    response = client[0].send_command(script)#.split("\n")
-    print(response)
+    response = client[0].send_command(script).split("\n")
 
     return response

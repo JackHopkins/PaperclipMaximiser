@@ -1,0 +1,1 @@
+rcon.print(game.players)
