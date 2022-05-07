@@ -8,6 +8,9 @@ load_dotenv()
 
 factorio_client = FactorioClient(remote_address=os.getenv("REMOTE_ADDRESS"), remote_password="eSei2keed0aegai")
 
+def give(entity:str, count: int) -> bool:
+    factorio_client.send('give_item', '1', entity, count)
+
 
 def interact(x: int, y: int) -> bool:
     """
@@ -25,7 +28,7 @@ def interact(x: int, y: int) -> bool:
     return True
 
 
-def fuel(x: int, y: int, amount=5) -> int:
+def fuel(amount=5, x: int = 0, y: int = 0) -> int:
     """
     If there is an entity at local position (x, y) that accepts a resource, the agent
     adds a default amount of resource to the entity. If there is no entity at (x, y), this action
@@ -35,7 +38,7 @@ def fuel(x: int, y: int, amount=5) -> int:
     :param amount: Amount of fuel to attempt to deposit
     :return: Amount of fuel deposited
     """
-    factorio_client.send('fuel', x, y, amount)
+    factorio_client.send('fuel', '1', 'coal', amount)
 
     return True
 
