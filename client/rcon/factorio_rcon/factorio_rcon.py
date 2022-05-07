@@ -420,7 +420,7 @@ class AsyncRCONClient(RCONSharedBase):
         """
         packet = PACKET_PARSER.build([dict(id=packet_id, type=packet_type, body=packet_body)])
         try:
-            await self.rcon_socket.send(packet)
+            await self.rcon_socket.execute_script(packet)
         except Exception as exc:
             raise RCONSendError(SEND_ERROR) from exc
 

@@ -40,7 +40,7 @@ def fuel(x: int, y: int, amount=5) -> int:
     return True
 
 
-def place(x: int, y: int, entity: str, direction: int) -> bool:
+def place(entity: str, direction: int, x: int = 0, y: int = 0) -> bool:
     """
     The agent places an entity e at local position (x, y) if the agent has
     enough resources. If the agent chooses to place an empty entity at (x, y), any entity at
@@ -52,7 +52,8 @@ def place(x: int, y: int, entity: str, direction: int) -> bool:
     :param direction: Cardinal direction to place entity
     :return: True if action carried out, False if no-op
     """
-    factorio_client.send('place', x, y, entity, direction)
+    cardinals = ['north', 'south', 'east', 'west']
+    print(factorio_client.send('place', '1', entity, cardinals[direction]))
 
     return True
 
@@ -78,6 +79,9 @@ def move(direction: int) -> bool:
     :param direction: Index between (0,3) inclusive.
     :return: Whether the movement was carried out.
     """
-    factorio_client.send('move', direction)
+    cardinals = ['north', 'south', 'east', 'west']
+
+    factorio_client.send('move', '1', cardinals[direction], 'true')
+    factorio_client.send('move', '1', cardinals[direction], 'false')
 
     return True
