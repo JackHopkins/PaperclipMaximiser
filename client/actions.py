@@ -1,4 +1,5 @@
 import os
+import time
 
 from dotenv import load_dotenv
 
@@ -7,12 +8,13 @@ from client.factorio_client import FactorioClient
 load_dotenv()
 
 factorio_client = FactorioClient(remote_address=os.getenv("REMOTE_ADDRESS"), remote_password="eSei2keed0aegai")
+#factorio_client.send('build_checkerboard', '1')
 
 def give(entity:str, count: int) -> bool:
     factorio_client.send('give_item', '1', entity, count)
 
 
-def interact(x: int, y: int) -> bool:
+def interact(x: int=0, y: int=0 ) -> bool:
     """
     If there is an entity at local position (x, y), this action triggers an
     interaction as follows: If the item can be picked up, the agent picks up the item. If the
@@ -23,8 +25,8 @@ def interact(x: int, y: int) -> bool:
     :param y: Y position relative to the agent as the origin (0).
     :return: True if an action happened, False if no-op.
     """
-    factorio_client.send('interact', x, y)
-
+    factorio_client.send('interact', '1')# x, y)
+    time.sleep(0.2)
     return True
 
 

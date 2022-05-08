@@ -5,7 +5,7 @@ local fuel_count = arg3
 
 
 local position = player.position
-local surface=player.surface
+local surface = player.surface
 
 function abort (message)
     rcon.print(message)
