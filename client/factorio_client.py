@@ -43,7 +43,7 @@ class FactorioClient:
         prefix = "/c " if not measured else '/command '
         script = prefix + self.script_dict[file]
         for index in range(len(parameters)):
-            script = script.replace(f"arg{index + 1}", str(parameters[index]))
+            script = script.replace(f"arg{index + 1}", lua.encode(parameters[index]))
 
         return script
 

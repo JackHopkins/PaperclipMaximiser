@@ -13,7 +13,7 @@ from client.utils import stitch
 
 load_dotenv()
 
-PLAYER = '1'
+PLAYER = 1
 NONE = 'nil'
 CHUNK_SIZE = 32
 MAX_SAMPLES = 5000
@@ -53,13 +53,13 @@ class Factorio:
 
     def initialise(self, **kwargs):
         # items, _ = factorio_client.send('get_item_vocabulary')
-        self.factorio_client.send('initialise')
+        self.factorio_client.send('initialise', PLAYER)
         self.factorio_client.send('new_world', PLAYER)
         self.factorio_client.send('clear_inventory', PLAYER)
         self.factorio_client.send('reset_position', PLAYER, 0, 0)
 
         for entity, count in kwargs.items():
-            self.factorio_client.send('give_item', PLAYER, entity.replace("_", "-"), count)
+            self.factorio_client.send('give_item', PLAYER, entity, count)
 
         self.observe_local(trace=True)
 
@@ -128,6 +128,22 @@ class Factorio:
 
         return True
 
+    def observe(self):
+        chunk_x, chunk_y, index_x, index_y = self._sample_chunk()
+        movement_field_x, movement_field_y = self.movement_vector[0], self.movement_vector[1]
+
+        response, execution_time = self.factorio_client.send('observe',
+                                                             PLAYER,
+                                                             chunk_x,
+                                                             chunk_y,
+                                                             self.bounding_box,
+                                                             movement_field_x,
+                                                             movement_field_y,
+                                                             200,
+                                                             True
+                                                             )
+        return response, execution_time
+
     def observe_statistics(self):
         """
         At each time t, statistics on the factory are returned
@@ -164,6 +180,18 @@ class Factorio:
 
         return int(x), int(y), int(index_x), int(index_y)
 
+    def _index_chunk(self, chunk_map, index_x, index_y):
+        if not chunk_map:
+            raise Exception("Anonymous error from the server")
+
+        if index_x >= self.minimap_bounding_box or index_y >= self.minimap_bounding_box or index_x < 0 or index_y < 0:
+            return 0
+        for type, count in chunk_map.items():
+            if count == 0:
+                continue
+            self.minimaps[type][index_x, index_y] = count
+        return chunk_map
+
     def observe_chunk(self):
         """
         At each time t, the agent receives a downsampled version of the full environment, as chunks of
@@ -176,20 +204,8 @@ class Factorio:
 
         chunk_map, lua_execution_time = self.factorio_client.send('observe_chunk', PLAYER, chunk_x, chunk_y)
 
-        if not chunk_map:
-            raise Exception("Anonymous error from the server")
+        self._index_chunk(chunk_map, index_x, index_y)
 
-        if index_x >= self.minimap_bounding_box or index_y >= self.minimap_bounding_box or index_x < 0 or index_y < 0:
-            return 0, lua_execution_time, timer() - start
-        for type, count in chunk_map.items():
-            if count == 0:
-                continue
-            self.minimaps[type][index_x, index_y] = count
-            # self.minimaps[type][x, y] = count
-        # for key, map in self.minimaps.items():
-        #    x = chunk_map['pos']['x']
-        #    y = chunk_map['pos']['x']
-        #    for type, count in
         end = timer()
         return chunk_map, lua_execution_time, end - start
 
@@ -198,9 +214,9 @@ class Factorio:
         At each time t, the agent receives all entities in the agent’s inventory.
         :return:
         """
-        return self.factorio_client.send('get_inventory', PLAYER)
+        return self.factorio_client.send('observe_inventory', PLAYER)
 
-    def observe_buildable(self):
+    def observe_buildable(self, trace=False):
         """
         At each time t, the agent receives all entities in the agent’s inventory.
 
@@ -208,8 +224,9 @@ class Factorio:
         and those that can be built (with zero quantity).
         :return:
         """
+        return self.factorio_client.send('observe_buildable', PLAYER, trace=trace)
 
-    def observe_local(self, trace=True):
+    def observe_local(self, trace=False):
         """
         At each time t, the agent receives all entities in a 100 × 100 grid centered on the agent’s position p. Each entity type is
         represented by a unique integer index.
@@ -217,7 +234,8 @@ class Factorio:
         """
         new_field_x, new_field_y = self.movement_vector[0], self.movement_vector[1]
 
-        local_environment_sparse, execution_time = self.factorio_client.send('observe_local', PLAYER, self.bounding_box,
+        local_environment_sparse, execution_time = self.factorio_client.send('observe_local', PLAYER,
+                                                                             self.bounding_box,
                                                                              new_field_x,
                                                                              new_field_y, lua.encode(trace), trace)
         # local_environment_sparse = response['localEnvironment']
@@ -282,4 +300,4 @@ class Factorio:
             self.last_direction = direction
             self.movement_vector = (
                 self.player_location[0] - self.last_location[0], self.player_location[1] - self.last_location[1])
-        return new_position
+        return new_position, execution_time

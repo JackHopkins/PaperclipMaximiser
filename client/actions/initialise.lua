@@ -1,3 +1,14 @@
+local player = game.players[arg1]
+
+player.game_view_settings.show_controller_gui = false
+player.game_view_settings.show_minimap = false
+player.game_view_settings.show_side_menu = false
+player.game_view_settings.show_quickbar = false
+player.game_view_settings.show_shortcut_bar = false
+player.game_view_settings.show_map_view_options = false
+player.game_view_settings.show_shortcut_bar = false
+
+
 global.points_of_interest = {}
 global.distances_to_nearest = {}
 global.interesting_entities = {
@@ -32,7 +43,7 @@ function observe_points_of_interest (surface, player, search_radius)
         iron=global.nearest_iron
     }
     rcon.print(1)
-    return dump(global.points_of_interest)
+    return serpent.line(global.points_of_interest)
 end
 
 function get_local_environment (player,  surface, localBoundingBox, field_x, field_y, debug)
@@ -73,15 +84,34 @@ function get_local_environment (player,  surface, localBoundingBox, field_x, fie
         local x_pos = left-entity.position.x
         local y_pos = top-entity.position.y
         local name = entity.name
-        rcon.print(x_pos .. ", " .. y_pos .. ": " .. name)
-        rcon.print(x_pos*(top-bottom)+ y_pos .. ": ".. name)
         mt[math.floor(x_pos*(top-bottom) + y_pos)] = name:gsub("-", "_")
         set_points_of_interest(player, name, 1, x_pos, y_pos)
-
     end
 
     rcon.print(1)
-    return dump(mt)
+    return serpent.line(mt)
+end
+
+function observe_statistics (player)
+    performance = {
+        item = {
+            input_counts=player.force.item_production_statistics.input_counts,
+            output_counts=player.force.item_production_statistics.output_counts
+        },
+        fluid = {
+            input_counts=player.force.fluid_production_statistics.input_counts,
+            output_counts=player.force.fluid_production_statistics.output_counts
+        },
+        kills = {
+            input_counts=player.force.kill_count_statistics.input_counts,
+            output_counts=player.force.kill_count_statistics.output_counts
+        },
+        built = {
+            input_counts=player.force.entity_build_count_statistics.input_counts,
+            output_counts=player.force.entity_build_count_statistics.output_counts
+        }
+    }
+    return serpent.line(performance)
 end
 
 function observe_chunk(player, surface, chunk_x, chunk_y)
@@ -114,10 +144,29 @@ function observe_chunk(player, surface, chunk_x, chunk_y)
     end
 
     rcon.print(1)
-    return dump(counts)
+    return serpent.line(counts)
 end
 
-
+function observe_buildable (player, inventory)
+    local recipes = {}
+    for field_name, recipe in pairs(player.force.recipes) do
+        local name = field_name:gsub("-", "_")
+        local can_build = 0
+        for i, ingredient in pairs(recipe.ingredients) do
+            if inventory[ingredient.name] ~= nil then
+                local max_build = inventory[ingredient.name] / ingredient.amount
+                can_build = math.floor(max_build)
+            else
+                can_build = 0
+                break
+            end
+        end
+        if can_build ~= 0 then
+            recipes[name] = can_build
+        end
+    end
+    return serpent.line(recipes)
+end
 
 function dump(o)
    if type(o) == 'table' then

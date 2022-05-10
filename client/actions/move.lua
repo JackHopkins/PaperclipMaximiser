@@ -4,7 +4,7 @@ local player = game.players[arg1]
 local surface = player.surface
 local direction = cardinals[arg2+1]
 local teleport_direction = teleport_offsets[arg2+1]
-local trailing_entity = 'arg3'
+local trailing_entity = arg3
 local trailing_position_x = arg4
 local trailing_position_y = arg5
 
@@ -15,9 +15,9 @@ function place (to_position)
 
     if can_place == true then
 
-        local count = player.get_item_count('arg3')
+        local count = player.get_item_count(arg3)
         if count == 0 then
-            rcon.print("No arg3 in the inventory")
+            rcon.print("No ".. trailing_entity .." in the inventory")
             rcon.print(0)
             return
         end
@@ -25,11 +25,11 @@ function place (to_position)
         local created = surface.create_entity{name=trailing_entity, position=place_position, direction=direction, force='player', player=player, build_check_type=defines.build_check_type.manual, fast_replace=true}
 
         if created ~= nil then
-            player.remove_item({name="arg3", count=1})
+            player.remove_item({name=arg3, count=1})
         end
 
     else
-        rcon.print("Cannot place arg3")
+        rcon.print("Cannot place " ..trailing_entity)
         rcon.print(0)
         return
     end
