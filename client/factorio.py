@@ -47,23 +47,13 @@ class Factorio:
 
     def _initialise_minimaps(self):
         bounding_box = self.minimap_bounding_box
-        return {
-            'all': zeros((bounding_box, bounding_box)),
-            'factory': zeros((bounding_box, bounding_box)),
-            'water': zeros((bounding_box, bounding_box)),
-            'iron-ore': zeros((bounding_box, bounding_box)),
-            'uranium-ore': zeros((bounding_box, bounding_box)),
-            'coal': zeros((bounding_box, bounding_box)),
-            'stone': zeros((bounding_box, bounding_box)),
-            'copper-ore': zeros((bounding_box, bounding_box)),
-            'crude-oil': zeros((bounding_box, bounding_box)),
-            'trees': zeros((bounding_box, bounding_box)),
-            # Electricity
-            # Pollution
-        }
+        fields = ['all', 'enemy', 'pollution', 'factory', 'water', 'iron-ore', 'uranium-ore', 'coal', 'stone', 'copper-ore', 'crude-oil', 'trees']
+        minimaps = {field: zeros((bounding_box, bounding_box)) for field in fields}
+        return minimaps
 
     def initialise(self, **kwargs):
         # items, _ = factorio_client.send('get_item_vocabulary')
+        self.factorio_client.send('initialise')
         self.factorio_client.send('new_world', PLAYER)
         self.factorio_client.send('clear_inventory', PLAYER)
         self.factorio_client.send('reset_position', PLAYER, 0, 0)
@@ -139,6 +129,10 @@ class Factorio:
         return True
 
     def observe_statistics(self):
+        """
+        At each time t, statistics on the factory are returned
+        :return:
+        """
         response, execution_time = self.factorio_client.send('observe_performance', PLAYER)
         return response, execution_time
 
@@ -147,13 +141,14 @@ class Factorio:
         At each time t, the agent receives the agent’s current absolute position p.
         :return:
         """
-        return
+        return self.factorio_client.send('observe_position', PLAYER)
 
     def observe_nearest_points_of_interest(self):
         """
-        At each time t, the agent receives the agent’s current absolute position p.
+        At each time t, the agent receives the positions of the nearest points of interest.
         :return:
         """
+        return self.factorio_client.send('observe_points_of_interest', PLAYER, 200)
 
     def _sample_chunk_from_normal(self, player_offset):
         normal = self.minimap_normal[self.chunk_cursor % MAX_SAMPLES]
@@ -181,6 +176,9 @@ class Factorio:
 
         chunk_map, lua_execution_time = self.factorio_client.send('observe_chunk', PLAYER, chunk_x, chunk_y)
 
+        if not chunk_map:
+            raise Exception("Anonymous error from the server")
+
         if index_x >= self.minimap_bounding_box or index_y >= self.minimap_bounding_box or index_x < 0 or index_y < 0:
             return 0, lua_execution_time, timer() - start
         for type, count in chunk_map.items():
@@ -200,6 +198,7 @@ class Factorio:
         At each time t, the agent receives all entities in the agent’s inventory.
         :return:
         """
+        return self.factorio_client.send('get_inventory', PLAYER)
 
     def observe_buildable(self):
         """
@@ -220,7 +219,7 @@ class Factorio:
 
         local_environment_sparse, execution_time = self.factorio_client.send('observe_local', PLAYER, self.bounding_box,
                                                                              new_field_x,
-                                                                             new_field_y, lua.encode(trace), trace=True)
+                                                                             new_field_y, lua.encode(trace), trace)
         # local_environment_sparse = response['localEnvironment']
 
         range_x = math.floor(new_field_x) if new_field_x else self.bounding_box
