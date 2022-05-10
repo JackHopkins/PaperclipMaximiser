@@ -41,8 +41,6 @@ function getLocalEnvironment ()
     local left = player.position.x-localBoundingBox/2
     local bottom = player.position.y+localBoundingBox/2
     local right = player.position.x+localBoundingBox/2
-    --field_x = field_x * -1
-    --field_y = field_y * -1
 
     if field_x > 0 then
         right = right + field_x

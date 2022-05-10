@@ -17,6 +17,8 @@ PLAYER = '1'
 NONE = 'nil'
 CHUNK_SIZE = 32
 MAX_SAMPLES = 5000
+
+
 class Factorio:
 
     def __init__(self, bounding_box=100):
@@ -34,12 +36,11 @@ class Factorio:
         self.last_direction = -1
         self.bounding_box = bounding_box
 
-
         self.grid_world = zeros((bounding_box, bounding_box))
 
-        self.minimap_bounding_box = bounding_box*4
+        self.minimap_bounding_box = bounding_box * 4
 
-        mu, sigma = 0, CHUNK_SIZE*20
+        mu, sigma = 0, CHUNK_SIZE * 20
         self.minimap_normal = s = np.random.normal(mu, sigma, MAX_SAMPLES)
         self.chunk_cursor = 0
         self.minimaps = self._initialise_minimaps()
@@ -137,6 +138,10 @@ class Factorio:
 
         return True
 
+    def observe_statistics(self):
+        response, execution_time = self.factorio_client.send('observe_performance', PLAYER)
+        return response, execution_time
+
     def observe_position(self):
         """
         At each time t, the agent receives the agent’s current absolute position p.
@@ -171,24 +176,24 @@ class Factorio:
         :return:
         """
         start = timer()
-        chunk_x, chunk_y, index_x, index_y = self._sample_chunk()#random.randrange(-50, -5) #int(chunk_map['pos']['x'] + self.minimap_bounding_box/2)
-        #int(chunk_map['pos']['y'] + self.minimap_bounding_box/2)
+        chunk_x, chunk_y, index_x, index_y = self._sample_chunk()  # random.randrange(-50, -5) #int(chunk_map['pos']['x'] + self.minimap_bounding_box/2)
+        # int(chunk_map['pos']['y'] + self.minimap_bounding_box/2)
 
         chunk_map, lua_execution_time = self.factorio_client.send('observe_chunk', PLAYER, chunk_x, chunk_y)
 
         if index_x >= self.minimap_bounding_box or index_y >= self.minimap_bounding_box or index_x < 0 or index_y < 0:
-            return 0, lua_execution_time, timer()-start
-        for type, count in chunk_map['counts'].items():
+            return 0, lua_execution_time, timer() - start
+        for type, count in chunk_map.items():
             if count == 0:
                 continue
             self.minimaps[type][index_x, index_y] = count
-            #self.minimaps[type][x, y] = count
-        #for key, map in self.minimaps.items():
+            # self.minimaps[type][x, y] = count
+        # for key, map in self.minimaps.items():
         #    x = chunk_map['pos']['x']
         #    y = chunk_map['pos']['x']
         #    for type, count in
         end = timer()
-        return chunk_map, lua_execution_time, end-start
+        return chunk_map, lua_execution_time, end - start
 
     def observe_inventory(self):
         """
@@ -213,9 +218,10 @@ class Factorio:
         """
         new_field_x, new_field_y = self.movement_vector[0], self.movement_vector[1]
 
-        local_environment_sparse, execution_time = self.factorio_client.send('observe_local', PLAYER, self.bounding_box, new_field_x,
-                                                             new_field_y, lua.encode(trace), trace=True)
-        #local_environment_sparse = response['localEnvironment']
+        local_environment_sparse, execution_time = self.factorio_client.send('observe_local', PLAYER, self.bounding_box,
+                                                                             new_field_x,
+                                                                             new_field_y, lua.encode(trace), trace=True)
+        # local_environment_sparse = response['localEnvironment']
 
         range_x = math.floor(new_field_x) if new_field_x else self.bounding_box
         range_y = math.floor(abs(new_field_y)) if new_field_y else self.bounding_box
@@ -252,7 +258,6 @@ class Factorio:
 
         return np.array(local_environment_dense), diff
 
-
     def move(self, direction: int) -> bool:
         """
         The agent moves in a cardinal direction.
@@ -277,5 +282,5 @@ class Factorio:
             self.player_location = (new_position['x'], new_position['y'])
             self.last_direction = direction
             self.movement_vector = (
-            self.player_location[0] - self.last_location[0], self.player_location[1] - self.last_location[1])
+                self.player_location[0] - self.last_location[0], self.player_location[1] - self.last_location[1])
         return new_position
