@@ -3,9 +3,12 @@ from glob import glob
 from itertools import chain
 from pathlib import Path
 from typing import List
+
+import luadata
+
 from rcon import factorio_rcon
 from timeit import default_timer as timer
-
+from slpp import slpp as lua
 
 class FactorioClient:
 
@@ -44,15 +47,26 @@ class FactorioClient:
 
         return script
 
-    def send(self, command, *parameters) -> List[str]:
+    def send(self, command, *parameters, trace=False) -> List[str]:
         script = self._get_command(command, parameters=list(parameters), measured=False)
         start = timer()
         response = self.rcon_client.send_command(script)
-        print(command, parameters, response)
+
+        #print(command, parameters, response)
         if response:
             end = timer()
             diff = (end - start)
-            return response.split("\n"), diff
+            splitted = response.split("\n")
+            output = lua.decode(splitted[-1])
+
+            ##output = luadata.unserialize(splitted[-1], encoding="utf-8", multival=False)
+
+            if trace:
+                print("{hbar}\nCOMMAND: {command}\nPARAMETERS: {parameters}\n\n{response}\n\nOUTPUT:{output}"
+                      .format(hbar="-"*100, command=command, parameters=parameters, response=response, output=output))
+
+                # Only the last transmission is considered the output - the rest are just messages
+            return output, diff
         end = timer()
         diff = (end - start)
-        return response, diff
+        return lua.decode(response) , diff

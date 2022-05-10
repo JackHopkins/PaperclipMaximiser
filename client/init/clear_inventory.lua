@@ -1,1 +1,1 @@
-game.player[arg1].clear_items_inside()
+game.players[arg1].clear_items_inside()

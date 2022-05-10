@@ -15,9 +15,9 @@ mineable_entities = surface.find_entities_filtered{position=player.position, rad
 harvest(mineable_entities)
 
 -- Attempt to harvest trees
-tree_entities = surface.find_entities_filtered{position=player.position, radius=2, type = "tree"}
+tree_entities = surface.find_entities_filtered{position=player.position, radius=1, type = "tree"}
 harvest(mineable_entities)
 
 -- Attempt to pick up
-player_entities = surface.find_entities_filtered{position=player.position, radius=2, force = "player"}
+player_entities = surface.find_entities_filtered{position=player.position, radius=1, force = "player"}
 harvest(player_entities)
