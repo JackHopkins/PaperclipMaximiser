@@ -14,6 +14,7 @@ local player = game.players[arg1]
 
 global.points_of_interest = {}
 global.distances_to_nearest = {}
+global.relative_points_of_interest = {}
 global.interesting_entities = {
     ['enemy']=true,
     ['trees']=true,
@@ -46,14 +47,14 @@ function observe_points_of_interest (surface, player, search_radius)
     end
 
     for k, v in pairs(global.points_of_interest) do
-        global.points_of_interest[k] = {
+        global.relative_points_of_interest[k] = {
             x=v.x-player.position.x,
             y=v.y-player.position.y
         }
     end
 
     rcon.print(1)
-    return dump(global.points_of_interest)
+    return dump(global.relative_points_of_interest)
 end
 
 function get_local_environment (player, surface, localBoundingBox, field_x, field_y, debug)
@@ -210,14 +211,14 @@ function set_points_of_interest (player, field, count, chunk_x, chunk_y)
     if count > 0 and global.interesting_entities[field] then
         x_distance = (chunk_x*32 - player.position.x) * (chunk_x*32 - player.position.x)
         y_distance = (chunk_y*32 - player.position.y) * (chunk_y*32 - player.position.y)
-        distance = math.sqrt(x_distance, y_distance)
+        distance_square = x_distance + y_distance
 
         if global.distances_to_nearest[field] == nil then
             global.distances_to_nearest[field] = 100000
         end
 
-        if global.distances_to_nearest[field] > distance then
-            global.distances_to_nearest[field] = distance
+        if global.distances_to_nearest[field] > distance_square then
+            global.distances_to_nearest[field] = math.sqrt(distance_square) --only compute expensive sqrt when necessary
             global.points_of_interest[field] = {x=chunk_x*32, y=chunk_y*32}
         end
     end

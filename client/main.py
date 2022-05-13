@@ -75,14 +75,15 @@ async def compute(instance: FactorioInstance):
     print(val)
 
 async def main():
-
-    factorio_pool = FactorioPool(4, 64, 27015)
+    servers = 1
+    factorio_pool = FactorioPool(servers, 64, 27017)
     await factorio_pool.connect()
     await factorio_pool.initialise(iron_ore=20)
     iterations = 1000
     time = timer()
     for i in range(iterations):
         await factorio_pool.act('move', 2)
+        await factorio_pool.observe()
         #[tg.start_soon(instance.move, 1) for instance in factorio_pool.instances]
 
     end = (timer() - time)

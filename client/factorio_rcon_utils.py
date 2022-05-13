@@ -28,7 +28,7 @@ def _load_init():
 
 
 
-async def _process(command, response, *parameters, trace=False, start=0):
+async def _lua2python(command, response, *parameters, trace=False, start=0):
     if trace:
         print(command, parameters, response)
     if response:

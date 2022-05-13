@@ -18,6 +18,7 @@ function observe ()
 
     if include['points_of_interest'] == nil or include['points_of_interest'] then
         response['points_of_interest'] = observe_points_of_interest(surface, player, search_radius)
+        response['distance_to_points_of_interest'] = global.distances_to_nearest
     end
 
     if include['local_environment'] == nil or include['local_environment'] then
@@ -43,6 +44,7 @@ function observe ()
     return dump(response)
 end
 
+
 --rcon.print(observe())
 local status, response = pcall(observe)
 
@@ -51,4 +53,5 @@ if status ~= true then
 else
     rcon.print(dump(response))
 end
+
 --serpent.line(response)

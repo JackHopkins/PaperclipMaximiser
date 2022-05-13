@@ -9,7 +9,7 @@ from dotenv import load_dotenv
 from numpy import ndarray, zeros
 from slpp import slpp as lua
 
-from client.factorio_rcon_utils import _load_actions, _load_init, _process
+from client.factorio_rcon_utils import _load_actions, _load_init, _lua2python
 from factorio_rcon import AsyncRCONClient
 from client.utils import stitch
 
@@ -23,12 +23,7 @@ MAX_SAMPLES = 5000
 
 class FactorioInstance:
 
-    def __init__(self, address, bounding_box=100, tcp_port=27015):
-        self.tcp_port = tcp_port
-        # eSei2keed0aegai
-        #
-        # self.factorio_client = FactorioRCONClient(address='localhost', remote_password="factorio", tcp_port=tcp_port)
-
+    def __init__(self, address, update_vocabulary, bounding_box=100, tcp_port=27015):
         self.tcp_port = tcp_port
         try:
             self.rcon_client = AsyncRCONClient(address, tcp_port, 'factorio')
@@ -43,8 +38,7 @@ class FactorioInstance:
             "trail_on": False,
             "trail_entity": None
         }
-        self.vocabulary = {}
-        self.vocabulary_state = {"index": 0}
+        self.update_vocabulary = update_vocabulary
         self.player_location = (0, 0)
         self.last_location = (0, 0)
         self.movement_vector = (0, 0)
@@ -78,15 +72,13 @@ class FactorioInstance:
 
     async def _send(self, command, *parameters, trace=False) -> List[str]:
         script = await self._get_command(command, parameters=list(parameters), measured=False)
-        response = await self.rcon_client.send_command(script)
-        return await _process(command, response)
+        lua_response = await self.rcon_client.send_command(script)
+        return await _lua2python(command, lua_response)
 
     async def connect(self):
         try:
             await self.rcon_client.connect()
-
             player_exists, time_elapsed = await self._send('/c rcon.print(game.players[1].position)', PLAYER)
-
             if not player_exists:
                 raise Exception(
                     "Player hasn't been initialised into the game. Please log in once to make this node operational.")
@@ -106,7 +98,11 @@ class FactorioInstance:
         for entity, count in kwargs.items():
             await self._send('give_item', PLAYER, entity, count)
 
-        response = self.observe(trace=True)
+        results = {}
+        try:
+            await self.observe(results, trace=True)
+        except Exception as e:
+            print(e)
 
         return
 
@@ -175,7 +171,7 @@ class FactorioInstance:
 
         return True
 
-    async def observe(self, trace=False, **kwargs):
+    async def observe(self, result, trace=False, **kwargs):
         """
 
         -Chunks: At each time t, the agent receives details of a chunks of 32 x 32 tiles sampled from the environment.
@@ -195,7 +191,7 @@ class FactorioInstance:
         chunk_x, chunk_y, index_x, index_y = self._sample_chunk()
         movement_field_x, movement_field_y = self.movement_vector[0], self.movement_vector[1]
         omit = kwargs
-
+        results = ()
         response, execution_time = await self._send('observe',
                                                     PLAYER,
                                                     chunk_x,
@@ -207,6 +203,7 @@ class FactorioInstance:
                                                     trace,
                                                     omit
                                                     )
+
         if not response:
             pass
 
@@ -214,9 +211,11 @@ class FactorioInstance:
             self._index_chunk(response['chunk'], index_x, index_y)
 
         if 'local_environment' in response:
-            self._convert_sparse_local_into_gridworld(response['local_environment'], movement_field_x, movement_field_y)
+            await self._convert_sparse_local_into_gridworld(response['local_environment'], movement_field_x,
+                                                            movement_field_y)
 
-        return response, execution_time
+        result['response'] = response
+        result['execution_time'] = execution_time
 
     async def observe_statistics(self):
         """
@@ -244,7 +243,7 @@ class FactorioInstance:
         range_x = math.floor(new_field_x) if new_field_x else self.bounding_box
         range_y = math.floor(abs(new_field_y)) if new_field_y else self.bounding_box
 
-        local_environment_dense, elapsed = self._get_dense_environment(range_x, range_y, local_environment_sparse)
+        local_environment_dense, elapsed = await self._get_dense_environment(range_x, range_y, local_environment_sparse)
 
         if new_field_y and not new_field_x:
             local_environment_2d: ndarray = np.reshape(local_environment_dense, (-1, range_x))
@@ -289,10 +288,8 @@ class FactorioInstance:
                 index = x * range_y + y
                 try:
                     item = local_environment_sparse[index]  # .replace("_", "-")
-                    if item not in self.vocabulary.keys():
-                        self.vocabulary[item] = self.vocabulary_state["index"]
-                        self.vocabulary_state["index"] += 1
-                    local_environment_dense.append(self.vocabulary[item])
+                    item_index = self.update_vocabulary(item)
+                    local_environment_dense.append(item_index)
                 except Exception as e:
                     local_environment_dense.append(-1)
         end = timer()
@@ -306,7 +303,7 @@ class FactorioInstance:
                                 direction,
                                 self.trail_state['trail_entity'])
 
-    async def move(self, direction: int) -> bool:
+    async def move(self, results: dict, direction: int) -> bool:
         """
         The agent moves in a cardinal direction.
         :param direction: Index between (0,3) inclusive.
@@ -332,4 +329,7 @@ class FactorioInstance:
             self.last_direction = direction
             self.movement_vector = (self.player_location[0] - self.last_location[0],
                                     self.player_location[1] - self.last_location[1])
-        return new_position, execution_time
+
+        results['new_position'] = new_position
+        results['execution_time'] = execution_time
+        # return new_position, execution_time
