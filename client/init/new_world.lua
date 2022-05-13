@@ -1,4 +1,5 @@
 local player = game.players[arg1]
+local surface = player.surface;
 
 local function generate_new_world( player )
 
@@ -172,9 +173,8 @@ end
 
 player.surface.destroy_decoratives({})
 player.force.clear_chart()
+player.force.cancel_charting(surface);
 
-local surface = player.surface;
-game.player.force.cancel_charting(surface);
 local chunk_radius = 0;
 for chunk in surface.get_chunks() do
   if (chunk.x < -chunk_radius or chunk.x > chunk_radius or chunk.y < -chunk_radius or chunk.y > chunk_radius) then

@@ -1,13 +1,16 @@
+--Initialise.lua
 local player = game.players[arg1]
+--local position = player.position
 
-player.game_view_settings.show_controller_gui = false
-player.game_view_settings.show_minimap = false
-player.game_view_settings.show_side_menu = false
-player.game_view_settings.show_quickbar = false
-player.game_view_settings.show_shortcut_bar = false
-player.game_view_settings.show_map_view_options = false
-player.game_view_settings.show_shortcut_bar = false
+--player.game_view_settings.show_controller_gui = false
+--player.game_view_settings.show_minimap = false
+--player.game_view_settings.show_side_menu = false
+--player.game_view_settings.show_quickbar = false
+--player.game_view_settings.show_shortcut_bar = false
+--player.game_view_settings.show_map_view_options = false
+--player.game_view_settings.show_shortcut_bar = false
 
+--player.character=nil
 
 global.points_of_interest = {}
 global.distances_to_nearest = {}
@@ -37,16 +40,23 @@ function create_beam_bounding_box (player, surface, direction, top_left, bottom_
 end
 
 function observe_points_of_interest (surface, player, search_radius)
-    nearest_enemy = surface.find_nearest_enemy{position=player.position, max_distance=search_radius}
-    points_of_interest = {
-        enemy=nearest_enemy.position,
-        iron=global.nearest_iron
-    }
+    local enemy = surface.find_nearest_enemy{position=player.position, max_distance=search_radius}
+    if enemy ~= nil then
+        global.points_of_interest['enemy'] = enemy.position
+    end
+
+    for k, v in pairs(global.points_of_interest) do
+        global.points_of_interest[k] = {
+            x=v.x-player.position.x,
+            y=v.y-player.position.y
+        }
+    end
+
     rcon.print(1)
-    return serpent.line(global.points_of_interest)
+    return dump(global.points_of_interest)
 end
 
-function get_local_environment (player,  surface, localBoundingBox, field_x, field_y, debug)
+function get_local_environment (player, surface, localBoundingBox, field_x, field_y, debug)
 
     local top = player.position.y-localBoundingBox/2
     local left = player.position.x-localBoundingBox/2
@@ -81,15 +91,18 @@ function get_local_environment (player,  surface, localBoundingBox, field_x, fie
 
     mt = {}          -- create the matrix
     for i,entity in pairs(entities) do
-        local x_pos = left-entity.position.x
-        local y_pos = top-entity.position.y
-        local name = entity.name
-        mt[math.floor(x_pos*(top-bottom) + y_pos)] = name:gsub("-", "_")
-        set_points_of_interest(player, name, 1, x_pos, y_pos)
+
+            local x_pos = left-entity.position.x
+            local y_pos = top-entity.position.y
+            local name = entity.name
+
+            mt[math.floor(x_pos*(top-bottom) + y_pos)] = name:gsub("-", "_")
+            set_points_of_interest(player, name, 1, x_pos, y_pos)
+
     end
 
     rcon.print(1)
-    return serpent.line(mt)
+    return mt
 end
 
 function observe_statistics (player)
@@ -111,7 +124,15 @@ function observe_statistics (player)
             output_counts=player.force.entity_build_count_statistics.output_counts
         }
     }
-    return serpent.line(performance)
+    return performance
+end
+
+function clean_nils(t)
+  local ans = {}
+  for _,v in pairs(t) do
+    ans[ #ans+1 ] = v
+  end
+  return ans
 end
 
 function observe_chunk(player, surface, chunk_x, chunk_y)
@@ -140,11 +161,15 @@ function observe_chunk(player, surface, chunk_x, chunk_y)
     counts['crude-oil'] = surface.count_entities_filtered{area=chunk_area, name = "crude-oil"}
 
     for field_name, count in pairs(counts) do
+        --if count ~= 0 then
         set_points_of_interest(player, field_name, count, chunk_x, chunk_y)
+        --else
+            --table.remove(counts, field_name)
+        --end
     end
 
     rcon.print(1)
-    return serpent.line(counts)
+    return counts
 end
 
 function observe_buildable (player, inventory)
@@ -197,3 +222,5 @@ function set_points_of_interest (player, field, count, chunk_x, chunk_y)
         end
     end
 end
+
+rcon.print(1)

@@ -6,4 +6,4 @@ COPY config /factorio/config
 
 COPY mods factorio/mods
 
-RUN ["chmod", "+x", "/docker-entrypoint.sh"]
+RUN ["chmod", "+x", "/scenario.sh"]
