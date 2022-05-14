@@ -23,7 +23,7 @@ MAX_SAMPLES = 5000
 
 class FactorioInstance:
 
-    def __init__(self, address, update_vocabulary, bounding_box=100, tcp_port=27015):
+    def __init__(self, address, update_vocabulary, get_vocabulary, bounding_box=100, tcp_port=27015):
         self.tcp_port = tcp_port
         try:
             self.rcon_client = AsyncRCONClient(address, tcp_port, 'factorio')
@@ -39,6 +39,7 @@ class FactorioInstance:
             "trail_entity": None
         }
         self.update_vocabulary = update_vocabulary
+        self.get_vocabulary = get_vocabulary
         self.player_location = (0, 0)
         self.last_location = (0, 0)
         self.movement_vector = (0, 0)
@@ -58,6 +59,7 @@ class FactorioInstance:
                   'copper-ore', 'crude-oil', 'trees']
         minimaps = {field: zeros((bounding_box, bounding_box)) for field in fields}
         return minimaps
+
 
     async def _get_command(self, command, parameters=[], measured=True):
         prefix = "/c " if not measured else '/command '
@@ -171,7 +173,7 @@ class FactorioInstance:
 
         return True
 
-    async def observe(self, result, trace=False, **kwargs):
+    async def observe(self, result, callback, trace=False, **kwargs):
         """
 
         -Chunks: At each time t, the agent receives details of a chunks of 32 x 32 tiles sampled from the environment.
@@ -191,7 +193,6 @@ class FactorioInstance:
         chunk_x, chunk_y, index_x, index_y = self._sample_chunk()
         movement_field_x, movement_field_y = self.movement_vector[0], self.movement_vector[1]
         omit = kwargs
-        results = ()
         response, execution_time = await self._send('observe',
                                                     PLAYER,
                                                     chunk_x,
@@ -208,14 +209,33 @@ class FactorioInstance:
             pass
 
         if 'chunk' in response:
-            self._index_chunk(response['chunk'], index_x, index_y)
+            await self._index_chunk(response['chunk'], index_x, index_y)
 
         if 'local_environment' in response:
             await self._convert_sparse_local_into_gridworld(response['local_environment'], movement_field_x,
                                                             movement_field_y)
 
-        result['response'] = response
-        result['execution_time'] = execution_time
+        if 'points_of_interest' in response:
+            points_x, points_y, poi_time = await self._convert_sparse_coordinates_into_tensors(response['points_of_interest'])
+
+        if 'distance_to_points_of_interest' in response:
+            distance_to_points_of_interest, dpoi_time = await self._convert_sparse_continuous_into_tensor(response['distance_to_points_of_interest'], init=100000)
+
+        if 'buildable' in response:
+            buildable, build_time = await self._convert_sparse_continuous_into_tensor(response['buildable'])
+
+        #dense_minimap = np.stack(self.minimaps.values())
+
+        #if 'objective' in response:
+        #    objective, obj_time = await self._convert_sparse_continuous_into_tensor(response['objective'])
+
+        #stacked = np.stack([points_x, points_y, distance_to_points_of_interest, buildable], axis=1)
+        #result['response'] = {
+        #
+        #}
+        #result['execution_time'] = execution_time
+        result['response'] = [self.grid_world, *self.minimaps.values(), points_x, points_y, distance_to_points_of_interest, buildable]
+        callback.set()
 
     async def observe_statistics(self):
         """
@@ -238,6 +258,32 @@ class FactorioInstance:
         :return:
         """
         return self._send('observe_points_of_interest', PLAYER, 200)
+
+
+    async def _convert_sparse_continuous_into_tensor(self, local_counts: dict, init=0):
+        start = timer()
+        one_hot = np.full((256), init) #zeros(256)
+
+        for key, value in local_counts.items():
+            index = self.update_vocabulary(key)
+            one_hot[index] = value
+
+        return np.reshape(one_hot, one_hot.shape + (1,)), timer() - start
+
+
+    async def _convert_sparse_coordinates_into_tensors(self, local_counts: dict):
+        start = timer()
+        one_hot_x = zeros(256)
+        one_hot_y = zeros(256)
+
+        for key, value in local_counts.items():
+            lua_key = key.replace('_', '-')
+            index = self.update_vocabulary(lua_key)
+            one_hot_x[index] = value['x']
+            one_hot_y[index] = value['y']
+        end = timer() - start
+        return np.reshape(one_hot_x, one_hot_x.shape + (1,)), np.reshape(one_hot_y, one_hot_y.shape + (1,)), end
+
 
     async def _convert_sparse_local_into_gridworld(self, local_environment_sparse, new_field_x, new_field_y):
         range_x = math.floor(new_field_x) if new_field_x else self.bounding_box

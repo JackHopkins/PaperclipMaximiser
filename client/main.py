@@ -83,7 +83,8 @@ async def main():
     time = timer()
     for i in range(iterations):
         await factorio_pool.act('move', 2)
-        await factorio_pool.observe()
+        responses = await factorio_pool.observe()
+        #print(responses)
         #[tg.start_soon(instance.move, 1) for instance in factorio_pool.instances]
 
     end = (timer() - time)

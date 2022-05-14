@@ -1,4 +1,5 @@
-from threading import Lock
+from threading import Lock, Event
+from anyio import Event
 from anyio import create_task_group
 
 from client.factorio_instance import FactorioInstance
@@ -12,6 +13,9 @@ class FactorioPool:
         self.instances = self._create(instance_num, bounding_box, tcp_port)
         self.vocabulary = {}
         self.i_vocabulary = {}
+
+    def _get_vocabulary(self):
+        return self.vocabulary, self.i_vocabulary
 
     def _update_vocabulary(self, item):
         """
@@ -34,7 +38,7 @@ class FactorioPool:
         instances = []
         for i in range(instance_num):
             port = tcp_port+i
-            instance = FactorioInstance('localhost', self._update_vocabulary, bounding_box, port)
+            instance = FactorioInstance('localhost', self._update_vocabulary, self._get_vocabulary, bounding_box, port)
             instances.append(instance)
         return instances
 
@@ -60,11 +64,17 @@ class FactorioPool:
     @print_timing
     async def observe(self, *args):
         results = {}
+
         async with create_task_group() as tg:
+            events = []
             for i, instance in enumerate(self.instances):
                 results[i] = {}
-                tg.start_soon(instance.observe, results[i], *args)
-        print('observe', args, results)
+                event = Event()
+                tg.start_soon(instance.observe, results[i], event, *args)
+                events.append(event)
+
+            for event in events:
+                await event.wait()
         return results
 
 

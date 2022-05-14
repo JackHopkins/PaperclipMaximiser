@@ -37,8 +37,8 @@ function observe ()
         response['position'] = player.position
     end
 
-    if include['performance'] == nil or include['performance'] then
-        response['performance'] = observe_statistics(player)
+    if include['objective'] == nil or include['objective'] then
+        response['objective'] = observe_statistics(player)
     end
 
     return dump(response)
