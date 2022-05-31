@@ -138,14 +138,13 @@ if __name__ == '__main__':
     env = gym.vector.AsyncVectorEnv([
         #lambda: gym.make("Factorio-v0", address='localhost', vocabulary=vocabulary, bounding_box=100, tcp_port=27016, inventory=inventory),
         lambda: gym.make("Factorio-v0", address='localhost', vocabulary=vocabulary, bounding_box=100, tcp_port=27017, inventory=inventory),
-        lambda: gym.make("Factorio-v0", address='localhost', vocabulary=vocabulary, bounding_box=100, tcp_port=27018, inventory=inventory),
-        lambda: gym.make("Factorio-v0", address='localhost', vocabulary=vocabulary, bounding_box=100, tcp_port=27019, inventory=inventory)
+        #lambda: gym.make("Factorio-v0", address='localhost', vocabulary=vocabulary, bounding_box=100, tcp_port=27018, inventory=inventory),
+        #lambda: gym.make("Factorio-v0", address='localhost', vocabulary=vocabulary, bounding_box=100, tcp_port=27019, inventory=inventory)
     ])
     env.reset()
     start = timer()
     for step in range(1000):
         # take random action, but you can also do something more intelligent
-        # action = my_intelligent_agent_fn(obs)
         action = env.action_space.sample()
         print("Action: ", action)
         # apply the action
