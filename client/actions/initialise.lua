@@ -27,6 +27,14 @@ global.interesting_entities = {
     ['coal']=true
 }
 
+local surface=player.surface
+local pp = player.position
+local cnt = 0
+for key, entity in pairs(surface.find_entities_filtered({force="enemy", radius=250, position=pp })) do
+	cnt = cnt+1
+	entity.destroy()
+ end
+
 local beam_duration = 9
 
 function create_beam_bounding_box (player, surface, direction, top_left, bottom_right)

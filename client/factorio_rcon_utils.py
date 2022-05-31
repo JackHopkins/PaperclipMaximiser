@@ -28,14 +28,13 @@ def _load_init():
 
 
 
-async def _lua2python(command, response, *parameters, trace=False, start=0):
+def _lua2python(command, response, *parameters, trace=False, start=0):
     if trace:
         print(command, parameters, response)
     if response:
         if trace:
             print(f"success: {command}")
         end = timer()
-        diff = (end - start)
         splitted = response.split("\n")
         output = lua.decode(splitted[-1])
 
@@ -46,11 +45,10 @@ async def _lua2python(command, response, *parameters, trace=False, start=0):
                   .format(hbar="-" * 100, command=command, parameters=parameters, response=response, output=output))
 
             # Only the last transmission is considered the output - the rest are just messages
-        return output, diff
+        return output, (end - start)
     else:
         if trace:
             print(f"failure: {command} \t")
     end = timer()
-    diff = (end - start)
-    return lua.decode(response), diff
+    return lua.decode(response), (end - start)
 

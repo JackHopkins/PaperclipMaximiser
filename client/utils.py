@@ -43,10 +43,10 @@ def stitch(rolled_grid: np.array, added_row: np.array, movement_vector: Tuple[in
             snipped = np.delete(concatenated, -1, 0)
     elif movement_vector[1] == 0:
         if movement_vector[0] > 0:
-            concatenated = numpy.concatenate([rolled_grid, added_row], axis=1)
+            concatenated = numpy.concatenate([rolled_grid, added_row.T], axis=1)
             snipped = np.delete(concatenated, 0, 1)
         elif movement_vector[0] < 0:
-            concatenated = numpy.concatenate([added_row, rolled_grid], axis=1)
+            concatenated = numpy.concatenate([added_row.T, rolled_grid], axis=1)
             snipped = np.delete(concatenated, -1, 1)
     else:
         raise Exception("Cannot stitch multiple axes simulateously")

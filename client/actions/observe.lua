@@ -49,7 +49,8 @@ end
 local status, response = pcall(observe)
 
 if status ~= true then
-    rcon.print(status)  --> a 121
+    rcon.print(status)
+    rcon.print(dump(response))--> a 121
 else
     rcon.print(dump(response))
 end

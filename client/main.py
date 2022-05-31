@@ -1,12 +1,15 @@
 import time
+from multiprocessing import Lock, Manager
 from timeit import default_timer as timer
+from gym.envs.registration import register
+
+import gym
 from anyio import run, move_on_after
 from anyio import create_task_group, TASK_STATUS_IGNORED
 from anyio.abc import TaskStatus
 from joblib._multiprocessing_helpers import mp
 
-from client.factorio_instance import FactorioInstance
-from client.factorio_pool import FactorioPool
+#from client.factorio_pool import FactorioPool
 from multiprocessing import Pool, Process
 
 #!/usr/bin/env python3
@@ -41,42 +44,13 @@ from multiprocessing import Pool, freeze_support
 
 #factorio_pool.get(1).trail('pipe')
 
-
 observe_local_times = []
 iterations = 100
 
-async def create_factorios(instance_num, tcp_port, bounding_box, **kwargs):
-    instances = []
-    for i in range(instance_num):
-        port = tcp_port + i
-        instance = FactorioInstance(bounding_box, port)
-        instances.append(instance)
-
-
-    return instance
-
-async def fact(*args):
-    return FactorioPool(*args)
-
-#factorio_pool = FactorioPool()
-
-async def start_factorio_pool(instances: int, tcp_port, bounding_box, *, task_status: TaskStatus = TASK_STATUS_IGNORED, **kwargs):
-    async with await fact(instances, tcp_port, bounding_box) as factorio_pool:
-        task_status.started()
-        factorio_pool = FactorioPool(instances, tcp_port, bounding_box)
-        await factorio_pool.initialise(**kwargs)
-        #return factorio_pool
-
-async def compute(instance: FactorioInstance):
-    #with move_on_after(1) as scope:
-    #val = await instance._send('move')
-    val = await instance.rcon_client.send_command('/c local cardinals = {defines.direction.north, defines.direction.south, defines.direction.east, defines.direction.west} \nlocal teleport_offsets = {{0, -1}, {0, 1}, {1, 0}, {-1, 0}}\nlocal player = game.players[1]\nrcon.print(3)')
-    #val2 = await instance.rcon_client.receive_packets()
-    print(val)
-
 async def main():
-    servers = 1
-    factorio_pool = FactorioPool(servers, 64, 27017)
+    servers = 4
+
+    factorio_pool = None#FactorioPool(servers, 64, 27016)
     await factorio_pool.connect()
     await factorio_pool.initialise(iron_ore=20)
     iterations = 1000
@@ -90,7 +64,7 @@ async def main():
     end = (timer() - time)
     print(f"Async: servers={servers} seconds_elapsed={end}, iterations_ps={(timer() - time) / iterations} command_throughput={1/(((timer() - time) / iterations) / servers)}")
 
-run(main)
+#run(main)
 
 #for k in range(iterations):
     #[factorio.move(random.randrange(0, 4)) for i in range(2)]
@@ -121,3 +95,64 @@ run(main)
 #factorio.trail(None)
     #[move(random.randrange(0, 3)) for i in range(10)]
 #    place('iron-chest', 0)
+
+class Vocabulary:
+
+    def __init__(self):
+        self.mutex = Lock()
+
+        self.vocabulary = {}
+        self.i_vocabulary = {}
+
+    def _get_vocabulary(self):
+        return self.vocabulary, self.i_vocabulary
+
+    def _update_vocabulary(self, item):
+        """
+        Including a mutex to ensure that the vocabulary is managed in a threadsafe way.
+        Otherwise, two processes may allocate different items to the same index.
+        """
+        with self.mutex:
+            keys = self.vocabulary.keys()
+            next_index = len(keys)
+            if item not in keys:
+                self.vocabulary[item] = next_index
+                self.i_vocabulary[next_index] = item
+                print(f"vocab: {item} = {next_index}")
+
+        return self.vocabulary[item]
+
+register(
+    id='Factorio-v0',
+    entry_point='envs:FactorioEnv',
+    max_episode_steps=15000,
+)
+
+if __name__ == '__main__':
+
+    freeze_support()
+    vocabulary = Vocabulary()
+    inventory = {
+        'coal': 50
+    }
+    env = gym.vector.AsyncVectorEnv([
+        #lambda: gym.make("Factorio-v0", address='localhost', vocabulary=vocabulary, bounding_box=100, tcp_port=27016, inventory=inventory),
+        lambda: gym.make("Factorio-v0", address='localhost', vocabulary=vocabulary, bounding_box=100, tcp_port=27017, inventory=inventory),
+        lambda: gym.make("Factorio-v0", address='localhost', vocabulary=vocabulary, bounding_box=100, tcp_port=27018, inventory=inventory),
+        lambda: gym.make("Factorio-v0", address='localhost', vocabulary=vocabulary, bounding_box=100, tcp_port=27019, inventory=inventory)
+    ])
+    env.reset()
+    start = timer()
+    for step in range(1000):
+        # take random action, but you can also do something more intelligent
+        # action = my_intelligent_agent_fn(obs)
+        action = env.action_space.sample()
+        print("Action: ", action)
+        # apply the action
+        obs, reward, done, info = env.step(action)
+        print("Step:", step)
+
+    print(timer() - start)
+
+    #env.step()
+    #env.render()

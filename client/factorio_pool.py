@@ -14,26 +14,6 @@ class FactorioPool:
         self.vocabulary = {}
         self.i_vocabulary = {}
 
-    def _get_vocabulary(self):
-        return self.vocabulary, self.i_vocabulary
-
-    def _update_vocabulary(self, item):
-        """
-        Including a mutex to ensure that the vocabulary is managed in a threadsafe way.
-        Otherwise, two processes may allocate different items to the same index.
-        """
-        self.mutex.acquire()
-        try:
-            keys = self.vocabulary.keys()
-            next_index = len(keys)
-            if item not in keys:
-                self.vocabulary[item] = next_index
-                self.i_vocabulary[next_index] = item
-                print(f"vocab: {item} = {next_index}")
-        finally:
-            self.mutex.release()
-        return self.vocabulary[item]
-
     def _create(self, instance_num, bounding_box=64, tcp_port=27015):
         instances = []
         for i in range(instance_num):

@@ -9,6 +9,7 @@ local surface = player.surface
 local direction = cardinals[arg2+1]
 local teleport_direction = teleport_offsets[arg2+1]
 
+--player.walking_state = {walking = true, direction = direction}
 
 
 --local trailing_position_x = arg4

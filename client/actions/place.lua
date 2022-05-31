@@ -1,6 +1,6 @@
 local player = game.players[arg1]
 local position = player.position
-
+local cardinals = {defines.direction.north, defines.direction.south, defines.direction.east, defines.direction.west}
 local count = player.get_item_count('arg2')
 
 if count == 0 then
@@ -22,7 +22,7 @@ if player.is_cursor_empty() then
     return
 end
 
-local can_build = player.can_build_from_cursor{position=position, direction=defines.direction.arg3, terrain_building_size=2, skip_fog_of_war=false}
+local can_build = player.can_build_from_cursor{position=position, direction=cardinals[arg3], terrain_building_size=2, skip_fog_of_war=false}
 rcon.print(can_build)
 
 if can_build == false then
@@ -30,7 +30,7 @@ if can_build == false then
     return
 else
     player.remove_item(stack)
-    local have_built = player.build_from_cursor{position=position, direction=defines.direction.arg3, terrain_building_size=2, skip_fog_of_war=false}
+    local have_built = player.build_from_cursor{position=position, direction=cardinals[arg3], terrain_building_size=2, skip_fog_of_war=false}
     rcon.print(1)
 
 end

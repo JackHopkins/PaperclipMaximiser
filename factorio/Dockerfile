@@ -1,4 +1,4 @@
-FROM factoriotools/factorio:1.1.57
+FROM factoriotools/factorio:1.1.59
 
 ARG CACHEBUST=4
 

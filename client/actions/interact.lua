@@ -1,6 +1,5 @@
 local player = game.players[arg1]
 local surface = player.surface
-local mineable = {'stone', 'coal', 'copper-ore', 'iron-ore', 'wood'}
 
 function harvest (entities)
     for i,entity in pairs(mineable_entities) do
