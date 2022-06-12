@@ -19,11 +19,11 @@ def _load_scripts(scripts):
     return script_dict
 
 def _load_actions():
-    actions = list(chain.from_iterable(glob(os.path.join(x[0], '*.lua')) for x in os.walk('actions')))
+    actions = list(chain.from_iterable(glob(os.path.join(x[0], '*.lua')) for x in os.walk('client/actions')))
     return _load_scripts(actions)
 
 def _load_init():
-    init = list(chain.from_iterable(glob(os.path.join(x[0], '*.lua')) for x in os.walk('init')))
+    init = list(chain.from_iterable(glob(os.path.join(x[0], '*.lua')) for x in os.walk('client/init')))
     return _load_scripts(init)
 
 

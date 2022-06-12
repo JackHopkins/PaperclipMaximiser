@@ -1,7 +1,7 @@
 import time
 from multiprocessing import Lock, Manager
 from timeit import default_timer as timer
-from gym.envs.registration import register
+# from gym.envs.registration import register
 
 import gym
 from anyio import run, move_on_after
@@ -16,6 +16,8 @@ from multiprocessing import Pool, Process
 from functools import partial
 from itertools import repeat
 from multiprocessing import Pool, freeze_support
+
+from .envs import *
 
 #factorio_pool = FactorioPool(instance=2, bounding_box=64, tcp_port=27016, pipe=50, copper_plate=10, iron_plate=10)
 
@@ -122,11 +124,6 @@ class Vocabulary:
 
         return self.vocabulary[item]
 
-register(
-    id='Factorio-v0',
-    entry_point='envs:FactorioEnv',
-    max_episode_steps=15000,
-)
 
 if __name__ == '__main__':
 
@@ -136,8 +133,8 @@ if __name__ == '__main__':
         'coal': 50
     }
     env = gym.vector.AsyncVectorEnv([
-        #lambda: gym.make("Factorio-v0", address='localhost', vocabulary=vocabulary, bounding_box=100, tcp_port=27016, inventory=inventory),
-        lambda: gym.make("Factorio-v0", address='localhost', vocabulary=vocabulary, bounding_box=100, tcp_port=27017, inventory=inventory),
+        lambda: gym.make("Factorio-v0", address='localhost', vocabulary=vocabulary, bounding_box=100, tcp_port=27016, inventory=inventory),
+        # lambda: gym.make("Factorio-v0", address='localhost', vocabulary=vocabulary, bounding_box=100, tcp_port=27017, inventory=inventory),
         #lambda: gym.make("Factorio-v0", address='localhost', vocabulary=vocabulary, bounding_box=100, tcp_port=27018, inventory=inventory),
         #lambda: gym.make("Factorio-v0", address='localhost', vocabulary=vocabulary, bounding_box=100, tcp_port=27019, inventory=inventory)
     ])

@@ -1,1 +1,1 @@
-from envs.factorio_environment import FactorioEnv
+from .factorio_environment import FactorioEnv

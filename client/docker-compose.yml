@@ -2,7 +2,7 @@ volumes:
   scenarios:
 services:
   factorio_1:
-    image: 'factorio:loggedin'
+    image: 'factorio:latest'
     volumes:
       - type: bind
         source: ./scenarios/lab_scenario
@@ -18,7 +18,7 @@ services:
           cpus: '1'
           memory: 512M
   factorio_2:
-    image: 'factorio:loggedin'
+    image: 'factorio:latest'
     volumes:
       - type: bind
         source: ./scenarios/lab_scenario
@@ -34,7 +34,7 @@ services:
           cpus: '1'
           memory: 512M
   factorio_3:
-    image: 'factorio:loggedin'
+    image: 'factorio:latest'
     volumes:
       - type: bind
         source: ./scenarios/lab_scenario
@@ -50,7 +50,7 @@ services:
           cpus: '1'
           memory: 512M
   factorio_4:
-    image: 'factorio:loggedin'
+    image: 'factorio:latest'
     volumes:
       - type: bind
         source: ./scenarios/lab_scenario

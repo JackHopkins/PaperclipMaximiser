@@ -1,6 +1,7 @@
 from typing import Optional, Tuple
 
 import gym
+from gym.envs.registration import register
 import numpy as np
 from gym import spaces
 from numpy import zeros
@@ -191,3 +192,14 @@ class FactorioEnv(gym.Env, FactorioInstance):
                 pygame.quit()
             except:
                 pass
+
+if hasattr(__loader__, 'name'):
+  module_path = __loader__.name
+elif hasattr(__loader__, 'fullname'):
+  module_path = __loader__.fullname
+
+register(
+    id='Factorio-v0',
+    entry_point=module_path + ':FactorioEnv',
+    max_episode_steps=15000,
+)
