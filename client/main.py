@@ -1,6 +1,9 @@
 import time
 from multiprocessing import Lock, Manager
 from timeit import default_timer as timer
+
+import numpy as np
+import pyastar2d
 from gym.envs.registration import register
 
 import gym
@@ -43,6 +46,8 @@ from multiprocessing import Pool, freeze_support
 #factorio_pool.get(0).trail('pipe')
 
 #factorio_pool.get(1).trail('pipe')
+from factorio_instance import FactorioInstance
+from vocabulary import Vocabulary
 
 observe_local_times = []
 iterations = 100
@@ -96,31 +101,6 @@ async def main():
     #[move(random.randrange(0, 3)) for i in range(10)]
 #    place('iron-chest', 0)
 
-class Vocabulary:
-
-    def __init__(self):
-        self.mutex = Lock()
-
-        self.vocabulary = {}
-        self.i_vocabulary = {}
-
-    def _get_vocabulary(self):
-        return self.vocabulary, self.i_vocabulary
-
-    def _update_vocabulary(self, item):
-        """
-        Including a mutex to ensure that the vocabulary is managed in a threadsafe way.
-        Otherwise, two processes may allocate different items to the same index.
-        """
-        with self.mutex:
-            keys = self.vocabulary.keys()
-            next_index = len(keys)
-            if item not in keys:
-                self.vocabulary[item] = next_index
-                self.i_vocabulary[next_index] = item
-                print(f"vocab: {item} = {next_index}")
-
-        return self.vocabulary[item]
 
 register(
     id='Factorio-v0',
@@ -133,22 +113,49 @@ if __name__ == '__main__':
     freeze_support()
     vocabulary = Vocabulary()
     inventory = {
-        'coal': 50
+        'coal': 50,
+        'iron-plate': 50,
+        'iron-chest': 1
     }
-    env = gym.vector.AsyncVectorEnv([
+    #env = gym.vector.AsyncVectorEnv([
         #lambda: gym.make("Factorio-v0", address='localhost', vocabulary=vocabulary, bounding_box=100, tcp_port=27016, inventory=inventory),
-        lambda: gym.make("Factorio-v0", address='localhost', vocabulary=vocabulary, bounding_box=100, tcp_port=27017, inventory=inventory),
+    #    lambda: gym.make("Factorio-v0", address='localhost', vocabulary=vocabulary, bounding_box=100, tcp_port=27016, inventory=inventory),
         #lambda: gym.make("Factorio-v0", address='localhost', vocabulary=vocabulary, bounding_box=100, tcp_port=27018, inventory=inventory),
         #lambda: gym.make("Factorio-v0", address='localhost', vocabulary=vocabulary, bounding_box=100, tcp_port=27019, inventory=inventory)
-    ])
-    env.reset()
+    #])
+    #env.reset()
+
+    instance = FactorioInstance(address = 'localhost', vocabulary = vocabulary, bounding_box=100, tcp_port=27016, inventory = inventory)
+
     start = timer()
+
+    #instance.goto(instance.nearest('coal'))
+    instance.craft('iron-chest')
+    instance.goto((0, -16))
+    instance.place('iron-chest', 0)
+    instance.goto((0,-45))
+    instance.goto(instance.nearest('coal'))
+    instance.goto(instance.nearest('stone'))
+
+    instance.describe()
+    #instance.see('water', 'coal')
+
     for step in range(1000):
         # take random action, but you can also do something more intelligent
-        action = env.action_space.sample()
-        print("Action: ", action)
-        # apply the action
-        obs, reward, done, info = env.step(action)
+        instance.run_tasks()
+        #if not path:
+            #action = env.action_space.sample()
+        #    print("Action: ", action)
+            # apply the action
+            #obs, reward, done, info = env.step(action)
+
+            #path = goto((1,1), obs['local'])
+        #    grid = obs['local'][0]
+
+        #    path = goto((25, -100), grid)
+
+        #    print(path)
+
         print("Step:", step)
 
     print(timer() - start)

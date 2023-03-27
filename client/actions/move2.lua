@@ -2,13 +2,12 @@
 
 local cardinals = {defines.direction.north, defines.direction.south, defines.direction.east, defines.direction.west}
 local teleport_offsets = {{0, -1}, {0, 1}, {1, 0}, {-1, 0}}
-
+local trailing_entity = arg3
 local player = game.players[arg1]
 
-local offset = {arg2, arg3}
-local trailing_entity = arg4
-
 local surface = player.surface
+local direction = cardinals[arg2+1]
+local teleport_direction = teleport_offsets[arg2+1]
 
 function place (place_position)
 
@@ -45,7 +44,7 @@ else
 end
 
 --local teleport_direction = teleport_offsets[arg1]
-player.teleport(offset[1], offset[2])--teleport_direction[1], teleport_direction[2])
+player.teleport(teleport_direction[1], teleport_direction[2])--teleport_direction[1], teleport_direction[2])
 
 --rcon.print({x=player.position.x+teleport_direction[1], y=player.position.y+teleport_direction[2]})
 rcon.print(player.position)

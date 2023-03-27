@@ -22,7 +22,8 @@ function observe ()
     end
 
     if include['local_environment'] == nil or include['local_environment'] then
-        response['local_environment'] = get_local_environment(player,  surface, localBoundingBox, field_x, field_y, debug)
+        --response['local_environment'] = get_local_environment(player,  surface, localBoundingBox, field_x, field_y, debug)
+        response['local_environment'] = get_locality(player, surface, localBoundingBox)
     end
 
     if include['buildable'] == nil or include['buildable'] then
@@ -39,6 +40,10 @@ function observe ()
 
     if include['objective'] == nil or include['objective'] then
         response['objective'] = observe_statistics(player)
+    end
+
+    if include['collision'] == nil or include['collision'] then
+        response['collision'] = find_passable_tiles(player, localBoundingBox)
     end
 
     return dump(response)

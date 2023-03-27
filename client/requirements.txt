@@ -5,3 +5,4 @@ git+https://github.com/SirAnthony/slpp
 imageio
 anyio
 pygame
+pyastar2d

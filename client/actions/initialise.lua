@@ -37,6 +37,24 @@ for key, entity in pairs(surface.find_entities_filtered({force="enemy", radius=2
 
 local beam_duration = 9
 
+global.crafting_queue = {}
+
+script.on_event(defines.events.on_tick, function(event)
+  -- Iterate over the crafting queue and update the remaining ticks
+  for i, task in ipairs(global.crafting_queue) do
+    task.remaining_ticks = task.remaining_ticks - 1
+
+    -- If the crafting is finished, consume the ingredients, insert the crafted entity, and remove the task from the queue
+    if task.remaining_ticks <= 0 then
+      for _, ingredient in pairs(task.recipe.ingredients) do
+        task.player.remove_item({name = ingredient.name, count = ingredient.amount * task.count})
+      end
+      task.player.insert({name = task.entity_name, count = task.count})
+      table.remove(global.crafting_queue, i)
+    end
+  end
+end)
+
 function create_beam_bounding_box (player, surface, direction, top_left, bottom_right)
     local bottom_left = {x=top_left.x, y=bottom_right.y}
     local top_right = {x=bottom_right.x, y=top_left.y}
@@ -64,6 +82,191 @@ function observe_points_of_interest (surface, player, search_radius)
     rcon.print(1)
     return dump(global.relative_points_of_interest)
 end
+
+function find_passable_tiles2(player, localBoundingBox)
+
+    -- Generate a 100x100 bounding box centered on the player
+    local origin = player.position
+    local offset = localBoundingBox / 2
+
+    local left = origin.x - offset
+    local right = origin.x + offset
+    local top = origin.y - offset
+    local bottom = origin.y + offset
+
+    local bounding_box = {
+        left_top = {x = left, y = top},
+        right_bottom = {x = right, y = bottom}
+    }
+    local impassable_tiles = {}
+    local xmin = bounding_box.left_top.x
+    local ymin = bounding_box.left_top.y
+    local xmax = bounding_box.right_bottom.x
+    local ymax = bounding_box.right_bottom.y
+
+    local area = {{xmin, ymin}, {xmax, ymax}}
+
+    local entities = player.surface.find_entities_filtered{area = area, force = player.force}
+
+    local function coords_to_index(x, y)
+        return (x - xmin) * localBoundingBox + (y - ymin) --(x - xmin) * (xmax - xmin) + (y - ymin) -- Changed (ymax - ymin) to (xmax - xmin)
+    end
+
+    for x = xmin, xmax do
+        for y = ymin, ymax do
+            local tile = player.surface.get_tile(x, y)
+            local is_impassable = tile.prototype.collision_mask["player-layer"]
+
+            if is_impassable then
+                local relative_x, relative_y = x - xmin, y - ymin
+
+                -- Ensure the coordinates are integers by rounding them
+                --local index_x = math.floor(relative_entity_x + offset)
+                --local index_y = math.floor(relative_entity_y + offset)
+
+                --local index = index_y * localBoundingBox + index_x
+
+                local index = coords_to_index(relative_x, relative_y)
+                impassable_tiles[index] = 100--{x = relative_x, y = relative_y}
+            end
+        end
+  end
+
+  for _, entity in ipairs(entities) do
+    local collision_box = entity.prototype.collision_box
+    local is_passable = (collision_box.left_top.x == 0 and collision_box.left_top.y == 0 and
+                         collision_box.right_bottom.x == 0 and collision_box.right_bottom.y == 0)
+    if is_passable then
+      local x, y = math.floor(entity.position.x), math.floor(entity.position.y)
+      local relative_x, relative_y = x - xmin, y - ymin
+      local index = coords_to_index(relative_x, relative_y)
+
+      if not impassable_tiles[index] then
+        impassable_tiles[index] = 100--{x = relative_x, y = relative_y, entity = entity}
+      end
+    end
+  end
+
+  return impassable_tiles
+end
+
+function find_passable_tiles(player, localBoundingBox)
+    -- Generate a 100x100 bounding box centered on the player
+    local origin = player.position
+    local offset = localBoundingBox / 2
+
+    local left = origin.x - offset
+    local right = origin.x + offset
+    local top = origin.y - offset
+    local bottom = origin.y + offset
+
+    local bounding_box = {
+        left_top = {x = left, y = top},
+        right_bottom = {x = right, y = bottom}
+    }
+    local impassable_tiles = {}
+    for x = left, right do
+        for y = top, bottom do
+            local tile = player.surface.get_tile(x, y)
+            local is_impassable = tile.prototype.collision_mask["player-layer"]
+
+            if is_impassable then
+                --(x - xmin) * localBoundingBox + (y - ymin)
+                local relative_x, relative_y = x + offset, y + offset
+                --local index = coords_to_index(relative_x, relative_y)
+                local index = relative_y * localBoundingBox + relative_x
+                if not impassable_tiles[index] then
+                    impassable_tiles[index] = 100
+                end
+            end
+
+        end
+
+    end
+
+    -- Find all entities within the bounding box
+    local entities = player.surface.find_entities_filtered{area = {{left, top}, {right, bottom}}, force = player.force}
+
+    for _, entity in ipairs(entities) do
+        local collision_box = entity.prototype.collision_box
+        local is_passable = (collision_box.left_top.x == 0 and collision_box.left_top.y == 0 and
+                             collision_box.right_bottom.x == 0 and collision_box.right_bottom.y == 0)
+        if not is_passable then -- Change this condition to check for impassable entities
+            local x, y = math.floor(entity.position.x), math.floor(entity.position.y)
+            local relative_x, relative_y = x - left, y - top
+            local index = relative_y * localBoundingBox + relative_x
+
+            if not impassable_tiles[index] then
+                impassable_tiles[index] = 99--{x = relative_x, y = relative_y, entity = entity}
+            end
+        end
+  end
+
+    -- Convert the X, Y coordinates of each entity into coordinates relative to the origin
+    local relative_entities = {}
+    for _, entity in ipairs(entities) do
+        table.insert(relative_entities, {x = left, y = top, entity = entity})
+    end
+
+    -- Create a 1D sparse index of the x, y coordinate and entity, starting from the top left of the bounding box
+    local sparse_index = {}
+    for _, relative_entity in ipairs(relative_entities) do
+        -- Ensure the coordinates are integers by rounding them
+        local index_x = math.floor(relative_entity.x + offset)
+        local index_y = math.floor(relative_entity.y + offset)
+
+        local index = index_y * localBoundingBox + index_x
+        --impassable_tiles[index] = 99
+    end
+
+    rcon.print(1)
+    return impassable_tiles
+end
+
+function get_locality(player, surface, localBoundingBox)
+    -- Generate a 100x100 bounding box centered on the player
+    local origin = player.position
+    local offset = localBoundingBox / 2
+
+    local left = origin.x - offset
+    local right = origin.x + offset
+    local top = origin.y - offset
+    local bottom = origin.y + offset
+
+    local bounding_box = {
+        left_top = {x = left, y = top},
+        right_bottom = {x = right, y = bottom}
+    }
+
+    -- Find all entities within the bounding box
+    local entities = surface.find_entities(bounding_box)
+
+    -- Convert the X, Y coordinates of each entity into coordinates relative to the origin
+    local relative_entities = {}
+    for _, entity in ipairs(entities) do
+        local relative_x = entity.position.x - origin.x
+        local relative_y = entity.position.y - origin.y
+        table.insert(relative_entities, {x = relative_x, y = relative_y, entity = entity})
+        local name = entity.name
+        set_points_of_interest(player, name, 1, relative_x, relative_y)
+    end
+
+    -- Create a 1D sparse index of the x, y coordinate and entity, starting from the top left of the bounding box
+    local sparse_index = {}
+    for _, relative_entity in ipairs(relative_entities) do
+        -- Ensure the coordinates are integers by rounding them
+        local index_x = math.floor(relative_entity.x + offset)
+        local index_y = math.floor(relative_entity.y + offset)
+
+        local index = index_y * localBoundingBox + index_x
+        local name = relative_entity.entity.name
+        sparse_index[index] = name:gsub("-", "_")
+    end
+
+    rcon.print(1)
+    return sparse_index
+end
+
 
 function get_local_environment (player, surface, localBoundingBox, field_x, field_y, debug)
 
