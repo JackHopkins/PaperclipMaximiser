@@ -1,0 +1,3 @@
+inventory();
+harvest(nearest('coal'), count=5);
+harvest(nearest('iron-ore'), count=5);

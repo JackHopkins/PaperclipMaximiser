@@ -1,0 +1,14 @@
+# Lets start by checking my inventory.
+# I'll start by heading to the iron ore patch and placing the stone furnace.
+move_to(nearest('iron_ore'));
+place_entity('stone-furnace', position=(0, 1));
+# My apologies, I will include the 'direction' parameter in the 
+move_to(nearest('iron_ore'));
+place_entity('stone-furnace', direction=0, position=(0, 1));
+# Next, I will place the assembling machine near the stone furnace.
+place_entity('assembling-machine-1', direction=2, position=(1, 2));
+# I apologize for the error. I will check your inventory and make sure you have an assembling machine available.
+check_inventory();
+# It appears you have an assembling-machine-1 in your inventory. I will attempt to place it again.
+move_to(nearest('iron_ore'));
+place_entity('stone-furnace', direction=0, position=(0, 1));

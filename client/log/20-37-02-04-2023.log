@@ -1,0 +1,92 @@
+###NEW EPISODE###
+[92mThere are 4.1k tree_01s scattered 22km northwest, 17km north-northwest, 15km north, 16km north-northeast, 21km northeast, 1km east-northeast, 3km west-northwest, 760 metres west, 32 metres east, 4km west-southwest, 720 metres east-southeast, 17km southeast, 17km southwest, 13km south-southwest, 13km south-southeast, and 11km south 
+- 100x uranium_ore 30 metres southeast (22, 26) x (31, 35)
+- 78x stone 10 metres southwest (-17, 6) x (-8, 15)
+- 76x coal 11 metres northwest (-17, -14) x (-8, -5)
+- 67x copper_ore 12 metres east-southeast (22, 6) x (31, 15)
+- 57x iron_ore 10 metres east-northeast (25, -14) x (31, -5)
+- There are 4.1k tree_01_stumps scattered 235 metres north 
+- There are 4.1k item_on_grounds scattered 16 metres northeast 
+[96m# Let's start by gathering resources and setting up production.
+[94minventory();
+[92m- 1 iron-chest
+- 50 transport-belt
+- 1 stone-furnace
+- 1 assembling-machine-1
+- 50 coal
+- 50 iron-plate
+- 50 copper-plate
+[96m# check what items I have already
+[94mgoto((0, -20));
+[96m# move 20m north to get closer to the resources
+[94mgoto(nearest('tree'));
+[96m# move to the nearest tree
+[94mharvest((-2, 0), count=5);
+[96m# harvest 5 units of wood from the tree 2m left
+[94mgoto(nearest('coal'));
+[96m# move to the nearest coal patch
+[94mharvest((-2, 0), count=10);
+[96m# harvest 10 units of coal
+[94mgoto(nearest('iron_ore'));
+[96m# move to the
+[96m# nearest iron ore patch
+[94mharvest((-2, 0), count=10);
+[96m# harvest 10 units of iron ore
+[94mgoto(nearest('copper_ore'));
+[96m# move to the nearest copper ore patch
+[94mharvest((-2, 0), count=10);
+[96m# harvest 10 units of copper ore
+[94mgoto((0, 20));
+[96m# move 20 meters south to center myself on the map
+[96m# Time to set up initial smelting and crafting operations.
+[94mplace('stone-furnace', 0, (1, 1));
+[96m# place stone furnace at 1m north and east, facing north
+[94minsert('coal', (1, 1), count=5);
+[96m# inserts 5 coal into stone furnace
+[94minsert('iron_ore', (1, 1), count=10);
+[96m# inserts 10 iron ore into stone furnace
+[94mwait(60);
+[92mWhile you wait, you look around. 
+You see:
+- An stone_furnace facing north at (1, 1) containing 4x coal. Lack of input material.
+[96m# wait 60 seconds for the furnace to smelt the iron ore
+[94mextract('iron-plate', (1, 1), count=10);
+[96m# pick up 10 units of smelted iron plates from the stone furnace
+[94mcraft('iron-chest', count=2);
+[96m# craft 2 iron chests
+[94mplace('iron-chest', 0, (2,0));
+[96m# place an iron chest at 2m east
+[94mplace('assembling-machine-1', 0, (1,1));
+[91mCould not place assembling-machine-1. Cant build there due to existing character at 0, 0
+[96m# move 1 meter west to make room for the assembling-machine
+[94mgoto((-1,0));
+[94mplace('assembling-machine-1', 0, (1, 1));
+[91mCould not place assembling-machine-1. Cant build there due to existing character at 0, 0
+[96m# move 1 meter north to make room for the assembling-machine
+[94mgoto((0, 1));
+[94mplace('assembling-machine-1', 0, (0, -1));
+[91mCould not place assembling-machine-1. Cant build there due to existing character at 0, 0
+[96m# move 2 meters east to make room for the assembling-machine
+[94mgoto((2, 0));
+[94mplace('assembling-machine-1', 0, (-1, 0));
+[91mCould not place assembling-machine-1. Cant build there due to existing character at 0, 0
+[96m# move 2 meters east and 1 meter north to make room for the assembling-machine
+[94mgoto((2, 1));
+[94mplace('assembling-machine-1', 0, (-1, -1));
+[91mCould not place assembling-machine-1. Cant build there due to existing character at 0, 0
+[96m# move 1 meter south to create space for the assembling-machine
+[94mgoto((0, -1));
+[94mplace('assembling-machine-1', 0, (1, 1));
+[91mCould not place assembling-machine-1. Cant build there due to existing character at 0, 0
+[96m# move 2 meters south to create space for the assembling-machine
+[94mgoto((0, -2));
+[94mplace('assembling-machine-1', 0, (1, 1));
+[91mCould not place assembling-machine-1. Cant build there due to existing character at 0, 0
+[96m# I'll try positioning myself southwest of the planned assembling-machine location
+[94mgoto((-1,-1));
+[94mplace('assembling-machine-1', 0, (1, 1));
+[91mCould not place assembling-machine-1. Cant build there due to existing character at 0, 0
+[96m# I'll try positioning myself northwest of the planned assembling-machine location
+[94mgoto((-1,1));
+[94mplace('assembling-machine-1', 0, (1, -1));
+[91mCould not place assembling-machine-1. Cant build there due to existing character at 0, 0

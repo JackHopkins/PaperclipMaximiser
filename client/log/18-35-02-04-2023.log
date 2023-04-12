@@ -1,0 +1,72 @@
+###NEW EPISODE###
+[92mThere are 4.1k tree_01s scattered 23km northwest, 17km north-northwest, 15km north, 16km north-northeast, 21km northeast, 1km east-northeast, 3km west-northwest, 760 metres west, 32 metres east, 4km west-southwest, 720 metres east-southeast, 17km southeast, 17km southwest, 13km south-southwest, 13km south-southeast, and 11km south 
+- 100x uranium_ore 30 metres southeast (22, 26) x (31, 35)
+- 84x copper_ore 11 metres east-southeast (22, 6) x (31, 15)
+- 82x coal 10 metres northwest (-17, -14) x (-8, -5)
+- 81x stone 10 metres southwest (-17, 6) x (-8, 15)
+- 74x iron_ore 10 metres east-northeast (22, -14) x (31, -5)
+- There are 4.1k tree_01_stumps scattered 169 metres north 
+- There are 4.1k item_on_grounds scattered 16 metres northeast 
+[96m# Let's start by gathering iron ores and crafting iron plates using a furnace.
+[96m# Move to the iron ore
+[94mgoto((22, -14));
+[96m# Harvest 20 iron ores
+[94mharvest((0,0), count=20);
+[96m# Move to Coal
+[94mgoto((-17, -14));
+[96m# Harvest a few coal for fuel
+[94mharvest((0,0), count=5);
+[96m# Move to a safe location to build a furnace and smelt the iron ores
+[94mgoto((0, 0));
+[96m# Check what's in the inventory
+[94minventory();
+[92m- 1 iron-chest
+- 50 transport-belt
+- 1 stone-furnace
+- 1 assembling-machine-1
+- 80 coal
+- 15 iron-ore
+- 50 iron-plate
+- 50 copper-plate
+[96m# Place the stone-furnace
+[94mplace('stone-furnace', 0, (1, 0));
+[96m# Insert iron-ore into the stone-furnace
+[94minsert('iron-ore', (1, 0), count=15);
+[96m# Insert coal into the stone-furnace
+insert('
+[96m# coal', (1, 0), count=5);
+[94mwait(60);
+[92mWhile you wait, you look around. 
+You see:
+- An stone_furnace facing north at (1, 0) containing 15x iron-ore. Lack of fuel.
+[96m# Extract the iron-plates from the stone-furnace
+[94mextract('iron-plate', (1, 0), count=15);
+[91mCould not extract.. No item to extract
+[96m# It seems like the furnace didn't have any fuel. Let's add fuel to the stone-furnace.
+[94minsert('coal', (1, 0), count=5);
+[96m# Wait for the iron ores to smelt into iron-plates
+[94mwait(45);
+[92mWhile you wait, you look around. 
+You see:
+- An stone_furnace facing north at (1, 0) containing 3x coal. ore.
+[96m# Extract the iron-plates from the stone-furnace
+[94mextract('iron-plate', (1, 0), count=15);
+[96m# Now let's use some iron plates to craft more transport-belts
+[94mcraft('transport-belt', count=30);
+[91mCould not craft a transport-belt. Ingredients cannot be crafted by hand.
+[96m# Check the inventory
+[94minventory();
+[92m- 1 iron-chest
+- 50 transport-belt
+- 1 assembling-machine-1
+- 75 coal
+- 5 iron-plate
+- 50 copper-plate
+- 30 iron-gear-wheel
+[96m# Place an assembling-machine to craft transport-belts since it cannot be crafted by hand
+[94mplace('assembling-machine-1', 0, (2,0));
+[91mCould not place assembling-machine-1. Cant build there due to existing stone furnace at 1, 0
+[96m# Set the recipe for the assembling-machine
+[94mset_recipe((2, 0), 'transport-belt');
+[91mCould not set recipe for transport-belt. No building found that could have its recipe set
+[96m# Insert iron-plates and iron-g

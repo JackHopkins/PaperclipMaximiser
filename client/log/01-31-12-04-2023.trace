@@ -1,0 +1,15 @@
+# Lets start by checking my inventory.
+# I need a feeder to put items, let's craft an inserter and place it for input and output
+craft_item('inserter', quantity=2);
+# Since we was able to craft inserter, let's place the stone-furnace, inserter, and iron-chest for smelting iron ore.
+place_entity('stone-furnace', position=(0,1));
+# My apologies, here is the corrected command. 
+place_entity('stone-furnace', direction=0, position=(0,1));
+# Now let's place the two inserters: one for input and one for output.
+place_entity('inserter', direction=1, position=(-1,1));
+# Let's try to place the inserter to a new location.
+place_entity('inserter', direction=1, position=(-1,0));
+# We need to find another position for the inserter.
+place_entity('inserter', direction=1, position=(0,2));
+# Now let's place the second inserter for the output.
+place_entity('inserter', direction=3, position=(0,0));

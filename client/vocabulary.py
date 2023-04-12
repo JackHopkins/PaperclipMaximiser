@@ -27,7 +27,7 @@ class Vocabulary:
                 if item not in keys:
                     self.vocabulary[item] = next_index
                     self.i_vocabulary[next_index] = item
-                    print(f"vocab: {item} = {next_index}")
+                    #print(f"vocab: {item} = {next_index}")
 
             item = self.vocabulary[item]
         except Exception as e:

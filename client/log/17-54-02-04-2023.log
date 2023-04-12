@@ -1,0 +1,58 @@
+###NEW EPISODE###
+[92mThere are 4.1k tree_01s scattered 23km northwest, 17km north-northwest, 15km north, 16km north-northeast, 21km northeast, 1km east-northeast, 3km west-northwest, 760 metres west, 32 metres east, 4km west-southwest, 720 metres east-southeast, 17km southeast, 17km southwest, 13km south-southwest, 13km south-southeast, and 11km south 
+- 100x uranium_ore 30 metres southeast (22, 26) x (31, 35)
+- 84x copper_ore 11 metres east-southeast (22, 6) x (31, 15)
+- 82x coal 10 metres northwest (-17, -14) x (-8, -5)
+- 81x stone 10 metres southwest (-17, 6) x (-8, 15)
+- 75x iron_ore 10 metres east-northeast (22, -14) x (31, -5)
+- There are 4.1k item_on_grounds scattered 16 metres northeast 
+- There are 4.1k assembling_machine_1s scattered 80 metres southeast 
+[94mnature();
+[92mThere are 4.1k tree_01s scattered 23km northwest, 17km north-northwest, 15km north, 16km north-northeast, 21km northeast, 1km east-northeast, 3km west-northwest, 760 metres west, 32 metres east, 4km west-southwest, 720 metres east-southeast, 17km southeast, 17km southwest, 13km south-southwest, 13km south-southeast, and 11km south 
+- 100x uranium_ore 30 metres southeast (22, 26) x (31, 35)
+- 84x copper_ore 11 metres east-southeast (22, 6) x (31, 15)
+- 82x coal 10 metres northwest (-17, -14) x (-8, -5)
+- 81x stone 10 metres southwest (-17, 6) x (-8, 15)
+- 75x iron_ore 10 metres east-northeast (22, -14) x (31, -5)
+- There are 4.1k item_on_grounds scattered 16 metres northeast 
+- There are 4.1k assembling_machine_1s scattered 80 metres southeast 
+[96m Let's see what resources and nature are around.
+[94mgoto((22, 26), trailing='transport-belt');
+[96m# Head over to uranium_ore and create a transport-belt as you go.
+# Once you have reached there, you can
+[96m proceed with inspecting the area to see if there are any other resources nearby.
+[94minspect();
+[92mYou see:
+- A line of 17 transport_belts going south, starting from (-0.5, -16.5) and ending at (-0.5, -16.5)
+- A line of 10 transport_belts going east, starting from (-10.5, -16.5) and ending at (-10.5, -16.5)
+- A line of 5 transport_belts going east, starting from (-15.5, -17.5) and ending at (-15.5, -17.5)
+- A line of 4 transport_belts going south, starting from (-21.5, -25.5) and ending at (-21.5, -25.5)
+- A line of 3 transport_belts going east, starting from (-18.5, -18.5) and ending at (-18.5, -18.5)
+- A line of 3 transport_belts going east, starting from (-21.5, -21.5) and ending at (-21.5, -21.5)
+- A line of 3 transport_belts going south, starting from (-18.5, -21.5) and ending at (-18.5, -21.5)
+- A transport_belt facing south, at (-10.5, -17.5).
+- A transport_belt facing south, at (-15.5, -18.5).
+- A transport_belt facing east, at (-0.5, 0.5).
+- An empty assembling_machine_1 facing north at (60.5, 54.5) . Lack of power.
+[94minventory();
+[92m- 1 iron-chest
+- 2 transport-belt
+- 1 stone-furnace
+- 1 assembling-machine-1
+- 50 coal
+- 50 iron-plate
+- 50 copper-plate
+[96m Based on the resources available, let's craft another iron-chest.
+[94mcraft('iron-chest', count=1);
+[96mPlace the chest next to the assembling machine that has no power to store items.
+[94mplace('iron-chest', 0, (61, 54));
+[91mCould not place iron-chest. Cant build there due to existing assembling machine 1 at 60
+[96mLet's pick the assembling-machine-1 and place it somewhere else to make room for the iron-chest.
+[96mFirst, let's pick up the assembling-machine-1 from its current location.
+[94mpickup((60, 54));
+[96m# The ; is missing from your command so it doesn't execute the command.
+[96m### continue from last cell ###
+[96m Now that we have picked it up, we can place it somewhere else. 
+[94mplace('assembling-machine-1', 0, (59, 54));
+[91mCould not place assembling-machine-1. Cant build there due to existing tree 01 at 59
+[94mrotate((59, 54), 1);

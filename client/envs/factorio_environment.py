@@ -1,6 +1,7 @@
 from typing import Optional, Tuple
 
 import gym
+from gym.envs.registration import register
 import numpy as np
 from gym import spaces
 from numpy import zeros
@@ -100,11 +101,11 @@ class FactorioEnv(gym.Env, FactorioInstance):
         if action == 0:
             self.move(direction)
         elif action == 1 and entity:
-            self.place(entity, direction)
+            self.place_entity(entity, direction)
         elif action == 2 and entity:
             self.trail(entity)
         elif action == 3:
-            self.fuel()
+            self.insert_item()
         elif action == 4:
             self.interact()
 
@@ -191,3 +192,14 @@ class FactorioEnv(gym.Env, FactorioInstance):
                 pygame.quit()
             except:
                 pass
+
+if hasattr(__loader__, 'name'):
+  module_path = __loader__.name
+elif hasattr(__loader__, 'fullname'):
+  module_path = __loader__.fullname
+
+register(
+    id='Factorio-v0',
+    entry_point=module_path + ':FactorioEnv',
+    max_episode_steps=15000,
+)

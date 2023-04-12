@@ -1,0 +1,105 @@
+# Lets start by checking my inventory.
+# Gather resources: Coal, Iron, Stone, and Copper
+move_to(nearest('coal'));
+# Move to the nearest coal resource
+place_entity('burner-drill', direction=2, position=nearest('coal'));
+# I apologize for the confusion. Let's try placing a 'burner-mining-drill' instead.
+move_to(nearest('coal'));
+# Move to the nearest coal resource
+place_entity('burner-mining-drill', direction=2, position=nearest('coal'));
+# We need to craft a burner-mining-drill before placing it. Let's check the current inventory for raw materials and craft it if possible.
+check_inventory();
+# Great, we have enough materials to craft a burner-mining-drill
+craft_item('burner-mining-drill', quantity=1);
+# Now that we've crafted the burner-mining-drill, let's place it to gather resources.
+move_to(nearest('coal'));
+# Move to the nearest coal resource
+place_entity('burner-mining-drill', direction=2, position=nearest('coal'));
+# Now, let's place a stone-furnace to smelt the iron and craft more burner-mining-drills.
+move_to(nearest('iron_ore'));
+# Move to the nearest iron ore resource
+place_entity('burner-mining-drill', direction=2, position=nearest('iron_ore'));
+# I apologize for the oversight; let's craft another burner-mining-drill before placing it near the iron ore resource.
+craft_item('burner-mining-drill', quantity=1);
+# It appears that we are missing stone to craft a burner-mining-drill. Let's gather some stone first.
+move_to(nearest('stone'));
+# Move to the nearest stone resource
+harvest_resource((0, 0), quantity=5);
+# Harvest 5 units of stone
+# Now, let's craft a burner-mining-drill and place it at the iron ore resource.
+craft_item('burner-mining-drill', quantity=1);
+move_to(nearest('iron_ore'));
+# Move to the nearest iron ore resource
+place_entity('burner-mining-drill', direction=2, position=nearest('iron_ore'));
+# I apologize for not specifying a valid position. We'll try another approach.
+move_to(nearest('iron_ore'));
+rotate_entity((0, 0), direction=0);
+harvest_resource((0, 1), quantity=5);
+# Now that we have some iron ore, let's craft a burner-mining-drill again.
+craft_item('burner-mining-drill', quantity=1);
+# Place the recently crafted burner-mining-drill near iron_ore resource
+move_to(nearest('iron_ore'));
+place_entity('burner-mining-drill', direction=2, position=(-1, 0));
+# Move back to the coal resource to deposit the iron ore and pick up coal
+move_to(nearest('coal'));
+insert_item('iron_ore', target_position=(nearest('iron-chest'), quantity=5));
+# I apologize for the syntax error. Let's correct it.
+insert_item('iron-ore', target_position=(nearest('iron-chest')), quantity=5);
+# I apologize for the confusion. Let's place the iron-chest first and then insert the iron ore.
+place_entity('iron-chest', direction=0, position=(0, 1));
+insert_item('iron-ore', target_position=(0, 1), quantity=5);
+# Now, let's also gather the coal.
+extract_item('coal', source_position=nearest(('burner-mining-drill')), quantity=5);
+# I apologize for the confusion. Let's try another approach to gather the coal.
+extract_item('coal', source_position=(-1, 0), quantity=5);
+# It seems there's no coal to extract yet; let's wait a bit and try again.
+wait_duration(10);
+# Attempt to extract coal again after waiting
+extract_item('coal', source_position=(-1, 0), quantity=5);
+# Since there's still no coal to extract, we will instead move the coal resource and use the coal in our inventory to fuel the burner-mining-drills and furnaces.
+move_to(nearest('coal'));
+# Move to the nearest coal resource
+assert_has_item('coal', quantity=5);
+# I apologize for the error. Let's use "
+check_inventory();
+# We have enough coal in the inventory, so let's fuel the burner-mining-drills and furnaces.
+insert_item('coal', target_position=(-7, -4), quantity=1);
+# Insert 1 coal into the burner-mining-drill at the coal resource
+move_to(nearest('iron_ore'));
+insert_item('coal', target_position=(-1, 0), quantity=1);
+# Insert 1 coal into the burner-mining-drill at the iron ore resource
+# Let's proceed further by placing a stone-furnace.
+move_to(nearest('iron-ore'));
+place_entity('stone-furnace', direction=0, position=(-1, 3));
+# I apologize for the oversight; let's craft a stone-furnace before placing it.
+craft_item('stone-furnace', quantity=1);
+# Now that we've crafted the stone-furnace, let's place it near the iron ore resource.
+move_to(nearest('iron-ore'));
+place_entity('stone-furnace', direction=0, position=(-1, 3));
+# I apologize for the oversight; let's craft a stone-furnace before placing it.
+craft_item('stone-furnace', quantity=1);
+# Now that we've crafted the stone-furnace, let's place it near the iron ore resource.
+move_to(nearest('iron-ore'));
+place_entity('stone-furnace', direction=0, position=(-1, 3));
+# My apologies for not selecting a valid position. Let's try a different position for the stone-furnace.
+move_to(nearest('iron-ore'));
+place_entity('stone-furnace', direction=0, position=(2, 2));
+# With the stone-furnace placed, let's fuel it and insert iron ore to process it into iron plates.
+move_to((2, 2));
+insert_item('coal', target_position=(2, 2), quantity=1);
+# Fuel the stone-furnace with coal
+insert_item('iron-ore', target_position=(2, 2), quantity=5);
+# Insert iron ore into the stone-furnace
+wait_duration(10);
+# I apologize for the confusion in placing the entities. Let's remove the misplaced stone-furnace and burner-mining-drill, and place them at the correct positions.
+pickup_entity((28, 1));
+pickup_entity((28, -2));
+move_to(nearest('iron-ore'));
+place_entity('stone-furnace', direction=0, position=(1, 1));
+insert_item('coal', target_position=(1, 1), quantity=1);
+insert_item('iron-ore', target_position=(1, 1), quantity=10);
+# Re-place the misplaced burner-mining-drill targeting iron ore
+place_entity('burner-mining-drill', direction=2, position=(-1, 0));
+# With the previous attempts to place the stone-furnace and burner-mining-drill close to the iron-ore not yielding desired results, let's try placing these entities in different valid positions. 
+move_to(nearest('iron-ore'));
+place_entity('stone-furnace', direction=0, position=(1, 3));

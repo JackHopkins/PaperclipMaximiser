@@ -1,51 +1,71 @@
 --Move.lua
 
-local cardinals = {defines.direction.north, defines.direction.south, defines.direction.east, defines.direction.west}
-local teleport_offsets = {{0, -1}, {0, 1}, {1, 0}, {-1, 0}}
-
 local player = game.players[arg1]
-
 local offset = {arg2, arg3}
 local trailing_entity = arg4
-
+local is_trailing = arg5
 local surface = player.surface
 
-function place (place_position)
+local function rotate_entity(entity, direction)
+    entity.direction = direction
+end
 
-    local can_place = surface.can_place_entity{name=trailing_entity, position=place_position, direction=direction, force='player', build_check_type=defines.build_check_type.manual}
-
-    if can_place == true then
-
-        local count = player.get_item_count(arg3)
-        if count == 0 then
+local function place(place_position, direction)
+    if surface.can_place_entity{name=trailing_entity, position=place_position, direction=direction, force='player', build_check_type=defines.build_check_type.manual} then
+        if player.get_item_count(trailing_entity) > 0 then
+            local created = surface.create_entity{name=trailing_entity, position=place_position, direction=direction, force='player', player=player, build_check_type=defines.build_check_type.manual, fast_replace=true}
+            if created then
+                player.remove_item({name=trailing_entity, count=1})
+            end
+        else
             rcon.print("No ".. trailing_entity .." in the inventory")
             rcon.print(0)
-            return
         end
-
-        local created = surface.create_entity{name=trailing_entity, position=place_position, direction=direction, force='player', player=player, build_check_type=defines.build_check_type.manual, fast_replace=true}
-
-        if created ~= nil then
-            player.remove_item({name=arg3, count=1})
-        end
-
     else
         rcon.print("Cannot place " ..trailing_entity)
         rcon.print(0)
-        return
     end
 end
 
---local trailing_position = {x=trailing_position_x, y=trailing_position_y}
---rcon.print(teleport_direction)
-if trailing_entity then
-
-else
-    place(player.position)
+local function get_direction(offset)
+    local direction = 0
+    if offset[1] > 0 then
+        direction = defines.direction.east
+    elseif offset[1] < 0 then
+        direction = defines.direction.west
+    elseif offset[2] > 0 then
+        direction = defines.direction.south
+    elseif offset[2] < 0 then
+        direction = defines.direction.north
+    end
+    return direction
 end
 
---local teleport_direction = teleport_offsets[arg1]
-player.teleport(offset[1], offset[2])--teleport_direction[1], teleport_direction[2])
+local trailing_position = {x=player.position.x+0.5, y=player.position.y+0.5}
+local current_position = player.position
 
---rcon.print({x=player.position.x+teleport_direction[1], y=player.position.y+teleport_direction[2]})
+if is_trailing == 1 then
+    rcon.print('trailing')
+    local existing_entity = surface.find_entity(trailing_entity, current_position)
+    if existing_entity then
+        rotate_entity(existing_entity, get_direction(offset))
+    end
+
+    player.teleport(offset[1], offset[2])
+    place(trailing_position, get_direction(offset))
+elseif is_trailing == 0 then
+    rcon.print('leading')
+    local inverse_offset = {-offset[1], -offset[2]}
+    trailing_position = {x=player.position.x-inverse_offset[1]-0.5, y=player.position.y-inverse_offset[2]-0.5}
+    player.teleport(offset[1], offset[2])
+
+    local existing_entity = surface.find_entity(trailing_entity, current_position)
+    if existing_entity then
+        rotate_entity(existing_entity, get_direction(offset))
+    end
+    place(trailing_position, get_direction(inverse_offset))
+else
+    player.teleport(offset[1], offset[2])
+end
+
 rcon.print(player.position)

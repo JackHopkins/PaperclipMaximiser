@@ -1,0 +1,131 @@
+###NEW EPISODE###
+[92mThere are 4.2k tree_01s scattered 23km northwest, 17km north-northwest, 16km north, 16km north-northeast, 21km northeast, 1km east-northeast, 3km west-northwest, 760 metres west, 32 metres east, 4km west-southwest, 720 metres east-southeast, 17km southeast, 17km southwest, 13km south-southwest, 13km south-southeast, and 11km south 
+- 100x coal 10 metres northwest (-17, -14) x (-8, -5)
+- 100x iron_ore 10 metres east-northeast (22, -14) x (31, -5)
+- 100x stone 10 metres southwest (-17, 6) x (-8, 15)
+- 100x copper_ore 10 metres east-southeast (22, 6) x (31, 15)
+- 100x uranium_ore 30 metres southeast (22, 26) x (31, 35)
+- There are 4.2k tree_01_stumps scattered 105 metres north 
+- There are 4.2k item_on_grounds scattered 16 metres northeast 
+- There are 4.2k stone_furnaces scattered 21 metres southeast 
+[96m# Let's start by setting up mining for coal, iron ore, stone, and copper ore.
+[94mgoto((10, -10));
+[96m# Move near the coal patch
+[94mplace('burner-drill', 2, (0, 1));
+[91mYou can't do that action. 'NoneType' object has no attribute 'replace'
+[96m# Apologies for the error. Let me try again.
+[94mgoto((-10, -10));
+[96m# Move near the coal patch
+[94mplace('burner-mining-drill', 2, (0, 1));
+[91mCould not place burner-mining-drill. No burner mining drill in inventory
+[96m# We need to craft a burner-mining-drill first
+[94mcraft('burner-mining-drill', count=1);
+[94minventory();
+[92m- 1 iron-chest
+- 50 transport-belt
+- 1 burner-mining-drill
+- 3 assembling-machine-1
+- 50 coal
+- 32 copper-plate
+[96m# Great, we have a burner-mining-drill in our inventory. Let's place it near the coal patch now.
+[94mgoto((-10, -10));
+[94mplace('burner-mining-drill', 2, (0, 1));
+[96m# -
+[94minsert('coal', (0, 1), count=1);
+[96m# Inserts 1 coal into the burner-mining-drill
+[94mcraft('iron-chest', count=1);
+[91mCould not craft a iron-chest. Failed to craft 1x iron chest
+[96m# My apologies, we need to craft an iron chest later when we have the necessary items. Let's continue setting up the burner-mining-drill.
+[94mplace('iron-chest', 2, (2, 1));
+[96m# Place the iron-chest to store the coal
+[94mextract('coal', (0, 1), count=5);
+[91mCould not extract.. No item to extract
+[96m# Let's wait a bit for the burner-mining-drill to mine coal.
+[94mwait(10);
+[92mWhile you wait, you look around. 
+You see:
+- An empty burner_mining_drill facing north, at (0, 1). 
+- An stone_furnace facing north at (36, 31) containing 4x coal. .
+- An stone_furnace facing north at (33, 18) containing 4x coal. Lack of input material.
+- An empty iron_chest facing north, at (2.5, 1.5). 
+- An stone_furnace facing north at (39, 18) containing 4x coal. Lack of input material.
+[94mextract('coal', (0, 1), count=5);
+[91mCould not extract.. No item to extract
+[96m# Let's wait a bit longer for the burner-mining-drill to mine coal.
+[94mwait(30);
+[92mWhile you wait, you look around. 
+You see:
+- An empty burner_mining_drill facing north, at (0, 1). 
+- An stone_furnace facing north at (36, 31) containing 4x coal. .
+- An stone_furnace facing north at (33, 18) containing 4x coal. Lack of input material.
+- An empty iron_chest facing north, at (2.5, 1.5). 
+- An stone_furnace facing north at (39, 18) containing 4x coal. Lack of input material.
+[96m# It seems like the burner-mining-drill isn't mining coal as expected. Let's make sure it's properly placed and has fuel.
+[94mgoto((-10, -10));
+[94mplace('burner-mining-drill', 2, (0, 1));
+[91mCould not place burner-mining-drill. No burner mining drill in inventory
+[96m# It appears we need to craft another burner-mining-drill.
+[94mcraft('burner-mining-drill', count=1);
+[91mCould not craft a burner-mining-drill. Failed to craft 1x burner mining drill
+[96m# We seem to be missing the necessary materials. Let's try to find and mine some nearby resources.
+[94mcraft('iron-axe', count=1);
+[91mCould not craft a iron-axe. Failed to craft 1x iron axe
+[96m# I apologize for the confusion. We will have to manually mine resources for now.
+[94mgoto(nearest('coal'));
+[94mharvest((-2, 0), count=10);
+[94mgoto(nearest('stone'));
+[94mharvest((-2, 0), count=10);
+[94mgoto(nearest('iron_ore'));
+[94mharvest((-2, 0), count=10);
+[94minventory();
+[92m- 50 transport-belt
+- 3 assembling-machine-1
+- 119 coal
+- 70 stone
+- 50 iron-ore
+- 32 copper-plate
+[96m# Now that we have some coal, stone, and iron ore, let's try to craft the burner-mining-drill again.
+[94mcraft('burner-mining-drill', count=1);
+[94minventory();
+[92m- 50 transport-belt
+- 1 burner-mining-drill
+- 3 assembling-machine-1
+- 119 coal
+- 65 stone
+- 44 iron-ore
+- 32 copper-plate
+[96m# Great, we have a burner-mining-drill in our inventory. Let's place it near the coal patch now.
+[94mgoto((-10, -10));
+[94mplace('burner-mining-drill', 2, (0, 1));
+[91mCould not place burner-mining-drill. Cant build there due to existing 
+[96m# My apologies, it seems there's already a burner-mining-drill in that location. Let's fuel it and wait for coal.
+[94minsert('coal', (0, 1), count=1);
+[94mwait(30);
+[92mWhile you wait, you look around. 
+You see:
+- An burner_mining_drill facing north at (10, 11) containing 1x coal. 
+- An stone_furnace facing north at (46, 41) containing 4x coal. .
+- An stone_furnace facing north at (43, 28) containing 4x coal. Lack of input material.
+- An empty iron_chest facing north, at (12.5, 11.5). 
+- An stone_furnace facing north at (49, 28) containing 4x coal. Lack of input material.
+[94mextract('coal', (0, 1), count=5);
+[94mplace('iron-chest', 2, (2, 1));
+[91mCould not place iron-chest. No iron chest in inventory
+[96m# My apologies, let's craft an iron chest first and then place it.
+[94mcraft('iron-chest', count=1);
+[94mplace('iron-chest', 2, (2, 1));
+[94mcraft('iron-chest', count=1);
+[94mplace('iron-chest', 2, (2, 1));
+[91mCould not place iron-chest. Cant build there due to existing iron chest at 2
+[96m# I apologize for the mistake. Let's try placing another iron chest in a different location.
+[94mcraft('iron-chest', count=1);
+[94mplace('iron-chest', 2, (2, 2));
+[96m# Let's put the coal in the chest and work on refining iron ore.
+[94minsert('coal', (0, 1), count=5);
+[94mplace('burner-mining-drill', 2, nearest('iron_ore'));
+[91mCould not place burner-mining-drill. Cant build there due to existing iron ore at 43
+[96m# Let's find another suitable location for the burner-mining-drill near iron ore.
+[94mgoto(nearest('iron_ore', exclude=(0, 1)));
+[91mYou can't do that action. nearest() got an unexpected keyword argument 'exclude'
+[96m# I apologize for the confusion. Let's try manually adjusting our location near the iron ore patch.
+[94mgoto((40, 25));

@@ -1,0 +1,64 @@
+# Let's start by gathering resources and setting up production.
+inventory();
+# check what items I have already
+goto((0, -20));
+# move 20m north to get closer to the resources
+goto(nearest('tree'));
+# move to the nearest tree
+harvest((-2, 0), count=5);
+# harvest 5 units of wood from the tree 2m left
+goto(nearest('coal'));
+# move to the nearest coal patch
+harvest((-2, 0), count=10);
+# harvest 10 units of coal
+goto(nearest('iron_ore'));
+# move to the
+# nearest iron ore patch
+harvest((-2, 0), count=10);
+# harvest 10 units of iron ore
+goto(nearest('copper_ore'));
+# move to the nearest copper ore patch
+harvest((-2, 0), count=10);
+# harvest 10 units of copper ore
+goto((0, 20));
+# move 20 meters south to center myself on the map
+# Time to set up initial smelting and crafting operations.
+place('stone-furnace', 0, (1, 1));
+# place stone furnace at 1m north and east, facing north
+insert('coal', (1, 1), count=5);
+# inserts 5 coal into stone furnace
+insert('iron_ore', (1, 1), count=10);
+# inserts 10 iron ore into stone furnace
+wait(60);
+# wait 60 seconds for the furnace to smelt the iron ore
+extract('iron-plate', (1, 1), count=10);
+# pick up 10 units of smelted iron plates from the stone furnace
+craft('iron-chest', count=2);
+# craft 2 iron chests
+place('iron-chest', 0, (2,0));
+# place an iron chest at 2m east
+place('assembling-machine-1', 0, (1,1));
+# move 1 meter west to make room for the assembling-machine
+goto((-1,0));
+place('assembling-machine-1', 0, (1, 1));
+# move 1 meter north to make room for the assembling-machine
+goto((0, 1));
+place('assembling-machine-1', 0, (0, -1));
+# move 2 meters east to make room for the assembling-machine
+goto((2, 0));
+place('assembling-machine-1', 0, (-1, 0));
+# move 2 meters east and 1 meter north to make room for the assembling-machine
+goto((2, 1));
+place('assembling-machine-1', 0, (-1, -1));
+# move 1 meter south to create space for the assembling-machine
+goto((0, -1));
+place('assembling-machine-1', 0, (1, 1));
+# move 2 meters south to create space for the assembling-machine
+goto((0, -2));
+place('assembling-machine-1', 0, (1, 1));
+# I'll try positioning myself southwest of the planned assembling-machine location
+goto((-1,-1));
+place('assembling-machine-1', 0, (1, 1));
+# I'll try positioning myself northwest of the planned assembling-machine location
+goto((-1,1));
+place('assembling-machine-1', 0, (1, -1));

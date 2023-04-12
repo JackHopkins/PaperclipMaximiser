@@ -84,10 +84,10 @@ def get_path(end, grid, start = (50, 50)):
 
     # Check if the destination is within bounds, otherwise find the closest valid point
     if not (0 <= end[0] < grid.shape[0] and 0 <= end[1] < grid.shape[1]):
-        end = get_closest_valid_point(grid, end)
+        end = get_closest_valid_point(grid, (int(end[0]), int(end[1])))
 
     # The start and goal coordinates are in matrix coordinates (i, j).
-    path = pyastar2d.astar_path(weights, start, end, allow_diagonal=False)
+    path = pyastar2d.astar_path(weights, start, (int(end[0]), int(end[1])), allow_diagonal=False)
 
     # Find the last index where the grid value is not 100
     last_non_100_index = -1
@@ -99,8 +99,9 @@ def get_path(end, grid, start = (50, 50)):
             pass
 
     # Trim the path
-    trimmed_path = path[:last_non_100_index + 1]
+    if last_non_100_index > 0:
+        path = path[:last_non_100_index + 1]
 
-    return trimmed_path
+    return path
 
 

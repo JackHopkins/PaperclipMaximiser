@@ -1,0 +1,79 @@
+###NEW EPISODE###
+[92mThere are 4.1k tree_01s scattered 23km northwest, 17km north-northwest, 15km north, 16km north-northeast, 21km northeast, 1km east-northeast, 3km west-northwest, 760 metres west, 32 metres east, 4km west-southwest, 720 metres east-southeast, 17km southeast, 17km southwest, 13km south-southwest, 13km south-southeast, and 11km south 
+- 100x uranium_ore 30 metres southeast (22, 26) x (31, 35)
+- 81x stone 10 metres southwest (-17, 6) x (-8, 15)
+- 76x coal 11 metres northwest (-17, -14) x (-8, -5)
+- 76x copper_ore 11 metres east-southeast (22, 6) x (31, 15)
+- 65x iron_ore 10 metres east-northeast (24, -14) x (31, -5)
+- There are 4.1k tree_01_stumps scattered 113 metres north, and 55 metres north-northwest 
+- There are 4.1k item_on_grounds scattered 16 metres northeast 
+[96m# First, I need to gather some resources to start building our factory
+[94minventory();
+[92m- 1 iron-chest
+- 50 transport-belt
+- 1 stone-furnace
+- 1 assembling-machine-1
+- 50 coal
+- 50 iron-plate
+- 50 copper-plate
+[96m# Check what we already have in our inventory
+[94mgoto(nearest('iron_ore'));
+[96m# Go to the nearest iron ore deposit
+[94mharvest((-2, 0), count=40);
+[96m# Harvest 40 iron ores
+[94mgoto(nearest('copper_ore'));
+[96m# Go to the nearest copper ore deposit
+[94mharvest((-2, 0), count=40);
+[96m# Harvest 40 copper ores
+[96m# Let's start smelting the ores now
+[94mgoto((0, -5));
+[96m# Place ourselves in a clear area
+[94mplace('stone-furnace', 0, (1, 0));
+[96m# Place a stone furnace facing east
+[94minsert('coal', (1, 0), count=10);
+[96m# Insert 10 coal into the stone furnace
+[94minsert('iron_ore', (1, 0), count=40);
+[96m# Insert 40 iron ores into the stone furnace
+[94mwait(30);
+[92mWhile you wait, you look around. 
+You see:
+- An stone_furnace facing north at (1, 0) containing 9x coal. .
+[96m# Wait 30 seconds to allow the furnace to smelt 20 iron plates
+extract('iron-
+[96m# plate', (1, 0), count=20);
+[94minsert('copper_ore', (1, 0), count=40);
+[91mCould not insert.. None
+[96m# Insert 40 copper ores into the stone furnace
+[94mwait(30);
+[92mWhile you wait, you look around. 
+You see:
+- An stone_furnace facing north at (1, 0) containing 8x coal. .
+[96m# Wait 30 seconds to allow the furnace to smelt 20 copper plates
+[94mextract('copper_plate', (1, 0), count=20);
+[91mCould not extract.. No item to extract
+[96m# Extract 20 copper plates from the furnace
+[94mwait(3);
+[92mWhile you wait, you look around. 
+You see:
+- An stone_furnace facing north at (1, 0) containing 7x coal. Lack of input material.
+[96m# Let's wait a few more seconds for more copper and iron to smelt
+[94mextract('copper_plate', (1, 0), count=5);
+[91mCould not extract.. No item to extract
+[96m# Extract 5 more copper plates from the furnace
+[94mextract('iron_plate', (1, 0), count=5);
+[96m# Extract 5 more iron plates from the furnace
+[96m# You see:
+- An stone_furnace facing north at (1, 0) containing 7x coal. No input material.
+- +5 copper_plate(in prev error)
+- +5 iron_plate
+[96m# Now, let's start building the factory
+[94mgoto((3, 3));
+[96m# Head to an open area to the east-northeast
+[94mplace('assembling-machine-1', 0, (1, 0));
+[96m# Place an assembling machine-1 to the east, facing east
+[94mset_recipe((1, 0), 'transport-belt');
+[91mCould not set recipe for transport-belt. No building found that could have its recipe set
+[96m# Set the recipe of the assembling machine to 'transport-belt'
+[94minsert('iron_plate', (1, 0), count=20);
+[96m# Insert 20 iron plates into the assembling machine
+insert('copper_plate', (1, 0),

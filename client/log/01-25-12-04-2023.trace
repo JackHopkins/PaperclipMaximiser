@@ -1,0 +1,4 @@
+# Lets start by checking my inventory.
+# With those resources, I will first set up a coal harvesting operation using the coal in my inventory.
+move_to(nearest('coal'));
+place_entity('burner-drill', direction=2, position=nearest('coal'));

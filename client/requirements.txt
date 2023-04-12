@@ -1,6 +1,6 @@
 factorio-rcon-py
 python-dotenv
-gym
+gym==0.21.0
 git+https://github.com/SirAnthony/slpp
 imageio
 anyio

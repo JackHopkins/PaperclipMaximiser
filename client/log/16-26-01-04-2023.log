@@ -1,0 +1,116 @@
+###NEW EPISODE###
+[92mThere are 4.2k tree_01s scattered 23km northwest, 17km north-northwest, 15km north, 16km north-northeast, 21km northeast, 1km east-northeast, 3km west-northwest, 760 metres west, 32 metres east, 4km west-southwest, 720 metres east-southeast, 17km southeast, 17km southwest, 13km south-southwest, 13km south-southeast, and 11km south 
+- 100x uranium_ore 30 metres southeast (22, 26) x (31, 35)
+- 94x coal 10 metres northwest (-17, -14) x (-8, -5)
+- 93x iron_ore 10 metres east-northeast (22, -14) x (31, -5)
+- 90x copper_ore 10 metres east-southeast (22, 6) x (31, 15)
+- 86x stone 10 metres southwest (-17, 6) x (-8, 15)
+- There are 4.2k tree_01_stumps scattered 274 metres north 
+[94minventory();
+[92m- 1 iron-chest
+- 50 transport-belt
+- 1 stone-furnace
+- 1 assembling-machine-1
+- 50 coal
+- 50 iron-plate
+- 50 copper-plate
+[96m# Let's start by setting up coal and iron ore production
+[94mgoto(nearest('coal'));
+[94mharvest((0, 0), count=50);
+[94mgoto(nearest('iron_ore'));
+[94mharvest((0, 0), count=50);
+[96m Now we will create a line of transport belts from the coal source to the iron-ore area.
+[94mgoto(nearest(('coal')), trailing='transport-belt');
+[94mgoto(nearest('iron_ore'), trailing='transport-belt');
+[96m# Setting up a furnace to smelt iron plates
+[94mplace('stone-furnace', 0, (1, 0));
+[94minsert('coal', (1, 0), count=5);
+[94minsert('iron_ore', (1, 0), count=10);
+[96m# Setting up an assembling machine for creating transport belts
+[94mplace('assembling-machine-1', 1, (0, 1));
+[91mCould not place assembling-machine-1. Cant build there due to existing stone furnace at 1, 0
+[96m Moving the assembling machine a little further south
+[94mplace('assembling-machine-1', 1, (0, -1));
+[91mCould not place assembling-machine-1. Cant build there due to existing stone furnace at 1, 0
+[96m I realized I made an error in the assembling machine position, let me re-place it correctly
+[94mplace('assembling-machine-1', 1, (1, 0));
+[91mCould not place assembling-machine-1. Cant build there due to existing stone furnace at 1, 0
+[96mI apologize for the confusion. Let's place the assembling machine to the east of the stone furnace.
+[94mplace('assembling-machine-1', 1, (2, 0));
+[91mCould not place assembling-machine-1. Cant build there due to existing stone furnace at 1, 0
+[96mI must have misunderstood the situation. Let me move to a different location and place the assembling machine again.
+[94mgoto((5, 0));
+[94mplace('assembling-machine-1', 1, (1, 0));
+[94mset_recipe((1, 0), 'transport-belt');
+[91mCould not set recipe for transport-belt. No building found that could have its recipe set
+[96mI apologize for the mistake. We need to create an assembling machine 2 for transport belt production.
+[94mcraft('assembling-machine-2', count=1);
+[91mCould not craft a assembling-machine-2. It requires steel plate which cannot be crafted by hand
+[94mplace('assembling-machine-2', 1, (1, 0));
+[91mCould not place assembling-machine-2. No assembling machine 2 in inventory
+[94mset_recipe((1,0), 'transport-belt');
+[91mCould not set recipe for transport-belt. No building found that could have its recipe set
+[96mI apologize for the confusion. Let's remove the existing assembling machine and replace it with an assembling machine 2.
+[94mpickup((1, 0));
+[94mcraft('assembling-machine-2', count=1);
+[91mCould not craft a assembling-machine-2. It requires steel plate which cannot be crafted by hand
+[96mI apologize for the confusion. We need to create a steel production line first to craft the assembling machine 2. Let's start by connecting iron plate production to a steel furnace.
+[94mgoto(nearest('iron-plate'));
+[91mYou can't do that action. Incorrect syntax.
+[96mMy apologies. Let me try a different approach.
+[94mgoto(nearest('iron-ore'));
+[94mharvest((0, 0), count=10);
+[94mgoto(nearest('stone-furnace'));
+[91mYou can't do that action. Incorrect syntax.
+[96mApologies for the error. Let me fix the syntax.
+[94mgoto(nearest('stone-furnace'));
+[91mYou can't do that action. Incorrect syntax.
+[96mI apologize for the confusion. Let's try another approach.
+[94mnature();
+[92mThere are 3.3k tree_01s scattered 22km northwest, 16km north-northwest, 13km north, 14km north-northeast, 22km northeast, 1km east-northeast, 1km west-northwest, 16km southeast, 191 metres east-southeast, 64 metres west-southwest, 12km south-southeast, 15km southwest, 10km south, and 11km south-southwest 
+- 100x uranium_ore 34 metres south (-3, 30) x (6, 39)
+- 90x copper_ore 14 metres south (-3, 10) x (6, 19)
+- 86x coal 6 metres west (-42, -10) x (-33, -1)
+- 86x stone 14 metres west-southwest (-42, 10) x (-33, 19)
+- 82x iron_ore 6 metres north-northeast (-3, -10) x (6, -1)
+- 50x transport_belt 6 metres west-northwest (-32, -6) x (-2, -3)
+- There are 3.3k tree_01_stumps scattered 102 metres north-northwest 
+[94mgoto((-3, 10));
+[94mharvest((0, 0), count=10);
+[91mCould not harvest.. Nothing to here to harvest
+[96mApologies for the confusion. I will try a different approach.
+[94mgoto((-3, -10));
+[94mharvest((0, 0), count=10);
+[94minventory();
+[92m- 1 iron-chest
+- 2 assembling-machine-1
+- 440 coal
+- 380 iron-ore
+- 40 iron-plate
+- 50 copper-plate
+- 5 iron-gear-wheel
+[96mWe have enough iron ore, so let's work on setting up a steel production line. To do that, we'll need more stone furnaces to process the iron ore into iron plates, and then use another set of furnaces to convert those into steel plates.
+[94mgoto(nearest('stone'));
+[94mharvest((0,0), count=10);
+[94mcraft('stone-furnace', count=2);
+[94mgoto((0, -40));
+[94mplace('stone-furnace', 0, (1,1));
+[94mplace('stone-furnace', 0, (2,1));
+[91mCould not place stone-furnace. Cant build there due to existing stone furnace at 1, 1
+[96mApologies for the error. Let me place the stone furnaces at new locations.
+[94mplace('stone-furnace', 0, (3,1));
+[94mplace('stone-furnace', 0, (4,1));
+[91mCould not place stone-furnace. No stone furnace in inventory
+[96mI apologize for the mistake. It seems I made an error in crafting the stone furnaces. Let's try again.
+[94mcraft('stone-furnace', count=2);
+[94mplace('stone-furnace', 0, (3,1));
+[91mCould not place stone-furnace. Cant build there due to existing stone furnace at 3, 1
+[96mApologies for the confusion. I will place the stone-furnace at a different location.
+[94mplace('stone-furnace', 0, (5,1));
+[94minsert('coal', (1, 1), count=10);
+[94minsert('coal', (3, 1), count=10);
+[94minsert('coal', (5, 1), count=10);
+[94minsert('iron-ore', (1, 1), count=20);
+[96minsert('iron-ore',
+[96m(3, 1), count=20);
+[94mwait(10);

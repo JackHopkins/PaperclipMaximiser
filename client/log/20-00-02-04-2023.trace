@@ -1,0 +1,93 @@
+# I will move to the nearest resource to set up mining operations
+goto(nearest('resource'));
+# Apologies, I didn't use the correct syntax. Let me fix it.
+goto(nearest('iron_ore'));
+# Once arrived to the nearest iron_ore, place a burner mining drill and fuel it with coal.
+place('burner-mining-drill', 0, (0, 0));
+insert('coal', (0, 0), count=1);
+# I need to craft a burner mining drill first
+craft('burner-mining-drill', count=1);
+inventory();
+# Now that I have a burner-mining-drill in my inventory, I can place it
+place('burner-mining-drill', 0, (0, 0));
+# Insert coal to fuel the burner mining drill
+insert('coal', (0, 0), count=1);
+# Move 2 meters to the east so that I can place the burner-mining-drill without being in the way.
+goto((2, 0));
+place('burner-mining-drill', (-2, 0));
+# Apologies for the syntax error. Let's try again.
+goto((2, 0));
+place('burner-mining-drill', 0, (-2, 0));
+# Move 1 meter north to avoid any obstructions
+goto((0, 1));
+# Place the burner-mining-drill to the south
+place('burner-mining-drill', 0, (0, -1));
+# Insert coal to fuel the burner mining drill
+insert('coal', (0, -1), count=1);
+# I am unable to place the mining drill in the current location. I'll try moving to another coordinate.
+goto((3, -1));
+# Place the burner-mining-drill to the west
+place('burner-mining-drill', 0, (-1, 1));
+# Let's move further away to find an unobstructed spot for the mining drill
+goto((5, -2));
+# Place the burner-mining-drill to the west
+place('burner-mining-drill', 0, (-1, 1));
+# Let's attempt placing the mining drill in a different direction
+goto((5, -2));
+# Place the burner-mining-drill to the southwest
+place('burner-mining-drill', 0, (-1, -1));
+# I will try a different spot for placing the burner-mining-drill
+goto((7, -3));
+# Place the burner-mining-drill to the northwest
+place('burner-mining-drill', 0, (-1, 1));
+# I will try one more time to find an unobstructed spot
+goto((9, -4));
+# Place the burner-mining-drill to the southeast
+place('burner-mining-drill', 0, (1, -1));
+# Try moving to a nature-filled area
+nature();
+goto(nearest('tree'));
+# Place the burner-mining-drill to the west
+place('burner-mining-drill', 0, (-1, 0));
+# Clear the tree to make space for the mining drill.
+harvest((-1, 0), count=1);
+# Place the burner-mining-drill to the west
+place('burner-mining-drill', 0, (-1, 0));
+# Move 2 meters east to put some distance between the stump and the mining drill placement
+goto((2, 0));
+# Place the burner-mining-drill to the west
+place('burner-mining-drill', 0, (-1, 0));
+# Move to a different spot near the resources
+goto((0, -6));
+# Place the burner-mining-drill to the east
+place('burner-mining-drill', 0, (1, 0));
+# Find a new spot near the coal resource
+goto(nearest('coal'));
+# Place the burner-mining-drill to the north
+place('burner-mining-drill', 0, (0, 1));
+# Attempt a different direction near the coal resource
+goto(nearest('coal'));
+# Place the burner-mining-drill to the south
+place('burner-mining-drill', 0, (0, -1));
+# Could not place burner-mining-drill. Cant build there due to existing
+# Find a new spot near the coal resource
+goto(nearest('coal'));
+# Give some distance from the resource
+goto((0, -3));
+# Place the burner-mining-drill to the north
+place('burner-mining-drill', 0, (0, 1));
+# Craft a burner-mining-drill
+craft('burner-mining-drill', count=1);
+# Let's gather resources needed to craft the burner-mining-drill manually
+inventory();
+# I have enough resources to craft a burner-mining-drill using the assembling-machine-1
+place('assembling-machine-1', 0, (1, 0));
+# Place assembling-machine-1 to the east
+set_recipe((1, 0), 'burner-mining-drill');
+# Set the recipe to craft a burner-mining-drill
+insert('iron-plate', (1, 0), count=9);
+# Insert 9 iron-plates
+insert('iron-gear-wheel', (1, 0), count=5);
+# Insert 5 iron-gear-wheels
+wait
+wait(10);

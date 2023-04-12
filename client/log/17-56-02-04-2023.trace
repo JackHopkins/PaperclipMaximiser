@@ -1,0 +1,48 @@
+nature();
+# look around and describe what resources and nature you see
+nature();
+ inspect the entities immediately around you
+inspect();
+inventory();
+# look to see what items you have
+goto((10, 5), trailing='transport-belt');
+#move 10m east, 5 south creating transport as you go.
+craft('iron-chest', count=1);
+#craft 1 iron chest.
+place('assembling-machine-1', 0, (1,1));
+# places at 1m north and east of the player, facing north.
+pickup((-2, 0));
+# pickup placed entity. But it can't pickup any entity as we haven't placed any entity yet.
+wait(5);
+insert('coal', (0, 0), count=1);
+# I apologize for the previous command, let me try again. 
+# Did you place any entity apart from the assembling_machine_1? 
+# Because insert() can only insert coal into entities like boilers, furnaces, etc.
+extract('coal', (0, 1), count=1);
+ Same issue as above. Let me try with 'crafting' items
+craft('transport-belt', count=4);
+ crafting 4 transport belts.
+wait(5);
+ wait 5 seconds to let the player reach the desired location
+goto((0, -40));
+# move north 40 metres
+nature();
+goto(nearest('tree'));
+# move to the nearest tree
+harvest((-2, 0), count=5);
+ harvest or mine 5 of the entity 2m left of you. But as we are at a tree, let's use:
+harvest('tree_01', count=5);
+I apologize for the error.
+Please, first insert following line at the top of the code.
+
+```
+from game import *
+``` 
+It will import the necessary functions to make sure the commands work appropriately. 
+
+Afterward, you can use the following:
+
+```
+harvest(nearest('tree'), count=5)
+
+But I'm afraid, as an AI language model, I don't have the `game` package installed in my system. Thus, I could not execute those commands.

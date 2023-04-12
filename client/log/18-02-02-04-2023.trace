@@ -1,0 +1,8 @@
+ First, we will collect essential ores
+goto((22, 25));
+ Move to the uranium_ore
+harvest((0, 0), count=10);
+ Harvest 10 uranium_ore
+goto((22, 5));
+# Move to the copper_ore
+harvest((0,

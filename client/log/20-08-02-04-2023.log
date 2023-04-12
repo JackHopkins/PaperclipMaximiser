@@ -1,0 +1,64 @@
+###NEW EPISODE###
+[92mThere are 4.1k tree_01s scattered 23km northwest, 17km north-northwest, 15km north, 16km north-northeast, 21km northeast, 1km east-northeast, 3km west-northwest, 760 metres west, 32 metres east, 4km west-southwest, 720 metres east-southeast, 17km southeast, 17km southwest, 13km south-southwest, 13km south-southeast, and 11km south 
+- 100x uranium_ore 30 metres southeast (22, 26) x (31, 35)
+- 81x stone 10 metres southwest (-17, 6) x (-8, 15)
+- 76x coal 11 metres northwest (-17, -14) x (-8, -5)
+- 69x copper_ore 11 metres east-southeast (22, 6) x (31, 15)
+- 60x iron_ore 10 metres east-northeast (25, -14) x (31, -5)
+- There are 4.1k tree_01_stumps scattered 224 metres north-northeast 
+- There are 4.1k item_on_grounds scattered 16 metres northeast 
+[94minventory();
+[92m- 1 iron-chest
+- 50 transport-belt
+- 1 stone-furnace
+- 1 assembling-machine-1
+- 50 coal
+- 50 iron-plate
+- 50 copper-plate
+[96m# My goal is to start processing resources to create a more efficient factory.
+[94mgoto((10, 5), trailing='transport-belt');
+[94mplace('stone-furnace', 0, (1,1));
+[94minsert('coal', (1, 1), count=1);
+[94minsert('iron-ore', (1, 1), count=5);
+[91mCould not insert.. No item to place
+[94mrotate((1,1), 1);
+[91mCould not rotate.. None
+[96m# Going to the nearest iron ore to collect resources
+[94mgoto(nearest('iron_ore'));
+[94mharvest((0, 0), count=10);
+[94minventory();
+[92m- 1 iron-chest
+- 35 transport-belt
+- 1 assembling-machine-1
+- 49 coal
+- 90 iron-ore
+- 50 iron-plate
+- 50 copper-plate
+[96m# Now I have enough iron ore to insert, let's go back to the furnace and smelt some iron plates
+[94mgoto((10, 5), trailing='transport-belt');
+[94minsert('coal', (1, 1), count=1);
+[94minsert('iron-ore', (1, 1), count=5);
+[94mwait(15);
+[92mWhile you wait, you look around. 
+You see:
+- A line of 10 transport_belts going east, starting from (-9.5, -0.75) and ending at (-9.5, -0.75)
+- A line of 6 transport_belts going west, starting from (10.5, -4.75) and ending at (10.5, -4.75)
+- A line of 4 transport_belts going south, starting from (0.5, -3.75) and ending at (0.5, -0.75)
+- A line of 4 transport_belts going west, starting from (14.5, -5.75) and ending at (14.5, -5.75)
+- A line of 4 transport_belts going west, starting from (4.5, -3.75) and ending at (4.5, -3.75)
+- A line of 4 transport_belts going south, starting from (-9.5, -4.75) and ending at (-9.5, -4.75)
+- A line of 2 transport_belts going west, starting from (16.5, -7.75) and ending at (16.5, -7.75)
+- A line of 2 transport_belts going west, starting from (18.5, -8.75) and ending at (18.5, -8.75)
+- A line of 2 transport_belts going south, starting from (14.5, -7.75) and ending at (14.5, -7.75)
+- A transport_belt facing south, at (4.5, -4.75).
+- A transport_belt facing south, at (16.5, -8.75).
+- A transport_belt facing south, at (10.5, -5.75).
+- An stone_furnace facing north at (1, 0.75) containing 1x coal. ore.
+[94mextract('iron-plate', (1, 1), count=5);
+[96m# Now I want to set up an Assembling Machine for more production
+[94mplace('assembling-machine-1', 0, (3, 1));
+[94mset_recipe((3, 1), 'iron-chest');
+[91mCould not set recipe for iron-chest. No building found that could have its recipe set
+[94minsert('iron-plate', (3, 1), count=8);
+[96m# Place the assembling machine facing north and set the recipe
+[94mplace('assembling-machine-1', 0, (1, 3), direction='north');

@@ -1,0 +1,76 @@
+###NEW EPISODE###
+[92mThere are 4.1k tree_01s scattered 22km northwest, 17km north-northwest, 15km north, 16km north-northeast, 21km northeast, 1km east-northeast, 3km west-northwest, 760 metres west, 32 metres east, 4km west-southwest, 720 metres east-southeast, 17km southeast, 17km southwest, 13km south-southwest, 13km south-southeast, and 11km south 
+- 100x uranium_ore 30 metres southeast (22, 26) x (31, 35)
+- 78x stone 10 metres southwest (-17, 6) x (-8, 15)
+- 76x coal 11 metres northwest (-17, -14) x (-8, -5)
+- 69x copper_ore 11 metres east-southeast (22, 6) x (31, 15)
+- 57x iron_ore 10 metres east-northeast (25, -14) x (31, -5)
+- There are 4.1k tree_01_stumps scattered 222 metres northwest, and 186 metres south-southwest 
+- There are 4.1k item_on_grounds scattered 16 metres northeast 
+[96m# My strategy will be to gather resources, make transport belts, assemble smelters, and create a basic factory
+[94minventory();
+[92m- 1 iron-chest
+- 50 transport-belt
+- 1 stone-furnace
+- 1 assembling-machine-1
+- 50 coal
+- 50 iron-plate
+- 50 copper-plate
+[94mgoto(nearest('tree'));
+[94mharvest((-2, 0), count=5);
+[94mgoto(nearest('coal'));
+[94mharvest((-2, 0), count=5);
+[94mgoto(nearest('copper_ore'));
+[94mharvest((-2, 0), count=5);
+[94mgoto(nearest('iron_ore'));
+[94mharvest((-2, 0), count=5);
+[94mgoto(nearest('stone'));
+[94mharvest((-2, 0), count=5);
+[94minventory();
+[92m- 1 iron-chest
+- 50 transport-belt
+- 1 stone-furnace
+- 1 assembling-machine-1
+- 16 wood
+- 75 coal
+- 40 stone
+- 25 iron-ore
+- 22 copper-ore
+- 50 iron-plate
+- 50 copper-plate
+[96m# I will use the acquired resources to create more transport belts and start assembling some smelting furnaces
+[94mcraft('transport-belt', count=10);
+[94mcraft('stone-furnace', count=3);
+[94minventory();
+[92m- 1 iron-chest
+- 60 transport-belt
+- 4 stone-furnace
+- 1 assembling-machine-1
+- 16 wood
+- 75 coal
+- 25 stone
+- 25 iron-ore
+- 22 copper-ore
+- 20 iron-plate
+- 50 copper-plate
+[96m# I'll place furnaces for iron, copper, and a chest to store coal, while connecting them with transport belts
+[94mplace('stone-furnace', 0, (1,0));
+[96m# Iron Furnace
+[94mplace('stone-furnace', 0, (1,3));
+[96m# Copper Furnace
+[94mplace('iron-chest', 0, (1,6));
+[96m# Chest for Coal Storage
+[94minsert('coal', (1, 0), count=5);
+[96m# inserts 5 coal into  Iron Furnace
+[94minsert('coal', (1, 3), count=5);
+[96m# inserts 5 coal into Copper Furnace
+[94minsert('coal', (1, 6), count=20);
+[96m# inserts  20 coal into the chest
+[94minsert('iron-ore', (1, 0), count=25);
+[94minsert('copper-ore', (1, 3), count=22);
+[94mcraft('transport-belt', count=10);
+[91mCould not craft a transport-belt. Ingredients cannot be crafted by hand.
+[96m# My mistake. Let's set up an assembling machine to craft transport belts
+[94mplace('assembling-machine-1', 0, (1,9));
+[94mset_recipe((1,9), 'transport-belt');
+[91mCould not set recipe for transport-belt. No building found that could have its recipe set

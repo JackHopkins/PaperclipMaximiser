@@ -46,6 +46,12 @@ function observe ()
         response['collision'] = find_passable_tiles(player, localBoundingBox)
     end
 
+    if include['statistics'] == nil or include['statistics'] then
+        response['statistics'] = get_productivity(player)
+    end
+
+    response['score'] = production_score.get_production_scores()
+
     return dump(response)
 end
 

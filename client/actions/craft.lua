@@ -1,90 +1,84 @@
-function craft_entity(player, entity_name, count)
-  -- Ensure the player and entity_name are valid
-  if not player or not player.valid or not entity_name then
-    return false
-  end
-
-  -- Check if the player's force has the necessary technology researched
-  local entity_prototype = game.entity_prototypes[entity_name]
-  if not entity_prototype or not player.force.technologies[entity_prototype.items_to_place_this[1].prototype.name].researched then
-    return false
-  end
-
-  -- Get the recipe for the entity
-  local recipe = player.force.recipes[entity_name]
-  if not recipe then
-    return false
-  end
-
-  -- Check if the player has enough items to craft the entity
-  for _, ingredient in pairs(recipe.ingredients) do
-    if player.get_item_count(ingredient.name) < ingredient.amount * count then
-      return false
-    end
-  end
-
-  -- Craft the entity, consuming the ingredients
-  for _, ingredient in pairs(recipe.ingredients) do
-    player.remove_item({name = ingredient.name, count = ingredient.amount * count})
-  end
-
-  -- Insert the crafted entity into the player's inventory
-  player.insert({name = entity_name, count = count})
-
-  return true
-end
-
-
-function add_to_crafting_queue(player, entity_name, count)
-  -- Ensure the player and entity_name are valid
-  if not player or not player.valid or not entity_name then
-      rcon.print("not valid entity")
-      return 0
-  end
-
-  -- Check if the player's force has the necessary technology researched
-  local entity_prototype = game.entity_prototypes[entity_name]
-  if not entity_prototype or not player.force.technologies[entity_prototype.items_to_place_this[1].prototype.name].researched then
-      rcon.print("no technology")
-      return 0
-  end
-
-  -- Get the recipe for the entity
-  local recipe = player.force.recipes[entity_name]
-  if not recipe then
-      rcon.print("no valid recipe")
-      return 0
-  end
-
-  -- Check if the player has enough items to craft the entity
-  for _, ingredient in pairs(recipe.ingredients) do
-    if player.get_item_count(ingredient.name) < ingredient.amount * count then
-        rcon.print("no ingredients")
-        return 0
-    end
-  end
-  -- Calculate the crafting time
-  local crafting_time = recipe.energy_required * 60 * count -- 60 ticks per second
-
-  rcon.print('crafting')
-  -- Add the crafting task to the global crafting queue
-  table.insert(global.crafting_queue, {
-    player = player,
-    entity_name = entity_name,
-    count = count,
-    recipe = recipe,
-    remaining_ticks = crafting_time
-  })
-
-  return 1
-end
-
+local success = 0
 
 local player = game.players[arg1]
 local entity = arg2
 local count = arg3
 
-rcon.print('crafting')
-success = add_to_crafting_queue(player, entity, count)
+--resp = add_to_crafting_queue(player, entity, count)
+--out = tostring(resp):gsub(' ',"_")
+--rcon.print(out)
 
-rcon.print(success)
+local function abort(message)
+    local msg = message:gsub(" ", "_")
+    rcon.print(msg)
+    --error(message)
+end
+
+local function get_missing_ingredients(player, recipe, count)
+    local missing_ingredients = {}
+    for _, ingredient in pairs(recipe.ingredients) do
+        local count_that_player_has = player.get_item_count(ingredient.name)
+        local needed = ingredient.amount * count
+        if count_that_player_has < needed then
+            local difference = needed - count_that_player_has
+            missing_ingredients[ingredient.name] = difference
+        end
+    end
+    return missing_ingredients
+end
+
+local function craft_entity(player, entity_name, count)
+    rcon.print(entity_name)
+    local recipe = player.force.recipes[entity_name]
+
+    if not recipe then
+        return "recipe doesnt exist"
+    end
+
+    local missing_ingredients = get_missing_ingredients(player, recipe, count)
+    rcon.print(dump(missing_ingredients))
+    if next(missing_ingredients) ~= nil then
+        for ingredient_name, ingredient_count in pairs(missing_ingredients) do
+            local ingredient_recipe = player.force.recipes[ingredient_name]
+            if ingredient_recipe then
+                local attempted_craft = craft_entity(player, ingredient_name, ingredient_count)
+                if attempted_craft ~= 1 then
+                    return attempted_craft
+                end
+            else
+                return "missing ingredient " .. ingredient_name:gsub("-", "_")
+            end
+        end
+    end
+
+    for _, ingredient in pairs(recipe.ingredients) do
+        player.remove_item({name = ingredient.name, count = ingredient.amount * count})
+    end
+
+    player.insert({name = entity_name, count = count})
+    return 1
+end
+
+--local player = game.players[arg1]
+--local entity_name = arg2
+--local count = tonumber(arg3)
+local successfully_crafted = 0
+local reason = nil
+for i = 1, count, 1 do
+    local did_craft = craft_entity(player, entity, 1)
+    if did_craft == 1 then
+        successfully_crafted = successfully_crafted + 1
+    else
+        reason = did_craft
+        break
+    end
+end
+
+if successfully_crafted == count then
+    rcon.print(1)
+elseif successfully_crafted > 0 then
+    abort("Successfully crafted " .. successfully_crafted .."x but failed_to_craft_"
+            .. (count-successfully_crafted) .. "x " .. entity:gsub("-", "_").." because ".. reason)
+else
+    abort("Failed_to_craft_" .. (count-i)+1 .. "x_" .. entity:gsub("-", "_"))-- .. tostring(did_craft))
+end

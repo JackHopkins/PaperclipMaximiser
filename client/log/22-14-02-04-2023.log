@@ -1,0 +1,91 @@
+###NEW EPISODE###
+[92mThere are 4.2k tree_01s scattered 23km northwest, 17km north-northwest, 16km north, 16km north-northeast, 21km northeast, 1km east-northeast, 3km west-northwest, 760 metres west, 32 metres east, 4km west-southwest, 720 metres east-southeast, 17km southeast, 17km southwest, 13km south-southwest, 13km south-southeast, and 11km south 
+- 100x coal 10 metres northwest (-17, -14) x (-8, -5)
+- 100x iron_ore 10 metres east-northeast (22, -14) x (31, -5)
+- 100x stone 10 metres southwest (-17, 6) x (-8, 15)
+- 100x copper_ore 10 metres east-southeast (22, 6) x (31, 15)
+- 100x uranium_ore 30 metres southeast (22, 26) x (31, 35)
+[96m# First, gather some resources
+[94mgoto(nearest('tree'));
+[94mharvest((-2, 0), count=5);
+[94mgoto((-17, -14));
+[96m# Move to coal deposit
+[94mharvest((0, 0), count=10);
+[94mgoto((22, -14));
+[96m# Move to iron ore deposit
+[94mharvest((0, 0), count=10);
+[94mgoto((-17, 6));
+[96m# Move to stone deposit
+[94mharvest((0, 0), count=5);
+[94mgoto((22, 6));
+[96m# Move to copper ore deposit
+[94mharvest((0, 0), count=5);
+[96m# Set up initial production chain for iron plates
+[94mcraft('burner-mining-drill', count=1);
+[94mcraft('stone-furnace', count=1);
+[94mgoto((22, -14));
+[96m# Move back to iron ore deposit
+[94mplace('burner-mining-drill', 2, (1, 0));
+[94minsert('coal', (1, 0), count=5);
+[94mrotate((1, 0), 2);
+[94mgoto((30, -14));
+[96m# Move to output location
+[94mplace('stone-furnace', 2, (1, 0));
+[94minsert('coal', (1, 0), count=5);
+[96m# Wait for the burner-mining-drill to produce iron ore and output it
+[94mwait(10);
+[92mWhile you wait, you look around. 
+You see:
+- An burner_mining_drill facing north at (-7, 0) containing 4x coal. 
+- An stone_furnace facing north at (1, 0) containing 5x coal. Lack of input material.
+[94mextract('iron-ore', (1, 0), count=1);
+[91mCould not extract.. No item to extract
+[96m# Wait for the mining drill to produce iron ore and try again
+[94mwait(10);
+[92mWhile you wait, you look around. 
+You see:
+- An burner_mining_drill facing north at (-7, 0) containing 4x coal. 
+- An stone_furnace facing north at (1, 0) containing 5x coal. Lack of input material.
+[94mextract('iron-ore', (1, 0), count=1);
+[91mCould not extract.. No item to extract
+[96m# Move the burner-mining-drill to a better position for extracting iron ore
+[94mpickup((1, 0));
+[94mgoto((22, -14));
+[96m# Move back to iron ore deposit
+[94mplace('burner-mining-drill', 2, (1, 1));
+[91mCould not place burner-mining-drill. No burner mining drill in inventory
+[94minventory();
+[92m- 1 iron-chest
+- 50 transport-belt
+- 2 stone-furnace
+- 3 assembling-machine-1
+- 8 wood
+- 105 coal
+- 25 stone
+- 60 iron-ore
+- 30 copper-ore
+- 32 copper-plate
+[96m# Craft another burner-mining-drill since the first one was not in the inventory
+[94mcraft('burner-mining-drill', count=1);
+[94mgoto((22, -14));
+[96m# Move back to iron ore deposit
+[94mplace('burner-mining-drill', 2, (1, 1));
+[91mCould not place burner-mining-drill. Cant build there due to existing 
+[96m# Move to a suitable position and place the burner-mining-drill
+[94mgoto((23, -12));
+[94mplace('burner-mining-drill', 2, (1, 0));
+[91mCould not place burner-mining-drill. Cant build there due to existing 
+[96m# Find an empty spot near the iron ore deposit and place the burner-mining-drill
+[94mgoto((24, -12));
+[94mplace('burner-mining-drill', 2, (1, 0));
+[91mCould not place burner-mining-drill. Cant build there due to existing 
+[96m# Try another spot near the iron ore deposit to place the burner-mining-drill
+[94mgoto((22, -11));
+[94mplace('burner-mining-drill', 2, (1, 0));
+[91mCould not place burner-mining-drill. Cant build there due to existing 
+[96m# Attempt to find an open spot to place the burner-mining-drill near the deposit
+[94mgoto((21, -11));
+[94mplace('burner-mining-drill', 2, (1, 0));
+[91mCould not place burner-mining-drill. Cant build there due to existing 
+[96m# Move to another location and try placing the burner-mining-drill
+[94mgoto((20, -11));

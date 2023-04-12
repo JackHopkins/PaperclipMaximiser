@@ -30,6 +30,14 @@ global.interesting_entities = {
 local surface=player.surface
 local pp = player.position
 local cnt = 0
+
+game.players[1].force.research_all_technologies()
+for _, ent in pairs(surface.find_entities_filtered({force="player", position=pp, radius=50})) do
+    if ent.name ~= "character" then
+        ent.destroy()
+    end
+end
+
 for key, entity in pairs(surface.find_entities_filtered({force="enemy", radius=250, position=pp })) do
 	cnt = cnt+1
 	entity.destroy()
@@ -54,6 +62,19 @@ script.on_event(defines.events.on_tick, function(event)
     end
   end
 end)
+
+function abort(message)
+    local msg = tostring(message):gsub(" ", "_")
+    rcon.print(msg)
+end
+function abort2(message, position)
+    local msg = message:gsub(" ", "_")
+    local resp = {
+        message=msg,
+        position=position
+    }
+    rcon.print(dump(resp))
+end
 
 function create_beam_bounding_box (player, surface, direction, top_left, bottom_right)
     local bottom_left = {x=top_left.x, y=bottom_right.y}
@@ -224,7 +245,6 @@ function find_passable_tiles(player, localBoundingBox)
 end
 
 function get_locality(player, surface, localBoundingBox)
-    -- Generate a 100x100 bounding box centered on the player
     local origin = player.position
     local offset = localBoundingBox / 2
 
@@ -238,23 +258,17 @@ function get_locality(player, surface, localBoundingBox)
         right_bottom = {x = right, y = bottom}
     }
 
-    -- Find all entities within the bounding box
     local entities = surface.find_entities(bounding_box)
 
-    -- Convert the X, Y coordinates of each entity into coordinates relative to the origin
     local relative_entities = {}
     for _, entity in ipairs(entities) do
         local relative_x = entity.position.x - origin.x
         local relative_y = entity.position.y - origin.y
         table.insert(relative_entities, {x = relative_x, y = relative_y, entity = entity})
-        local name = entity.name
-        set_points_of_interest(player, name, 1, relative_x, relative_y)
     end
 
-    -- Create a 1D sparse index of the x, y coordinate and entity, starting from the top left of the bounding box
     local sparse_index = {}
     for _, relative_entity in ipairs(relative_entities) do
-        -- Ensure the coordinates are integers by rounding them
         local index_x = math.floor(relative_entity.x + offset)
         local index_y = math.floor(relative_entity.y + offset)
 
@@ -263,10 +277,67 @@ function get_locality(player, surface, localBoundingBox)
         sparse_index[index] = name:gsub("-", "_")
     end
 
+    -- Find water tiles
+    local water_tiles = surface.find_tiles_filtered{area=bounding_box, name={"water", "deepwater"}}
+    for _, tile in ipairs(water_tiles) do
+        local relative_x = tile.position.x - origin.x
+        local relative_y = tile.position.y - origin.y
+
+        local index_x = math.floor(relative_x + offset)
+        local index_y = math.floor(relative_y + offset)
+
+        local index = index_y * localBoundingBox + index_x
+        local name = "water"
+        sparse_index[index] = name:gsub("-", "_")
+    end
+
     rcon.print(1)
     return sparse_index
 end
 
+
+function has_value(tbl, val)
+    for _, value in ipairs(tbl) do
+        if value == val then
+            return true
+        end
+    end
+    return false
+end
+
+
+function set_nearest_recipe(player, recipe_name, x, y)
+    local surface = player.surface
+    --local position = player.position
+    local closest_distance = math.huge
+    local closest_building = nil
+
+    -- Iterate through all crafting machines in the area
+    local area = {{x - 2, y - 2}, {x + 2, y + 2}}
+    local buildings = surface.find_entities_filtered{area = area, type = "assembling-machine"}
+
+    -- Find the closest building
+    for _, building in ipairs(buildings) do
+        local distance = ((x - building.position.x) ^ 2 + (y - building.position.y) ^ 2) ^ 0.5
+        if distance < closest_distance then
+            closest_distance = distance
+            closest_building = building
+        end
+    end
+
+    -- If a closest building is found and it supports the given recipe, set the recipe
+    if closest_building then
+        local recipe = player.force.recipes[recipe_name]
+        if recipe and closest_building.get_recipe() ~= recipe then
+            closest_building.set_recipe(recipe_name)
+            rcon.print(1)
+        else
+            abort("Recipe already set.")
+        end
+    else
+        abort("No building found that could have its recipe set.")
+    end
+end
 
 function get_local_environment (player, surface, localBoundingBox, field_x, field_y, debug)
 
@@ -433,6 +504,418 @@ function set_points_of_interest (player, field, count, chunk_x, chunk_y)
             global.points_of_interest[field] = {x=chunk_x*32, y=chunk_y*32}
         end
     end
+end
+
+-- Define a function to calculate the raw material value of an item
+function raw_material_value(item_name)
+    local values = {
+        ["iron-ore"] = 1,
+        ["copper-ore"] = 1,
+        ["coal"] = 1,
+        ["stone"] = 1,
+        ["crude-oil"] = 1
+    }
+    -- Add more items and their raw material values here if needed
+
+    return values[item_name] or 0
+end
+
+function get_productivity(player)
+    local force = player.force
+    local production_statistics = force.item_production_statistics
+
+    -- Calculate production rates
+    local production_rates = {}
+    for _, prototype in pairs(game.item_prototypes) do
+        local name = prototype.name
+        local count = production_statistics.get_flow_count{name = name, input = true, precision_index = 5, count = true}
+        if count > 0 then
+            production_rates[name] = count
+        end
+    end
+
+    -- Calculate consumption rates
+    local consumption_rates = {}
+    for _, prototype in pairs(game.item_prototypes) do
+        local name = prototype.name
+        local count = production_statistics.get_flow_count{name = name, input = false, precision_index = 5, count = true}
+        if count > 0 then
+            consumption_rates[name] = count
+        end
+    end
+
+    -- Use the raw_material_value function to calculate the total value created
+    local total_production_value = 0
+    local total_consumption_value = 0
+
+    for name, rate in pairs(production_rates) do
+        local value = raw_material_value(name) * rate
+        total_production_value = total_production_value + value
+    end
+
+    for name, rate in pairs(consumption_rates) do
+        local value = raw_material_value(name) * rate
+        total_consumption_value = total_consumption_value + value
+    end
+
+    local net_value_created = total_production_value - total_consumption_value
+
+
+    return {
+        production=production_rates,
+        consumption=consumption_rates
+    }
+end
+local directions = {'north', 'northeast', 'east', 'southeast', 'south', 'southwest', 'west', 'northwest'}
+
+function craft_entity(player, entity_name, count)
+      -- Ensure the player and entity_name are valid
+    if not player or not player.valid or not entity_name then
+        return "Entity not valid"
+    end
+
+  -- Get the recipe for the entity
+  local recipe = player.force.recipes[entity_name]
+  if not recipe then
+      return "Recipe doesnt exist"
+  end
+
+  -- Check if the entity can be crafted by hand
+  if recipe.category ~= "crafting" then
+      return "It requires " .. entity_name:gsub("-", "_") .. " which cannot be crafted by hand"
+  end
+
+
+  -- Check if the player has enough items to craft the entity
+  for _, ingredient in pairs(recipe.ingredients) do
+      local has_count = player.get_item_count(ingredient.name)
+      local need_count = ingredient.amount * count
+      if has_count < need_count then
+        return "Insufficient "..ingredient.name:gsub('-',"_"):gsub(' ',"_").." "..(need_count-has_count).." needed"
+      end
+  end
+
+  -- Craft the entity, consuming the ingredients
+  for _, ingredient in pairs(recipe.ingredients) do
+    player.remove_item({name = ingredient.name, count = ingredient.amount * count})
+  end
+
+  -- Insert the crafted entity into the player's inventory
+  player.insert({name = entity_name, count = count})
+
+  return 1
+end
+
+function get_missing_ingredients2(player, recipe, count)
+  local missing_ingredients = {}
+  for _, ingredient in pairs(recipe.ingredients) do
+    local count_that_player_has = player.get_item_count(ingredient.name)
+    local needed = ingredient.amount * count
+    if count_that_player_has < needed then
+        local difference = needed - count_that_player_has
+        missing_ingredients[ingredient.name] = difference
+    end
+  end
+  return missing_ingredients
+end
+
+function get_missing_ingredients(player, recipe, count, checked_recipes)
+  local missing_ingredients = {}
+  checked_recipes = checked_recipes or {}
+  for _, ingredient in pairs(recipe.ingredients) do
+    if game.item_prototypes[ingredient.name] then
+      local count_that_player_has = player.get_item_count(ingredient.name)
+      local needed = ingredient.amount * count
+      if count_that_player_has < needed then
+        local difference = needed - count_that_player_has
+
+
+        -- Check if the ingredient can be crafted
+        local ingredient_recipe = player.force.recipes[ingredient.name]
+        if ingredient_recipe and not checked_recipes[ingredient.name] then
+          checked_recipes[ingredient.name] = true
+          local sub_missing_ingredients = get_missing_ingredients(player, ingredient_recipe, difference, checked_recipes)
+          for sub_ingredient_name, sub_count in pairs(sub_missing_ingredients) do
+            if missing_ingredients[sub_ingredient_name] then
+              missing_ingredients[sub_ingredient_name] = missing_ingredients[sub_ingredient_name] + sub_count
+            else
+              missing_ingredients[sub_ingredient_name] = sub_count
+            end
+          end
+            if sub_missing_ingredients ~= nil then
+               missing_ingredients[ingredient.name] = difference
+            end
+        end
+      end
+    else
+      if game.fluid_prototypes[ingredient.name] then
+        abort("Crafting requires fluid ingredient " .. ingredient.name)
+      else
+        abort("Unknown ingredient " .. ingredient.name)
+      end
+    end
+  end
+  return missing_ingredients
+end
+
+
+function get_missing_ingredients2(player, recipe, count)
+  local missing_ingredients = {}
+  for _, ingredient in pairs(recipe.ingredients) do
+    if game.item_prototypes[ingredient.name] then
+      local count_that_player_has = player.get_item_count(ingredient.name)
+      local needed = ingredient.amount * count
+      if count_that_player_has < needed then
+          local difference = needed - count_that_player_has
+          missing_ingredients[ingredient.name] = difference
+      end
+    else
+      if game.fluid_prototypes[ingredient.name] then
+        abort("Crafting requires fluid ingredient " .. ingredient.name)
+      else
+        abort("Unknown ingredient " .. ingredient.name)
+      end
+    end
+  end
+  return missing_ingredients
+end
+
+
+
+function recursively_craft_missing_ingredients3(player, missing_ingredients)
+  local uncraftable_ingredients = {}
+  for ingredient_name, count in pairs(missing_ingredients) do
+    local is_fluid = game.fluid_prototypes[ingredient_name] ~= nil
+    if is_fluid then
+        uncraftable_ingredients[ingredient_name] = count
+    else
+      local success = craft_entity(player, ingredient_name, count)
+      if not success then
+        local recipe = player.force.recipes[ingredient_name]
+        if recipe then
+          local sub_missing_ingredients = get_missing_ingredients(player, recipe, count)
+          recursively_craft_missing_ingredients(player, sub_missing_ingredients)
+        else
+          uncraftable_ingredients[ingredient_name] = count
+        end
+      end
+    end
+  end
+  return uncraftable_ingredients
+end
+
+function recursively_craft_missing_ingredients(player, missing_ingredients)
+  local uncraftable_ingredients = {}
+  for ingredient_name, count in pairs(missing_ingredients) do
+    local success = craft_entity(player, ingredient_name, count)
+    if not success then
+      local recipe = player.force.recipes[ingredient_name]
+      if recipe then
+        local sub_missing_ingredients = get_missing_ingredients(player, recipe, count)
+        recursively_craft_missing_ingredients(player, sub_missing_ingredients)
+      else
+        uncraftable_ingredients[ingredient_name] = count
+      end
+    end
+  end
+  return uncraftable_ingredients
+end
+
+function add_to_crafting_queue(player, entity_name, count)
+    -- Ensure the player and entity_name are valid
+    if not player or not player.valid or not entity_name then
+        return "not_valid_entity"
+    end
+
+    -- Get the recipe for the entity
+    local recipe = player.force.recipes[entity_name]
+    if not recipe then
+        return "no_valid_recipe"
+    end
+
+    -- Check if the player has enough items to craft the entity
+    local missing_ingredients = get_missing_ingredients(player, recipe, count)
+    if next(missing_ingredients) == nil then
+        -- Craft the requested entity
+        return craft_entity(player, entity_name, count)
+    else
+        local uncraftable_ingredients = recursively_craft_missing_ingredients(player, missing_ingredients)
+
+        if next(uncraftable_ingredients) ~= nil then
+            local uncraftable_message = "Cannot craft the following missing ingredients "
+            for ingredient_name, count in pairs(uncraftable_ingredients) do
+                uncraftable_message = uncraftable_message .. count .. "x " .. ingredient_name .. "___"
+            end
+            return uncraftable_message:sub(1, -3)
+
+        else
+            -- Craft the requested entity
+            return craft_entity(player, entity_name, count)
+        end
+
+    end
+end
+
+function inspect(player, radius)
+    local surface = player.surface
+    local position = player.position
+    local bounding_box = {
+        left_top = {x = position.x - radius, y = position.y - radius},
+        right_bottom = {x = position.x + radius, y = position.y + radius}
+    }
+
+    local entities = surface.find_entities_filtered({bounding_box, force = "player"})
+    local entity_data = {}
+
+    for _, entity in ipairs(entities) do
+        if entity.name ~= 'character' then
+            local data = {
+                name = entity.name:gsub("-", "_"),
+                position = entity.position,
+                direction = directions[entity.direction+1],
+                health = entity.health,
+                force = entity.force.name,
+                energy = entity.energy
+            }
+
+            -- Get entity contents if it has an inventory
+            if entity.get_inventory(defines.inventory.chest) then
+                local inventory = entity.get_inventory(defines.inventory.chest).get_contents()
+                data.contents = inventory
+            end
+
+            -- Get entity productivity if it has a crafting progress attribute
+            if entity.type == "assembling-machine" or entity.type == "furnace" then
+                data.crafting_progress = entity.crafting_progress
+                data.productivity_bonus = entity.productivity_bonus
+
+                -- Get crafted items for assembling machines
+                if entity.type == "assembling-machine" then
+                    local output_inventory = entity.get_inventory(defines.inventory.assembling_machine_output).get_contents()
+                    local input_inventory = entity.get_inventory(defines.inventory.assembling_machine_input).get_contents()
+                    data.crafted_items = output_inventory
+                    data.ingredients = input_inventory
+
+                    -- Check for lack of ingredients or power
+                    data.warnings = {}
+
+                    if entity.is_crafting() then
+                        local recipe = entity.get_recipe()
+                        if recipe then
+                            for _, ingredient in pairs(recipe.ingredients) do
+                                local available = input_inventory[ingredient.name] or 0
+                                if available < ingredient.amount then
+                                    table.insert(data.warnings, "Lack_of_ingredient:_" .. ingredient.name:gsub(" ", "_"))
+                                end
+                            end
+                        end
+                    else
+                        if entity.energy == 0 then
+                            table.insert(data.warnings, "Lack_of_power")
+                        end
+                    end
+                end
+                rcon.print(entity.type)
+                -- Get crafted items for furnaces
+                if entity.type == "furnace" then
+                    local output_inventory = entity.get_inventory(defines.inventory.furnace_result).get_contents()
+                    local input_inventory = entity.get_inventory(defines.inventory.furnace_source).get_contents()
+                    data.crafted_items = output_inventory
+                    data.ingredients = input_inventory
+
+                    -- Check for lack of ingredients or power
+                    data.warnings = {}
+
+                    if entity.is_crafting() then
+                        local recipe = entity.get_recipe()
+                        if recipe then
+                            for _, ingredient in pairs(recipe.ingredients) do
+                                local available = input_inventory[ingredient.name] or 0
+                                if available < ingredient.amount then
+                                    table.insert(data.warnings, "Lack_of_ingredient_" .. ingredient.name:gsub(" ", "_"))
+                                end
+                            end
+                        end
+                    else
+                        if entity.energy == 0 then
+                            if entity.name ~= 'stone-furnace' and entity.name ~= 'steel-furnace' then
+                                table.insert(data.warnings, "Lack_of_power" )
+                            end
+                        end
+                        if next(input_inventory) == nil then
+                            table.insert(data.warnings, "Lack_of_input_material")
+                        end
+
+                        if entity.burner then
+                            local fuel_inventory = entity.burner.inventory.get_contents()
+                            if next(fuel_inventory) == nil then
+                                table.insert(data.warnings, "Lack_of_fuel")
+                            end
+                        end
+                    end
+                end
+            end
+
+            -- Get entity orientation if it has an orientation attribute
+            if entity.type == "train-stop" or entity.type == "car" or entity.type == "locomotive" then
+                data.orientation = entity.orientation
+            end
+
+
+
+            -- Get connected entities for pipes and transport belts
+            if entity.type == "pipe" or entity.type == "transport-belt" then
+                local path_ends = find_path_ends(entity)
+                data.path_ends = {}
+                for _, path_end in pairs(path_ends) do
+                    local path_position = {x=path_end.position.x - player.position.x, y=path_end.position.y - player.position.y}
+                    table.insert(data.path_ends, {name = path_end.name:gsub("-", "_"), position = path_position, unit_number = path_end.unit_number})
+                end
+            end
+
+            table.insert(entity_data, data)
+        end
+    end
+
+    -- Sort entities with path_ends by the length of path_ends in descending order
+    table.sort(entity_data, function(a, b)
+        if a.path_ends and b.path_ends then
+            return #a.path_ends > #b.path_ends
+        elseif a.path_ends then
+            return true
+        else
+            return false
+        end
+    end)
+
+    -- Remove entities that exist in the path_ends of other entities
+    local visited_paths = {}
+    local filtered_entity_data = {}
+    for _, data in ipairs(entity_data) do
+        if data.path_ends then
+            local should_add = true
+            for _, path_end in ipairs(data.path_ends) do
+                if visited_paths[path_end.unit_number] then
+                    should_add = false
+                    break
+                end
+            end
+            if should_add then
+                for _, path_end in ipairs(data.path_ends) do
+                    visited_paths[path_end.unit_number] = true
+                end
+                table.insert(filtered_entity_data, data)
+            else
+                data.path_ends = nil
+                --table.insert(filtered_entity_data, data)
+            end
+        else
+            table.insert(filtered_entity_data, data)
+        end
+    end
+    entity_data = filtered_entity_data
+
+    return entity_data
 end
 
 rcon.print(1)

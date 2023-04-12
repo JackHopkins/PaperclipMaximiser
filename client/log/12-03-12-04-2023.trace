@@ -1,0 +1,17 @@
+# Lets start by checking my inventory.
+# First, I'll set up the iron ore mining and smelting
+move_to((22, -14));
+place_entity('burner-drill', direction=2, position=(22, -14));
+# I apologize for the confusion. Let's use the correct entity type, which is 'burner-mining-drill'.
+move_to((22, -14));
+place_entity('burner-mining-drill', direction=2, position=(22, -14));
+# I apologize for the oversight. Let's craft a burner-mining-drill first and then place it on the iron ore patch.
+craft_item('burner-mining-drill', quantity=1);
+move_to((22, -14));
+place_entity('burner-mining-drill', direction=2, position=(22, -14));
+# Let's try placing the burner-mining-drill in a position close to the iron ore patch.
+move_to((22, -13));
+place_entity('burner-mining-drill', direction=2, position=(22, -12));
+# It seems like I'm having trouble finding the proper position. Let's try another spot nearby.
+move_to((21, -13));
+place_entity('burner-mining-drill', direction=2, position=(21, -12));

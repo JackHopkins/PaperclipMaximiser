@@ -1,0 +1,71 @@
+[92mThere are 4.2k tree_01s scattered 23km northwest, 17km north-northwest, 16km north, 16km north-northeast, 21km northeast, 1km east-northeast, 3km west-northwest, 760 metres west, 32 metres east, 4km west-southwest, 720 metres east-southeast, 17km southeast, 17km southwest, 13km south-southwest, 13km south-southeast, and 11km south 
+- 100x coal 10 metres northwest (-17, -14) x (-8, -5)
+- 100x iron_ore 10 metres east-northeast (22, -14) x (31, -5)
+- 100x stone 10 metres southwest (-17, 6) x (-8, 15)
+- 100x copper_ore 10 metres east-southeast (22, 6) x (31, 15)
+- 100x uranium_ore 30 metres southeast (22, 26) x (31, 35)
+[96m# Lets start by checking my inventory.
+[92m- 1 iron-chest
+- 50 transport-belt
+- 1 stone-furnace
+- 1 assembling-machine-1
+- 50 coal
+- 50 iron-plate
+- 50 copper-plate
+[96m# I'll start by placing the stone furnace and a burner drill at the coal resource
+[94mplace_entity('stone-furnace', position=(0,0));
+[91mYou can't do that action. place_entity() missing 1 required positional argument: 'direction'
+[96m# My apologies, let me fix that.
+[94mplace_entity('stone-furnace', position=(0,0), direction=0);
+[91mCould not place stone-furnace. Cant build there due to existing character at 0, 0 and the size of the entity is 1
+[96m# Alright, let's find a suitable location for the stone furnace
+[94mmove_to((0, -1));
+[96m# Move 1 meter north
+[94mplace_entity('stone-furnace', position=(0,0), direction=0);
+[91mCould not place stone-furnace. Cant build there due to existing character at 0, 0 and the size of the entity is 1
+[96m# I will move two meters north this time and try again.
+[94mmove_to((0, -2));
+[94mplace_entity('stone-furnace', position=(0,0), direction=0);
+[91mCould not place stone-furnace. Cant build there due to existing character at 0, 0 and the size of the entity is 1
+[96m# Let's try moving three meters north and placing the stone furnace.
+[94mmove_to((0, -3));
+[94mplace_entity('stone-furnace', position=(0,0), direction=0);
+[91mCould not place stone-furnace. Cant build there due to existing character at 0, 0 and the size of the entity is 1
+[96m# I will attempt to place the furnace at my current position while being 3 meters north of the starting location.
+[94mplace_entity('stone-furnace', position=(-1, -3), direction=0);
+[96m# Now that the stone furnace has been placed, I will set up a burner drill on the coal resource to feed coal to the furnace.
+[94mplace_entity('burner-drill', direction=2, position=nearest('coal'));
+[91mCould not place burner-drill. burner drill isnt something that exists
+[96m# I apologize for the mistake. I will correct the entity name and place it again.
+[94mplace_entity('burner-mining-drill', direction=2, position=nearest('coal'));
+[91mCould not place burner-mining-drill. No burner mining drill in inventory
+[96m# It seems we do not have a burner-mining-drill in our inventory. Let's craft one first.
+[94mcraft_item('burner-mining-drill', quantity=1);
+[91mCould not craft a burner-mining-drill. {'stone': 5}
+[96m# It appears we need additional stone for crafting the burner-mining-drill. Let's collect the needed resources.
+[94mmove_to(nearest('stone'));
+[94mharvest_resource((0,0), quantity=5);
+[94mmove_to((-3, 0));
+[96m# Go back to our previous location
+[94mcraft_item('burner-mining-drill', quantity=1);
+[94mplace_entity('burner-mining-drill', direction=2, position=nearest('coal'));
+[96m# Now that we have placed the stone-furnace and the burner-mining-drill for coal, let's set up an iron ore mining and smelting operation.
+[94mmove_to(nearest('iron_ore'));
+[94mplace_entity('burner-mining-drill', direction=2, position=(0,0));
+[91mCould not place burner-mining-drill. No burner mining drill in inventory
+[96m# It seems we need to craft another burner-mining-drill for the iron ore.
+[94mcraft_item('burner-mining-drill', quantity=1);
+[96m# Now that we have crafted it, let's place it on the iron ore resource.
+[94mplace_entity('burner-mining-drill', direction=2, position=(0,0));
+[91mCould not place burner-mining-drill. Cant build there due to existing character at 0, 0 and the size of the entity is 1
+[96m# Let's move one meter south before placing the burner-mining-drill on the iron ore resource.
+[94mmove_to((0, 1));
+[94mplace_entity('burner-mining-drill', direction=2, position=(0, 0));
+[91mCould not place burner-mining-drill. Cant build there due to existing character at 0, 0 and the size of the entity is 1
+[96m# I will try placing the burner-mining-drill one meter north of my current position.
+[94mmove_to((0, -1));
+[94mplace_entity('burner-mining-drill', direction=2, position=(0, 1));
+[91mCould not place burner-mining-drill. Cant build there
+[96m# Let's try placing the burner-mining-drill at (0, -1) instead.
+[94mplace_entity('burner-mining-drill', direction=2, position=(0, -1));
+[91mCould not place burner-mining-drill. Cant build there

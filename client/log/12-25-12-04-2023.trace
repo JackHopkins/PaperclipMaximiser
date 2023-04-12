@@ -1,0 +1,17 @@
+# Lets start by checking my inventory.
+# First, let's move to the iron ore location and place the burner mining drill
+move_to(nearest('iron_ore'));
+place_entity('burner-drill', direction=2, position=nearest('iron_ore'));
+# Apologies for the mistake. I'll place an electric mining drill instead.
+move_to(nearest('iron_ore'));
+place_entity('electric-mining-drill', direction=2, position=nearest('iron_ore'));
+# Apologies for the oversight. We will need to craft a burner mining drill first since it's not in the inventory.
+craft_item('burner-mining-drill', quantity=1);
+move_to(nearest('iron_ore'));
+place_entity('burner-mining-drill', direction=2, position=nearest('iron_ore'));
+# Let's find a suitable location near the iron ore patch to place the burner-mining-drill
+move_to(nearest('iron_ore'));
+place_entity('burner-mining-drill', direction=2, position=(-10, -6));
+# Let's try another spot
+move_to(nearest('iron_ore'));
+place_entity('burner-mining-drill', direction=2, position=(-7, -6));

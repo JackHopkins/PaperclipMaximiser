@@ -66,6 +66,12 @@ sudo docker run -d \
   factoriotools/factorio
 ```
 
+### Running the main script
+Run the main project root.
+```
+python -m client.main
+```
+
 The headless server will be deployed onto AWS, and will maintain game state.
 
 ##### Mod

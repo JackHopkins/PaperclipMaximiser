@@ -1,0 +1,55 @@
+[92mThere are 4.2k tree_01s scattered 23km northwest, 17km north-northwest, 16km north, 16km north-northeast, 21km northeast, 1km east-northeast, 3km west-northwest, 760 metres west, 32 metres east, 4km west-southwest, 720 metres east-southeast, 17km southeast, 17km southwest, 13km south-southwest, 13km south-southeast, and 11km south 
+- 100x coal 10 metres northwest (-17, -14) x (-8, -5)
+- 100x iron_ore 10 metres east-northeast (22, -14) x (31, -5)
+- 100x stone 10 metres southwest (-17, 6) x (-8, 15)
+- 100x copper_ore 10 metres east-southeast (22, 6) x (31, 15)
+- 100x uranium_ore 30 metres southeast (22, 26) x (31, 35)
+[96m# Lets start by checking my inventory.
+[92m- 1 iron-chest
+- 50 transport-belt
+- 1 stone-furnace
+- 1 assembling-machine-1
+- 50 coal
+- 50 iron-plate
+- 50 copper-plate
+[96m# First, I'll move to the iron ore and place a burner mining drill and a stone furnace.
+[94mmove_to(nearest('iron_ore'));
+[94mplace_entity('burner-mining-drill', direction=2, position=nearest('iron_ore'));
+[91mCould not place burner-mining-drill. No burner mining drill in inventory
+[96m# My bad, let's craft a burner mining drill first
+[94mcraft_item('burner-mining-drill', quantity=1);
+[96m# Now we can place the burner mining drill near the iron ore
+[94mmove_to(nearest('iron_ore'));
+[94mplace_entity('burner-mining-drill', direction=2, position=nearest('iron_ore'));
+[91mCould not place burner-mining-drill. Cant build there
+[96m# Let's find a place near the iron ore to place the burner mining drill
+[94mmove_to(nearest('iron_ore'));
+[94mplace_entity('burner-mining-drill', direction=2, position=(1, 0));
+[96m# Now, let's place the stone furnace in front of the burner mining drill output
+[94mplace_entity('stone-furnace', direction=2, position=(1, 1));
+[91mCould not place stone-furnace. No stone furnace in inventory
+[96m# My apologies, let's craft a stone furnace first
+[94mcraft_item('stone-furnace', quantity=1);
+[91mCould not craft a stone-furnace. {'stone': 5}
+[96m# Let's harvest some stone first to craft the stone furnace
+[94mmove_to(nearest('stone'));
+[94mharvest_resource((0, 1), quantity=5);
+[94mcraft_item('stone-furnace', quantity=1);
+[96m# Now we can place the burner mining drill near the iron ore and place the stone furnace in front of its output
+[94mmove_to(nearest('iron_ore'));
+[94mplace_entity('burner-mining-drill', direction=2, position=(1, 0));
+[91mCould not place burner-mining-drill. No burner mining drill in inventory
+[96m# I apologize for the oversight. Let's craft a burner mining drill first.
+[94mcraft_item('burner-mining-drill', quantity=1);
+[96m# Now we can place the burner mining drill near the iron ore and place the stone furnace in front of its output
+[94mmove_to(nearest('iron_ore'));
+[94mplace_entity('burner-mining-drill', direction=2, position=(1, 0));
+[91mCould not place burner-mining-drill. Cant build there due to existing burner mining drill at 1, 0 and the size of the entity is 1
+[96m# My apologies, let's place the burner mining drill at a different position near the iron ore
+[94mmove_to(nearest('iron_ore'));
+[94mplace_entity('burner-mining-drill', direction=2, position=(1, 1));
+[91mCould not place burner-mining-drill. Cant build there due to existing burner mining drill at 1, 0 and the size of the entity is 1
+[96m# I apologize for the confusion. Let's try placing the burner mining drill in a different position near the iron ore.
+[94mmove_to(nearest('iron_ore'));
+[94mplace_entity('burner-mining-drill', direction=2, position=(0, 1));
+[91mCould not place burner-mining-drill. Cant build there due to existing burner mining drill at 1, 0 and the size of the entity is 1

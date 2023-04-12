@@ -1,0 +1,20 @@
+nature();
+ Let's see what resources and nature are around.
+goto((22, 26), trailing='transport-belt');
+# Head over to uranium_ore and create a transport-belt as you go.
+# Once you have reached there, you can
+ proceed with inspecting the area to see if there are any other resources nearby.
+inspect();
+inventory();
+ Based on the resources available, let's craft another iron-chest.
+craft('iron-chest', count=1);
+Place the chest next to the assembling machine that has no power to store items.
+place('iron-chest', 0, (61, 54));
+Let's pick the assembling-machine-1 and place it somewhere else to make room for the iron-chest.
+First, let's pick up the assembling-machine-1 from its current location.
+pickup((60, 54));
+# The ; is missing from your command so it doesn't execute the command.
+### continue from last cell ###
+ Now that we have picked it up, we can place it somewhere else. 
+place('assembling-machine-1', 0, (59, 54));
+rotate((59, 54), 1);

@@ -1,0 +1,36 @@
+[92mThere are 4.2k tree_01s scattered 23km northwest, 17km north-northwest, 16km north, 16km north-northeast, 21km northeast, 1km east-northeast, 3km west-northwest, 760 metres west, 32 metres east, 4km west-southwest, 720 metres east-southeast, 17km southeast, 17km southwest, 13km south-southwest, 13km south-southeast, and 11km south 
+- 100x coal 10 metres northwest (-17, -14) x (-8, -5)
+- 100x iron_ore 10 metres east-northeast (22, -14) x (31, -5)
+- 100x stone 10 metres southwest (-17, 6) x (-8, 15)
+- 100x copper_ore 10 metres east-southeast (22, 6) x (31, 15)
+- 100x uranium_ore 30 metres southeast (22, 26) x (31, 35)
+[96m# Lets start by checking my inventory.
+[92m- 1 iron-chest
+- 50 transport-belt
+- 1 stone-furnace
+- 1 assembling-machine-1
+- 50 coal
+- 50 iron-plate
+- 50 copper-plate
+[96m# Let's first set up operations for coal, iron ore, and copper ore resources
+[94mplace_entity('burner-drill', direction=2, position=nearest('coal'));
+[91mCould not place burner-drill. burner drill isnt something that exists
+[96m# My apologies for the confusion. Let's instead use the "electric-mining-drill".
+[94mplace_entity('electric-mining-drill', direction=2, position=nearest('coal'));
+[91mCould not place electric-mining-drill. No electric mining drill in inventory
+[96m# I see. Let's craft an electric-mining-drill before placing it.
+[94mcraft_item('electric-mining-drill', quantity=1);
+[94mplace_entity('electric-mining-drill', direction=2, position=nearest('coal'));
+[96m# Now I have placed an electric-mining-drill near the coal resource.
+[96m# Let's do the same for iron ore and copper ore resources
+[94mcraft_item('electric-mining-drill', quantity=2);
+[91mCould not craft a electric-mining-drill. Successfully crafted 1x but failed to craft 1x electric mining drill because missing ingredient iron ore
+[96m# In that case, let's first create a temporary setup for manually mining iron ore and then craft the electric-mining-drill.
+[94mmove_to(nearest('iron_ore'));
+[94mharvest_resource((0,0), quantity=5);
+[94mcraft_item('electric-mining-drill', quantity=1);
+[96m# Now that we have an electric-mining-drill, let's place it near iron ore and copper ore resources.
+[94mplace_entity('electric-mining-drill', direction=2, position=nearest('iron_ore'));
+[91mCould not place electric-mining-drill. Cant build there
+[96m# My apologies, it seems I made an error. Let's try to place the electric mining drill one meter away from the resource.
+[94mmove_to(nearest('iron_ore'));

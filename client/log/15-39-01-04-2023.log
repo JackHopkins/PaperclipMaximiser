@@ -1,0 +1,15 @@
+[94minventory();
+[92m- 1 iron-chest
+- 50 transport-belt
+- 1 stone-furnace
+- 2 assembling-machine-1
+- 80 coal
+- 35 stone
+- 20 iron-ore
+- 40 copper-ore
+- 40 iron-plate
+- 50 copper-plate
+[94mharvest(nearest('coal'), count=5);
+[91mCould not harvest.. Nothing to here to harvest
+[94mharvest(nearest('iron-ore'), count=5);
+[91mCould not harvest.. Nothing to here to harvest
