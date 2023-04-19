@@ -4,6 +4,7 @@ from multiprocessing import freeze_support
 from timeit import default_timer as timer
 
 # factorio_pool.get(1).trail('pipe')
+from controllers.score import Score
 from factorio_instance import FactorioInstance
 from factorio_runner import FactorioRunner
 from vocabulary import Vocabulary
@@ -153,6 +154,9 @@ if __name__ == '__main__':
     factorio_runner = FactorioRunner("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",
                                      model="gpt-3.5-turbo")
                                      #trace="15-17-01-04-2023")
+
+    rcon = factorio_runner.instance.rcon_client
+    score = Score(rcon)
 
     try:
         pass

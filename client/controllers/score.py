@@ -1,11 +1,12 @@
-from controllers.controller import Controller
+from controllers.action import Action
 
 
-class Score(Controller):
+class Score(Action):
 
-    def __init__(self, connection, initial_score):
-        Controller.__init__(self, connection)
+    def __init__(self, connection, initial_score=0):
+        Action.__init__(self, connection)
         self.initial_score = initial_score
+        self.load()
 
     def __call__(self, *args, **kwargs):
         response, execution_time = self._send('score', *args)
