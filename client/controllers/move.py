@@ -1,4 +1,5 @@
 from controllers.action import Action
+from factorio_instance import PLAYER, NONE
 
 
 class Move(Action):
