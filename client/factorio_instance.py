@@ -556,7 +556,7 @@ class FactorioInstance:
 
         response, elapsed = self._send('pickup', PLAYER, x, y, name)
         if response != 1:
-            raise Exception("Could not pickup.", response)
+            raise Exception("Could not pickup, did you intend to harvest?", response)
         return True
 
     def insert_item(self, entity: str, target_position: Tuple[int, int] = (0, 0), quantity=5) -> int:

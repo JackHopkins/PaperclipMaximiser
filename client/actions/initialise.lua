@@ -32,7 +32,19 @@ local surface=player.surface
 local pp = player.position
 local cnt = 0
 
-game.players[1].set_goal_description("Now starting simulation")
+--script.on_nth_tick(3600, function(event)
+--    game.take_screenshot{
+--        surface=game.surfaces[1],
+--        position={0,0},
+--        resolution={2560, 1600},
+--        zoom=0.2,
+--        path="timelapse/" .. string.format("%06d", event.tick/event.nth_tick) .. ".jpg",
+--        show_entity_info=true,
+--        allow_in_replay=true,
+--        daytime=1
+--    }
+--end)
+
 --game.players[1].character_collision_mask = "not-colliding-with-itself"
 game.players[1].force.character_build_distance_bonus = 100
 game.players[1].force.research_all_technologies()
@@ -107,73 +119,6 @@ function observe_points_of_interest (surface, player, search_radius)
 
     rcon.print(1)
     return dump(global.relative_points_of_interest)
-end
-
-function find_passable_tiles2(player, localBoundingBox)
-
-    -- Generate a 100x100 bounding box centered on the player
-    local origin = player.position
-    local offset = localBoundingBox / 2
-
-    local left = origin.x - offset
-    local right = origin.x + offset
-    local top = origin.y - offset
-    local bottom = origin.y + offset
-
-    local bounding_box = {
-        left_top = {x = left, y = top},
-        right_bottom = {x = right, y = bottom}
-    }
-    local impassable_tiles = {}
-    local xmin = bounding_box.left_top.x
-    local ymin = bounding_box.left_top.y
-    local xmax = bounding_box.right_bottom.x
-    local ymax = bounding_box.right_bottom.y
-
-    local area = {{xmin, ymin}, {xmax, ymax}}
-
-    local entities = player.surface.find_entities_filtered{area = area, force = player.force}
-
-    local function coords_to_index(x, y)
-        return (x - xmin) * localBoundingBox + (y - ymin) --(x - xmin) * (xmax - xmin) + (y - ymin) -- Changed (ymax - ymin) to (xmax - xmin)
-    end
-
-    for x = xmin, xmax do
-        for y = ymin, ymax do
-            local tile = player.surface.get_tile(x, y)
-            local is_impassable = tile.prototype.collision_mask["player-layer"]
-
-            if is_impassable then
-                local relative_x, relative_y = x - xmin, y - ymin
-
-                -- Ensure the coordinates are integers by rounding them
-                --local index_x = math.floor(relative_entity_x + offset)
-                --local index_y = math.floor(relative_entity_y + offset)
-
-                --local index = index_y * localBoundingBox + index_x
-
-                local index = coords_to_index(relative_x, relative_y)
-                impassable_tiles[index] = 100--{x = relative_x, y = relative_y}
-            end
-        end
-  end
-
-  for _, entity in ipairs(entities) do
-    local collision_box = entity.prototype.collision_box
-    local is_passable = (collision_box.left_top.x == 0 and collision_box.left_top.y == 0 and
-                         collision_box.right_bottom.x == 0 and collision_box.right_bottom.y == 0)
-    if is_passable then
-      local x, y = math.floor(entity.position.x), math.floor(entity.position.y)
-      local relative_x, relative_y = x - xmin, y - ymin
-      local index = coords_to_index(relative_x, relative_y)
-
-      if not impassable_tiles[index] then
-        impassable_tiles[index] = 100--{x = relative_x, y = relative_y, entity = entity}
-      end
-    end
-  end
-
-  return impassable_tiles
 end
 
 function find_passable_tiles(player, localBoundingBox)

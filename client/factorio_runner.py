@@ -31,7 +31,7 @@ move_to((10, 5), laying='transport-belt');
 craft_item('iron-chest', quantity=1);
 
 # Place an assembling machine facing up, at (1, 1)
-entity_position =place_entity('assembling-machine-1', direction=UP, position=(1, 1));
+entity_position = place_entity('assembling-machine-1', direction=UP, position=(1, 1));
 
 # Place a burner drill facing down, on to the nearest coal resource
 entity_position = place_entity('burner-drill', direction=DOWN, position=nearest('coal'));
@@ -90,23 +90,19 @@ To play, you must only use the methods from the API with basic logical flow, var
 
 Example:
 ```
-# I want to place a burner-mining-drill, lets check to see if I have one
-count_drills = check_inventory()['burner-mining-drill']
-
 # Place a burner-mining-drill
 coal_position = nearest('coal')
 move_to(coal_position)
 place_entity('burner-mining-drill', direction=LEFT, position=(coal_position[0]-2, coal_position[1]))
-
 # Check to ensure that burner-mining-drill has been placed 
 inspect_entities(5) 
 ```
 Instructions:
-1. Automate resource extraction, processing and manufacturing.
+1. Automate resource extraction, processing and manufacturing to increase your score.
 2. Start with a simple mining operation, smelting setup and basic power generating using coal-fired boilers and steam engines.
 3. On the map, you are called 'player_character'.
 4. Regularly check your inventory and surroundings to be sure of what's happening in the game.
-5. Issue up to 3 python commands at the same time, with plenty '#' comments in the first person to help you think.
+5. Issue up to maximum of 3 python commands at the same time, with plenty '#' comments in the first person to help you think.
 
 """
 
