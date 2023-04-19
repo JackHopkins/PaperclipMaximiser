@@ -25,11 +25,11 @@ local function find_nearest(player, resource)
         if closest == nil then
             return abort("Could not find an entity called "..resource)
         end
-        return { x = position.x - closest.x, y = position.y - closest.y }
+        --return { x = position.x - closest.x, y = position.y - closest.y }
+        return {x = closest.x, y = closest.y}
     else
         entities = surface.find_entities_filtered{
             area = {{position.x - 500, position.y - 500}, {position.x + 500, position.y + 500}},
-            type = "resource",
             name = resource
         }
     end
@@ -45,7 +45,8 @@ local function find_nearest(player, resource)
     if closest == nil then
         return abort("Could not find an entity called "..resource)
     end
-    return { x = position.x - closest.x, y = position.y - closest.y }
+    return {x= closest.x, y = closest.y}
+    --return { x = position.x - closest.x, y = position.y - closest.y }
 end
 
 -- Observe.lua

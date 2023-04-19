@@ -1,28 +1,21 @@
+import ast
+import concurrent
 import math
-import os
 import time
 from timeit import default_timer as timer
-from typing import List, Tuple
-
-import yaml
-from matplotlib import pyplot as plt
-from scipy import ndimage
-from sklearn.cluster import DBSCAN
-from collections import Counter
+from typing import List, Tuple, Optional
 
 import numpy as np
-import scipy
+import yaml
 from dotenv import load_dotenv
-from numpy import ndarray, zeros, sign, array
-from skimage.measure import label
-from sklearn.cluster import DBSCAN
+from numpy import ndarray, zeros
+from scipy import ndimage
 from slpp import slpp as lua
-from skimage import measure as sm
-from client.factorio_rcon_utils import _load_actions, _load_init, _lua2python
-from factorio_rcon import AsyncRCONClient
 
+from client.factorio_rcon_utils import _load_actions, _load_init, _lua2python
 from client.rcon.factorio_rcon import RCONClient
 from client.utils import stitch
+from models.zero_dict import ZeroDict
 from utilities.pathfinding import get_path
 from vocabulary import Vocabulary
 
@@ -34,6 +27,9 @@ CHUNK_SIZE = 32
 MAX_SAMPLES = 5000
 FIELDS = ['all', 'enemy', 'pollution', 'factory', 'water', 'iron-ore', 'uranium-ore', 'coal', 'stone',
           'copper-ore', 'crude-oil', 'trees']
+
+global var
+var = {}
 
 
 class FactorioInstance:
@@ -47,6 +43,7 @@ class FactorioInstance:
             self.rcon_client = RCONClient('localhost', tcp_port, 'factorio')
             self.address = 'localhost'
 
+        self.sequential_exception_count = 0
         self.script_dict = {**_load_actions(), **_load_init()}
         self.vocabulary = vocabulary
         self.trail_state = {
@@ -63,6 +60,9 @@ class FactorioInstance:
         self.grid_world = zeros((bounding_box, bounding_box))
         self.minimap_bounding_box = bounding_box * 4
 
+        initial_score, _ = self._send('score')
+        self.initial_score = initial_score['player']
+
         mu, sigma = 0, CHUNK_SIZE * 20
         self.minimap_normal = s = np.random.normal(mu, sigma, MAX_SAMPLES)
         self.chunk_cursor = 0
@@ -71,14 +71,62 @@ class FactorioInstance:
         self.connect()
         self.initialise(**inventory)
 
+        self.UP = 0
+        self.LEFT = 3
+        self.RIGHT = 2
+        self.DOWN = 1
+
     def __getitem__(self, key):
         if key not in dir(self) or key.startswith('__'):
             raise KeyError(key)
         return getattr(self, key)
 
-    def eval(self, command):
-        result = eval(command, {}, self)
-        return result
+    def __setitem__(self, key, value):
+        setattr(self, key, value)
+
+    # def eval(self, code: str,):
+    #    buffer = io.StringIO()
+    #    with redirect_stdout(buffer):
+    #        exec(code, {}, self)
+    #    value = buffer.getvalue()
+    #   return value
+
+    def _eval_with_timeout(self, expr):
+        tree = ast.parse(expr)
+        results = []
+        for node in tree.body:
+            try:
+                if isinstance(node, ast.Expr):
+                    compiled = compile(ast.Expression(node.value), 'file', 'eval')
+                    response = eval(compiled, {}, self)
+                    if response != True and response:
+                        results.append(response)
+                        self.sequential_exception_count = 0
+                else:
+                    compiled = compile(ast.Module([node], type_ignores=[]), 'file', 'exec')
+                    exec(compiled, {}, self)
+                    results.append("Executed successfully")
+            except Exception as e:
+                self.sequential_exception_count += 1
+                parts = list(e.args)
+                sentences = ". ".join([str(part).replace("_", " ") for part in parts])
+                results.append(f"Error: {sentences}")
+                break
+
+        return '\n'.join([f"Line {i + 1}: {str(r)}" for i, r in enumerate(results)] + [f"Score: {self.score()}"])
+
+    def eval(self, expr, timeout=15):
+        "Evaluate several lines of input, returning the result of the last line with a timeout"
+        try:
+            with concurrent.futures.ThreadPoolExecutor(max_workers=1) as executor:
+                future = executor.submit(self._eval_with_timeout, expr)
+                result = future.result(timeout)
+                return result
+        except concurrent.futures.TimeoutError:
+            return "Error: Evaluation timed out"
+        except Exception as e:
+            trace = e.__traceback__
+            return f"Error: {str(e)}"
 
     def run_tasks(self):
         for task in self.tasks:
@@ -89,14 +137,15 @@ class FactorioInstance:
 
     def wait_duration(self, seconds: int):
         if seconds > 2:
-            time.sleep(seconds-2)
-        nearby = self.inspect_radius(20)
+            time.sleep(seconds - 2)
+        nearby = self.inspect_entities(20)
         if not nearby:
             nearby = "No entities within 20m."
-        #inventory = self.inventory()
+        # inventory = self.inventory()
         return f"While you wait, you look around. \n{nearby}"
 
-    def inspect_radius(self, distance: int):
+
+    def inspect_entities(self, distance: int, relative: bool = False):
         response, time_elapsed = self._send('inspect', PLAYER, distance)
         entities = []
         try:
@@ -104,6 +153,11 @@ class FactorioInstance:
                 entity_list = list(response.values())
                 for entity in entity_list:
                     position = tuple(entity["position"].values())
+
+                    if not relative:
+                        position = (position[0] + self.last_observed_player_location[0],
+                                    position[1] + self.last_observed_player_location[1])
+
                     entity_dict = {
                         "type": entity["name"],
                         "direction": entity["direction"],
@@ -146,14 +200,14 @@ class FactorioInstance:
                     entities.append(entity_dict)
 
             response_dict = {"entities": entities}
-            response = yaml.dump(response_dict)
+            #response = yaml.dump(response_dict)
 
             self.last_observed_player_location = (0, 0)
         except Exception as e:
             print(e)
             response = {}
 
-        return response
+        return response_dict
 
     def inspect_radius_natural(self, distance: int):
         response, time_elapsed = self._send('inspect', PLAYER, distance)
@@ -169,7 +223,8 @@ class FactorioInstance:
                             start = tuple(entity["position"].values())
                             end = None
                             for _, path_end in entity["path_ends"].items():
-                                if path_end["unit_number"] == min([e["unit_number"] for e in entity["path_ends"].values()]):
+                                if path_end["unit_number"] == min(
+                                        [e["unit_number"] for e in entity["path_ends"].values()]):
                                     end = tuple(path_end["position"].values())
                                     break
 
@@ -205,42 +260,133 @@ class FactorioInstance:
                 response = "You see:\n- " + "\n- ".join(descriptions)
             else:
                 response = "No entities nearby."
-            self.last_observed_player_location = (0,0)
+            self.last_observed_player_location = (0, 0)
         except Exception as e:
             print(e)
             response = {}
 
         return response
 
-    def nearest(self, type: str = 'coal'):
+
+    def nearest(self, type: str = 'coal', relative: bool = False, **kwargs):
         response, time_elapsed = self._send('find', PLAYER, type.replace("_", "-"))
+
+        if not response:
+            raise Exception(f"No {type} found on the map")
+
         if not self.last_observed_player_location:
             self.last_observed_player_location = self.player_location
-        return -math.floor(response['x'])+self.last_observed_player_location[0],\
-               -math.floor(response['y'])+self.last_observed_player_location[1]
+
+        if relative:
+            return (-math.floor(response['x']) + self.last_observed_player_location[0],
+                    -math.floor(response['y']) + self.last_observed_player_location[1])
+        else:
+            return (math.floor(response['x']), math.floor(response['y']))
+
+    def place_entity_next_to(self, entity: str, reference_position: Tuple = (0,0), direction: int = 1, gap: int =0, relative=False):
+        x, y = reference_position
+
+        if relative:
+            x -= self.last_observed_player_location[0]
+            y -= self.last_observed_player_location[1]
+
+        response, elapsed = self._send('place_entity_next_to', PLAYER, entity, x, y, direction, gap)
+        if not isinstance(response, dict):
+            raise Exception(f"Could not place {entity} at {reference_position}.", response)
+        return response['x'], response['y']
+
+    def connect_entities(self,
+                         source_position:Tuple=(0,0),
+                         target_position:Tuple=(0,0),
+                         connection_type='burner-inserter',
+                         relative = False):
+
+        source_x, source_y = source_position
+        target_x, target_y = target_position
+
+        if relative:
+            source_x -= self.last_observed_player_location[0]
+            target_x -= self.last_observed_player_location[0]
+            source_y -= self.last_observed_player_location[1]
+            target_y -= self.last_observed_player_location[1]
+
+        response, elapsed = self._send('connect_entities',
+                                       PLAYER,
+                                       source_x,
+                                       source_y,
+                                       target_x,
+                                       target_y,
+                                       connection_type)
+        if response != 1:
+            raise Exception(f"Could not connect {(source_x, source_y)} to {(target_x, target_y)}.", response)
+        return True
+
 
     def move_to(self,
+                absolute_position: Optional[Tuple[int, int]],
                 relative_position: Tuple[int, int] = (0, 0),
                 laying=None,
                 leading=None):
         try:
+            if absolute_position is not None:
+                if not isinstance(absolute_position, Tuple):
+                    raise Exception(
+                        "You need to pass in a tuple like (x, y) for the absolute position. You passed in scalar.")
+                start_x, start_y = self.player_location
+                relative_position = (absolute_position[0] - start_x, absolute_position[1] - start_y)
+
             if not isinstance(relative_position, Tuple):
                 raise Exception("You need to pass in a tuple like (x, y). You passed in scalar.")
             relative_end_x, relative_end_y = relative_position
             start_x, start_y = self.player_location
-            offset_x = self.bounding_box // 2# - self.last_observed_player_location[0]
-            offset_y = self.bounding_box // 2# - self.last_observed_player_location[1]
+            offset_x = self.bounding_box // 2
+            offset_y = self.bounding_box // 2
             last_observed_x = self.last_observed_player_location[0]
             last_observed_y = self.last_observed_player_location[1]
 
-            end = (offset_x + relative_end_x - last_observed_x,
-                   offset_y + relative_end_y - last_observed_y )
+            end = (offset_x + relative_end_x,  # - last_observed_x,
+                   offset_y + relative_end_y)  # - last_observed_y)
 
             path = get_path(end, self.collision_mask, start=(offset_x, offset_y))
 
             def direction_from_step(step, trailing=None, leading=None):
                 offset = self.bounding_box // 2
-                return self.move(*((step - [offset, offset]) - self.player_location), trailing=trailing, leading=leading)
+                return self.move(*((step - [offset, offset]) - self.player_location), trailing=trailing,
+                                 leading=leading)
+
+            task_queue = []
+            task_queue.extend(
+                [(lambda s: direction_from_step(s + (start_x, start_y), trailing=laying, leading=leading))(s) for s in
+                 path])
+            task_queue.extend([(lambda: self.observe())()])
+
+            self.tasks.append(iter(task_queue))
+        except Exception as e:
+            raise Exception("Could not goto", e)
+
+    def move_to2(self,
+                 relative_position: Tuple[int, int] = (0, 0),
+                 laying=None,
+                 leading=None):
+        try:
+            if not isinstance(relative_position, Tuple):
+                raise Exception("You need to pass in a tuple like (x, y). You passed in scalar.")
+            relative_end_x, relative_end_y = relative_position
+            start_x, start_y = self.player_location
+            offset_x = self.bounding_box // 2  # - self.last_observed_player_location[0]
+            offset_y = self.bounding_box // 2  # - self.last_observed_player_location[1]
+            last_observed_x = self.last_observed_player_location[0]
+            last_observed_y = self.last_observed_player_location[1]
+
+            end = (offset_x + relative_end_x - last_observed_x,
+                   offset_y + relative_end_y - last_observed_y)
+
+            path = get_path(end, self.collision_mask, start=(offset_x, offset_y))
+
+            def direction_from_step(step, trailing=None, leading=None):
+                offset = self.bounding_box // 2
+                return self.move(*((step - [offset, offset]) - self.player_location), trailing=trailing,
+                                 leading=leading)
 
             task_queue = []  # (lambda: self._set_walking(True))()]
             task_queue.extend(
@@ -278,7 +424,7 @@ class FactorioInstance:
         start = timer()
         script = self._get_command(command, parameters=list(parameters), measured=False)
         lua_response = self.rcon_client.send_command(script)
-        #print(lua_response)
+        # print(lua_response)
         return _lua2python(command, lua_response, start=start)
 
     def connect(self):
@@ -309,7 +455,7 @@ class FactorioInstance:
         try:
             results = self.observe(trace=True)
         except Exception as e:
-            #print(e)
+            # print(e)
             raise Exception(f"Could not initialise server at port {self.tcp_port}")
 
         return results
@@ -323,14 +469,58 @@ class FactorioInstance:
                 '/c game.players[1].character.walking_state = {walking = false, direction = defines.direction.north}')
         return lua_response
 
-    def rotate_entity(self, position: Tuple[int, int], direction=1):
+    def rotate_entity2(self, position: Tuple[int, int], direction=1):
         x, y = position
         response, elapsed = self._send('rotate', PLAYER, x, y, direction)
         if not response:
             raise Exception("Could not rotate.", response)
         return True
 
-    def harvest_resource(self, position: Tuple[int, int], quantity=1) -> bool:
+    def rotate_entity(self, position: Tuple[int, int], direction=1, relative: bool = False) -> bool:
+        """
+        Rotates an entity at the specified position (x, y) in the given direction.
+        By default, the position is absolute. If the 'relative' flag is set to True,
+        the position will be treated as relative to the agent as the origin (0, 0).
+        :param position: (x, y) position of the entity.
+        :param direction: The direction to rotate the entity (default: 1).
+        :param relative: If True, treats the position as relative to the agent (default: False).
+        :return: True if the entity was rotated, False if no-op.
+        """
+        x, y = position
+
+        if not relative:
+            x -= self.last_observed_player_location[0]
+            y -= self.last_observed_player_location[1]
+
+        response, elapsed = self._send('rotate', PLAYER, x, y, direction)
+        if not response:
+            raise Exception("Could not rotate.", response)
+        return True
+
+    def harvest_resource(self, position: Tuple[int, int], quantity=1, relative: bool = False) -> bool:
+        """
+        If there is an entity at the specified position (x, y), this action triggers an
+        interaction as follows: If the item can be picked up, the agent picks up the item. If the
+        item can be harvested, the agent harvests the item (resource). By default, the position
+        is absolute. If the 'relative' flag is set to True, the position will be treated as relative
+        to the agent as the origin (0, 0). If there is no entity at (x, y), this action is a no-op.
+        :param position: (x, y) position of the entity.
+        :param quantity: The quantity to be harvested (default: 1).
+        :param relative: If True, treats the position as relative to the agent (default: False).
+        :return: True if an action happened, False if no-op.
+        """
+        x, y = position
+
+        if not relative:
+            x -= self.last_observed_player_location[0]
+            y -= self.last_observed_player_location[1]
+
+        response, elapsed = self._send('harvest', PLAYER, x, y, quantity)
+        if response != 1:
+            raise Exception("Could not harvest.", response)
+        return True
+
+    def harvest_resource2(self, position: Tuple[int, int], quantity=1) -> bool:
         """
         If there is an entity at local position (x, y), this action triggers an
         interaction as follows: If the item can be picked up, the agent picks up the item. If the
@@ -347,7 +537,7 @@ class FactorioInstance:
             raise Exception("Could not harvest.", response)
         return True
 
-    def pickup_entity(self, position: Tuple[int, int]) -> bool:
+    def pickup_entity(self, name: str, position: Tuple[int, int], relative=False) -> bool:
         """
         If there is an entity at local position (x, y), this action triggers an
         interaction as follows: If the item can be picked up, the agent picks up the item. If the
@@ -359,12 +549,17 @@ class FactorioInstance:
         :return: True if an action happened, False if no-op.
         """
         x, y = position
-        response, elapsed = self._send('pickup', PLAYER, x, y)
+
+        if relative:
+            x += self.last_observed_player_location[0]
+            y += self.last_observed_player_location[1]
+
+        response, elapsed = self._send('pickup', PLAYER, x, y, name)
         if response != 1:
             raise Exception("Could not pickup.", response)
         return True
 
-    def insert_item(self, entity: str, target_position: Tuple[int, int] = (0,0), quantity=5) -> int:
+    def insert_item(self, entity: str, target_position: Tuple[int, int] = (0, 0), quantity=5) -> int:
         x, y = target_position
         """
         If there is an entity at local position (x, y) that accepts a resource, the agent
@@ -382,12 +577,17 @@ class FactorioInstance:
                                        x,
                                        y)
         if response != 1:
-            raise Exception("Could not insert.", response)
+            raise Exception("Could not insert", response)
 
         return True
 
-    def extract_item(self, entity: str, source_position: Tuple[int, int], quantity=5) -> int:
+    def extract_item(self, entity: str, source_position: Tuple[int, int], quantity=5, relative=False) -> int:
         x, y = source_position
+
+        if not relative:
+            x -= self.last_observed_player_location[0]
+            y -= self.last_observed_player_location[1]
+
         response, elapsed = self._send('extract',
                                        PLAYER,
                                        entity.replace("_", "-"),
@@ -417,9 +617,9 @@ class FactorioInstance:
                 raise Exception(f"Could not craft a {entity}", "Ingredients cannot be crafted by hand.")
             else:
                 raise Exception(f"Could not craft a {entity}", success)
-        return success
+        return "Crafting successful"
 
-    def place_entity(self, entity: str, direction: int, position: tuple[int, int]) -> bool:
+    def place_entity(self, entity: str, direction=0, position: tuple[int, int] = (0, 0), relative=False) -> Optional[Tuple]:
         """
         The agent places an entity e at local position (x, y) if the agent has
         enough resources. If the agent chooses to place an empty entity at (x, y), any entity at
@@ -432,25 +632,37 @@ class FactorioInstance:
         :return: True if action carried out, False if no-op
         """
         x, y = position
-        cardinals = ['north', 'south', 'east', 'west']
+
+        if direction > 3 or direction < 0:
+            raise Exception("Directions are between 0-3")
+
+        if relative:
+            x -= self.last_observed_player_location[0]
+            y -= self.last_observed_player_location[1]
+
         response, elapsed = self._send('place',
                                        PLAYER,
                                        entity.replace("_", "-"),
-                                       cardinals[direction],
+                                       direction + 1,
                                        x,
                                        y
                                        )
-        if response != 1:
+        if not isinstance(response, dict):
             raise Exception(f"Could not place {entity}", response.replace("___", ", ").replace("_", " "))
 
-        return True
+        return (response['x'], response['y'])
 
-    def set_entity_recipe(self, position: Tuple[int, int], recipe: str) -> bool:
+    def set_entity_recipe(self, position: Tuple[int, int], recipe: str, relative=False) -> bool:
         x, y = position
+
+        if not relative:
+            x -= self.last_observed_player_location[0]
+            y -= self.last_observed_player_location[1]
+
         response, elapsed = self._send('recipe', PLAYER, recipe, x, y)
 
         if response != 1:
-            raise Exception(f"Could not set recipe for {recipe}", response)
+            raise Exception(f"Could not set recipe to {recipe}", response)
         return True
 
     def trail(self, entity: str) -> bool:
@@ -472,7 +684,234 @@ class FactorioInstance:
 
         return True
 
-    def observe_nature(self):
+    def inspect_resources(self, relative=False):
+        def get_direction(y_offset, x_offset):
+            angle = (np.arctan2(-y_offset, -x_offset) * 180 / np.pi) - 90
+
+            if angle < 0:
+                angle += 360
+
+            directions = [
+                (348.75, 360, "north"),
+                (0, 11.25, "north"),
+                (11.25, 33.75, "north-northeast"),
+                (33.75, 56.25, "northeast"),
+                (56.25, 78.75, "east-northeast"),
+                (78.75, 101.25, "east"),
+                (101.25, 123.75, "east-southeast"),
+                (123.75, 146.25, "southeast"),
+                (146.25, 168.75, "south-southeast"),
+                (168.75, 191.25, "south"),
+                (191.25, 213.75, "south-southwest"),
+                (213.75, 236.25, "southwest"),
+                (236.25, 258.75, "west-southwest"),
+                (258.75, 281.25, "west"),
+                (281.25, 303.75, "west-northwest"),
+                (303.75, 326.25, "northwest"),
+                (326.25, 348.75, "north-northwest"),
+            ]
+
+            for start, end, direction in directions:
+                if angle >= start and angle < end:
+                    return direction
+
+            return "north"
+
+        vocabulary = self.vocabulary.i_vocabulary
+        grid_world = self.grid_world
+        unique_objects = np.unique(grid_world)
+
+        groups = {}
+        small_groups = {}
+
+        for obj in unique_objects:
+            if obj == 0:
+                continue
+
+            binary_array = (grid_world == obj).astype(int)
+            connected_components, num_labels = ndimage.measurements.label(binary_array)
+
+            for label in range(1, num_labels + 1):
+                if obj == -1:
+                    continue
+                item = vocabulary[obj]
+                if item == "character":
+                    continue
+
+                group_indices = np.where(connected_components == label)
+                group_size = len(group_indices[0])
+
+                y_offset = int(np.mean(group_indices[0])) - (self.bounding_box // 2)
+                x_offset = int(np.mean(group_indices[1])) - (self.bounding_box // 2)
+
+                if not relative:
+                    y_offset += self.last_observed_player_location[1]
+                    x_offset += self.last_observed_player_location[0]
+
+                y_max = int(np.max(group_indices[0])) - (self.bounding_box // 2)
+                x_max = int(np.max(group_indices[1])) - (self.bounding_box // 2)
+
+                y_min = int(np.min(group_indices[0])) - (self.bounding_box // 2)
+                x_min = int(np.min(group_indices[1])) - (self.bounding_box // 2)
+                named_dir = get_direction(y_offset, x_offset)
+                direction = {
+                    "offset": abs(y_offset),
+                    "named_direction": named_dir,
+                    "min_coordinates": (x_min, y_min),
+                    "max_coordinates": (x_max, y_max)
+                }
+
+                if group_size < 50:
+                    if item not in small_groups:
+                        small_groups[item] = {"count": 0, "directions": {}}
+                    small_groups[item]["count"] += group_size
+                    small_groups[item]["directions"][named_dir] = small_groups[item]["directions"].get(named_dir,
+                                                                                                       0) + abs(
+                        y_offset)
+                else:
+                    if item not in groups:
+                        groups[item] = []
+
+                    group_description = {
+                        "size": group_size,
+                        "direction": direction
+                    }
+                    groups[item] =  group_description
+
+        for item, data in small_groups.items():
+            count = data["count"]
+            cardinals = [
+                {"distance": (value if value < 1000 else math.floor(value / 1000)),
+                 "unit": "metres" if value < 1000 else "km",
+                 "direction": direction}
+                for direction, value in data["directions"].items()
+            ]
+            if not cardinals:
+                continue
+
+            #if count > 1000:
+            #    count_str = math.floor((float(count) / 100)) / 10
+
+            if item not in groups:
+                groups[item] = []
+
+            group_description = {
+                "size": count,
+                "directions": cardinals,
+                "scattered": True
+            }
+            groups[item] = group_description
+
+        return groups
+
+    def inspect_resources2(self, relative=False):
+        def get_direction(y_offset, x_offset):
+            angle = (np.arctan2(-y_offset, -x_offset) * 180 / np.pi) - 90
+
+            if angle < 0:
+                angle += 360
+
+            directions = [
+                (348.75, 360, "north"),
+                (0, 11.25, "north"),
+                (11.25, 33.75, "north-northeast"),
+                (33.75, 56.25, "northeast"),
+                (56.25, 78.75, "east-northeast"),
+                (78.75, 101.25, "east"),
+                (101.25, 123.75, "east-southeast"),
+                (123.75, 146.25, "southeast"),
+                (146.25, 168.75, "south-southeast"),
+                (168.75, 191.25, "south"),
+                (191.25, 213.75, "south-southwest"),
+                (213.75, 236.25, "southwest"),
+                (236.25, 258.75, "west-southwest"),
+                (258.75, 281.25, "west"),
+                (281.25, 303.75, "west-northwest"),
+                (303.75, 326.25, "northwest"),
+                (326.25, 348.75, "north-northwest"),
+            ]
+
+            for start, end, direction in directions:
+                if angle >= start and angle < end:
+                    return direction
+
+            return "north"
+
+        vocabulary = self.vocabulary.i_vocabulary
+        grid_world = self.grid_world
+        unique_objects = np.unique(grid_world)
+
+        groups = []
+        small_groups = {}
+
+        for obj in unique_objects:
+            if obj == 0:
+                continue
+
+            binary_array = (grid_world == obj).astype(int)
+            connected_components, num_labels = ndimage.measurements.label(binary_array)
+
+            for label in range(1, num_labels + 1):
+                if obj == -1:
+                    continue
+                item = vocabulary[obj]
+                if item == "character":
+                    continue
+
+                group_indices = np.where(connected_components == label)
+                group_size = len(group_indices[0])
+
+                y_offset = int(np.mean(group_indices[0])) - (self.bounding_box // 2)
+                x_offset = int(np.mean(group_indices[1])) - (self.bounding_box // 2)
+
+                if not relative:
+                    y_offset += self.last_observed_player_location[1]
+                    x_offset += self.last_observed_player_location[0]
+
+                y_max = int(np.max(group_indices[0])) - (self.bounding_box // 2)
+                x_max = int(np.max(group_indices[1])) - (self.bounding_box // 2)
+
+                y_min = int(np.min(group_indices[0])) - (self.bounding_box // 2)
+                x_min = int(np.min(group_indices[1])) - (self.bounding_box // 2)
+                named_dir = get_direction(y_offset, x_offset)
+                direction = f"{abs(y_offset)} metres " \
+                            f"{named_dir} " \
+                            f"({x_min}, {y_min}) x ({x_max}, {y_max})"
+
+                if group_size < 50:
+                    if item not in small_groups:
+                        small_groups[item] = {"count": 0, "direction": {}}
+                    small_groups[item]["count"] += group_size
+                    small_groups[item]["direction"][named_dir] = small_groups[item]["direction"].get(named_dir,
+                                                                                                     0) + abs(y_offset)
+                else:
+                    group_description = f"{group_size}x {item} {direction}"
+                    groups.append((group_size, group_description))
+
+        for item, data in small_groups.items():
+            count = data["count"]
+            cardinals = [f"{(str(value) + ' metres') if value < 1000 else (str(math.floor(value / 1000))) + 'km'} " \
+                         f"{direction}"
+                         for direction, value in data["direction"].items()]
+            if not cardinals:
+                continue
+            if len(cardinals) > 1:
+                direction = f"scattered {', '.join(cardinals[:-1])}, and {cardinals[-1]} "
+            else:
+                direction = f"scattered {cardinals[0]} "
+
+            if count > 1000:
+                count_str = str(math.floor((float(count) / 100)) / 10) + "k"
+            group_description = f"There are {count_str} {item}s {direction}"
+            groups.append((count, group_description))
+
+        # Sort groups by size and return the result
+        groups.sort(reverse=True, key=lambda x: x[0])
+
+        # self.last_observed_player_location = (0,0)
+        return "\n- ".join([group[1] for group in groups])
+
+    def observe_nature2(self):
         def get_direction(y_offset, x_offset):
             angle = (np.arctan2(-y_offset, -x_offset) * 180 / np.pi) - 90
 
@@ -546,14 +985,15 @@ class FactorioInstance:
                     if item not in small_groups:
                         small_groups[item] = {"count": 0, "direction": {}}
                     small_groups[item]["count"] += group_size
-                    small_groups[item]["direction"][named_dir] = small_groups[item]["direction"].get(named_dir, 0) + abs(y_offset)
+                    small_groups[item]["direction"][named_dir] = small_groups[item]["direction"].get(named_dir,
+                                                                                                     0) + abs(y_offset)
                 else:
                     group_description = f"{group_size}x {item} {direction}"
                     groups.append((group_size, group_description))
 
         for item, data in small_groups.items():
             count = data["count"]
-            cardinals = [f"{(str(value) + ' metres') if value < 1000 else (str(math.floor(value/1000))) + 'km'} " \
+            cardinals = [f"{(str(value) + ' metres') if value < 1000 else (str(math.floor(value / 1000))) + 'km'} " \
                          f"{direction}"
                          for direction, value in data["direction"].items()]
             if not cardinals:
@@ -564,26 +1004,27 @@ class FactorioInstance:
                 direction = f"scattered {cardinals[0]} "
 
             if count > 1000:
-                count_str = str(math.floor((float(count)/100))/10) +"k"
+                count_str = str(math.floor((float(count) / 100)) / 10) + "k"
             group_description = f"There are {count_str} {item}s {direction}"
             groups.append((count, group_description))
 
         # Sort groups by size and return the result
         groups.sort(reverse=True, key=lambda x: x[0])
 
-        self.last_observed_player_location = (0,0)
+        self.last_observed_player_location = (0, 0)
         return "\n- ".join([group[1] for group in groups])
+
+    def score(self):
+        response, execution_time = self._send('score')
+        if self.initial_score:
+            response['player'] -= self.initial_score
+        return response['player']
 
     def check_inventory(self):
         response, execution_time = self._send('inventory',
                                               PLAYER,
                                               )
-        inventory = []
-        for k, v in response.items():
-            inventory.append(f"- {v} {k}")
-
-        output = "\n".join(inventory)
-        return output
+        return ZeroDict(**response)
 
     def observe(self, trace=False, **kwargs):
         """
@@ -612,7 +1053,7 @@ class FactorioInstance:
                                               self.bounding_box,
                                               movement_field_x,
                                               movement_field_y,
-                                              self.bounding_box*2,
+                                              self.bounding_box * 2,
                                               trace,
                                               omit
                                               )
@@ -639,7 +1080,8 @@ class FactorioInstance:
 
         try:
             if 'points_of_interest' in response:
-                points_x, points_y, poi_time = self._convert_sparse_coordinates_into_tensors(response['points_of_interest'])
+                points_x, points_y, poi_time = self._convert_sparse_coordinates_into_tensors(
+                    response['points_of_interest'])
         except IndexError as e:
             raise Exception("Cannot move further", str(e.args))
 
@@ -667,7 +1109,7 @@ class FactorioInstance:
         # if 'objective' in response:
         #    objective, obj_time = await self._convert_sparse_continuous_into_tensor(response['objective'])
 
-        return {
+        observation = {
             "local": self.grid_world,
             "minimap": self.minimaps,  # Do not do this during observation - it is expensive!
             "compass": np.stack([points_x, points_y], axis=1),
@@ -676,6 +1118,9 @@ class FactorioInstance:
             "statistics": statistics,
             "score": score
         }
+        self.last_observation = observation
+
+        return observation
 
     def observe_statistics(self):
         """
@@ -723,7 +1168,7 @@ class FactorioInstance:
         return np.reshape(one_hot_x, one_hot_x.shape + (1,)), np.reshape(one_hot_y, one_hot_y.shape + (1,)), end
 
     def _convert_sparse_local_into_gridworld(self, local_environment_sparse, new_field_x, new_field_y):
-        #print(new_field_x, new_field_y)
+        # print(new_field_x, new_field_y)
         new_field_x = new_field_y = False
         range_x = math.floor(new_field_x) if new_field_x else self.bounding_box
         range_y = math.floor(abs(new_field_y)) if new_field_y else self.bounding_box
@@ -838,31 +1283,33 @@ class FactorioInstance:
         self.last_location = self.player_location
         if trailing:
             response, execution_time = self._send('move',
-                                                      PLAYER,
-                                                      x,
-                                                      y,
-                                                      trailing,
-                                                      1)
+                                                  PLAYER,
+                                                  x,
+                                                  y,
+                                                  trailing,
+                                                  1)
             # if new_position is 0:
             #    self.trail(None)
         elif leading:
             response, execution_time = self._send('move',
-                                                      PLAYER,
-                                                      x,
-                                                      y,
-                                                      leading,
-                                                      0)
+                                                  PLAYER,
+                                                  x,
+                                                  y,
+                                                  leading,
+                                                  0)
         else:
             response, execution_time = self._send('move',
-                                                      PLAYER,
-                                                      x,
-                                                      y,
-                                                      NONE,
-                                                      NONE)
+                                                  PLAYER,
+                                                  x,
+                                                  y,
+                                                  NONE,
+                                                  NONE)
 
         if isinstance(response, int) and response == 0:
             raise Exception("Could not move.")
 
+        if response == 'trailing' or response == 'leading':
+            raise Exception("Could not lay entity, perhaps a typo?")
         if response:
             self.player_location = (response['x'], response['y'])
             # self.last_direction = direction

@@ -1,5 +1,6 @@
 --Initialise.lua
 local player = game.players[arg1]
+player.surface.always_day=true
 --local position = player.position
 
 --player.game_view_settings.show_controller_gui = false
@@ -31,7 +32,11 @@ local surface=player.surface
 local pp = player.position
 local cnt = 0
 
+game.players[1].set_goal_description("Now starting simulation")
+--game.players[1].character_collision_mask = "not-colliding-with-itself"
+game.players[1].force.character_build_distance_bonus = 100
 game.players[1].force.research_all_technologies()
+
 for _, ent in pairs(surface.find_entities_filtered({force="player", position=pp, radius=50})) do
     if ent.name ~= "character" then
         ent.destroy()
@@ -873,6 +878,13 @@ function inspect(player, radius)
                 end
             end
 
+            table.insert(entity_data, data)
+        else
+            local data = {
+                name = "player_character",
+                position = entity.position,
+                direction = directions[entity.direction+1],
+            }
             table.insert(entity_data, data)
         end
     end

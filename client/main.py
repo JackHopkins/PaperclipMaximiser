@@ -23,7 +23,7 @@ inspect() # inspect the entities immediately around you
 inventory() # look to see what items you have
 goto((10, 5), trailing='transport-belt') #move 10m east, 5 south creating transport as you go.
 craft('iron-chest', count=1) #craft 1 iron chest.
-place('assembling-machine-1', 0, (1,1)) # places at 1m north and east of the player, facing north.
+place('assembling-machine-1', UP, (1,1)) # places at 1m north and east of the player, facing up.
 wait(5) # wait 5 seconds.
 insert('coal', (0, 0), count=1) # inserts 1 coal into nearby entity from inventory
 extract('coal', (0, 1), count=1) # picks up 1 coal from the entity 1m to the south
@@ -31,7 +31,7 @@ set_recipe('iron-chest') # set recipe of nearby entity to craft 'iron-chest'
 goto((0, -40)) # move north 40 metres
 goto(nearest('tree')) # move to the nearest tree
 interact((-2, 0), count=5) # harvest or mine 5 of the entity under the player
-rotate((0,0), 1) # rotate nearby entity to face east
+rotate((0,0), LEFT) # rotate nearby entity to face left
 ``` 
 - Positions are relative to the player, not absolute.
 - Only speak using the commands above. 
@@ -114,23 +114,61 @@ def get_program_generator():
         stop="\n\n#",
         stream=True
     )
+test = \
+"""
+tree_position = nearest('tree')
+move_to(tree_position)
+harvest_resource(tree_position, quantity=1)
+"""
+test2 = \
+"""
+move_to(nearest('iron_ore'))
+harvest_resource(nearest('iron_ore'), quantity=5)
+#stone_furnace_position = place_entity('stone-furnace', direction=DOWN, position=nearest('iron_ore'))
+# move_to(nearest('iron_ore'))
+#place_entity_next_to('burner-mining-drill', reference_position=stone_furnace_position, direction=LEFT, gap=1)
 
+# Stone furnace is placed at a specific position
+craft_item('steam-engine', quantity=1)
+
+steam_engine_position = place_entity('steam-engine', direction=UP, position=(0,7))
+craft_item('boiler', quantity=1)
+
+# Place a burner-mining-drill to the left of the existing stone furnace
+boiler_position = place_entity_next_to('boiler', reference_position=steam_engine_position, direction=UP, gap=2)
+
+craft_item('pipe', quantity=2)
+
+#inspect_entities(50)
+# Connect the burner-mining-drill's output to the stone-furnace's input using an inserter
+connect_entities(source_position=steam_engine_position, target_position=boiler_position, connection_type='pipe')
+score()
+"""
 
 if __name__ == '__main__':
 
     import os
     import openai
 
-    factorio_runner = FactorioRunner("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",)
-                                     #model="gpt-3.5-turbo")
+    factorio_runner = FactorioRunner("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",
+                                     model="gpt-3.5-turbo")
                                      #trace="15-17-01-04-2023")
+
+    try:
+        pass
+        #factorio_runner.instance.eval(test)
+    except Exception as e:
+        print(e)
+
     #factorio_runner.replay()
+    #for i in range(4):
+    #    factorio_runner.instance.move_to((10, 10))
+    #    factorio_runner.instance.move_to((0, 0))
     #factorio_runner.instance.craft_item('burner-mining-drill', quantity=2);
     #factorio_runner.instance.place_entity('stone-furnace', 2, (0, 0));
     #factorio_runner.instance.place('assembling-machine-1', 0, (1,1))
     #factorio_runner.instance.set_recipe((1, 1), 'iron-chest')
     #r = factorio_runner.instance.inspect()
-
     for i in range(400):
         next(factorio_runner)
     bar = getattr(instance, 'inventory')
@@ -138,8 +176,8 @@ if __name__ == '__main__':
 
     start = timer()
     inventory = instance.check_inventory()
-    description = instance.observe_nature()
-    inspect = instance.inspect_radius()
+    description = instance.inspect_resources()
+    inspect = instance.inspect_entities()
 
     try:
         # Let's craft some iron gear wheels first
@@ -156,7 +194,7 @@ if __name__ == '__main__':
 
         pass
 
-    groups = instance.observe_nature()
+    groups = instance.inspect_resources()
     # instance.goto((0, -40))
 
     # instance.see('water', 'coal')

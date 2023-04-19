@@ -1,7 +1,7 @@
 local player = game.players[arg1]
 local entity = arg2
 local direction = arg3
-local position = {x=arg4+player.position.x, y=arg5+player.position.y}
+local position = {x=arg4, y=arg5}
 
 if game.entity_prototypes[entity] == nil then
     name = entity:gsub(" ", "_"):gsub("-", "_")
@@ -23,14 +23,29 @@ local collision_box = prototype.collision_box
 local width = math.abs(collision_box.right_bottom.x - collision_box.left_top.x)
 local height = math.abs(collision_box.right_bottom.y - collision_box.left_top.y)
 
-local can_build = player.can_place_entity{name=entity, force=player.force, position=position, direction=cardinals[arg3]}
+local function player_collision(player, target_area)
+    local character_box = player.character.prototype.collision_box
+    local character_area = {
+        {player.position.x + character_box.left_top.x, player.position.y + character_box.left_top.y},
+        {player.position.x + character_box.right_bottom.x, player.position.y + character_box.right_bottom.y}
+    }
+    return (character_area[1][1] < target_area[2][1] and character_area[2][1] > target_area[1][1]) and
+           (character_area[1][2] < target_area[2][2] and character_area[2][2] > target_area[1][2])
+end
+
+local target_area = {
+    {position.x - width / 2, position.y - height / 2},
+    {position.x + width / 2, position.y + height / 2}
+}
+
+while player_collision(player, target_area) do
+    player.teleport({player.position.x + width + 1, player.position.y}, player.surface)
+end
+
+local can_build = player.can_place_entity{name=entity, force=player.force, position=position, direction=cardinals[direction]}
 
 if can_build == false or can_build == 0 then
-    local target_area = {
-        {position.x - width / 2, position.y - height / 2},
-        {position.x + width / 2, position.y + height / 2}
-    }
-    local entities = player.surface.find_entities_filtered{area = target_area}
+    local entities = player.surface.find_entities_filtered{area = target_area, type = "entity"}
     local blocking_entities = {}
 
     for _, blocking_entity in ipairs(entities) do
@@ -44,19 +59,25 @@ if can_build == false or can_build == 0 then
            (entity_area[1][2] < target_area[2][2] and entity_area[2][2] > target_area[1][2]) then
 
             local name = blocking_entity.name
-            local position = " at "..(blocking_entity.position.x-player.position.x).."___"..(blocking_entity.position.y-player.position.y).." and the size of the entity is "..width
-            table.insert(blocking_entities, name..position)
+            local size = " with the size "..width
+            table.insert(blocking_entities, name..size)
         end
     end
     if #blocking_entities > 0 then
-        abort("Cant build there due to existing " .. table.concat(blocking_entities, "___") .. ", Need "..width.." space, Maybe inspect your surroundings.")
+        abort("Cant place there due to existing " .. table.concat(blocking_entities, "___"):gsub("-", "_") .. ", Need "..width.." space, Maybe inspect your surroundings.")
     else
-        abort("Cant build there, Maybe inspect your surroundings " .. tostring(can_build))
+        --local have_built = player.surface.create_entity{name=entity, force="player", position=position, direction=cardinals[direction], player=player}
+        --if have_built then
+        --    player.remove_item{name=entity, count=1}
+        --    rcon.print(1)
+        --else
+        abort("Maybe inspect your surroundings before placing")
+        --end
     end
 else
-    local have_built = player.surface.create_entity{name=entity, force="player", position=position, direction=cardinals[arg3], player=player}
+    local have_built = player.surface.create_entity{name=entity, force="player", position=position, direction=cardinals[direction], player=player}
     if have_built then
         player.remove_item{name=entity, count=1}
-        rcon.print(1)
+        rcon.print(dump({x= position.x, y = position.y}))
     end
 end

@@ -24,15 +24,20 @@ function mine_entity(entity)
 end
 
 function harvest(entities)
+    local did_mine = 0
+
     for _, entity in pairs(entities) do
         if entity.valid and entity.minable and player.can_reach_entity(entity) then
             for _ = 1, count do
-                player.mine_entity(entity)
+                did_mine = player.mine_entity(entity)
                 if not entity.valid then
+                    success = 1
                     break
                 end
             end
-            success = 1
+            if success == 1 then
+                break
+            end
         end
     end
 end
@@ -48,7 +53,7 @@ harvest(tree_entities)
 
 
 if success == 0 then
-    abort("Nothing to here to harvest.")
+    abort("Nothing within reach to harvest")
 else
     rcon.print(success)
 end

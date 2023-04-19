@@ -41,8 +41,15 @@ local function get_direction(offset)
     return direction
 end
 
+
 local trailing_position = {x=player.position.x+0.5, y=player.position.y+0.5}
 local current_position = player.position
+
+if is_trailing == 1 or is_trailing == 0 then
+    if game.entity_prototypes[trailing_entity] == nil then
+        abort('No entity exists that can be laid')
+    end
+end
 
 if is_trailing == 1 then
     rcon.print('trailing')

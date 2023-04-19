@@ -64,12 +64,14 @@ end
 --local count = tonumber(arg3)
 local successfully_crafted = 0
 local reason = nil
+local k = 1
 for i = 1, count, 1 do
     local did_craft = craft_entity(player, entity, 1)
     if did_craft == 1 then
         successfully_crafted = successfully_crafted + 1
     else
         reason = did_craft
+        k = i
         break
     end
 end
@@ -80,5 +82,5 @@ elseif successfully_crafted > 0 then
     abort("Successfully crafted " .. successfully_crafted .."x but failed_to_craft_"
             .. (count-successfully_crafted) .. "x " .. entity:gsub("-", "_").." because ".. reason)
 else
-    abort("Failed_to_craft_" .. (count-i)+1 .. "x_" .. entity:gsub("-", "_"))-- .. tostring(did_craft))
+    abort("Failed_to_craft_" .. (count-k)+1 .. "x_" .. entity:gsub("-", "_").." because "..reason)-- .. tostring(did_craft))
 end

@@ -6,3 +6,4 @@ cortex
 .DS_Store
 .env
 ~/PycharmProjects/PaperclipMaximiser/dev/
+/client/log/

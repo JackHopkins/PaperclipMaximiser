@@ -1,7 +1,8 @@
 local player = game.players[arg1]
 local x, y = arg2, arg3
+local entity = arg4
 
-local position = {x=player.position.x+x, y=player.position.y+y}
+local position = {x=x, y=y}--{x=player.position.x+x, y=player.position.y+y}
 local surface = player.surface
 
 local success = 0
@@ -30,7 +31,7 @@ local function pickup(entities)
     end
 
 -- Attempt to pick up
-player_entities = surface.find_entities_filtered{position=position, radius=1, force = "player"}
+player_entities = surface.find_entities_filtered{name=entity, position=position, radius=3, force = "player"}
 pickup(player_entities)
 
 if success == 0 then
