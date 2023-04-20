@@ -11,10 +11,23 @@ class Action:
 
     def __init__(self, connection, *args, **kwargs):
         self.connection = connection
-        self.name = sys.modules[self.__module__].__file__.split("/")[-1].replace(".py", ".lua")
+        self.name = f"{self.camel_to_snake(self.__class__.__name__)}.lua"
+
+    def camel_to_snake(self, camel_str):
+        snake_str = ""
+        for index, char in enumerate(camel_str):
+            if char.isupper():
+                if index != 0:
+                    snake_str += "_"
+                snake_str += char.lower()
+            else:
+                snake_str += char
+        return snake_str
 
     def load(self):
         script = _load_action(self.name)
+        if not script:
+            raise Exception(f"Could not load {self.name}")
         self.connection.send_command(script)
 
     def _get_command(self, command, parameters=[], measured=True):

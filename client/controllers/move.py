@@ -1,11 +1,11 @@
-from controllers.action import Action
+from controllers._action import Action
 from factorio_instance import PLAYER, NONE
 
 
 class Move(Action):
 
-    def __init__(self, connection):
-        Action.__init__(self, connection)
+    def __init__(self, connection, game_state):
+        super().__init__(self, connection, game_state)
 
     def __call__(self, x: int, y: int, trailing=None, leading=None) -> bool:
         """
@@ -13,7 +13,7 @@ class Move(Action):
         :param direction: Index between (0,3) inclusive.
         :return: Whether the movement was carried out.
         """
-        self.last_location = self.player_location
+        last_location = self.game_state.player_location
         if trailing:
             response, execution_time = self._send('move', PLAYER, x, y, trailing, 1)
         elif leading:
@@ -29,9 +29,9 @@ class Move(Action):
 
         if response:
             self.player_location = (response['x'], response['y'])
-            self.movement_vector = (self.player_location[0] - self.last_location[0],
-                                    self.player_location[1] - self.last_location[1])
+            movement_vector = (self.game_state.player_location[0] - last_location[0],
+                                    self.game_state.player_location[1] - last_location[1])
 
-            self.last_observed_player_location = (self.last_observed_player_location[0] + self.movement_vector[0],
-                                                  self.last_observed_player_location[1] + self.movement_vector[1])
+            self.last_observed_player_location = (self.game_state.last_observed_player_location[0] + movement_vector[0],
+                                                  self.game_state.last_observed_player_location[1] + movement_vector[1])
         return response, execution_time

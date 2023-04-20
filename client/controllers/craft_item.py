@@ -1,11 +1,11 @@
-from controllers.action import Action
+from controllers._action import Action
 from factorio_instance import PLAYER
 
 
 class CraftItem(Action):
 
-    def __init__(self, connection):
-        Action.__init__(self, connection)
+    def __init__(self, connection, game_state):
+        super().__init__(self, connection, game_state)
 
     def __call__(self, entity: str, quantity: int = 1) -> bool:
         """

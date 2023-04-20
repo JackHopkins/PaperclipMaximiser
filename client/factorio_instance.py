@@ -1,7 +1,10 @@
 import ast
 import concurrent
+import importlib
 import math
+import os
 import time
+from pathlib import Path
 from timeit import default_timer as timer
 from typing import List, Tuple, Optional
 
@@ -15,6 +18,7 @@ from slpp import slpp as lua
 from client.factorio_rcon_utils import _load_actions, _load_init, _lua2python
 from client.rcon.factorio_rcon import RCONClient
 from client.utils import stitch
+from models.game_state import GameState
 from models.zero_dict import ZeroDict
 from utilities.pathfinding import get_path
 from vocabulary import Vocabulary
@@ -43,6 +47,9 @@ class FactorioInstance:
             self.rcon_client = RCONClient('localhost', tcp_port, 'factorio')
             self.address = 'localhost'
 
+        self.game_state = GameState().with_default(vocabulary)
+
+
         self.sequential_exception_count = 0
         self.script_dict = {**_load_actions(), **_load_init()}
         self.vocabulary = vocabulary
@@ -50,12 +57,15 @@ class FactorioInstance:
             "trail_on": False,
             "trail_entity": None
         }
+
+        self._load_actions(self.rcon_client, self.game_state)
+
         self.tasks = []
         self.player_location = (0, 0)
         self.last_observed_player_location = (0, 0)
-        self.last_location = (0, 0)
-        self.movement_vector = (0, 0)
-        self.last_direction = -1
+        #self.last_location = (0, 0)
+        #self.movement_vector = (0, 0)
+        #self.last_direction = -1
         self.bounding_box = bounding_box
         self.grid_world = zeros((bounding_box, bounding_box))
         self.minimap_bounding_box = bounding_box * 4
@@ -75,6 +85,37 @@ class FactorioInstance:
         self.LEFT = 3
         self.RIGHT = 2
         self.DOWN = 1
+
+    def _load_actions(self, connection, game_state):
+        # Define the directory containing the callable class files
+        callable_classes_directory = "controllers"
+
+        def snake_to_camel(snake_str):
+            return "".join(word.capitalize() for word in snake_str.split("_"))
+
+        # Loop through the files in the directory
+        for file in os.listdir(callable_classes_directory):
+            # Check if the file is a Python file and does not start with '_'
+            if file.endswith(".py") and not file.startswith("_"):
+                # Load the module
+                module_name = Path(file).stem
+                module_spec = importlib.util.spec_from_file_location(module_name,
+                                                                     os.path.join(callable_classes_directory, file))
+                module = importlib.util.module_from_spec(module_spec)
+                module_spec.loader.exec_module(module)
+
+                class_name = snake_to_camel(module_name)
+
+                # Get the callable class
+                callable_class = getattr(module, class_name)
+
+                # Create an instance of the callable class
+                try:
+                    callable_instance = callable_class(connection, game_state)
+                except Exception:
+                    raise Exception(f"Could not instantiate {class_name}")
+                # Add the instance as a member method
+                setattr(self, module_name.lower(), callable_instance)
 
     def __getitem__(self, key):
         if key not in dir(self) or key.startswith('__'):
@@ -515,23 +556,6 @@ class FactorioInstance:
             x -= self.last_observed_player_location[0]
             y -= self.last_observed_player_location[1]
 
-        response, elapsed = self._send('harvest', PLAYER, x, y, quantity)
-        if response != 1:
-            raise Exception("Could not harvest.", response)
-        return True
-
-    def harvest_resource2(self, position: Tuple[int, int], quantity=1) -> bool:
-        """
-        If there is an entity at local position (x, y), this action triggers an
-        interaction as follows: If the item can be picked up, the agent picks up the item. If the
-        item can be harvested, the agent harvests the item (resource). Here, the local position
-        is the (x, y) position relative to the agent as the origin (0, 0). If there is no entity at
-        (x, y), this action is a no-op.
-        :param x: X position relative to the agent as the origin (0).
-        :param y: Y position relative to the agent as the origin (0).
-        :return: True if an action happened, False if no-op.
-        """
-        x, y = position
         response, elapsed = self._send('harvest', PLAYER, x, y, quantity)
         if response != 1:
             raise Exception("Could not harvest.", response)
@@ -1280,7 +1304,7 @@ class FactorioInstance:
         :param direction: Index between (0,3) inclusive.
         :return: Whether the movement was carried out.
         """
-        self.last_location = self.player_location
+        last_location = self.player_location
         if trailing:
             response, execution_time = self._send('move',
                                                   PLAYER,
@@ -1313,8 +1337,8 @@ class FactorioInstance:
         if response:
             self.player_location = (response['x'], response['y'])
             # self.last_direction = direction
-            self.movement_vector = (self.player_location[0] - self.last_location[0],
-                                    self.player_location[1] - self.last_location[1])
+            self.movement_vector = (self.player_location[0] - last_location[0],
+                                    self.player_location[1] - last_location[1])
 
             self.last_observed_player_location = (self.last_observed_player_location[0] + self.movement_vector[0],
                                                   self.last_observed_player_location[1] + self.movement_vector[1])

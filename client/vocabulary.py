@@ -1,16 +1,19 @@
-from multiprocessing import Lock, Manager
+from multiprocessing import Lock, Manager, RLock
+
 
 class Vocabulary:
 
     def __init__(self):
         self.mutex = Lock()
 
-        self.vocabulary = {
+        manager = Manager()
+
+        self.vocabulary = manager.dict({
             "character": -2
-        }
-        self.i_vocabulary = {
+        })
+        self.i_vocabulary = manager.dict({
             -2: "character"
-        }
+        })
 
     def _get_vocabulary(self):
         return self.vocabulary, self.i_vocabulary
