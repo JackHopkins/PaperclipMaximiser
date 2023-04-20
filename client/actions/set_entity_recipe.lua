@@ -1,4 +1,5 @@
-global.actions.set_nearest_recipe = function(player, recipe_name, x, y)
+global.actions.set_entity_recipe = function(player_index, recipe_name, x, y)
+    local player = game.players[player_index]
     local surface = player.surface
     --local position = player.position
     local closest_distance = math.huge
@@ -31,4 +32,3 @@ global.actions.set_nearest_recipe = function(player, recipe_name, x, y)
     end
 end
 
-global.actions.set_nearest_recipe(game.players[arg1], arg2, arg3, arg4)

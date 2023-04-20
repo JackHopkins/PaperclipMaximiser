@@ -7,10 +7,10 @@ local function connect_entities(player_index, source_x, source_y, target_x, targ
     local target_entities = player.surface.find_entities_filtered{area = {{target_position.x - 0.1, target_position.y - 0.1}, {target_position.x + 0.1, target_position.y + 0.1}}}
 
     if #source_entities == 0 then
-        return false, "Source entity not found."
+        abort("Source entity not found.")
     end
     if #target_entities == 0 then
-        return false, "Target entity not found."
+        abort("Target entity not found.")
     end
 
     local direction
@@ -75,10 +75,10 @@ local function connect_entities(player_index, source_x, source_y, target_x, targ
             if placed_connector then
                 player.remove_item{name=connection_type, count=1}
             else
-                return false, "Cannot place connector, although I thought I could."
+                abort("Cannot place connector, although I thought I could.")
             end
         else
-            return false, "Cannot place connector here."
+            abort("Cannot place connector here.")
         end
     end
 
@@ -94,18 +94,11 @@ local function connect_entities(player_index, source_x, source_y, target_x, targ
 
         if placed_connector then
             player.remove_item{name=connection_type, count=1}
-            return true
+            rcon.print(1)
         else
-            return false, "Cannot place final connector, although I thought I could."
+            abort("Cannot place final connector, although I thought I could.")
         end
     else
-        return false, "Cannot place final connector here."
+        abort("Cannot place final connector here.")
     end
-end
-
-success, msg = connect_entities(arg1, arg2, arg3, arg4, arg5, arg6)
-if not success then
-    abort(msg)
-else
-    rcon.print(1)
 end

@@ -24,14 +24,13 @@ def _load_actions():
 
 def _load_action(filename):
     actions = list(chain.from_iterable(glob(os.path.join(x[0], '*.lua')) for x in os.walk('actions')))
-    if filename.endswith('.lua'):
-        for action in actions:
-            if action.endswith(filename):
-                with open(action, 'r') as file:
-                    script = file.read()
-                    return script
-    else:
-        raise ValueError("Invalid file extension. Only '.lua' files are supported.")
+    for action in actions:
+        if action.endswith(filename+".lua"):
+            with open(action, 'r') as file:
+                script = file.read()
+                return script
+
+    raise ValueError(f"No action found with the name {filename}")
 
 def _load_init():
     init = list(chain.from_iterable(glob(os.path.join(x[0], '*.lua')) for x in os.walk('init')))

@@ -57,16 +57,3 @@ global.actions.observe_all = function(player_index,
 
     return dump(response)
 end
-
-
---rcon.print(observe())
-local status, response = global.actions.observe_all(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9)-- pcall(observe)
-
-if status ~= true then
-    rcon.print(status)
-    rcon.print(dump(response))--> a 121
-else
-    rcon.print(dump(response))
-end
-
---serpent.line(response)

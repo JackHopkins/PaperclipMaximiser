@@ -38,14 +38,25 @@ class FactorioInstance:
         self.game_state = GameState().with_default(vocabulary)
 
         self.sequential_exception_count = 0
-        self.script_dict = {**_load_actions()}#, **_load_init()}
+        self.actions = _load_actions()
+
+        self.script_dict = {**self.actions, **_load_init()}
         self.vocabulary = vocabulary
 
+
+        self.initialise(**inventory)
+
+        self.concat = "global.actions = {}\n\n"
+        for name, script in self.actions.items():
+            #self.concat += f"--{name}\n{script}\n-------\n\n"
+            self.rcon_client.send_command("/c " + script)
+        r = self.rcon_client.send_command("/c a, b = pcall(global.actions.score()); rcon.print(a)")
         self._load_actions(self.rcon_client, self.game_state)
+        #self.observe_all()
 
         self.tasks = []
 
-        initial_score, _ = self._send('score')
+        initial_score, _ = self.score()
         self.initial_score = initial_score['player']
 
         mu, sigma = 0, CHUNK_SIZE * 20
@@ -54,7 +65,7 @@ class FactorioInstance:
         self.minimaps = self._initialise_minimaps()
 
 
-        self.initialise(**inventory)
+
 
         self.UP = 0
         self.LEFT = 3
@@ -75,7 +86,7 @@ class FactorioInstance:
             if not player_exists:
                 raise Exception(
                     "Player hasn't been initialised into the game. Please log in once to make this node operational.")
-
+            #rcon_client.send_command('/c global = {}')
             rcon_client.send_command('/c global.actions = {}')
 
         except Exception as e:
@@ -238,14 +249,6 @@ class FactorioInstance:
         for entity, count in kwargs.items():
             self._send('give_item', PLAYER, entity, count)
 
-        try:
-            results = self.observe(trace=True)
-        except Exception as e:
-            # print(e)
-            raise Exception(f"Could not initialise server at port {self.tcp_port}")
-
-        return results
-
     def _set_walking(self, walking: bool):
         if walking:
             lua_response = self.rcon_client.send_command(
@@ -254,102 +257,6 @@ class FactorioInstance:
             lua_response = self.rcon_client.send_command(
                 '/c game.players[1].character.walking_state = {walking = false, direction = defines.direction.north}')
         return lua_response
-
-    def observe(self, trace=False, **kwargs):
-        """
-
-        -Chunks: At each time t, the agent receives details of a chunks of 32 x 32 tiles sampled from the environment.
-        Each chunk contains a density map of resources, enemies, water, player factory.
-
-        -Local Environment: At each time t, the agent receives all entities in a 100 × 100 grid centered on the agent’s position p. Each entity type is
-        represented by a unique integer index.
-
-        -Position: At each time t, the agent receives the agent’s current absolute position p.
-
-        -Points of interest: At each time t, the agent receives the relative positions of the nearest points of interest.
-
-        :param trace:
-        :param kwargs:
-        :return:
-        """
-        chunk_x, chunk_y, index_x, index_y = self._sample_chunk()
-        movement_field_x, movement_field_y = self.game_state.movement_vector[0], self.game_state.movement_vector[1]
-        omit = kwargs
-        response, execution_time = self._send('observe',
-                                              PLAYER,
-                                              chunk_x,
-                                              chunk_y,
-                                              self.game_state.bounding_box,
-                                              movement_field_x,
-                                              movement_field_y,
-                                              self.game_state.bounding_box * 2,
-                                              trace,
-                                              omit
-                                              )
-
-        if response['local_environment']:
-            pass
-
-        if not response:
-            return
-
-        try:
-            if 'chunk' in response:
-                self._index_chunk(response['chunk'], index_x, index_y)
-        except IndexError as e:
-            raise Exception("Cannot move further", str(e.args))
-
-        try:
-            if 'local_environment' in response:
-                self._convert_sparse_local_into_gridworld(response['local_environment'],
-                                                          movement_field_x,
-                                                          movement_field_y)
-        except IndexError as e:
-            raise Exception("Cannot move further", str(e.args))
-
-        try:
-            if 'points_of_interest' in response:
-                points_x, points_y, poi_time = self._convert_sparse_coordinates_into_tensors(
-                    response['points_of_interest'])
-        except IndexError as e:
-            raise Exception("Cannot move further", str(e.args))
-
-        try:
-            if 'distance_to_points_of_interest' in response:
-                distance_to_points_of_interest, dpoi_time = self._convert_sparse_continuous_into_tensor(
-                    response['distance_to_points_of_interest'], init=100000)
-        except IndexError as e:
-            raise Exception("Cannot move further", str(e.args))
-
-        if 'buildable' in response:
-            buildable, build_time = self._convert_sparse_continuous_into_tensor(response['buildable'])
-
-        try:
-            if "collision" in response:
-                collision_mask = self._collision_mask(response['collision'])
-        except IndexError as e:
-            raise Exception("Cannot move further", str(e.args))
-
-        if 'statistics' in response:
-            statistics = response['statistics']
-
-        if 'score' in response:
-            score = response['score']
-        # if 'objective' in response:
-        #    objective, obj_time = await self._convert_sparse_continuous_into_tensor(response['objective'])
-
-        observation = {
-            "local": self.grid_world,
-            "minimap": self.minimaps,  # Do not do this during observation - it is expensive!
-            "compass": np.stack([points_x, points_y], axis=1),
-            "buildable": buildable,
-            "collision_mask": collision_mask,
-            "statistics": statistics,
-            "score": score
-        }
-        self.last_observation = observation
-
-        return observation
 
     def observe_statistics(self):
         """

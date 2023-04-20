@@ -1,4 +1,4 @@
-local function place_entity_next_to(player_index, entity, ref_x, ref_y, direction, gap)
+global.actions.place_entity_next_to = function(player_index, entity, ref_x, ref_y, direction, gap)
     local player = game.players[player_index]
     local ref_position = {x = ref_x, y = ref_y}
     local cardinals = {defines.direction.north, defines.direction.south, defines.direction.east, defines.direction.west}
@@ -56,6 +56,4 @@ local function place_entity_next_to(player_index, entity, ref_x, ref_y, directio
     else
         abort("Cannot place here.")
     end
-
 end
-place_entity_next_to(arg1, arg2, arg3, arg4, arg5, arg6)

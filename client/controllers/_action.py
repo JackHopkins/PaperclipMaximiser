@@ -1,5 +1,6 @@
 import os
 import sys
+import time
 from typing import List
 
 from slpp import slpp as lua
@@ -11,8 +12,8 @@ class Action:
 
     def __init__(self, connection, *args, **kwargs):
         self.connection = connection
-        self.name = f"{self.camel_to_snake(self.__class__.__name__)}.lua"
-        self.load()
+        self.name = self.camel_to_snake(self.__class__.__name__)
+        #self.load()
 
     def camel_to_snake(self, camel_str):
         snake_str = ""
@@ -29,7 +30,7 @@ class Action:
         script = _load_action(self.name)
         if not script:
             raise Exception(f"Could not load {self.name}")
-        self.connection.send_command(script)
+        self.connection.send_command('/c '+script)
 
     def _get_command(self, command, parameters=[], measured=True):
         prefix = "/c " if not measured else '/command '
@@ -41,6 +42,13 @@ class Action:
             script = command
         return script
 
+    def execute(self, *args):
+        start = time.time()
+        parameters = [lua.encode(arg) for arg in args]
+        invocation = f"pcall(global.actions.{self.name} {',' if parameters else '' + ','.join(parameters)})"
+        wrapped = f"/c rcon.print({invocation})"
+        lua_response = self.connection.send_command(wrapped)
+        return _lua2python(invocation, lua_response, start=start)
 
     def _send(self, command, *parameters, trace=False) -> List[str]:
         start = timer()

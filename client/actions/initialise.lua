@@ -11,7 +11,13 @@ player.surface.always_day=true
 --player.game_view_settings.show_map_view_options = false
 --player.game_view_settings.show_shortcut_bar = false
 
---player.character=nil
+global.actions = {}
+global.actions.score2 = function()
+    -- Your function implementation here
+    game.print("blah")
+    rcon.print("test")
+    return "test"
+end
 
 global.points_of_interest = {}
 global.distances_to_nearest = {}

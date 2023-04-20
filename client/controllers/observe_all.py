@@ -13,8 +13,12 @@ from utils import stitch
 
 class ObserveAll(Action):
 
-    def __init__(self, *args):
-        super().__init__(*args)
+    def __init__(self, connection, game_state):
+        super().__init__(connection, game_state)
+        mu, sigma = 0, CHUNK_SIZE * 20
+        self.minimap_normal = np.random.normal(mu, sigma, MAX_SAMPLES)
+        self.game_state = game_state
+        self.chunk_cursor = 0
 
     def __call__(self, trace=False, **kwargs) -> dict:
         """
@@ -36,7 +40,7 @@ class ObserveAll(Action):
         chunk_x, chunk_y, index_x, index_y = self._sample_chunk()
         movement_field_x, movement_field_y = self.game_state.movement_vector[0], self.game_state.movement_vector[1]
         omit = kwargs
-        response, execution_time = self._send('observe',
+        response, execution_time = self.execute(
                                               PLAYER,
                                               chunk_x,
                                               chunk_y,
