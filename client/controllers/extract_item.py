@@ -6,8 +6,8 @@ from factorio_instance import PLAYER
 
 class ExtractItem(Action):
 
-    def __init__(self, connection, game_state):
-        super().__init__(self, connection, game_state)
+    def __init__(self, *args):
+        super().__init__(*args)
 
     def __call__(self, entity: str, source_position: Tuple[int, int], quantity=5, relative=False) -> int:
         x, y = source_position

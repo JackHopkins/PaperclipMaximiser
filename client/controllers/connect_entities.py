@@ -6,8 +6,8 @@ from factorio_instance import PLAYER
 
 class ConnectEntities(Action):
 
-    def __init__(self, connection, game_state):
-        super().__init__(self, connection, game_state)
+    def __init__(self, *args):
+        super().__init__(*args)
 
     def __call__(self, source_position: Tuple = (0, 0), target_position: Tuple = (0, 0),
                  connection_type='burner-inserter', relative=False):

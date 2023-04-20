@@ -6,9 +6,8 @@ from factorio_instance import PLAYER
 
 class SetEntityRecipe(Action):
 
-    def __init__(self, connection, game_state):
-        super().__init__(connection, game_state)
-        self.load()
+    def __init__(self, *args):
+        super().__init__(*args)
 
     def __call__(self, position: Tuple[int, int], recipe: str, relative=False) -> bool:
         x, y = position

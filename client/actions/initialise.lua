@@ -255,40 +255,6 @@ function has_value(tbl, val)
     return false
 end
 
-
-function set_nearest_recipe(player, recipe_name, x, y)
-    local surface = player.surface
-    --local position = player.position
-    local closest_distance = math.huge
-    local closest_building = nil
-
-    -- Iterate through all crafting machines in the area
-    local area = {{x - 2, y - 2}, {x + 2, y + 2}}
-    local buildings = surface.find_entities_filtered{area = area, type = "assembling-machine"}
-
-    -- Find the closest building
-    for _, building in ipairs(buildings) do
-        local distance = ((x - building.position.x) ^ 2 + (y - building.position.y) ^ 2) ^ 0.5
-        if distance < closest_distance then
-            closest_distance = distance
-            closest_building = building
-        end
-    end
-
-    -- If a closest building is found and it supports the given recipe, set the recipe
-    if closest_building then
-        local recipe = player.force.recipes[recipe_name]
-        if recipe and closest_building.get_recipe() ~= recipe then
-            closest_building.set_recipe(recipe_name)
-            rcon.print(1)
-        else
-            abort("Recipe already set.")
-        end
-    else
-        abort("No building found that could have its recipe set.")
-    end
-end
-
 function get_local_environment (player, surface, localBoundingBox, field_x, field_y, debug)
 
     local top = player.position.y-localBoundingBox/2

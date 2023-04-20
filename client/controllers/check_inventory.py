@@ -7,8 +7,8 @@ from models.zero_dict import ZeroDict
 
 class CheckInventory(Action):
 
-    def __init__(self, connection, game_state):
-        Action.__init__(self, connection, game_state)
+    def __init__(self, *args):
+        super().__init__(*args)
 
     def __call__(self) -> dict:
         response, execution_time = self._send('inventory', PLAYER)

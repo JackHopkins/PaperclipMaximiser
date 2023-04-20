@@ -6,8 +6,8 @@ from factorio_instance import PLAYER
 
 class PlaceEntityNextTo(Action):
 
-    def __init__(self, connection, game_state):
-        super().__init__(self, connection, game_state)
+    def __init__(self, *args):
+        super().__init__(*args)
 
     def __call__(self, entity: str, reference_position: Tuple = (0,0), direction: int = 1, gap: int =0, relative=False):
         x, y = reference_position

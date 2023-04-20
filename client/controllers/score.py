@@ -4,7 +4,7 @@ from controllers._action import Action
 class Score(Action):
 
     def __init__(self, *args):
-        Action.__init__(self, *args)
+        super().__init__(*args)
 
     def __call__(self, *args, **kwargs):
         response, execution_time = self._send('score', *args)

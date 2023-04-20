@@ -5,8 +5,8 @@ from factorio_instance import PLAYER
 
 class InspectEntities(Action):
 
-    def __init__(self, connection, game_state):
-        super().__init__(self, connection, game_state)
+    def __init__(self, *args):
+        super().__init__(*args)
 
     def __call__(self, distance: int, relative: bool = False):
         response, time_elapsed = self._send('inspect', PLAYER, distance)

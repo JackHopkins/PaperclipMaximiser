@@ -5,16 +5,20 @@ from pydantic import BaseModel, Field
 
 from vocabulary import Vocabulary
 
+FIELDS = ['all', 'enemy', 'pollution', 'factory', 'water', 'iron-ore', 'uranium-ore', 'coal', 'stone',
+          'copper-ore', 'crude-oil', 'trees']
 
 class GameState(BaseModel):
     bounding_box: int = 100
     last_observed_player_location: Tuple[int, int] = (0,0)
     player_location: Tuple[int, int] = (0,0)
+    movement_vector: Tuple[int, int] = (0,0)
     collision_mask: np.ndarray = Field(default_factory=lambda: np.full((100, 100), 1, dtype=object))
     grid_world: np.ndarray = Field(default_factory=lambda: np.full((100, 100), 1, dtype=object))
     minimap_bounding_box: int = 100 * 4
     initial_score: int = 0
     vocabulary: Vocabulary = None
+    minimaps: np.ndarray = Field(default_factory=lambda: np.zeros((len(FIELDS), 100 * 4, 100 * 4), dtype=object))
 
     @classmethod
     def with_default(cls, vocabulary, *args, **kwargs):

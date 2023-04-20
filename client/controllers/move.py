@@ -4,8 +4,8 @@ from factorio_instance import PLAYER, NONE
 
 class Move(Action):
 
-    def __init__(self, connection, game_state):
-        super().__init__(self, connection, game_state)
+    def __init__(self, *args):
+        super().__init__(*args)
 
     def __call__(self, x: int, y: int, trailing=None, leading=None) -> bool:
         """

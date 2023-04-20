@@ -1,16 +1,13 @@
 # !/usr/bin/env python3
-import queue
-from multiprocessing import freeze_support
 from timeit import default_timer as timer
 
 # factorio_pool.get(1).trail('pipe')
 from controllers.score import Score
-from factorio_instance import FactorioInstance
 from factorio_runner import FactorioRunner
-from vocabulary import Vocabulary
 
 observe_local_times = []
 iterations = 100
+
 
 brief = \
     """
@@ -148,7 +145,6 @@ score()
 
 if __name__ == '__main__':
 
-    import os
     import openai
 
     factorio_runner = FactorioRunner("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",

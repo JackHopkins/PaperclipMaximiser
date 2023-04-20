@@ -12,6 +12,7 @@ class Action:
     def __init__(self, connection, *args, **kwargs):
         self.connection = connection
         self.name = f"{self.camel_to_snake(self.__class__.__name__)}.lua"
+        self.load()
 
     def camel_to_snake(self, camel_str):
         snake_str = ""

@@ -1,13 +1,16 @@
 -- Observe.lua
-function observe ()
-    local player = game.players[arg1]
+global.actions.observe_all = function(player_index,
+                                      chunk_x,
+                                      chunk_y,
+                                      localBoundingBox,
+                                      field_x,
+                                      field_y,
+                                      search_radius,
+                                      debug,
+                                      include)
+    local player = game.players[player_index]
     local inventory = player.get_main_inventory().get_contents()
     local surface = player.surface
-    local chunk_x, chunk_y = arg2, arg3
-    local localBoundingBox = arg4
-    local field_x, field_y = arg5, arg6
-    local search_radius = arg7
-    local debug = arg8
     local include = arg9
 
     local response = {}
@@ -57,7 +60,7 @@ end
 
 
 --rcon.print(observe())
-local status, response = pcall(observe)
+local status, response = global.actions.observe_all(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9)-- pcall(observe)
 
 if status ~= true then
     rcon.print(status)

@@ -5,8 +5,8 @@ from factorio_instance import PLAYER
 
 class PlaceEntity(Action):
 
-    def __init__(self, connection, game_state):
-        super().__init__(self, connection, game_state)
+    def __init__(self, *args):
+        super().__init__(*args)
 
     def __call__(self, entity: str, direction=0, position: Tuple[int, int] = (0, 0), relative=False) -> Optional[Tuple]:
         x, y = position

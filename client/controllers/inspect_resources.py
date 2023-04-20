@@ -3,13 +3,10 @@ import math
 import numpy as np
 from scipy import ndimage
 
-from controllers._action import Action
+class InspectResources:
 
-
-class InspectResources(Action):
-
-    def __init__(self, connection, game_state):
-        super().__init__(self, connection, game_state)
+    def __init__(self, *args):
+        pass
 
     def __call__(self, relative=False):
         def get_direction(y_offset, x_offset):

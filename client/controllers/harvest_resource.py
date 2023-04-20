@@ -6,8 +6,8 @@ from factorio_instance import PLAYER
 
 class HarvestResource(Action):
 
-    def __init__(self, connection, game_state):
-        super().__init__(self, connection, game_state)
+    def __init__(self, *args):
+        super().__init__(*args)
 
     def __call__(self, position: Tuple[int, int], quantity=1, relative: bool = False) -> bool:
         x, y = position
