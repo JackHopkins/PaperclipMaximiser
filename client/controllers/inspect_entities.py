@@ -9,7 +9,7 @@ class InspectEntities(Action):
         super().__init__(*args)
 
     def __call__(self, distance: int, relative: bool = False):
-        response, time_elapsed = self._send('inspect', PLAYER, distance)
+        response, time_elapsed = self.execute(PLAYER, distance)
         entities = []
         try:
             if isinstance(response, dict):

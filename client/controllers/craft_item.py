@@ -19,8 +19,8 @@ class CraftItem(Action):
         :param direction: Cardinal direction to place entity
         :return: True if action carried out, False if no-op
         """
-        success, elapsed = self._send('craft', PLAYER, entity.replace("_", "-"), quantity)
-        if success != 1:
+        success, elapsed = self.execute(PLAYER, entity.replace("_", "-"), quantity)
+        if success != {} and success != 1:
             if success is None:
                 raise Exception(f"Could not craft a {entity}", "Ingredients cannot be crafted by hand.")
             else:

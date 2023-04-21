@@ -1,5 +1,5 @@
 --Move.lua
-global.actions.move = function(player_index, offset_x, offset_y, trailing_entity, is_trailing)
+global.actions.move_to = function(player_index, offset_x, offset_y, trailing_entity, is_trailing)
     local player = game.players[player_index]
     local offset = {offset_x, offset_y}
     local trailing_entity = trailing_entity
@@ -18,12 +18,10 @@ global.actions.move = function(player_index, offset_x, offset_y, trailing_entity
                     player.remove_item({name=trailing_entity, count=1})
                 end
             else
-                rcon.print("No ".. trailing_entity .." in the inventory")
-                rcon.print(0)
+                error("No ".. trailing_entity .." in the inventory")
             end
         else
-            rcon.print("Cannot place " ..trailing_entity)
-            rcon.print(0)
+            error("Cannot place " ..trailing_entity)
         end
     end
 
@@ -47,7 +45,7 @@ global.actions.move = function(player_index, offset_x, offset_y, trailing_entity
 
     if is_trailing == 1 or is_trailing == 0 then
         if game.entity_prototypes[trailing_entity] == nil then
-            abort('No entity exists that can be laid')
+            error('No entity exists that can be laid')
         end
     end
 
@@ -75,5 +73,5 @@ global.actions.move = function(player_index, offset_x, offset_y, trailing_entity
         player.teleport(offset[1], offset[2])
     end
 
-    rcon.print(player.position)
+    return player.position
 end

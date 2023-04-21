@@ -18,7 +18,7 @@ class PlaceEntity(Action):
             x -= self.game_state.last_observed_player_location[0]
             y -= self.game_state.last_observed_player_location[1]
 
-        response, elapsed = self._send('place',
+        response, elapsed = self.execute(
                                        PLAYER,
                                        entity.replace("_", "-"),
                                        direction + 1,

@@ -1,7 +1,7 @@
 import os
 import sys
 import time
-from typing import List
+from typing import List, Tuple, Dict, Any
 
 from slpp import slpp as lua
 from timeit import default_timer as timer
@@ -13,7 +13,7 @@ class Action:
     def __init__(self, connection, *args, **kwargs):
         self.connection = connection
         self.name = self.camel_to_snake(self.__class__.__name__)
-        #self.load()
+        self.load()
 
     def camel_to_snake(self, camel_str):
         snake_str = ""
@@ -42,13 +42,18 @@ class Action:
             script = command
         return script
 
-    def execute(self, *args):
+    def execute(self, *args) -> Tuple[Dict, Any]:
         start = time.time()
         parameters = [lua.encode(arg) for arg in args]
-        invocation = f"pcall(global.actions.{self.name} {',' if parameters else '' + ','.join(parameters)})"
-        wrapped = f"/c rcon.print({invocation})"
+        invocation = f"pcall(global.actions.{self.name}{(', ' if parameters else '') + ','.join(parameters)})"
+        wrapped = f"/c a, b = {invocation}; rcon.print(dump({{a=a, b=b}}))"
         lua_response = self.connection.send_command(wrapped)
-        return _lua2python(invocation, lua_response, start=start)
+        parsed, elapsed = _lua2python(invocation, lua_response, start=start)
+        if not parsed['a'] and 'b' in parsed and isinstance(parsed['b'], str):
+            parsed['b'] = parsed['b'].replace("!!", "\"")
+        if not 'b' in parsed:
+            return {}, elapsed
+        return parsed['b'], elapsed
 
     def _send(self, command, *parameters, trace=False) -> List[str]:
         start = timer()

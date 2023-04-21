@@ -37,35 +37,24 @@ class FactorioInstance:
 
         self.game_state = GameState().with_default(vocabulary)
 
+        self.max_sequential_exception_count = 2
         self.sequential_exception_count = 0
         self.actions = _load_actions()
 
         self.script_dict = {**self.actions, **_load_init()}
         self.vocabulary = vocabulary
-
-
         self.initialise(**inventory)
 
-        self.concat = "global.actions = {}\n\n"
-        for name, script in self.actions.items():
+        #self.concat = "global.actions = {}\n\n"
+        #for name, script in self.actions.items():
             #self.concat += f"--{name}\n{script}\n-------\n\n"
-            self.rcon_client.send_command("/c " + script)
-        r = self.rcon_client.send_command("/c a, b = pcall(global.actions.score()); rcon.print(a)")
-        self._load_actions(self.rcon_client, self.game_state)
-        #self.observe_all()
+            #self.rcon_client.send_command("/c " + script)
 
+        self._load_actions(self.rcon_client, self.game_state)
+        self.observe_all()
         self.tasks = []
 
-        initial_score, _ = self.score()
-        self.initial_score = initial_score['player']
-
-        mu, sigma = 0, CHUNK_SIZE * 20
-        self.minimap_normal = s = np.random.normal(mu, sigma, MAX_SAMPLES)
-        self.chunk_cursor = 0
-        self.minimaps = self._initialise_minimaps()
-
-
-
+        self.initial_score = self.score()
 
         self.UP = 0
         self.LEFT = 3
@@ -151,11 +140,14 @@ class FactorioInstance:
                     results.append("Executed successfully")
             except Exception as e:
                 self.sequential_exception_count += 1
+
+                if self.sequential_exception_count == self.max_sequential_exception_count:
+                    break
+
                 parts = list(e.args)
                 sentences = ". ".join([str(part).replace("_", " ") for part in parts])
                 results.append(f"Error: {sentences}")
                 break
-
         return '\n'.join([f"Line {i + 1}: {str(r)}" for i, r in enumerate(results)] + [f"Score: {self.score()}"])
 
     def eval(self, expr, timeout=15):
@@ -178,47 +170,6 @@ class FactorioInstance:
             except StopIteration:
                 self.observe()
 
-    def move_to(self,
-                absolute_position: Optional[Tuple[int, int]],
-                relative_position: Tuple[int, int] = (0, 0),
-                laying=None,
-                leading=None):
-        try:
-            if absolute_position is not None:
-                if not isinstance(absolute_position, Tuple):
-                    raise Exception(
-                        "You need to pass in a tuple like (x, y) for the absolute position. You passed in scalar.")
-                start_x, start_y = self.player_location
-                relative_position = (absolute_position[0] - start_x, absolute_position[1] - start_y)
-
-            if not isinstance(relative_position, Tuple):
-                raise Exception("You need to pass in a tuple like (x, y). You passed in scalar.")
-            relative_end_x, relative_end_y = relative_position
-            start_x, start_y = self.player_location
-            offset_x = self.bounding_box // 2
-            offset_y = self.bounding_box // 2
-            last_observed_x = self.last_observed_player_location[0]
-            last_observed_y = self.last_observed_player_location[1]
-
-            end = (offset_x + relative_end_x,  # - last_observed_x,
-                   offset_y + relative_end_y)  # - last_observed_y)
-
-            path = get_path(end, self.collision_mask, start=(offset_x, offset_y))
-
-            def direction_from_step(step, trailing=None, leading=None):
-                offset = self.bounding_box // 2
-                return self.move(*((step - [offset, offset]) - self.player_location), trailing=trailing,
-                                 leading=leading)
-
-            task_queue = []
-            task_queue.extend(
-                [(lambda s: direction_from_step(s + (start_x, start_y), trailing=laying, leading=leading))(s) for s in
-                 path])
-            task_queue.extend([(lambda: self.observe())()])
-
-            self.tasks.append(iter(task_queue))
-        except Exception as e:
-            raise Exception("Could not goto", e)
 
     def _get_command(self, command, parameters=[], measured=True):
         prefix = "/c " if not measured else '/command '

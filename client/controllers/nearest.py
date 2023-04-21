@@ -6,11 +6,13 @@ from factorio_instance import PLAYER
 
 class Nearest(Action):
 
-    def __init__(self, *args):
-        super().__init__(*args)
+    def __init__(self, connection, game_state):
+        super().__init__(connection, game_state)
+        self.connection = connection
+        self.game_state = game_state
 
     def __call__(self, type: str = 'coal', relative: bool = False, **kwargs):
-        response, time_elapsed = self._send('find', PLAYER, type.replace("_", "-"))
+        response, time_elapsed = self.execute(PLAYER, type.replace("_", "-"))
 
         if not response:
             raise Exception(f"No {type} found on the map")

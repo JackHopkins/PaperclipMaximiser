@@ -65,8 +65,8 @@ global.actions.harvest_resource = function(player_index, x, y, count)
     end
 
     if success == 0 then
-        abort("Nothing within reach to harvest")
+        error("Nothing within reach to harvest")
     else
-        rcon.print(success)
+        return 1
     end
 end

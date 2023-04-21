@@ -5,8 +5,8 @@ from scipy import ndimage
 
 class InspectResources:
 
-    def __init__(self, *args):
-        pass
+    def __init__(self, connection, game_state):
+        self.game_state = game_state
 
     def __call__(self, relative=False):
         def get_direction(y_offset, x_offset):

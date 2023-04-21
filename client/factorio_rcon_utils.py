@@ -1,4 +1,5 @@
 import os
+import re
 from glob import glob
 from itertools import chain
 from pathlib import Path
@@ -45,8 +46,13 @@ def _lua2python(command, response, *parameters, trace=False, start=0):
         if trace:
             print(f"success: {command}")
         end = timer()
-        splitted = response.split("\n")
-        output = lua.decode(splitted[-1])
+        splitted = response.split("\n")[-1]
+
+        if "[string" in splitted:
+            a, b = splitted.split("[string")
+            splitted = a + '[\"' + b.replace('"', '!!').strip(',} ') + "\"]}"
+
+        output = lua.decode(splitted)
 
         ##output = luadata.unserialize(splitted[-1], encoding="utf-8", multival=False)
 

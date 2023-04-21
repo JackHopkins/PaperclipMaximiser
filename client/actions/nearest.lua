@@ -25,7 +25,7 @@ global.actions.nearest = function(player_index, resource)
                 end
             end
             if closest == nil then
-                return abort("Could not find an entity called "..resource)
+                error("Could not find an entity called "..resource)
             end
             --return { x = position.x - closest.x, y = position.y - closest.y }
             return {x = closest.x, y = closest.y}
@@ -45,11 +45,11 @@ global.actions.nearest = function(player_index, resource)
         end
 
         if closest == nil then
-            return abort("Could not find an entity called "..resource)
+            error("Could not find an entity called "..resource)
         end
-        rcon.print({x= closest.x, y = closest.y})
+        return {x= closest.x, y = closest.y}
         --return { x = position.x - closest.x, y = position.y - closest.y }
     end
 
-    find_nearest(player, resource)
+    return find_nearest(player, resource)
 end

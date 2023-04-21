@@ -1,8 +1,5 @@
 # !/usr/bin/env python3
 from timeit import default_timer as timer
-
-# factorio_pool.get(1).trail('pipe')
-from controllers.score import Score
 from factorio_runner import FactorioRunner
 
 observe_local_times = []
@@ -114,6 +111,7 @@ def get_program_generator():
     )
 test = \
 """
+place_entity('burner-mining-drill', direction=DOWN, position=nearest('iron_ore'))
 tree_position = nearest('tree')
 move_to(tree_position)
 harvest_resource(tree_position, quantity=1)
@@ -148,11 +146,13 @@ if __name__ == '__main__':
     import openai
 
     factorio_runner = FactorioRunner("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",
-                                     model="gpt-3.5-turbo")
+                                     model="gpt-3.5-turbo",
+                                     buffer_size=5
+                                     )
                                      #trace="15-17-01-04-2023")
 
     rcon = factorio_runner.instance.rcon_client
-    score = Score(rcon)
+   # score = Score(rcon, )
 
     try:
         pass

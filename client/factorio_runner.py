@@ -256,7 +256,7 @@ class FactorioRunner:
             self._execute_buffer()
         elif self.is_valid_python("# " + self.buffer):
             self.buffer = "# "+self.buffer
-            self._execute_buffer()
+            #self._execute_buffer()
         else:
             self._log_command(self.buffer)
             self._log_error("The provided code is not syntactically valid Python. Only write valid python.")

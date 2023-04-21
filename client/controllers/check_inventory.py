@@ -11,5 +11,5 @@ class CheckInventory(Action):
         super().__init__(*args)
 
     def __call__(self) -> dict:
-        response, execution_time = self._send('inventory', PLAYER)
+        response, execution_time = self.execute(PLAYER)
         return ZeroDict(**response)

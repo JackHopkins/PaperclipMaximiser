@@ -16,7 +16,7 @@ class PickupEntity(Action):
             x += self.game_state.last_observed_player_location[0]
             y += self.game_state.last_observed_player_location[1]
 
-        response, elapsed = self._send('pickup', PLAYER, x, y, name)
-        if response != 1:
+        response, elapsed = self.execute(PLAYER, x, y, name)
+        if response != 1 and response != {}:
             raise Exception("Could not pickup, did you intend to harvest?", response)
         return True

@@ -8,6 +8,7 @@ global.actions.pickup_entity = function(player_index, x, y, entity)
 
     -- Function to pick up and add entity to player's inventory
     local function pickup(entities)
+        local success = 0
         for _, entity in pairs(entities) do
             if entity.valid then
                 if entity.name ~= "character" then
@@ -29,13 +30,8 @@ global.actions.pickup_entity = function(player_index, x, y, entity)
                 end
             end
         end
+        return success
     -- Attempt to pick up
     player_entities = surface.find_entities_filtered{name=entity, position=position, radius=3, force = "player"}
-    pickup(player_entities)
-end
-
-if success == 0 then
-    abort("Nothing to here to pick up.")
-else
-    rcon.print(success)
+    return pickup(player_entities)
 end

@@ -6,8 +6,10 @@ from factorio_instance import PLAYER
 
 class ExtractItem(Action):
 
-    def __init__(self, *args):
-        super().__init__(*args)
+    def __init__(self, connection, game_state):
+        super().__init__(connection, game_state)
+        self.connection = connection
+        self.game_state = game_state
 
     def __call__(self, entity: str, source_position: Tuple[int, int], quantity=5, relative=False) -> int:
         x, y = source_position
@@ -16,7 +18,7 @@ class ExtractItem(Action):
             x -= self.game_state.last_observed_player_location[0]
             y -= self.game_state.last_observed_player_location[1]
 
-        response, elapsed = self._send('extract',
+        response, elapsed = self.execute(
                                        PLAYER,
                                        entity.replace("_", "-"),
                                        quantity,

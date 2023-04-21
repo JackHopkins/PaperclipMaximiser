@@ -6,14 +6,14 @@ from numpy import ndarray, zeros
 
 from controllers._action import Action
 from factorio_instance import PLAYER, CHUNK_SIZE, MAX_SAMPLES
-from models.game_state import FIELDS
+from models.game_state import FIELDS, GameState
 
 from utils import stitch
 
 
 class ObserveAll(Action):
 
-    def __init__(self, connection, game_state):
+    def __init__(self, connection, game_state: GameState):
         super().__init__(connection, game_state)
         mu, sigma = 0, CHUNK_SIZE * 20
         self.minimap_normal = np.random.normal(mu, sigma, MAX_SAMPLES)
@@ -135,7 +135,7 @@ class ObserveAll(Action):
         one_hot = np.full((256), init)  # zeros(256)
 
         for key, value in local_counts.items():
-            index = self.vocabulary._update_vocabulary(key)
+            index = self.game_state.vocabulary._update_vocabulary(key)
             one_hot[index] = value
 
         return np.reshape(one_hot, one_hot.shape + (1,)), timer() - start
@@ -192,7 +192,7 @@ class ObserveAll(Action):
         for type, count in chunk_map.items():
             if count == 0:
                 continue
-            self.minimaps[self._get_type_index(type)][index_x, index_y] = count
+            self.game_state.minimaps[self._get_type_index(type)][index_x, index_y] = count
         return chunk_map
 
     def _get_type_index(self, type):
@@ -211,25 +211,24 @@ class ObserveAll(Action):
 
             row = math.floor(key // range_y)
             col = math.floor(key % range_y)
-            if row >= self.bounding_box or col >= self.bounding_box or row < 0 or col < 0:
+            if row >= self.game_state.bounding_box or col >= self.game_state.bounding_box or row < 0 or col < 0:
                 continue
-            dense_array[row, col] = self.vocabulary._update_vocabulary(value)
+            dense_array[row, col] = self.game_state.vocabulary._update_vocabulary(value)
         end = timer()
         diff = (end - start)
 
         return dense_array, diff
 
     def _collision_mask(self, sparse_collision_mask):
-
-        dense_array = np.full((self.bounding_box, self.bounding_box), 1, dtype=object)
+        bounding_box = self.game_state.bounding_box
+        dense_array = np.full((bounding_box, bounding_box), 1, dtype=object)
 
         # Populate the dense array using the sparse dictionary
         for key, value in sparse_collision_mask.items():
             # key = key - (self.bounding_box)*(self.bounding_box/2)
-            col = math.floor((key // self.bounding_box)) - self.player_location[1]
-            row = math.floor((key % self.bounding_box)) - self.player_location[0]
-            d = self.player_location
-            if row >= self.bounding_box or col >= self.bounding_box or col <= 0 or row <= 0:
+            col = math.floor((key // bounding_box)) - self.game_state.player_location[1]
+            row = math.floor((key % bounding_box)) - self.game_state.player_location[0]
+            if row >= bounding_box or col >= bounding_box or col <= 0 or row <= 0:
                 pass
             try:
                 dense_array[col, row] = value
@@ -239,5 +238,5 @@ class ObserveAll(Action):
         # plt.imshow(np.array(dense_array, dtype="float"), cmap='gray', interpolation='nearest')
         # plt.show()
         # dense_array = np.flipud(dense_array)
-        self.collision_mask = dense_array
+        self.game_state.collision_mask = dense_array
         return dense_array

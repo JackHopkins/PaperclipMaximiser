@@ -11,14 +11,14 @@ global.actions.check_inventory = function(player_index)
 
     local player = game.players[player_index]
     if not player then
-        abort("Player not found")
+        error("Player not found")
     end
 
     local inventory_items = get_player_inventory_items(player)
 
     if inventory_items then
-        rcon.print(dump(inventory_items))
+        return dump(inventory_items)
     else
-        abort("Could not get player inventory")
+        error("Could not get player inventory")
     end
 end

@@ -4,20 +4,18 @@ global.actions.place_entity = function(player_index, entity, direction, x, y)
 
     if game.entity_prototypes[entity] == nil then
         name = entity:gsub(" ", "_"):gsub("-", "_")
-        abort(name .. " isnt something that exists. Did you make a typo? ")
-        return
+        error(name .. " isnt something that exists. Did you make a typo? ")
     end
 
     local count = player.get_item_count(entity)
 
     if count == 0 then
         name = entity:gsub(" ", "_"):gsub("-", "_")
-        abort("No ".. name .." in inventory.")
-        return
+        error("No ".. name .." in inventory.")
     end
 
     local cardinals = {defines.direction.north, defines.direction.south, defines.direction.east, defines.direction.west}
-    local prototype = game.entity_prototypes[arg2]
+    local prototype = game.entity_prototypes[entity]
     local collision_box = prototype.collision_box
     local width = math.abs(collision_box.right_bottom.x - collision_box.left_top.x)
     local height = math.abs(collision_box.right_bottom.y - collision_box.left_top.y)
@@ -63,21 +61,21 @@ global.actions.place_entity = function(player_index, entity, direction, x, y)
             end
         end
         if #blocking_entities > 0 then
-            abort("Cant place there due to existing " .. table.concat(blocking_entities, "___"):gsub("-", "_") .. ", Need "..width.." space, Maybe inspect your surroundings.")
+            error("Cant place there due to existing " .. table.concat(blocking_entities, "___"):gsub("-", "_") .. ", Need "..width.." space, Maybe inspect your surroundings.")
         else
             --local have_built = player.surface.create_entity{name=entity, force="player", position=position, direction=cardinals[direction], player=player}
             --if have_built then
             --    player.remove_item{name=entity, count=1}
             --    rcon.print(1)
             --else
-            abort("Maybe inspect your surroundings before placing")
+            error("Maybe inspect your surroundings before placing")
             --end
         end
     else
         local have_built = player.surface.create_entity{name=entity, force="player", position=position, direction=cardinals[direction], player=player}
         if have_built then
             player.remove_item{name=entity, count=1}
-            rcon.print(dump({x= position.x, y = position.y}))
+            return {x= position.x, y = position.y}
         end
     end
 end

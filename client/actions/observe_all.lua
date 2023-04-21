@@ -11,7 +11,6 @@ global.actions.observe_all = function(player_index,
     local player = game.players[player_index]
     local inventory = player.get_main_inventory().get_contents()
     local surface = player.surface
-    local include = arg9
 
     local response = {}
 
