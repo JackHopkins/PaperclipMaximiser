@@ -3,6 +3,15 @@ global.actions.rotate_entity = function(player_index, direction, x, y)
     local position = {x=x, y=y}
     local surface = player.surface
 
+    local function table_contains(tbl, element)
+        for _, value in ipairs(tbl) do
+            if value == element then
+                return true
+            end
+        end
+        return false
+    end
+
     local closest_distance = math.huge
     local closest_entity = nil
     local area = {{position.x - 1, position.y - 1}, {position.x + 1, position.y + 1}}
@@ -20,27 +29,16 @@ global.actions.rotate_entity = function(player_index, direction, x, y)
     end
 
     if closest_entity == nil then
-        abort("No entity to rotate at the given coordinates.")
-        return
+        error("No entity to rotate at the given coordinates.")
     end
 
     local valid_directions = {0, 2, 4, 6}
 
     if not table_contains(valid_directions, direction) then
-        abort("Invalid direction provided. Please use 0 (north), 2 (east), 4 (south), or 6 (west).")
-        return
+        error("Invalid direction provided. Please use 0 (north), 2 (east), 4 (south), or 6 (west).")
     end
 
     closest_entity.direction = direction
 
-    rcon.print(1)
-
-    function table_contains(tbl, element)
-        for _, value in ipairs(tbl) do
-            if value == element then
-                return true
-            end
-        end
-        return false
-    end
+    return 1
 end

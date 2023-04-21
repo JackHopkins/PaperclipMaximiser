@@ -48,12 +48,12 @@ global.actions.place_entity_next_to = function(player_index, entity, ref_x, ref_
         local placed_entity = player.surface.create_entity{name=entity, force=player.force, position=target_position, direction=orientation}
         if placed_entity then
             player.remove_item{name=entity, count=1}
-            rcon.print(dump({x=target_position.x, y=target_position.y}))
+            return {x=target_position.x, y=target_position.y}
 
         else
-            abort("Cannot place here, although I thought I could.")
+            error("Cannot place here, although I thought I could.")
         end
     else
-        abort("Cannot place here.")
+        error("Cannot place here.")
     end
 end

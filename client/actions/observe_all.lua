@@ -54,5 +54,5 @@ global.actions.observe_all = function(player_index,
 
     response['score'] = production_score.get_production_scores()
 
-    return dump(response)
+    return response
 end

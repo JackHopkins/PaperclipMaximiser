@@ -9,7 +9,7 @@ global.actions.insert_item = function(player_index, insert_item, count, x, y)
     local item_count = player.get_item_count(insert_item)
 
     if item_count == 0 then
-        abort('No item to place')
+        error('No item to place')
     end
 
     local closest_distance = math.huge
@@ -29,14 +29,14 @@ global.actions.insert_item = function(player_index, insert_item, count, x, y)
     end
 
     if closest_entity == nil then
-        abort("Could not find a nearby entity to insert into.")
+        error("Could not find a nearby entity to insert into.")
     else
 
         -- Check if the entity can accept the item
         local closest_entity_count = closest_entity.get_item_count(insert_item)
 
         if closest_entity_count == nil then
-            abort('No possible entity to fuel')
+            error('No possible entity to fuel')
         end
 
         -- Make transaction
@@ -46,10 +46,10 @@ global.actions.insert_item = function(player_index, insert_item, count, x, y)
         if number_inserted ~= number_removed then
             closest_entity.remove_item{name=insert_item, count=number_inserted}
             player.insert{name=insert_item, count=number_removed}
-            abort('Transaction not executed')
+            error('Transaction not executed')
         end
 
-        rcon.print(1)
+        return 1
 
     end
 

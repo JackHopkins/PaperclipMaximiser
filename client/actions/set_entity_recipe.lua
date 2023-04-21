@@ -23,12 +23,12 @@ global.actions.set_entity_recipe = function(player_index, recipe_name, x, y)
         local recipe = player.force.recipes[recipe_name]
         if recipe and closest_building.get_recipe() ~= recipe then
             closest_building.set_recipe(recipe_name)
-            rcon.print(1)
+            return 1
         else
-            abort("Recipe already set.")
+            error("Recipe already set.")
         end
     else
-        abort("No building found that could have its recipe set.")
+        error("No building found that could have its recipe set.")
     end
 end
 

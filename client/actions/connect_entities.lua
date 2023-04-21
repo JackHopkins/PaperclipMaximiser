@@ -1,4 +1,4 @@
-local function connect_entities(player_index, source_x, source_y, target_x, target_y, connection_type)
+global.actions.connect_entities = function(player_index, source_x, source_y, target_x, target_y, connection_type)
     local player = game.players[player_index]
     local source_position = {x = source_x, y = source_y}
     local target_position = {x = target_x, y = target_y}
@@ -7,10 +7,10 @@ local function connect_entities(player_index, source_x, source_y, target_x, targ
     local target_entities = player.surface.find_entities_filtered{area = {{target_position.x - 0.1, target_position.y - 0.1}, {target_position.x + 0.1, target_position.y + 0.1}}}
 
     if #source_entities == 0 then
-        abort("Source entity not found.")
+        error("Source entity not found.")
     end
     if #target_entities == 0 then
-        abort("Target entity not found.")
+        error("Target entity not found.")
     end
 
     local direction
@@ -75,10 +75,10 @@ local function connect_entities(player_index, source_x, source_y, target_x, targ
             if placed_connector then
                 player.remove_item{name=connection_type, count=1}
             else
-                abort("Cannot place connector, although I thought I could.")
+                error("Cannot place connector, although I thought I could.")
             end
         else
-            abort("Cannot place connector here.")
+            error("Cannot place connector here.")
         end
     end
 
@@ -94,11 +94,11 @@ local function connect_entities(player_index, source_x, source_y, target_x, targ
 
         if placed_connector then
             player.remove_item{name=connection_type, count=1}
-            rcon.print(1)
+            return 1
         else
-            abort("Cannot place final connector, although I thought I could.")
+            error("Cannot place final connector, although I thought I could.")
         end
     else
-        abort("Cannot place final connector here.")
+        error("Cannot place final connector here.")
     end
 end

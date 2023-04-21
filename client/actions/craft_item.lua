@@ -15,7 +15,7 @@ global.actions.craft_item = function(player_index, entity, count)
     end
 
     local function craft_entity(player, entity_name, count)
-        rcon.print(entity_name)
+        --rcon.print(entity_name)
         local recipe = player.force.recipes[entity_name]
 
         if not recipe then
@@ -23,7 +23,7 @@ global.actions.craft_item = function(player_index, entity, count)
         end
 
         local missing_ingredients = get_missing_ingredients(player, recipe, count)
-        rcon.print(dump(missing_ingredients))
+        --rcon.print(dump(missing_ingredients))
         if next(missing_ingredients) ~= nil then
             for ingredient_name, ingredient_count in pairs(missing_ingredients) do
                 local ingredient_recipe = player.force.recipes[ingredient_name]
@@ -64,11 +64,11 @@ global.actions.craft_item = function(player_index, entity, count)
     end
 
     if successfully_crafted == count then
-        rcon.print(1)
+        return 1
     elseif successfully_crafted > 0 then
-        abort("Successfully crafted " .. successfully_crafted .."x but failed_to_craft_"
-                .. (count-successfully_crafted) .. "x " .. entity:gsub("-", "_").." because ".. reason)
+        error("Successfully crafted " .. successfully_crafted .."x but failed_to_craft_"
+                .. (count-successfully_crafted) .. "x " .. entity.." because ".. reason)
     else
-        abort("Failed_to_craft_" .. (count-k)+1 .. "x_" .. entity:gsub("-", "_").." because "..reason)-- .. tostring(did_craft))
+        error("Failed_to_craft_" .. (count-k)+1 .. "x_" .. entity.." because "..reason)-- .. tostring(did_craft))
     end
 end

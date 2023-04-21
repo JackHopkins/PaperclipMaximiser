@@ -9,7 +9,7 @@ global.actions.harvest_resource = function(player_index, x, y, count)
 
     function mine_entity(entity)
         if not (entity and entity.valid and player and player.valid) then
-            abort("Could not ")
+            error("Could not mine due to invalid entity")
         end
 
         local mining_tool = player.character_mining_speed_modifier

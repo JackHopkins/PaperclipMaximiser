@@ -88,5 +88,5 @@ global.actions.inspect_entities = function(player_index, radius_)
         table.insert(result, entity_info)
     end
 
-    rcon.print(dump(result))
+    return result
 end
