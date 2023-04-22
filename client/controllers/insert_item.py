@@ -6,8 +6,10 @@ from factorio_instance import PLAYER
 
 class InsertItem(Action):
 
-    def __init__(self, *args):
-        super().__init__(*args)
+    def __init__(self, connection, game_state):
+        super().__init__(connection, game_state)
+        self.connection = connection
+        self.game_state = game_state
 
     def __call__(self, entity: str, target_position: Tuple[int, int] = (0, 0), quantity=5) -> int:
         x, y = target_position

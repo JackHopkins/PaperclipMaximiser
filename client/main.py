@@ -147,7 +147,7 @@ if __name__ == '__main__':
 
     factorio_runner = FactorioRunner("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",
                                      model="gpt-3.5-turbo",
-                                     buffer_size=5
+                                     buffer_size=10
                                      )
                                      #trace="15-17-01-04-2023")
 

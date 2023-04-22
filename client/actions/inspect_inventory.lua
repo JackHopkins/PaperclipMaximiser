@@ -1,4 +1,4 @@
-global.actions.check_inventory = function(player_index)
+global.actions.inspect_inventory = function(player_index)
     local function get_player_inventory_items(player)
         local inventory = player.get_main_inventory()
         if not inventory or not inventory.valid then

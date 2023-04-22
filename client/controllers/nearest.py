@@ -14,7 +14,7 @@ class Nearest(Action):
     def __call__(self, type: str = 'coal', relative: bool = False, **kwargs):
         response, time_elapsed = self.execute(PLAYER, type.replace("_", "-"))
 
-        if not response:
+        if isinstance(response, str):
             raise Exception(f"No {type} found on the map")
 
         if not self.game_state.last_observed_player_location:

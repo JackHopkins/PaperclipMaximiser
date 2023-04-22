@@ -29,9 +29,14 @@ global.actions.pickup_entity = function(player_index, x, y, entity)
                     end
                 end
             end
-        end
         return success
+    end
     -- Attempt to pick up
     player_entities = surface.find_entities_filtered{name=entity, position=position, radius=3, force = "player"}
-    return pickup(player_entities)
+    success = pickup(player_entities)
+
+    if not success then
+        error("Could not pick up")
+    end
+    return success
 end

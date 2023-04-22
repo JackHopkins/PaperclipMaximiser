@@ -22,7 +22,7 @@ inspect_resources() -> dict;
 inspect_entities(20) -> dict;
 
 # Examine the items currently in your inventory
-check_inventory() -> dict;
+inspect_inventory() -> dict;
 
 # Move to (10, 5), laying transport belts as you go
 move_to((10, 5), laying='transport-belt');
@@ -86,7 +86,7 @@ You are an expert Factorio player. You have access to the following API.
 ```
 {schema}
 ``` 
-To play, you must only use the methods from the API with basic logical flow, variable assignment and arithmetic.
+To play, you must only use the methods from this python API with basic logical flow, variable assignment and arithmetic.
 
 Example:
 ```
@@ -101,8 +101,8 @@ Instructions:
 1. Automate resource extraction, processing and manufacturing to increase your score.
 2. Start with a simple mining operation, smelting setup and basic power generating using coal-fired boilers and steam engines.
 3. On the map, you are called 'player_character'.
-4. Regularly check your inventory and surroundings to be sure of what's happening in the game.
-5. Issue up to maximum of 3 python commands at the same time, with plenty '#' comments in the first person to help you think.
+4. Regularly inspect your inventory and surroundings to be sure of what's happening in the game.
+5. '#' on what you are planning, before issuing your python command.
 
 """
 
@@ -171,6 +171,7 @@ class FactorioRunner:
         messages = [{"role": "system", "content": brief}] + self.history[-self.buffer_size:]
         time.sleep(3)
         return openai.ChatCompletion.create(
+            n=2,
             model=self.model,  # "gpt-3.5-turbo",
             max_tokens=512,
             messages=messages,
@@ -239,7 +240,8 @@ class FactorioRunner:
     def __next__(self):
         if self.buffer:
             self._log_comment(self.buffer)
-            self.buffer = ""
+            self.buffer = {
+            }
 
         chunk_generator = self.program_generator()
 
@@ -248,8 +250,10 @@ class FactorioRunner:
             chunk_message = chunk['choices'][0]['delta']
             if chunk_message.get('content'):
                 content = chunk_message.get('content')
-                self.buffer += content
-                self.buffer = self.buffer.lstrip()
+                if chunk['id'] not in self.buffer:
+                    self.buffer[chunk['id']] = ""
+                self.buffer[chunk['id']] += content
+                self.buffer[chunk['id']] = self.buffer[chunk['id']].lstrip()
 
         # Check if the entire buffer is syntactically valid Python code
         if self.is_valid_python(self.buffer):

@@ -5,7 +5,7 @@ from factorio_instance import PLAYER
 from models.zero_dict import ZeroDict
 
 
-class CheckInventory(Action):
+class InspectInventory(Action):
 
     def __init__(self, *args):
         super().__init__(*args)

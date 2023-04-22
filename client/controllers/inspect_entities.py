@@ -1,12 +1,15 @@
 
 from controllers._action import Action
 from factorio_instance import PLAYER
+from models.zero_dict import ZeroDict
 
 
 class InspectEntities(Action):
 
-    def __init__(self, *args):
-        super().__init__(*args)
+    def __init__(self, connection, game_state):
+        super().__init__(connection, game_state)
+        self.connection = connection
+        self.game_state = game_state
 
     def __call__(self, distance: int, relative: bool = False):
         response, time_elapsed = self.execute(PLAYER, distance)
@@ -68,4 +71,4 @@ class InspectEntities(Action):
             print(e)
             response = {}
 
-        return response_dict
+        return ZeroDict(**response_dict)
