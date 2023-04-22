@@ -117,7 +117,7 @@ class FactorioRunner:
                  buffer_size=10,
                  fast=True,
                  trace=False):
-        self.buffer = ""
+        self.buffer = {}
         self.model = model
         self.buffer_size = buffer_size
         openai.api_key = api_key
@@ -238,44 +238,46 @@ class FactorioRunner:
 
 
     def __next__(self):
-        if self.buffer:
-            self._log_comment(self.buffer)
-            self.buffer = {
-            }
+        #if self.buffer:
+        #    self._log_comment(self.buffer)
+        #    self.buffer = {
+        #    }
 
         chunk_generator = self.program_generator()
 
         # Accumulate the entire content
         for chunk in chunk_generator:
-            chunk_message = chunk['choices'][0]['delta']
+            choice = chunk['choices'][0]
+            chunk_message = choice['delta']
             if chunk_message.get('content'):
                 content = chunk_message.get('content')
-                if chunk['id'] not in self.buffer:
-                    self.buffer[chunk['id']] = ""
-                self.buffer[chunk['id']] += content
-                self.buffer[chunk['id']] = self.buffer[chunk['id']].lstrip()
+                if choice['index'] not in self.buffer:
+                    self.buffer[choice['index']] = ""
+                self.buffer[choice['index']] += content
+                self.buffer[choice['index']] = self.buffer[choice['index']].lstrip()
 
         # Check if the entire buffer is syntactically valid Python code
-        if self.is_valid_python(self.buffer):
-            self._execute_buffer()
-        elif self.is_valid_python("# " + self.buffer):
-            self.buffer = "# "+self.buffer
-            #self._execute_buffer()
-        else:
-            self._log_command(self.buffer)
-            self._log_error("The provided code is not syntactically valid Python. Only write valid python.")
+        for index, buffer in self.buffer.items():
+            if self.is_valid_python(buffer):
+                self._execute_buffer(buffer)
+            elif self.is_valid_python("# " + buffer):
+                self.buffer = "# "+buffer
+                #self._execute_buffer()
+            else:
+                self._log_command(buffer)
+                self._log_error("The provided code is not syntactically valid Python. Only write valid python.")
 
-        self.buffer = ""
+            self.buffer[index] = ""
 
-    def _execute_buffer(self):
+    def _execute_buffer(self, buffer):
         # Execute the buffer
         #if all([l.lstrip() and l.lstrip()[0] == "#" for l in self.buffer.split('\n')]):
             # if len(self.buffer.split('\n')) == 1 and self.buffer.lstrip()[0] == "#":
         #    self._log_comment(self.buffer)
         #else:
         try:
-            self._log_command(self.buffer)
-            result = self.instance.eval(self.buffer.strip())
+            self._log_command(buffer)
+            result = self.instance.eval(buffer.strip())
             if result and isinstance(result, str):
                 self._log_observation(result)
 
