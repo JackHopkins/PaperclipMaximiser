@@ -1,6 +1,6 @@
 global.actions.extract_item = function(player_index, extract_item, count, x, y)
     local player = game.players[player_index]
-    local position = {x=player.position.x+x, y=player.position.y+y}
+    local position = {x=x, y=y}
     local surface = player.surface
 
     local stack = {name=extract_item, count=count}

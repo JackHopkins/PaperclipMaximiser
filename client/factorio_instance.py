@@ -137,12 +137,13 @@ class FactorioInstance:
                 else:
                     compiled = compile(ast.Module([node], type_ignores=[]), 'file', 'exec')
                     exec(compiled, {}, self)
-                    results.append("Executed successfully")
+                    #results.append("Executed successfully")
             except Exception as e:
                 self.sequential_exception_count += 1
 
                 if self.sequential_exception_count == self.max_sequential_exception_count:
-                    break
+                    pass
+                    #break
 
                 parts = list(e.args)
                 sentences = ". ".join([str(part).replace("_", " ") for part in parts])

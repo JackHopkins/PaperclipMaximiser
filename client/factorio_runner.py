@@ -171,11 +171,11 @@ class FactorioRunner:
                           (openai.error.RateLimitError, openai.error.APIError))
     def _get_program_generator(self):
         messages = [{"role": "system", "content": brief}] + self.history[-self.buffer_size:]
-        time.sleep(3)
+        time.sleep(1.5)
         return openai.ChatCompletion.create(
             n=self.beam,
             model=self.model,  # "gpt-3.5-turbo",
-            max_tokens=512,
+            max_tokens=200,
             messages=messages,
             stop=["\n\n", "\n#"],
             stream=True

@@ -3,8 +3,8 @@ global.actions.connect_entities = function(player_index, source_x, source_y, tar
     local source_position = {x = source_x, y = source_y}
     local target_position = {x = target_x, y = target_y}
 
-    local source_entities = player.surface.find_entities_filtered{area = {{source_position.x - 0.1, source_position.y - 0.1}, {source_position.x + 0.1, source_position.y + 0.1}}}
-    local target_entities = player.surface.find_entities_filtered{area = {{target_position.x - 0.1, target_position.y - 0.1}, {target_position.x + 0.1, target_position.y + 0.1}}}
+    local source_entities = player.surface.find_entities_filtered{area = {{source_position.x - 0.25, source_position.y - 0.25}, {source_position.x + 0.25, source_position.y + 0.25}}}
+    local target_entities = player.surface.find_entities_filtered{area = {{target_position.x - 0.25, target_position.y - 0.25}, {target_position.x + 0.25, target_position.y + 0.25}}}
 
     if #source_entities == 0 then
         error("Source entity not found.")

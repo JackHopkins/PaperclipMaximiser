@@ -1,7 +1,7 @@
 global.actions.insert_item = function(player_index, insert_item, count, x, y)
     local player = game.players[player_index]
 
-    local position = {x=player.position.x+x, y=player.position.y+y}
+    local position = {x=x, y=y}
     local surface = player.surface
 
 

@@ -27,4 +27,4 @@ class CraftItem(Action):
                 raise Exception(f"Could not craft a {entity}", "Ingredients cannot be crafted by hand.")
             else:
                 raise Exception(f"Could not craft a {entity}", success)
-        return "Crafting successful"
+        return
