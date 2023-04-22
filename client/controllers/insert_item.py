@@ -20,7 +20,7 @@ class InsertItem(Action):
                                        quantity,
                                        x,
                                        y)
-        if response != {}:
+        if response != {} and response != 1:
             raise Exception("Could not insert", response)
 
         return True

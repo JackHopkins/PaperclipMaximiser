@@ -115,8 +115,10 @@ class FactorioRunner:
                  api_key,
                  model="gpt-4",
                  buffer_size=10,
+                 beam=1,
                  fast=True,
                  trace=False):
+        self.beam = beam
         self.buffer = {}
         self.model = model
         self.buffer_size = buffer_size
@@ -171,7 +173,7 @@ class FactorioRunner:
         messages = [{"role": "system", "content": brief}] + self.history[-self.buffer_size:]
         time.sleep(3)
         return openai.ChatCompletion.create(
-            n=2,
+            n=self.beam,
             model=self.model,  # "gpt-3.5-turbo",
             max_tokens=512,
             messages=messages,

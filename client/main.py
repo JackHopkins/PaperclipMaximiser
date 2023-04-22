@@ -146,8 +146,9 @@ if __name__ == '__main__':
     import openai
 
     factorio_runner = FactorioRunner("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",
-                                     model="gpt-3.5-turbo",
-                                     buffer_size=10
+                                     #model="gpt-3.5-turbo",
+                                     buffer_size=10,
+                                     beam=1
                                      )
                                      #trace="15-17-01-04-2023")
 
