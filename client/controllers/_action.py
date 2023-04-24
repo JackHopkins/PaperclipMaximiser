@@ -7,6 +7,7 @@ from slpp import slpp as lua
 from timeit import default_timer as timer
 from factorio_rcon_utils import _lua2python, _load_action
 
+COMMAND = "/silent-command"
 
 class Action:
 
@@ -30,12 +31,11 @@ class Action:
         script = _load_action(self.name)
         if not script:
             raise Exception(f"Could not load {self.name}")
-        self.connection.send_command('/c '+script)
+        self.connection.send_command(f'{COMMAND} '+script)
 
     def _get_command(self, command, parameters=[], measured=True):
-        prefix = "/c " if not measured else '/command '
         if command in self.script_dict:
-            script = prefix + self.script_dict[command]
+            script = f'{COMMAND} '+ self.script_dict[command]
             for index in range(len(parameters)):
                 script = script.replace(f"arg{index + 1}", lua.encode(parameters[index]))
         else:
@@ -46,7 +46,7 @@ class Action:
         start = time.time()
         parameters = [lua.encode(arg) for arg in args]
         invocation = f"pcall(global.actions.{self.name}{(', ' if parameters else '') + ','.join(parameters)})"
-        wrapped = f"/c a, b = {invocation}; rcon.print(dump({{a=a, b=b}}))"
+        wrapped = f"{COMMAND} a, b = {invocation}; rcon.print(dump({{a=a, b=b}}))"
         lua_response = self.connection.send_command(wrapped)
         parsed, elapsed = _lua2python(invocation, lua_response, start=start)
         if not parsed['a'] and 'b' in parsed and isinstance(parsed['b'], str):

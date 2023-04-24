@@ -66,7 +66,7 @@ global.actions.inspect_entities = function(player_index, radius_)
     local result = {}
 
     for i, data in ipairs(entity_data) do
-        local position = {x=data.position.x-player.position.x, y=data.position.y-player.position.y}
+        local position = {x=data.position.x, y=data.position.y}
 
         local entity_info = {
             name = data.name:gsub("-", "_"),

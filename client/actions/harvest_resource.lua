@@ -6,37 +6,22 @@ global.actions.harvest_resource = function(player_index, x, y, count)
 
     local success = 0
 
-
-    function mine_entity(entity)
-        if not (entity and entity.valid and player and player.valid) then
-            error("Could not mine due to invalid entity")
-        end
-
-        local mining_tool = player.character_mining_speed_modifier
-        local mining_speed = 1 + mining_tool
-
-        for _ = 1, count do
-            entity.damage(mining_speed, player.force, "mining-drill")
-            if not entity.valid then
-                break
-            end
-        end
-    end
     function harvest(entities, count)
         local remaining_count = count
-
         while remaining_count > 0 do
             local did_mine = false
 
             for _, entity in pairs(entities) do
                 if entity.valid and entity.minable and player.can_reach_entity(entity) then
                     did_mine = player.mine_entity(entity)
-                    if did_mine then
-                        remaining_count = remaining_count - 1
-                        if not entity.valid or remaining_count <= 0 then
-                            break
-                        end
+                    --game.print("Did ")
+                    --game.print(did_mine)
+                    --if did_mine then
+                    remaining_count = remaining_count - 1
+                    if not entity.valid or remaining_count == 0 then
+                        break
                     end
+                    --end
                 end
             end
 
@@ -52,17 +37,26 @@ global.actions.harvest_resource = function(player_index, x, y, count)
 
 
     -- Attempt to mine
-    local mineable_entities = surface.find_entities_filtered{position=position, radius=3, type = "resource"}
+    local mineable_entities = surface.find_entities_filtered{position=position, radius=5, type = "resource"}
     local mined_count = harvest(mineable_entities, count)
+    game.print("Mined "..mined_count)
 
     -- Attempt to harvest trees if mining was not fully successful
     if mined_count < count then
-        local tree_entities = surface.find_entities_filtered{position=position, radius=3, type = "tree"}
+        local tree_entities = surface.find_entities_filtered{position=position, radius=5, type = "tree"}
         local harvested_count = harvest(tree_entities, count - mined_count)
-        success = (mined_count + harvested_count) > 0
+        local total = (mined_count + harvested_count)
+
+        if total ~= count then
+            game.print(dump(player.position))
+            game.print(total)
+            game.print(count)
+            error("Could only harvest "..total.." at position ("..position.x..", "..position.y..")")
+        end
+        success = total > 0
     else
         success = true
-    end
+        end
 
     if success == 0 then
         error("Nothing within reach to harvest")

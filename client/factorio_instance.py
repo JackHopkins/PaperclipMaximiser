@@ -134,9 +134,12 @@ class FactorioInstance:
                     if response != True and response:
                         results.append(response)
                         self.sequential_exception_count = 0
+                    else:
+                        results.append("")
                 else:
                     compiled = compile(ast.Module([node], type_ignores=[]), 'file', 'exec')
                     exec(compiled, {}, self)
+                    results.append("")
                     #results.append("Executed successfully")
             except Exception as e:
                 self.sequential_exception_count += 1
@@ -149,7 +152,7 @@ class FactorioInstance:
                 sentences = ". ".join([str(part).replace("_", " ") for part in parts])
                 results.append(f"Error: {sentences}")
                 break
-        return '\n'.join([f"Line {i + 1}: {str(r)}" for i, r in enumerate(results)] + [f"Score: {self.score()}"])
+        return '\n'.join([f"{i + 1}: {str(r)}" for i, r in enumerate(results)] + [f"Score: {self.score()}"])
 
     def eval(self, expr, timeout=15):
         "Evaluate several lines of input, returning the result of the last line with a timeout"
@@ -188,6 +191,9 @@ class FactorioInstance:
         lua_response = self.rcon_client.send_command(script)
         # print(lua_response)
         return _lua2python(command, lua_response, start=start)
+
+    def comment(self, comment: str):
+        self.rcon_client.send_command(comment)
 
     def initialise(self, **kwargs):
 

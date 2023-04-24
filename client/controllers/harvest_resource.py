@@ -21,4 +21,4 @@ class HarvestResource(Action):
         response, elapsed = self.execute(PLAYER, x, y, quantity)
         if response != {} and response != 1:
             raise Exception("Could not harvest.", response)
-        return True
+        return response

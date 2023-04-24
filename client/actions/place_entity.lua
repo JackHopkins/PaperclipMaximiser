@@ -1,6 +1,34 @@
 global.actions.place_entity = function(player_index, entity, direction, x, y)
+
+    local function required_resource_present(entity, position, surface)
+        local prototype = game.entity_prototypes[entity]
+        local entity_type = prototype.type
+
+        if entity_type == "mining-drill" then
+            local resources = surface.find_entities_filtered{position=position, type="resource"}
+            for _, resource in ipairs(resources) do
+                if resource.prototype.mineable_properties.minable then
+                    return true, nil
+                end
+            end
+            return false, "minable resource"
+
+        elseif entity_type == "offshore-pump" then
+            local tile = surface.get_tile(position)
+            if tile.prototype.name == "water" or tile.prototype.name == "deepwater" then
+                return true, nil
+            end
+            return false, "water"
+
+        else
+            return true, nil
+        end
+    end
+
+
     local player = game.players[player_index]
     local position = {x=x, y=y}
+
 
     if game.entity_prototypes[entity] == nil then
         name = entity:gsub(" ", "_"):gsub("-", "_")
@@ -63,12 +91,18 @@ global.actions.place_entity = function(player_index, entity, direction, x, y)
         if #blocking_entities > 0 then
             error("Cant place there due to existing " .. table.concat(blocking_entities, "___"):gsub("-", "_") .. ", Need "..width.." space, Maybe inspect your surroundings.")
         else
+            local resource_present, missing_resource = required_resource_present(entity, position, player.surface)
+
+            if not resource_present then
+                error("Cannot place " .. entity .. " due to missing " .. missing_resource .. " on the tile.")
+            else
+                error("Maybe inspect your surroundings before placing")
+            end
             --local have_built = player.surface.create_entity{name=entity, force="player", position=position, direction=cardinals[direction], player=player}
             --if have_built then
             --    player.remove_item{name=entity, count=1}
             --    rcon.print(1)
             --else
-            error("Maybe inspect your surroundings before placing")
             --end
         end
     else

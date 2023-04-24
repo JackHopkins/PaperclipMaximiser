@@ -19,7 +19,7 @@ schema = \
 inspect_resources() -> dict;
 
 # Inspect entities within a 20-meter radius around you
-inspect_entities(20) -> dict;
+inspect_entities(20) -> list;
 
 # Examine the items currently in your inventory
 inspect_inventory() -> dict;
@@ -34,18 +34,18 @@ craft_item('iron-chest', quantity=1);
 entity_position = place_entity('assembling-machine-1', direction=UP, position=(1, 1));
 
 # Place a burner drill facing down, on to the nearest coal resource
-entity_position = place_entity('burner-drill', direction=DOWN, position=nearest('coal'));
+entity_position = place_entity('burner-mining-drill', direction=DOWN, position=nearest('coal'));
 
 # Pick up coal near (-2, 0)
 pickup_entity('coal', (-2, 0));
 
-# Insert 1 coal from your inventory into the entity at (0, 0)
-insert_item('coal', target_position=(0, 0), quantity=1);
+# Insert 1 coal from your inventory into the nearest mining drill for fuel
+insert_item('coal', target_position=nearest('burner-mining-drill'), quantity=1);
 
 # Extract 1 coal from the entity at (0, 1)
 extract_item('coal', source_position=(0, 1), quantity=1);
 
-# Extract 1 coal from the nearest iron chest
+# Extract 1 coal from the nearest iron chest in the map
 extract_item('coal', source_position=nearest('iron-chest'), quantity=1);
 
 # Set the recipe of the entity at (0, 1) to craft 'iron-chest'
@@ -64,7 +64,7 @@ harvest_resource((-2, 0), quantity=5);
 rotate_entity((0, 0), direction=LEFT);
 
 # Place a burner-mining-drill to the left of the existing stone furnace leaving a gap of 1 tile
-entity_position = place_entity_next_to('burner-mining-drill', reference_position=stone_furnace_position, direction='left', gap=1)
+entity_position = place_entity_next_to('burner-mining-drill', reference_position=stone_furnace_position, direction=LEFT, gap=1)
 
 # Connect the burner-mining-drill's output to the stone-furnace's input using an inserter
 connect_entities(source_position=(burner_drill_position[0]-2, burner_drill_position[1]), target_position=stone_furnace_position, connection_type='inserter')
@@ -238,6 +238,18 @@ class FactorioRunner:
         except SyntaxError:
             return False
 
+    def _replace_comments(self, code):
+        # Regular expression pattern to match a single-line comment
+        pattern = r'#(.*)'
+
+        # Callback function to replace the comment with a method call
+        def comment_replacer(match):
+            comment_text = match.group(1).strip()
+            return f'comment("{comment_text}")'
+
+        # Replace comments in the code
+        new_code = re.sub(pattern, comment_replacer, code)
+        return new_code
 
     def __next__(self):
         #if self.buffer:
@@ -277,6 +289,7 @@ class FactorioRunner:
             # if len(self.buffer.split('\n')) == 1 and self.buffer.lstrip()[0] == "#":
         #    self._log_comment(self.buffer)
         #else:
+        buffer = self._replace_comments(buffer)
         try:
             self._log_command(buffer)
             result = self.instance.eval(buffer.strip())

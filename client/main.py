@@ -111,8 +111,14 @@ def get_program_generator():
     )
 test = \
 """
-place_entity('burner-mining-drill', direction=DOWN, position=nearest('iron_ore'))
-tree_position = nearest('tree')
+place_entity('burner-mining-drill', direction=DOWN, position=(0,0))
+tree_position = nearest('iron-ore')
+move_to(tree_position)
+harvest_resource(tree_position, quantity=1)
+tree_position = nearest('copper-ore')
+move_to(tree_position)
+harvest_resource(tree_position, quantity=1)
+tree_position = nearest('stone')
 move_to(tree_position)
 harvest_resource(tree_position, quantity=1)
 """
@@ -156,8 +162,7 @@ if __name__ == '__main__':
    # score = Score(rcon, )
 
     try:
-        pass
-        #factorio_runner.instance.eval(test)
+        factorio_runner.instance.eval(test)
     except Exception as e:
         print(e)
 

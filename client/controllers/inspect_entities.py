@@ -20,9 +20,9 @@ class InspectEntities(Action):
                 for entity in entity_list:
                     position = tuple(entity["position"].values())
 
-                    if not relative:
-                        position = (position[0] + self.game_state.last_observed_player_location[0],
-                                    position[1] + self.game_state.last_observed_player_location[1])
+                    if relative:
+                        position = (position[0] - self.game_state.last_observed_player_location[0],
+                                    position[1] - self.game_state.last_observed_player_location[1])
 
                     entity_dict = {
                         "type": entity["name"],
@@ -65,10 +65,8 @@ class InspectEntities(Action):
 
                     entities.append(entity_dict)
 
-            response_dict = {"entities": entities}
             self.last_observed_player_location = (0, 0)
+            return entities
         except Exception as e:
             print(e)
-            response = {}
-
-        return ZeroDict(**response_dict)
+            return {}
