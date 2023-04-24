@@ -1,5 +1,20 @@
 global.actions.nearest = function(player_index, resource)
     local player = game.players[player_index]
+
+    local function normalize_resource_name(resource)
+        if resource == "copper" then
+            return "copper-ore"
+        elseif resource == "iron" then
+            return "iron-ore"
+        elseif resource == "uranium" then
+            return "uranium-ore"
+        else
+            return resource
+        end
+    end
+
+    local normalized_resource = normalize_resource_name(resource)
+
     local function find_nearest(player, resource)
         local surface = player.surface
         local position = player.position
@@ -51,5 +66,5 @@ global.actions.nearest = function(player_index, resource)
         --return { x = position.x - closest.x, y = position.y - closest.y }
     end
 
-    return find_nearest(player, resource)
+    return find_nearest(player, normalized_resource)
 end
