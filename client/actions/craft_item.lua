@@ -64,6 +64,7 @@ global.actions.craft_item = function(player_index, entity, count)
     end
 
     if successfully_crafted == count then
+        game.print("Crafted "..entity)
         return 1
     elseif successfully_crafted > 0 then
         error("Successfully crafted " .. successfully_crafted .."x but failed_to_craft_"
@@ -71,4 +72,5 @@ global.actions.craft_item = function(player_index, entity, count)
     else
         error("Failed_to_craft_" .. (count-k)+1 .. "x_" .. entity.." because "..reason)-- .. tostring(did_craft))
     end
+
 end

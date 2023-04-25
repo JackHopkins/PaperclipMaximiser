@@ -125,8 +125,8 @@ class FactorioInstance:
 
     def _eval_with_timeout(self, expr):
         tree = ast.parse(expr)
-        results = []
-        for node in tree.body:
+        results = {}
+        for index, node in enumerate(tree.body):
             try:
                 if isinstance(node, ast.Expr):
                     compiled = compile(ast.Expression(node.value), 'file', 'eval')
@@ -134,12 +134,9 @@ class FactorioInstance:
                     if response != True and response:
                         results.append(response)
                         self.sequential_exception_count = 0
-                    else:
-                        results.append("")
                 else:
                     compiled = compile(ast.Module([node], type_ignores=[]), 'file', 'exec')
                     exec(compiled, {}, self)
-                    results.append("")
                     #results.append("Executed successfully")
             except Exception as e:
                 self.sequential_exception_count += 1
@@ -150,9 +147,10 @@ class FactorioInstance:
 
                 parts = list(e.args)
                 sentences = ". ".join([str(part).replace("_", " ") for part in parts])
-                results.append(f"Error: {sentences}")
+                results[index].append(f"Error: {sentences}")
                 break
-        return '\n'.join([f"{i + 1}: {str(r)}" for i, r in enumerate(results)] + [f"Score: {self.score()}"])
+        print(f"Score: {self.score()}")
+        return '\n'.join([f"{i + 1}: {str(r)}" for i, r in results.items()])
 
     def eval(self, expr, timeout=15):
         "Evaluate several lines of input, returning the result of the last line with a timeout"

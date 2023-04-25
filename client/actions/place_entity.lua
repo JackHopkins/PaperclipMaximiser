@@ -89,12 +89,21 @@ global.actions.place_entity = function(player_index, entity, direction, x, y)
             end
         end
         if #blocking_entities > 0 then
-            error("Cant place there due to existing " .. table.concat(blocking_entities, "___"):gsub("-", "_") .. ", Need "..width.." space, Maybe inspect your surroundings.")
+            error("Cant place there due to existing " .. table.concat(blocking_entities, "___") .. ", Need "..width.." space, Maybe inspect your surroundings.")
         else
             local resource_present, missing_resource = required_resource_present(entity, position, player.surface)
 
+            local water_tile_present = false
+            local tile = player.surface.get_tile(position)
+            --for _, tile in ipairs(tiles) do
+            if tile.prototype.collision_mask["ground-tile"] then
+                water_tile_present = true
+            end
+
             if not resource_present then
                 error("Cannot place " .. entity .. " due to missing " .. missing_resource .. " on the tile.")
+            elseif entity == "offshore-pump" and not water_tile_present then
+                error("Cannot place " .. entity .. " as a single water tile is required.")
             else
                 -- Check for overlapping entities
                 local overlapping_entities = player.surface.find_entities_filtered{area = target_area}

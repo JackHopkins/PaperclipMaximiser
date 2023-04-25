@@ -14,14 +14,10 @@ global.actions.harvest_resource = function(player_index, x, y, count)
             for _, entity in pairs(entities) do
                 if entity.valid and entity.minable and player.can_reach_entity(entity) then
                     did_mine = player.mine_entity(entity)
-                    --game.print("Did ")
-                    --game.print(did_mine)
-                    --if did_mine then
                     remaining_count = remaining_count - 1
-                    if not entity.valid or remaining_count == 0 then
+                    if remaining_count == 0 then
                         break
                     end
-                    --end
                 end
             end
 
@@ -48,9 +44,6 @@ global.actions.harvest_resource = function(player_index, x, y, count)
         local total = (mined_count + harvested_count)
 
         if total ~= count then
-            game.print(dump(player.position))
-            game.print(total)
-            game.print(count)
             error("Could only harvest "..total.." at position ("..position.x..", "..position.y..")")
         end
         success = total > 0

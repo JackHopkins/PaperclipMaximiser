@@ -33,8 +33,8 @@ craft_item('iron-chest', quantity=1);
 # Place an assembling machine facing up, at (1, 1)
 entity_position = place_entity('assembling-machine-1', direction=UP, position=(1, 1));
 
-# Place a burner drill facing down, on to the nearest coal resource
-entity_position = place_entity('burner-mining-drill', direction=DOWN, position=nearest('coal'));
+# Place a burner drill facing down, on to the nearest buildable position
+entity_position = place_entity('burner-mining-drill', direction=DOWN, position=nearest_buildable('burner-mining-drill'));
 
 # Pick up coal near (-2, 0)
 pickup_entity('coal', (-2, 0));
@@ -44,9 +44,6 @@ insert_item('coal', target_position=nearest('burner-mining-drill'), quantity=1);
 
 # Extract 1 coal from the entity at (0, 1)
 extract_item('coal', source_position=(0, 1), quantity=1);
-
-# Extract 1 coal from the nearest iron chest in the map
-extract_item('coal', source_position=nearest('iron-chest'), quantity=1);
 
 # Set the recipe of the entity at (0, 1) to craft 'iron-chest'
 set_entity_recipe((0, 1), recipe='iron-chest');

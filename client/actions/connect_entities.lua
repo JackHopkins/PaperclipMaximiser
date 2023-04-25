@@ -101,4 +101,5 @@ global.actions.connect_entities = function(player_index, source_x, source_y, tar
     else
         error("Cannot place final connector here.")
     end
+    game.print("Placed "..connection_type.." at "..final_connector_position)
 end
