@@ -53,13 +53,13 @@ global.actions.connect_entities = function(player_index, source_x, source_y, tar
 
     local current_position = get_edge_position(source_entity.position, source_collision_box, direction)
 
-
-    -- local current_position = table.deepcopy(source_position)
-    --local connector_prototype = game.entity_prototypes[connection_type]
-    --local connector_length = connector_prototype.maximum_wire_distance or (connector_prototype.belt_distance_to_teleport_items and connector_prototype.belt_distance_to_teleport_items * 2)
     local connector_prototype = game.entity_prototypes[connection_type]
-    local electric_energy_source_prototype = connector_prototype.electric_energy_source_prototype
-    local connector_length = electric_energy_source_prototype and electric_energy_source_prototype.max_wire_distance or 1
+    local connector_points = connector_prototype.electric_wire_connection_points
+    local connector_length = 1
+
+    if connector_points and #connector_points > 0 then
+        connector_length = connector_points[1].max_wire_distance
+    end
 
     while (is_vertical and math.abs(current_position.y - target_position.y) > connector_length) or (not is_vertical and math.abs(current_position.x - target_position.x) > connector_length) do
         if is_vertical then

@@ -330,7 +330,10 @@ production_score.get_production_scores = function(price_list)
 end
 
 global.actions.score = function()
-    score = dump(production_score.get_production_scores())
-    rcon.print(score)
-    return score
+    local production_score = production_score.get_production_scores()
+    production_score["player"] = production_score["player"] - global.initial_score["player"]
+    --production_score["player"]
+    game.players[1].set_goal_description("Score: "..production_score["player"], true)
+    scores = dump(production_score)
+    return scores
 end

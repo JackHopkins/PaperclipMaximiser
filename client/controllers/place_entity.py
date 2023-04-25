@@ -26,6 +26,7 @@ class PlaceEntity(Action):
                                        y
                                        )
         if not isinstance(response, dict):
-            raise Exception(f"Could not place {entity}", response.replace("___", ", ").replace("_", " "))
+            message = response.split(":")[-1]
+            raise Exception(f"Could not place {entity}", message)
 
         return (response['x'], response['y'])

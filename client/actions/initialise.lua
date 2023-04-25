@@ -12,13 +12,6 @@ player.surface.always_day=true
 --player.game_view_settings.show_shortcut_bar = false
 
 global.actions = {}
-global.actions.score2 = function()
-    -- Your function implementation here
-    game.print("blah")
-    rcon.print("test")
-    return "test"
-end
-
 global.points_of_interest = {}
 global.distances_to_nearest = {}
 global.relative_points_of_interest = {}
@@ -33,6 +26,8 @@ global.interesting_entities = {
     ['water']=true,
     ['coal']=true
 }
+global.initial_score = production_score.get_production_scores()
+
 
 local surface=player.surface
 local pp = player.position
@@ -89,14 +84,6 @@ end)
 function abort(message)
     local msg = tostring(message):gsub(" ", "_")
     rcon.print(msg)
-end
-function abort2(message, position)
-    local msg = message:gsub(" ", "_")
-    local resp = {
-        message=msg,
-        position=position
-    }
-    rcon.print(dump(resp))
 end
 
 function create_beam_bounding_box (player, surface, direction, top_left, bottom_right)
@@ -156,9 +143,7 @@ function find_passable_tiles(player, localBoundingBox)
                     impassable_tiles[index] = 100
                 end
             end
-
         end
-
     end
 
     -- Find all entities within the bounding box
