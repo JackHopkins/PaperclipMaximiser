@@ -66,6 +66,18 @@ global.actions.inspect_entities = function(player_index, radius_)
     local result = {}
 
     for i, data in ipairs(entity_data) do
+
+        local warnings = {}
+        if not data.warnings then
+            data.warnings = {}
+        end
+        if data.warnings.fuel_warning then
+            table.insert(warnings, data.warnings.fuel_warning)
+        end
+        if data.warnings.output_warning then
+            table.insert(warnings, data.warnings.output_warning)
+        end
+
         local position = {x=data.position.x, y=data.position.y}
 
         local entity_info = {

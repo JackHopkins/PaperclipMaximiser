@@ -116,6 +116,7 @@ class FactorioRunner:
                  model="gpt-4",
                  buffer_size=10,
                  beam=1,
+                 courtesy_delay=0,
                  fast=True,
                  trace=False):
         self.beam = beam
@@ -126,7 +127,7 @@ class FactorioRunner:
         self.log_file = "log/" + datetime.now().strftime("%H-%M-%d-%m-%Y") + ".log"
         self.trace_file = "log/" + datetime.now().strftime("%H-%M-%d-%m-%Y") + ".trace"
         self.max_sequential_exception_count = 3
-
+        self.courtesy_delay = courtesy_delay
         inventory = {
             'coal': 50,
             'copper-plate': 50,
@@ -171,7 +172,7 @@ class FactorioRunner:
                           (openai.error.RateLimitError, openai.error.APIError))
     def _get_program_generator(self):
         messages = [{"role": "system", "content": brief}] + self.history[-self.buffer_size:]
-        time.sleep(1.5)
+        time.sleep(self.courtesy_delay)
         return openai.ChatCompletion.create(
             n=self.beam,
             model=self.model,  # "gpt-3.5-turbo",

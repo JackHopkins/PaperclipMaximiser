@@ -111,16 +111,10 @@ def get_program_generator():
     )
 test = \
 """
-place_entity('burner-mining-drill', direction=DOWN, position=(0,0))
-tree_position = nearest('iron-ore')
-move_to(tree_position)
-harvest_resource(tree_position, quantity=1)
-tree_position = nearest('copper-ore')
-move_to(tree_position)
-harvest_resource(tree_position, quantity=1)
-tree_position = nearest('stone')
-move_to(tree_position)
-harvest_resource(tree_position, quantity=1)
+ore = nearest("iron-ore")
+move_to(ore)
+place_entity('burner-mining-drill', direction=DOWN, position=(ore[0]+2,ore[1]))
+inspect_entities(5)
 """
 test2 = \
 """

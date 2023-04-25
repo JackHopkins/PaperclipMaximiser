@@ -685,10 +685,30 @@ function inspect(player, radius)
                 energy = entity.energy
             }
 
+
+
             -- Get entity contents if it has an inventory
             if entity.get_inventory(defines.inventory.chest) then
                 local inventory = entity.get_inventory(defines.inventory.chest).get_contents()
                 data.contents = inventory
+            end
+
+            data.warnings = {}
+
+            if entity.burner and not entity.burner.currently_burning and entity.burner.remaining_burning_fuel <= 0 then
+                table.insert(data.warnings, "The entity is out of fuel.")
+            end
+
+            if entity.type == "mining-drill" then
+                local resource = entity.surface.find_entities_filtered{position = entity.position, type = "resource"}[1]
+                local output_inventory = entity.get_output_inventory()
+                local drop_position = entity.drop_position
+                local items_on_ground = surface.find_entities_filtered{area = {{drop_position.x - 0.5, drop_position.y - 0.5}, {drop_position.x + 0.5, drop_position.y + 0.5}}, type = "item-entity"}
+
+                if #items_on_ground >= 1 or (resource and not output_inventory.is_empty() and output_inventory.can_insert(resource.prototype.mined_item) == false) then
+                    table.insert(data.warnings, "The mining drill is waiting for space in destination.")
+                end
+
             end
 
             -- Get entity productivity if it has a crafting progress attribute
@@ -703,26 +723,24 @@ function inspect(player, radius)
                     data.crafted_items = output_inventory
                     data.ingredients = input_inventory
 
-                    -- Check for lack of ingredients or power
-                    data.warnings = {}
-
                     if entity.is_crafting() then
                         local recipe = entity.get_recipe()
                         if recipe then
                             for _, ingredient in pairs(recipe.ingredients) do
                                 local available = input_inventory[ingredient.name] or 0
                                 if available < ingredient.amount then
-                                    table.insert(data.warnings, "Lack_of_ingredient:_" .. ingredient.name:gsub(" ", "_"))
+                                    table.insert(data.warnings, "Lack of ingredient: " .. ingredient.name)
                                 end
                             end
                         end
                     else
                         if entity.energy == 0 then
-                            table.insert(data.warnings, "Lack_of_power")
+                            table.insert(data.warnings, "Lack of power")
                         end
                     end
                 end
                 rcon.print(entity.type)
+
                 -- Get crafted items for furnaces
                 if entity.type == "furnace" then
                     local output_inventory = entity.get_inventory(defines.inventory.furnace_result).get_contents()
@@ -730,33 +748,30 @@ function inspect(player, radius)
                     data.crafted_items = output_inventory
                     data.ingredients = input_inventory
 
-                    -- Check for lack of ingredients or power
-                    data.warnings = {}
-
                     if entity.is_crafting() then
                         local recipe = entity.get_recipe()
                         if recipe then
                             for _, ingredient in pairs(recipe.ingredients) do
                                 local available = input_inventory[ingredient.name] or 0
                                 if available < ingredient.amount then
-                                    table.insert(data.warnings, "Lack_of_ingredient_" .. ingredient.name:gsub(" ", "_"))
+                                    table.insert(data.warnings, "Lack of ingredient " .. ingredient.name)
                                 end
                             end
                         end
                     else
                         if entity.energy == 0 then
                             if entity.name ~= 'stone-furnace' and entity.name ~= 'steel-furnace' then
-                                table.insert(data.warnings, "Lack_of_power" )
+                                table.insert(data.warnings, "Lack of power" )
                             end
                         end
                         if next(input_inventory) == nil then
-                            table.insert(data.warnings, "Lack_of_input_material")
+                            table.insert(data.warnings, "Lack of input material")
                         end
 
                         if entity.burner then
                             local fuel_inventory = entity.burner.inventory.get_contents()
                             if next(fuel_inventory) == nil then
-                                table.insert(data.warnings, "Lack_of_fuel")
+                                table.insert(data.warnings, "Lack of fuel")
                             end
                         end
                     end

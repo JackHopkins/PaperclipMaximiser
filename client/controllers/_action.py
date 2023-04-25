@@ -43,16 +43,19 @@ class Action:
         return script
 
     def execute(self, *args) -> Tuple[Dict, Any]:
-        start = time.time()
-        parameters = [lua.encode(arg) for arg in args]
-        invocation = f"pcall(global.actions.{self.name}{(', ' if parameters else '') + ','.join(parameters)})"
-        wrapped = f"{COMMAND} a, b = {invocation}; rcon.print(dump({{a=a, b=b}}))"
-        lua_response = self.connection.send_command(wrapped)
-        parsed, elapsed = _lua2python(invocation, lua_response, start=start)
-        if not parsed['a'] and 'b' in parsed and isinstance(parsed['b'], str):
-            parsed['b'] = parsed['b'].replace("!!", "\"")
-        if not 'b' in parsed:
-            return {}, elapsed
+        try:
+            start = time.time()
+            parameters = [lua.encode(arg) for arg in args]
+            invocation = f"pcall(global.actions.{self.name}{(', ' if parameters else '') + ','.join(parameters)})"
+            wrapped = f"{COMMAND} a, b = {invocation}; rcon.print(dump({{a=a, b=b}}))"
+            lua_response = self.connection.send_command(wrapped)
+            parsed, elapsed = _lua2python(invocation, lua_response, start=start)
+            if not parsed['a'] and 'b' in parsed and isinstance(parsed['b'], str):
+                parsed['b'] = parsed['b'].replace("!!", "\"")
+            if not 'b' in parsed:
+                return {}, elapsed
+        except Exception as e:
+            return None, -1
         return parsed['b'], elapsed
 
     def _send(self, command, *parameters, trace=False) -> List[str]:
