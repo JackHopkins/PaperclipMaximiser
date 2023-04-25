@@ -58,7 +58,7 @@ class Action:
             return None, -1
         return parsed['b'], elapsed
 
-    def _send(self, command, *parameters, trace=False) -> List[str]:
+    def send(self, command, *parameters, trace=False) -> List[str]:
         start = timer()
         script = self._get_command(command, parameters=list(parameters), measured=False)
         lua_response = self.connection.send_command(script)

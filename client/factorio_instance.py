@@ -132,7 +132,7 @@ class FactorioInstance:
                     compiled = compile(ast.Expression(node.value), 'file', 'eval')
                     response = eval(compiled, {}, self)
                     if response != True and response:
-                        results.append(response)
+                        results[index] = response
                         self.sequential_exception_count = 0
                 else:
                     compiled = compile(ast.Module([node], type_ignores=[]), 'file', 'exec')
@@ -147,10 +147,10 @@ class FactorioInstance:
 
                 parts = list(e.args)
                 sentences = ". ".join([str(part).replace("_", " ") for part in parts])
-                results[index].append(f"Error: {sentences}")
+                results[index] = f"Error: {sentences}"
                 break
         print(f"Score: {self.score()}")
-        return '\n'.join([f"{i + 1}: {str(r)}" for i, r in results.items()])
+        return '\n'.join([f"{i}: {str(r)}" for i, r in results.items()])
 
     def eval(self, expr, timeout=15):
         "Evaluate several lines of input, returning the result of the last line with a timeout"

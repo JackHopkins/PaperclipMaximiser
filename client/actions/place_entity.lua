@@ -1,31 +1,5 @@
 global.actions.place_entity = function(player_index, entity, direction, x, y)
 
-    local function required_resource_present(entity, position, surface)
-        local prototype = game.entity_prototypes[entity]
-        local entity_type = prototype.type
-
-        if entity_type == "mining-drill" then
-            local resources = surface.find_entities_filtered{position=position, type="resource"}
-            for _, resource in ipairs(resources) do
-                if resource.prototype.mineable_properties.minable then
-                    return true, nil
-                end
-            end
-            return false, "minable resource"
-
-        elseif entity_type == "offshore-pump" then
-            local tile = surface.get_tile(position)
-            if tile.prototype.name == "water" or tile.prototype.name == "deepwater" then
-                return true, nil
-            end
-            return false, "water"
-
-        else
-            return true, nil
-        end
-    end
-
-
     local player = game.players[player_index]
     local position = {x=x, y=y}
 

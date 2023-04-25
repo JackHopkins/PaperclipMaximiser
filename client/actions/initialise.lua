@@ -696,7 +696,7 @@ function inspect(player, radius)
             data.warnings = {}
 
             if entity.burner and not entity.burner.currently_burning and entity.burner.remaining_burning_fuel <= 0 then
-                table.insert(data.warnings, "The entity is out of fuel.")
+                table.insert(data.warnings, "The entity is out of fuel")
             end
 
             if entity.type == "mining-drill" then
@@ -706,7 +706,7 @@ function inspect(player, radius)
                 local items_on_ground = surface.find_entities_filtered{area = {{drop_position.x - 0.5, drop_position.y - 0.5}, {drop_position.x + 0.5, drop_position.y + 0.5}}, type = "item-entity"}
 
                 if #items_on_ground >= 1 or (resource and not output_inventory.is_empty() and output_inventory.can_insert(resource.prototype.mined_item) == false) then
-                    table.insert(data.warnings, "The mining drill is waiting for space in destination.")
+                    table.insert(data.warnings, "The mining drill is waiting for space in destination")
                 end
 
             end
@@ -729,13 +729,13 @@ function inspect(player, radius)
                             for _, ingredient in pairs(recipe.ingredients) do
                                 local available = input_inventory[ingredient.name] or 0
                                 if available < ingredient.amount then
-                                    table.insert(data.warnings, "Lack of ingredient: " .. ingredient.name)
+                                    table.insert(data.warnings, ("Lack of ingredient: " .. ingredient.name):gsub(" ", "_"))
                                 end
                             end
                         end
                     else
                         if entity.energy == 0 then
-                            table.insert(data.warnings, "Lack of power")
+                            table.insert(data.warnings, "Lack_of_power")
                         end
                     end
                 end
@@ -754,24 +754,24 @@ function inspect(player, radius)
                             for _, ingredient in pairs(recipe.ingredients) do
                                 local available = input_inventory[ingredient.name] or 0
                                 if available < ingredient.amount then
-                                    table.insert(data.warnings, "Lack of ingredient " .. ingredient.name)
+                                    table.insert(data.warnings, ("Lack of ingredient " .. ingredient.name):gsub(" ", "_"))
                                 end
                             end
                         end
                     else
                         if entity.energy == 0 then
                             if entity.name ~= 'stone-furnace' and entity.name ~= 'steel-furnace' then
-                                table.insert(data.warnings, "Lack of power" )
+                                table.insert(data.warnings, "Lack_of_power" )
                             end
                         end
                         if next(input_inventory) == nil then
-                            table.insert(data.warnings, "Lack of input material")
+                            table.insert(data.warnings, "Lack_of_input_material")
                         end
 
                         if entity.burner then
                             local fuel_inventory = entity.burner.inventory.get_contents()
                             if next(fuel_inventory) == nil then
-                                table.insert(data.warnings, "Lack of fuel")
+                                table.insert(data.warnings, "Lack_of_fuel")
                             end
                         end
                     end
@@ -845,6 +845,31 @@ function inspect(player, radius)
     entity_data = filtered_entity_data
 
     return entity_data
+end
+
+function required_resource_present(entity, position, surface)
+    local prototype = game.entity_prototypes[entity]
+    local entity_type = prototype.type
+
+    if entity_type == "mining-drill" then
+        local resources = surface.find_entities_filtered{position=position, type="resource"}
+        for _, resource in ipairs(resources) do
+            if resource.prototype.mineable_properties.minable then
+                return true, nil
+            end
+        end
+        return false, "minable resource"
+
+    elseif entity_type == "offshore-pump" then
+        local tile = surface.get_tile(position)
+        if tile.prototype.name == "water" or tile.prototype.name == "deepwater" then
+            return true, nil
+        end
+        return false, "water"
+
+    else
+        return true, nil
+    end
 end
 
 rcon.print(1)

@@ -54,11 +54,15 @@ global.actions.connect_entities = function(player_index, source_x, source_y, tar
     local current_position = get_edge_position(source_entity.position, source_collision_box, direction)
 
     local connector_prototype = game.entity_prototypes[connection_type]
-    local connector_points = connector_prototype.electric_wire_connection_points
     local connector_length = 1
 
-    if connector_points and #connector_points > 0 then
-        connector_length = connector_points[1].max_wire_distance
+    if connector_prototype.type == "electric-pole" then
+        local copper_wire_prototype = game.item_prototypes["copper-cable"]
+        connector_length = copper_wire_prototype and copper_wire_prototype.max_wire_distance or 1
+    elseif connector_prototype.type == "inserter" then
+        connector_length = connector_prototype.pickup_position_distance * 2
+    else
+        error("Unsupported connection type.")
     end
 
     while (is_vertical and math.abs(current_position.y - target_position.y) > connector_length) or (not is_vertical and math.abs(current_position.x - target_position.x) > connector_length) do

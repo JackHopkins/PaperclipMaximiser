@@ -10,6 +10,7 @@ import regex
 
 from bcolors import bcolors
 from factorio_instance import FactorioInstance
+from models.frame import Frame
 from vocabulary import Vocabulary
 
 #wait_duration(5); # Wait for 5 seconds
@@ -90,7 +91,7 @@ Example:
 # Place a burner-mining-drill
 coal_position = nearest('coal')
 move_to(coal_position)
-place_entity('burner-mining-drill', direction=LEFT, position=(coal_position[0]-2, coal_position[1]))
+place_entity('burner-mining-drill', direction=LEFT, position=nearest_buildable('burner-mining-drill'))
 # Check to ensure that burner-mining-drill has been placed 
 inspect_entities(5) 
 ```
@@ -116,6 +117,7 @@ class FactorioRunner:
                  courtesy_delay=0,
                  fast=True,
                  trace=False):
+        self.frame = Frame()
         self.beam = beam
         self.buffer = {}
         self.model = model
@@ -172,7 +174,7 @@ class FactorioRunner:
         time.sleep(self.courtesy_delay)
         return openai.ChatCompletion.create(
             n=self.beam,
-            model=self.model,  # "gpt-3.5-turbo",
+            model=self.model,  # "gpt-3.5-turbo",x
             max_tokens=200,
             messages=messages,
             stop=["\n\n", "\n#"],
@@ -250,11 +252,6 @@ class FactorioRunner:
         return new_code
 
     def __next__(self):
-        #if self.buffer:
-        #    self._log_comment(self.buffer)
-        #    self.buffer = {
-        #    }
-
         chunk_generator = self.program_generator()
 
         # Accumulate the entire content
@@ -272,21 +269,26 @@ class FactorioRunner:
         for index, buffer in self.buffer.items():
             if self.is_valid_python(buffer):
                 self._execute_buffer(buffer)
+                self.buffer[index] = ""
             elif self.is_valid_python("# " + buffer):
-                self.buffer = "# "+buffer
-                #self._execute_buffer()
+                self.buffer[index] += ("\n# "+buffer)
             else:
-                self._log_command(buffer)
-                self._log_error("The provided code is not syntactically valid Python. Only write valid python.")
+                # If sampling stops part way through a line, pop the line and interpret.
+                valid, non_valid = self.split_on_last_line(buffer)
+                if self.is_valid_python(valid):
+                    self._execute_buffer(valid)
+                else:
+                    self._log_command(buffer)
+                    self._log_error("The provided code is not syntactically valid Python. Only write valid python.")
 
-            self.buffer[index] = ""
+                self.buffer[index] = ""
+
+    def split_on_last_line(self, s):
+        if s.find("\n") != -1:
+            return s[s.rfind('\n'):], s[:s.rfind('\n')]
+        return "", s
 
     def _execute_buffer(self, buffer):
-        # Execute the buffer
-        #if all([l.lstrip() and l.lstrip()[0] == "#" for l in self.buffer.split('\n')]):
-            # if len(self.buffer.split('\n')) == 1 and self.buffer.lstrip()[0] == "#":
-        #    self._log_comment(self.buffer)
-        #else:
         buffer = self._replace_comments(buffer)
         try:
             self._log_command(buffer)
@@ -304,58 +306,3 @@ class FactorioRunner:
     def flush_history(self):
         self.instance.sequential_exception_count = 0
         self.history = []
-
-    def __next__2(self):
-        if self.buffer:
-            self._log_comment(self.buffer)
-            self.buffer = ""
-        chunk_generator = self.program_generator()
-        for chunk in chunk_generator:
-            chunk_message = chunk['choices'][0]['delta']
-            if chunk_message.get('content'):
-                content = chunk_message.get('content')
-                self.buffer += content
-                self.buffer = self.buffer.lstrip()
-
-                regex_pattern = r'\w+\([^;]*?\);'
-                matches = re.findall(regex_pattern, self.buffer)
-                if matches:
-                    for line in matches:
-                        if not line:
-                            continue
-                        index = self.buffer.find(line)
-                        end = index + len(line)
-                        snippet = self.buffer[:index]
-                        comments = snippet.split("\n")
-                        if len(comments):
-                            comment = comments[0].lstrip("/#")
-                            if comment:
-                                self._log_comment(comment)
-                                self.buffer = ""
-
-                        try:
-                            if not line.lstrip("# "):
-                                continue
-                            if line.find("\n") != -1:
-                                line = line.split("\n")[-1]
-
-                            self._log_command(line)
-                            try:
-                                result = self.instance.eval(line.rstrip(';'))
-                            except SyntaxError as e:
-                                raise
-
-                            if result and isinstance(result, str):
-                                self._log_observation(result)
-
-
-                        except Exception as e:
-                            try:
-                                error, reason = e.args
-                                self._log_error(f"{error}. {str(reason).replace('_', ' ')}")
-                            except Exception as e1:
-                                self._log_error(f"You can't do that action. {str(e)}")
-
-                            return
-                        finally:
-                            self.buffer = ""

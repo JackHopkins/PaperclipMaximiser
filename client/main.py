@@ -111,12 +111,14 @@ def get_program_generator():
     )
 test = \
 """
-ore = nearest_resource("water")
+print("hi")
+ore = nearest("water")
 craft_item("offshore-pump")
 move_to(ore)
 
 place_entity('offshore-pump', direction=UP, position=(ore[0]+2,ore[1]+1))
 inspect_entities(5)
+inspect_entities(
 """
 test2 = \
 """

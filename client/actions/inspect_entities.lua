@@ -72,10 +72,10 @@ global.actions.inspect_entities = function(player_index, radius_)
             data.warnings = {}
         end
         if data.warnings.fuel_warning then
-            table.insert(warnings, data.warnings.fuel_warning)
+            table.insert(warnings, data.warnings.fuel_warning:gsub(" ", "_"))
         end
         if data.warnings.output_warning then
-            table.insert(warnings, data.warnings.output_warning)
+            table.insert(warnings, data.warnings.output_warning:gsub(" ", "_"))
         end
 
         local position = {x=data.position.x, y=data.position.y}
