@@ -223,6 +223,13 @@ local function has_fuel(entity)
     return true
 end
 
+-- Define a function to check if the entity (furnace) has ingredients
+local function has_ingredients(entity)
+    if entity.type == "furnace" and entity.get_recipe() == nil then
+        return false
+    end
+    return true
+end
 -- Define a function to check if the entity is a drill and has space to output
 local function has_output_space(entity)
     if entity.type == "mining-drill" and entity.mining_target then
@@ -296,6 +303,9 @@ local function on_tick(event)
 
                 if not has_fuel(entity) then
                     table.insert(issues, "\"out of fuel\"")
+                end
+                if not has_ingredients(entity) then
+                    table.insert(issues, "\"no ingredients to smelt\"")
                 end
                 if not has_output_space(entity) then
                     if entity.drop_position ~= nil then
