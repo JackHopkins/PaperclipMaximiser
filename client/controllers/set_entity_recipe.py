@@ -11,7 +11,7 @@ class SetEntityRecipe(Action):
         self.connection = connection
         self.game_state = game_state
 
-    def __call__(self, position: Tuple[int, int], recipe: str, relative=False) -> bool:
+    def __call__(self, position: Tuple[int, int], recipe: str, relative=False, **kwargs) -> bool:
         x, y = position
 
         if not relative:

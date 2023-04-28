@@ -12,6 +12,10 @@ class Nearest(Action):
         self.game_state = game_state
 
     def __call__(self, type: str = 'coal', relative: bool = False, **kwargs):
+
+        if not isinstance(type, str):
+            raise Exception("'Nearest' must be called with an entity name as the first argument.")
+
         response, time_elapsed = self.execute(PLAYER, type.replace("_", "-"))
 
         if isinstance(response, str):

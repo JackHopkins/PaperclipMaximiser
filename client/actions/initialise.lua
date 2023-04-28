@@ -26,12 +26,34 @@ global.interesting_entities = {
     ['water']=true,
     ['coal']=true
 }
-global.initial_score = production_score.get_production_scores()
+global.initial_score = {}
 
 
 local surface=player.surface
 local pp = player.position
 local cnt = 0
+
+-- Define a function to check if a player's inventory is empty
+local function check_player_inventory_empty(player)
+    local inventory = player.get_main_inventory()
+    return inventory.is_empty()
+end
+
+-- Define a function to be called every tick
+local function on_tick(event)
+    -- Run the check every 60 ticks (1 second)
+    if event.tick % 60 == 0 then
+        for _, player in pairs(game.connected_players) do
+            if check_player_inventory_empty(player) then
+                -- Perform an action or notify the player when their inventory is empty
+                player.print("Your inventory is empty!")
+            end
+        end
+    end
+end
+
+-- Register the on_tick function to the on_tick event
+script.on_event(defines.events.on_tick, on_tick)
 
 --script.on_nth_tick(3600, function(event)
 --    game.take_screenshot{
@@ -696,7 +718,7 @@ function inspect(player, radius)
             data.warnings = {}
 
             if entity.burner and not entity.burner.currently_burning and entity.burner.remaining_burning_fuel <= 0 then
-                table.insert(data.warnings, "The entity is out of fuel")
+                table.insert(data.warnings, "The_entity_is_out_of_fuel")
             end
 
             if entity.type == "mining-drill" then
@@ -706,7 +728,7 @@ function inspect(player, radius)
                 local items_on_ground = surface.find_entities_filtered{area = {{drop_position.x - 0.5, drop_position.y - 0.5}, {drop_position.x + 0.5, drop_position.y + 0.5}}, type = "item-entity"}
 
                 if #items_on_ground >= 1 or (resource and not output_inventory.is_empty() and output_inventory.can_insert(resource.prototype.mined_item) == false) then
-                    table.insert(data.warnings, "The mining drill is waiting for space in destination")
+                    table.insert(data.warnings, "The_mining_drill_is_waiting_for_space_in_destination")
                 end
 
             end

@@ -16,7 +16,7 @@ class PlaceEntityNextTo(Action):
             x -= self.game_state.last_observed_player_location[0]
             y -= self.game_state.last_observed_player_location[1]
 
-        response, elapsed = self.execute(PLAYER, entity, x, y, direction, gap)
+        response, elapsed = self.execute(PLAYER, entity, x, y, direction+1, gap)
         if not isinstance(response, dict) or response == {}:
             raise Exception(f"Could not place {entity} at {reference_position}.", response)
         return response['x'], response['y']

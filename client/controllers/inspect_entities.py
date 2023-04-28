@@ -11,8 +11,8 @@ class InspectEntities(Action):
         self.connection = connection
         self.game_state = game_state
 
-    def __call__(self, distance: int, relative: bool = False):
-        response, time_elapsed = self.execute(PLAYER, distance)
+    def __call__(self, radius=10, relative: bool = False):
+        response, time_elapsed = self.execute(PLAYER, radius)
         entities = []
         try:
             if isinstance(response, dict):
@@ -25,8 +25,8 @@ class InspectEntities(Action):
                                     position[1] - self.game_state.last_observed_player_location[1])
 
                     entity_dict = {
-                        "type": entity["name"],
-                        "direction": entity["direction"],
+                        "name": entity["name"],
+                        #"direction": entity["direction"],
                         "position": position
                     }
 
@@ -45,7 +45,7 @@ class InspectEntities(Action):
                             entity_dict["quantity"] = len(entity["path_ends"])
 
                     if "warnings" in entity:
-                        entity_dict["warning"] = ". ".join(entity['warnings'].values())
+                        entity_dict["warning"] = ". ".join(entity['warnings'].values()).replace("_", " ")
 
                     if "contents" in entity and entity['contents']:
                         entity_dict["contents"] = {k: v for k, v in entity['contents'].items()}

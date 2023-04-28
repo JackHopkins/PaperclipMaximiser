@@ -3,12 +3,18 @@ from typing import Optional, Tuple
 
 from factorio_instance import PLAYER
 
+
 class PlaceEntity(Action):
 
     def __init__(self, *args):
         super().__init__(*args)
 
-    def __call__(self, entity: str, direction=0, position: Tuple[int, int] = (0, 0), relative=False) -> Optional[Tuple]:
+    def __call__(self,
+                 entity: str,
+                 direction=0,
+                 position: Tuple[int, int] = (0, 0),
+                 exact: bool = False,
+                 relative=False) -> Optional[Tuple]:
         x, y = position
 
         if direction > 3 or direction < 0:
@@ -18,15 +24,21 @@ class PlaceEntity(Action):
             x -= self.game_state.last_observed_player_location[0]
             y -= self.game_state.last_observed_player_location[1]
 
+        if exact:
+            pass
+
         response, elapsed = self.execute(
                                        PLAYER,
                                        entity.replace("_", "-"),
                                        direction + 1,
                                        x,
-                                       y
+                                       y,
+                                       exact
                                        )
+        if exact:
+            pass
         if not isinstance(response, dict):
             message = response.split(":")[-1]
-            raise Exception(f"Could not place {entity}", message)
+            raise Exception(f"Could not place {entity} at ({x}, {y})", message.lstrip())
 
         return (response['x'], response['y'])

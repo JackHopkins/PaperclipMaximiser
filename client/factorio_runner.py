@@ -1,73 +1,14 @@
 import ast
-import json
 import re
 import time
-from datetime import date, datetime
 from multiprocessing import freeze_support
 
 import backoff
-import regex
+from openai.openai_object import OpenAIObject
 
-from bcolors import bcolors
 from factorio_instance import FactorioInstance
-from models.frame import Frame
+from models.split_memory import SplitMemory
 from vocabulary import Vocabulary
-
-#wait_duration(5); # Wait for 5 seconds
-schema = \
-"""
-# Observe and describe the natural resources and landscape around you
-inspect_resources() -> dict;
-
-# Inspect entities within a 20-meter radius around you
-inspect_entities(20) -> list;
-
-# Examine the items currently in your inventory
-inspect_inventory() -> dict;
-
-# Move to (10, 5), laying transport belts as you go
-move_to((10, 5), laying='transport-belt');
-
-# Craft 1 iron chest
-craft_item('iron-chest', quantity=1);
-
-# Place an assembling machine facing up, at (1, 1)
-entity_position = place_entity('assembling-machine-1', direction=UP, position=(1, 1));
-
-# Place a burner drill facing down, on to the nearest buildable position
-entity_position = place_entity('burner-mining-drill', direction=DOWN, position=nearest_buildable('burner-mining-drill'));
-
-# Pick up coal near (-2, 0)
-pickup_entity('coal', (-2, 0));
-
-# Insert 1 coal from your inventory into the nearest mining drill for fuel
-insert_item('coal', target_position=nearest('burner-mining-drill'), quantity=1);
-
-# Extract 1 coal from the entity at (0, 1)
-extract_item('coal', source_position=(0, 1), quantity=1);
-
-# Set the recipe of the entity at (0, 1) to craft 'iron-chest'
-set_entity_recipe((0, 1), recipe='iron-chest');
-
-# Move to (0, -40)
-move_to((0, -40));
-
-# Move to the position of the nearest tree
-move_to(nearest('tree'));
-
-# Harvest or mine 5 of the resource located at (-2, 0)
-harvest_resource((-2, 0), quantity=5);
-
-# Rotate the entity at (0, 0)
-rotate_entity((0, 0), direction=LEFT);
-
-# Place a burner-mining-drill to the left of the existing stone furnace leaving a gap of 1 tile
-entity_position = place_entity_next_to('burner-mining-drill', reference_position=stone_furnace_position, direction=LEFT, gap=1)
-
-# Connect the burner-mining-drill's output to the stone-furnace's input using an inserter
-connect_entities(source_position=(burner_drill_position[0]-2, burner_drill_position[1]), target_position=stone_furnace_position, connection_type='inserter')
-
-"""
 
 """
 nearest().get("burner-mining-drill").rotate(NORTH)
@@ -75,33 +16,6 @@ nearest().place("burner-mining-drill").rotate(EAST)
 at(0,0).place("burner-mining-drill").rotate(NORTH)
 at(0,0).get("burner-mining-drill").
 inventory.get("burner-mining-drill").place(0,0).rotate(NORTH)
-"""
-
-brief = \
-    f"""
-You are an expert Factorio player. You have access to the following API.
-
-```
-{schema}
-``` 
-To play, you must only use the methods from this python API with basic logical flow, variable assignment and arithmetic.
-
-Example:
-```
-# Place a burner-mining-drill
-coal_position = nearest('coal')
-move_to(coal_position)
-place_entity('burner-mining-drill', direction=LEFT, position=nearest_buildable('burner-mining-drill'))
-# Check to ensure that burner-mining-drill has been placed 
-inspect_entities(5) 
-```
-Instructions:
-1. Automate resource extraction, processing and manufacturing to increase your score.
-2. Start with a simple mining operation, smelting setup and basic power generating using coal-fired boilers and steam engines.
-3. On the map, you are called 'player_character'.
-4. Regularly inspect your inventory and surroundings to be sure of what's happening in the game.
-5. '#' on what you are planning, before issuing your python command.
-
 """
 
 import openai
@@ -117,14 +31,12 @@ class FactorioRunner:
                  courtesy_delay=0,
                  fast=True,
                  trace=False):
-        self.frame = Frame()
+
         self.beam = beam
         self.buffer = {}
         self.model = model
         self.buffer_size = buffer_size
         openai.api_key = api_key
-        self.log_file = "log/" + datetime.now().strftime("%H-%M-%d-%m-%Y") + ".log"
-        self.trace_file = "log/" + datetime.now().strftime("%H-%M-%d-%m-%Y") + ".trace"
         self.max_sequential_exception_count = 3
         self.courtesy_delay = courtesy_delay
         inventory = {
@@ -144,14 +56,14 @@ class FactorioRunner:
                                          bounding_box=200,
                                          tcp_port=27016,
                                          inventory=inventory)
+        static_instance_members = [attr for attr in dir(self.instance)
+                                   if not callable(getattr(self.instance, attr))
+                                   and not attr.startswith("__")]
+        self.memory = SplitMemory(ignore_members=static_instance_members)
         self.history = []
         self.program_generator = self._get_program_generator
         if not trace:
             pass
-            #self._log_to_file("###NEW EPISODE###")
-            #self._log_observation(self.instance.observe_nature())
-            #self._log_comment("Lets start by checking my inventory.")
-            #self._log_observation(self.instance.check_inventory())
         else:
             self.trace = trace
 
@@ -170,66 +82,16 @@ class FactorioRunner:
     @backoff.on_exception(backoff.expo,
                           (openai.error.RateLimitError, openai.error.APIError))
     def _get_program_generator(self):
-        messages = [{"role": "system", "content": brief}] + self.history[-self.buffer_size:]
+
         time.sleep(self.courtesy_delay)
         return openai.ChatCompletion.create(
             n=self.beam,
             model=self.model,  # "gpt-3.5-turbo",x
             max_tokens=200,
-            messages=messages,
+            messages=next(self.memory),
             stop=["\n\n", "\n#"],
-            stream=True
+            #stream=True
         )
-
-    def _log_history(self, message, role, error=False):
-        if isinstance(message, dict):
-            message = json.dumps(message, indent = 4)
-
-        if self.history and self.history[-1]['role'] == role and not error:
-            self.history[-1]['content'] += f"\n{message}"
-        else:
-            self.history.append({
-                "role": role, "content": message
-            })
-
-    def _log_to_file(self, message):
-        with open(self.log_file, "a") as f:
-            f.write(message + "\n")
-
-    def _log_to_trace(self, message):
-        with open(self.trace_file, "a") as f:
-            f.write(message + "\n")
-
-    def _log_error(self, message):
-        self.instance.sequential_exception_count += 1
-        output = f"{bcolors.FAIL}{message}"
-        self._log_to_file(output)
-        print(output)
-        self._log_history(message, "user", error=True)
-        if self.instance.sequential_exception_count > self.max_sequential_exception_count:
-            self.flush_history()
-            self._log_to_file(f"{bcolors.FAIL} Too many sequential errors. Flushing memory.")
-
-    def _log_command(self, message):
-        output = f"{bcolors.OKBLUE}{message}"
-        self._log_to_trace(message)
-        self._log_to_file(output)
-        print(output)
-        self._log_history(message, "assistant")
-
-    def _log_comment(self, message):
-        comment = "# " + message.lstrip("# ")
-        output = f"{bcolors.OKCYAN}{comment}"
-        self._log_to_trace(comment)
-        self._log_to_file(output)
-        print(output)
-        self._log_history(comment, "assistant")
-
-    def _log_observation(self, message):
-        output = f"{bcolors.OKGREEN}{message}"
-        self._log_to_file(output)
-        print(output)
-        self._log_history(message, "user")
 
     def is_valid_python(self, code: str) -> bool:
         try:
@@ -240,7 +102,7 @@ class FactorioRunner:
 
     def _replace_comments(self, code):
         # Regular expression pattern to match a single-line comment
-        pattern = r'#(.*)'
+        pattern = r'^#(.*)'
 
         # Callback function to replace the comment with a method call
         def comment_replacer(match):
@@ -251,35 +113,46 @@ class FactorioRunner:
         new_code = re.sub(pattern, comment_replacer, code)
         return new_code
 
-    def __next__(self):
+    def _append_buffer(self):
         chunk_generator = self.program_generator()
 
-        # Accumulate the entire content
-        for chunk in chunk_generator:
-            choice = chunk['choices'][0]
-            chunk_message = choice['delta']
-            if chunk_message.get('content'):
-                content = chunk_message.get('content')
-                if choice['index'] not in self.buffer:
-                    self.buffer[choice['index']] = ""
-                self.buffer[choice['index']] += content
-                self.buffer[choice['index']] = self.buffer[choice['index']].lstrip()
+        if isinstance(chunk_generator, OpenAIObject):
+            for index, choice in enumerate(chunk_generator['choices']):
+                message = choice['message']
+                if index not in self.buffer:
+                    self.buffer[index] = ""
 
+                self.buffer[index] += message['content'].strip()
+        else:
+            # Accumulate the entire content
+            for chunk in chunk_generator:
+                choice = chunk['choices'][0]
+                chunk_message = choice['delta']
+                if chunk_message.get('content'):
+                    content = chunk_message.get('content')
+                    if choice['index'] not in self.buffer:
+                        self.buffer[choice['index']] = ""
+                    self.buffer[choice['index']] += content
+                    self.buffer[choice['index']] = self.buffer[choice['index']].lstrip()
+
+    def __next__(self):
+        self._append_buffer()
         # Check if the entire buffer is syntactically valid Python code
         for index, buffer in self.buffer.items():
             if self.is_valid_python(buffer):
                 self._execute_buffer(buffer)
                 self.buffer[index] = ""
             elif self.is_valid_python("# " + buffer):
-                self.buffer[index] += ("\n# "+buffer)
+                #self.buffer[index] += ("\n# "+buffer)
+                self.buffer[index] = "\n"
             else:
                 # If sampling stops part way through a line, pop the line and interpret.
-                valid, non_valid = self.split_on_last_line(buffer)
+                non_valid, valid = self.split_on_last_line(buffer)
                 if self.is_valid_python(valid):
                     self._execute_buffer(valid)
                 else:
-                    self._log_command(buffer)
-                    self._log_error("The provided code is not syntactically valid Python. Only write valid python.")
+                    self.memory.log_command(buffer)
+                    self.memory.log_error("The provided code is not syntactically valid Python. Only write valid python.")
 
                 self.buffer[index] = ""
 
@@ -291,17 +164,36 @@ class FactorioRunner:
     def _execute_buffer(self, buffer):
         buffer = self._replace_comments(buffer)
         try:
-            self._log_command(buffer)
+            self.memory.log_command(buffer)
             result = self.instance.eval(buffer.strip())
+            self.memory.log_variables(self.instance)
             if result and isinstance(result, str):
-                self._log_observation(result)
+                if "Error" in result:
+                    find_i = result.find(":")
+                    message_i = result.rfind(":")
+                    if message_i == -1:
+                        message = result
+                    else:
+                        message = result[message_i+1:]
+                    try:
+                        line = int(result[:find_i])
+                        self.memory.log_error(f"Error line {line}: {message.strip()}", line=line)
+                    except:
+                        self.memory.log_error(result)
+                else:
+                    self.memory.log_observation(result)
 
         except Exception as e:
             try:
                 error, reason = e.args
-                self._log_error(f"{error}. {str(reason).replace('_', ' ')}")
+                self.memory.log_error(f"Error line {error}: {str(reason).replace('_', ' ')}", line=int(error))
             except Exception as e1:
-                self._log_error(f"You can't do that action. {str(e)}")
+                self.memory.log_error(f"You can't do that action. {str(e)}")
+        alerts = self.instance.get_alerts()
+
+        if alerts:
+            alert_string = "Warning: "+ "\nWarning: ".join(alerts)
+            self.memory.log_error(alert_string)
 
     def flush_history(self):
         self.instance.sequential_exception_count = 0

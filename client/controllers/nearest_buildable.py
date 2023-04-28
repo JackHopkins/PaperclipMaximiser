@@ -12,6 +12,9 @@ class NearestBuildable(Action):
         self.game_state = game_state
 
     def __call__(self, type: str = 'coal', relative: bool = False, **kwargs):
+        if not isinstance(type, str):
+            raise Exception("'nearest_buildable' requires the name of the desired entity as its argument")
+
         response, time_elapsed = self.execute(PLAYER, type.replace("_", "-"))
 
         if isinstance(response, str):

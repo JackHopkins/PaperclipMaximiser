@@ -11,7 +11,7 @@ class HarvestResource(Action):
         self.connection = connection
         self.game_state = game_state
 
-    def __call__(self, position: Tuple[int, int], quantity=1, relative: bool = False) -> bool:
+    def __call__(self, position: Tuple[int, int], quantity=1, relative: bool = False, **kwargs) -> bool:
         x, y = position
 
         if not relative:

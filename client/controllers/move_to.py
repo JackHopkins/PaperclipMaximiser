@@ -50,12 +50,12 @@ class MoveTo(Action):
             if absolute_position is not None:
                 if not isinstance(absolute_position, Tuple):
                     raise Exception(
-                        "You need to pass in a tuple like (x, y) for the absolute position. You passed in scalar.")
+                        f"You need to pass in a tuple like (x, y) for the absolute position. You passed in {type(absolute_position)}.")
                 start_x, start_y = self.game_state.player_location
                 relative_position = (absolute_position[0] - start_x, absolute_position[1] - start_y)
 
             if not isinstance(relative_position, Tuple):
-                raise Exception("You need to pass in a tuple like (x, y). You passed in scalar.")
+                raise Exception(f"You need to pass in a tuple like (x, y). You passed in {type(absolute_position)}.")
 
 
 

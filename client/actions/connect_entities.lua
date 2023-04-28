@@ -60,7 +60,7 @@ global.actions.connect_entities = function(player_index, source_x, source_y, tar
         local copper_wire_prototype = game.item_prototypes["copper-cable"]
         connector_length = copper_wire_prototype and copper_wire_prototype.max_wire_distance or 1
     elseif connector_prototype.type == "inserter" then
-        connector_length = connector_prototype.pickup_position_distance * 2
+        connector_length = 2
     else
         error("Unsupported connection type.")
     end

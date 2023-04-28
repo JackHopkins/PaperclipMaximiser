@@ -26,6 +26,7 @@ global.actions.pickup_entity = function(player_index, x, y, entity)
                     player.insert{name=entity.name, count=1}
                     entity.destroy()
                     success = 1
+                    game.print("Picked up "..entity.name)
                     end
                 end
             end
@@ -38,5 +39,6 @@ global.actions.pickup_entity = function(player_index, x, y, entity)
     if not success then
         error("Could not pick up")
     end
+
     return success
 end

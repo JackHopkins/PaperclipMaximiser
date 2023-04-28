@@ -41,15 +41,17 @@ global.actions.insert_item = function(player_index, insert_item, count, x, y)
 
         -- Make transaction
         local number_removed = player.remove_item{name=insert_item, count=count}
+
         local number_inserted = closest_entity.insert{name=insert_item, count=number_removed}
 
         if number_inserted ~= number_removed then
             closest_entity.remove_item{name=insert_item, count=number_inserted}
             player.insert{name=insert_item, count=number_removed}
             error('Transaction not executed')
+        else
+            game.print("Inserted "..number_removed)
+            return 1
         end
-
-        return 1
 
     end
 

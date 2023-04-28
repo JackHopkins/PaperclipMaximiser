@@ -35,15 +35,16 @@ global.actions.harvest_resource = function(player_index, x, y, count)
     -- Attempt to mine
     local mineable_entities = surface.find_entities_filtered{position=position, radius=5, type = "resource"}
     local mined_count = harvest(mineable_entities, count)
-    game.print("Mined "..mined_count)
-
+    local total = mined_count
     -- Attempt to harvest trees if mining was not fully successful
     if mined_count < count then
         local tree_entities = surface.find_entities_filtered{position=position, radius=5, type = "tree"}
         local harvested_count = harvest(tree_entities, count - mined_count)
-        local total = (mined_count + harvested_count)
+        total = (mined_count + harvested_count)
 
-        if total ~= count then
+        if total == 0 then
+            error("Could not harvest at position ("..position.x..", "..position.y.."), possibly out of reach?")
+        elseif total ~= count then
             error("Could only harvest "..total.." at position ("..position.x..", "..position.y..")")
         end
         success = total > 0
@@ -54,6 +55,7 @@ global.actions.harvest_resource = function(player_index, x, y, count)
     if success == 0 then
         error("Nothing within reach to harvest")
     else
+        game.print("Harvested "..total)
         return 1
     end
 end

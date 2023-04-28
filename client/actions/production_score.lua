@@ -328,3 +328,10 @@ production_score.get_production_scores = function(price_list)
   end
   return scores
 end
+
+local scores = production_score.get_production_scores()
+if scores then
+    global.initial_score = scores
+else
+    global.initial_score = {["players"] = 0}
+end

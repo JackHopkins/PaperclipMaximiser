@@ -79,39 +79,36 @@ class InspectResources:
                 x_min = int(np.min(group_indices[1])) - (self.game_state.bounding_box // 2)
                 named_dir = get_direction(y_offset, x_offset)
                 direction = {
-                    "offset": abs(y_offset),
-                    "named_direction": named_dir,
+                    #"offset": abs(y_offset),
+                    #"named_direction": named_dir,
                     "min_coordinates": (x_min, y_min),
                     "max_coordinates": (x_max, y_max)
                 }
 
                 if group_size < 50:
                     if item not in small_groups:
-                        small_groups[item] = {"count": 0, "directions": {}}
+                        small_groups[item] = {"count": 0}
                     small_groups[item]["count"] += group_size
-                    small_groups[item]["directions"][named_dir] = small_groups[item]["directions"].get(named_dir,
-                                                                                                       0) + abs(
-                        y_offset)
+                    small_groups[item][named_dir] = small_groups[item].get(named_dir,0) + abs(y_offset)
                 else:
                     if item not in groups:
                         groups[item] = []
 
                     group_description = {
                         "size": group_size,
-                        "direction": direction
+                        **direction
                     }
-                    groups[item] = group_description
+                    groups[item].append(group_description)
 
         for item, data in small_groups.items():
             count = data["count"]
-            cardinals = [
-                {"distance": (value if value < 1000 else math.floor(value / 1000)),
-                 "unit": "metres" if value < 1000 else "km",
-                 "direction": direction}
-                for direction, value in data["directions"].items()
-            ]
-            if not cardinals:
-                continue
+           # cardinals = [
+                #{"distance": (value if value < 1000 else math.floor(value / 1000)),
+                # "unit": "metres" if value < 1000 else "km"}
+              #  for key, value in data.items()
+           # ]
+           # if not cardinals:
+           #     continue
 
             # if count > 1000:
             #    count_str = math.floor((float(count) / 100)) / 10
@@ -121,9 +118,9 @@ class InspectResources:
 
             group_description = {
                 "size": count,
-                "directions": cardinals,
+               # "directions": cardinals,
                 "scattered": True
             }
-            groups[item] = group_description
+            groups[item].append(group_description)
 
         return groups

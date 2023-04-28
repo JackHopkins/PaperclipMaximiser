@@ -1,22 +1,19 @@
 import ast
 import concurrent
 import importlib
-import math
 import os
-import time
 from pathlib import Path
 from timeit import default_timer as timer
-from typing import List, Tuple, Optional
+from typing import List
 
-import numpy as np
 from dotenv import load_dotenv
 from slpp import slpp as lua
 
 from client.factorio_rcon_utils import _load_actions, _load_init, _lua2python
 from client.rcon.factorio_rcon import RCONClient
 from models.game_state import GameState
-from utilities.pathfinding import get_path
 from vocabulary import Vocabulary
+
 CHUNK_SIZE = 32
 MAX_SAMPLES = 5000
 
@@ -44,11 +41,6 @@ class FactorioInstance:
         self.script_dict = {**self.actions, **_load_init()}
         self.vocabulary = vocabulary
         self.initialise(**inventory)
-
-        #self.concat = "global.actions = {}\n\n"
-        #for name, script in self.actions.items():
-            #self.concat += f"--{name}\n{script}\n-------\n\n"
-            #self.rcon_client.send_command("/c " + script)
 
         self._load_actions(self.rcon_client, self.game_state)
         self.observe_all()
@@ -190,12 +182,13 @@ class FactorioInstance:
         # print(lua_response)
         return _lua2python(command, lua_response, start=start)
 
-    def comment(self, comment: str):
-        self.rcon_client.send_command(comment)
+    def comment(self, comment: str, *args):
+        self.rcon_client.send_command(str(comment) + ", ".join(args))
 
     def initialise(self, **kwargs):
 
         self._send('initialise', PLAYER)
+        self._send('alerts')
         self._send('util')
         self._send('production_score')
         # self.factorio_client.send('new_world', PLAYER)
@@ -204,6 +197,19 @@ class FactorioInstance:
 
         for entity, count in kwargs.items():
             self._send('give_item', PLAYER, entity, count)
+
+    def get_alerts(self, seconds=10):
+        start = timer()
+        lua_response = self.rcon_client.send_command(f'/silent-command rcon.print(dump(global.get_alerts({seconds})))')
+        # print(lua_response)
+        alert_dict, duration = _lua2python('alerts', lua_response, start=start)
+        alerts = list(alert_dict.values())
+        alert_strings = []
+        for alert in alerts:
+            issues = ", ".join([al.replace("_", " ") for al in list(alert['issues'].values())])
+            alert_strings.append(f"{alert['entity_name']} at {tuple(alert['position'].values())}: {issues}")
+
+        return alert_strings
 
     def _set_walking(self, walking: bool):
         if walking:
