@@ -12,19 +12,32 @@ class SplitMemory(Memory):
         self.observations = []
         self.commands = []
         self.errors = []
+        self.warnings = []
         self.max_observations = max_observations
         self.max_commands = max_commands
         self.variable_prompt = "Variables: "
+        self.warning_prompt = "Warnings: "
         self.command_prompt = "Recent Commands: "
 
     def __next__(self):
         variables = [(key, self.variables[key]) for key in list(dict.fromkeys(self.variables))[-self.max_observations:]]
         var_string = '\n'.join([f"{key} = {val}" for key, val in variables])
         variables_slot = [{"role": "user", "content": f"{self.variable_prompt}\n{var_string}"}] if variables else []
-        messages = [{"role": "system", "content": self.brief}] + \
-                    variables_slot + \
-                   [{"role": role, "content": command} for role, command in self.commands[-self.max_commands:]]
+
+        warning_string = "Warning: " + "\nWarning: ".join(self.warnings)
+        warnings_slot = [{"role": "user", "content": f"{self.warning_prompt}\n{warning_string}"}] if self.warnings else []
+
+        messages = [{"role": "system", "content": self.brief}]
+        if warnings_slot:
+            messages += warnings_slot
+        if variables_slot:
+            messages += variables_slot
+
+        messages += [{"role": role, "content": command} for role, command in self.commands[-self.max_commands:]]
         return messages
+
+    def log_warnings(self, alerts):
+        self.warnings = alerts
 
     def log_observation(self, message):
         output = f"{bcolors.OKGREEN}{message}"

@@ -30,7 +30,18 @@ class FactorioRunner:
                  beam=1,
                  courtesy_delay=0,
                  fast=True,
-                 trace=False):
+                 trace=False,
+                 inventory={
+                     'coal': 50,
+                     'copper-plate': 50,
+                     'iron-plate': 50,
+                     'iron-chest': 1,
+                     'burner-mining-drill': 1,
+                     'assembling-machine-1': 1,
+                     'stone-furnace': 1,
+                     'transport-belt': 50
+                 }
+                 ):
 
         self.beam = beam
         self.buffer = {}
@@ -39,16 +50,7 @@ class FactorioRunner:
         openai.api_key = api_key
         self.max_sequential_exception_count = 3
         self.courtesy_delay = courtesy_delay
-        inventory = {
-            'coal': 50,
-            'copper-plate': 50,
-            'iron-plate': 50,
-            'iron-chest': 1,
-            'burner-mining-drill': 1,
-            'assembling-machine-1': 1,
-            'stone-furnace': 1,
-            'transport-belt': 50
-        }
+
         freeze_support()
         vocabulary = Vocabulary()
         self.instance = FactorioInstance(address='localhost',
@@ -192,8 +194,7 @@ class FactorioRunner:
         alerts = self.instance.get_alerts()
 
         if alerts:
-            alert_string = "Warning: "+ "\nWarning: ".join(alerts)
-            self.memory.log_error(alert_string)
+            self.memory.log_warnings(alerts)
 
     def flush_history(self):
         self.instance.sequential_exception_count = 0

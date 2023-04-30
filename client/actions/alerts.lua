@@ -261,6 +261,17 @@ local function has_electricity(entity)
     return true
 end
 
+-- Define a function to check if the entity (boiler) has necessary input liquid
+local function has_input_liquid(entity)
+    if entity.type == "boiler" then
+        local fluid_box = entity.fluidbox[1]
+        if fluid_box == nil or fluid_box.amount <= 0 then
+            return false
+        end
+    end
+    return true
+end
+
 -- Define a function to check if the entity is an assembler machine and lacks resources
 local function lacks_assembler_resources(entity)
     if entity.type == "assembling-machine" then
@@ -274,7 +285,7 @@ local function lacks_assembler_resources(entity)
                 local available_amount = input_inventory.get_item_count(ingredient.name)
                 local missing_amount = ingredient.amount - available_amount
                 if missing_amount > 0 then
-                    table.insert(missing_resources, (ingredient.name .. " (" .. tostring(missing_amount) .. ")"):gsub(" ", "_"))
+                    table.insert(missing_resources, ingredient.name .. " (" .. tostring(missing_amount) .. ")")
                 end
             end
 
@@ -312,7 +323,7 @@ local function on_tick(event)
                         local rounded_x = round_to_half(entity.drop_position.x)
                         local rounded_y = round_to_half(entity.drop_position.y)
 
-                        table.insert(issues, "\"waiting for space in destination as the output is full. Place a transport-belt or furnace at (" .. rounded_x .. ", ".. rounded_y .. ") to unblock.\"")
+                        table.insert(issues, "\"waiting for space in destination as the output is full. Place a transport-belt, chest or furnace at (" .. rounded_x .. ", ".. rounded_y .. ") to unblock.\"")
                     else
                         table.insert(issues, "\"waiting for space in destination\"")
                     end
@@ -328,6 +339,11 @@ local function on_tick(event)
                 if is_transport_belt_blocked(entity) then
                     table.insert(issues, "transport_belt_blocked")
                 end
+
+                if not has_input_liquid(entity) then
+                    table.insert(issues, "\"no input liquid\"")
+                end
+
                 if #issues > 0 then
                     local position = entity.position
                     local entity_key = entity.name .. "_" .. position.x .. "_" .. position.y

@@ -56,31 +56,34 @@ def log_observation(message):
 test = \
 """
 ore = nearest("coal")
-craft_item('burner-inserter', quantity=4)
-place_entity('burner-inserter', direction=LEFT, position=(ore[0]-15,ore[1]))
-place_entity('burner-inserter', direction=RIGHT, position=(ore[0]+5,ore[1]))
-place_entity('burner-inserter', direction=UP, position=(ore[0],ore[1]-15))
-place_entity('burner-inserter', direction=DOWN, position=(ore[0],ore[1]+5))
+#craft_item('stone-furnace', quantity=1)
+#craft_item('burner-mining-drill', quantity=1)
+place_entity('burner-mining-drill', position=ore)
 
-craft_item('burner-mining-drill', quantity=1)
-place_entity('burner-mining-drill', direction=LEFT, exact=True, position=(ore[0]-5,ore[1]))
-place_entity('burner-mining-drill', direction=RIGHT, exact=True, position=(ore[0],ore[1]))
-#place_entity('burner-mining-drill', direction=UP, position=(ore[0],ore[1]-15))
-#place_entity('burner-mining-drill', direction=DOWN, position=(ore[0],ore[1]+5))
+place_entity_next_to('stone-furnace', reference_position=ore, direction=UP, gap=1)
+place_entity_next_to('stone-furnace', reference_position=ore, direction=RIGHT, gap=1)
+place_entity_next_to('stone-furnace', reference_position=ore, direction=DOWN, gap=1)
+place_entity_next_to('stone-furnace', reference_position=ore, direction=LEFT, gap=1)
 
-place_entity('transport-belt', direction=LEFT, position=(ore[0]-14,ore[1]))
-place_entity('transport-belt', direction=RIGHT, position=(ore[0]+4,ore[1]))
-place_entity('transport-belt', direction=UP, position=(ore[0],ore[1]-14))
-place_entity('transport-belt', direction=DOWN, position=(ore[0],ore[1]+4))
 inspect_entities(5)
 """
 
 if __name__ == '__main__':
 
-    import openai
+    inventory = {
+        'coal': 50,
+        'copper-plate': 50,
+        'iron-plate': 50,
+        'iron-chest': 1,
+        'burner-mining-drill': 1,
+        'assembling-machine-1': 1,
+        'stone-furnace': 4,
+        'transport-belt': 50
+    }
 
     factorio_runner = FactorioRunner("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",
                                      #model="gpt-3.5-turbo",
+                                     inventory=inventory,
                                      buffer_size=16,
                                      beam=1
                                      )
@@ -89,8 +92,8 @@ if __name__ == '__main__':
     rcon = factorio_runner.instance.rcon_client
 
     try:
-        #factorio_runner.instance.eval(test)
-        pass
+        factorio_runner.instance.eval(test)
+        #pass
     except Exception as e:
         print(e)
 

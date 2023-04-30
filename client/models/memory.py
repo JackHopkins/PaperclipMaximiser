@@ -114,6 +114,9 @@ class Memory(object):
         for member in members:
             self.variables[member] = instance.__dict__[member]
 
+    def log_warnings(self, alerts):
+        alert_string = "Warning: " + "\nWarning: ".join(alerts)
+        self._log_history(alert_string, "user", error=True)
 
     def log_error(self, message, line=0):
         output = f"{bcolors.FAIL}{message}"
