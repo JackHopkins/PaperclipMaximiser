@@ -1,0 +1,13 @@
+comment("Inspect the available resources around me")
+resources = inspect_resources()
+print(resources)
+comment("Locate the coal patch and move to it")
+coal_patch = resources['coal'][0]['min_coordinates']
+move_to(coal_patch)
+comment("Place a burner-mining-drill on the coal patch")
+place_entity('burner-mining-drill', direction=RIGHT, exact=False, position=coal_patch)
+comment("Place a stone furnace next to the mining drill")
+furnace_position = place_entity_next_to('stone-furnace', reference_position=coal_patch, direction=RIGHT, gap=1)
+comment("Insert coal from mining drill to stone furnace using inserter")
+coal_position = nearest('coal')
+connect_entities(source_position=coal_patch, target_position=furance_position, connection_type='inserter')

@@ -1,0 +1,15 @@
+comment("Inspect the natural resources around me")
+resources = inspect_resources()
+comment("Move to the coal resource area")
+coal_position = resources['coal']['min_coordinates']
+move_to(coal_position)
+comment("Place burner-mining-drill in the coal area and power it with coal")
+place_entity('burner-mining-drill', direction=RIGHT, position=nearest_buildable('burner-mining-drill'))
+comment("Extract coal from the burner-mining-drill")
+coal_extract_pos = nearest('burner-mining-drill')
+extract_item('coal', source_position=coal_extract_pos, quantity=1)
+comment("Insert coal into the burner-mining-drill to fuel it")
+insert_item('coal', target_position=coal_extract_pos, quantity=1)
+comment("Move to the nearest water resource area")
+water_position = resources['water']['min_coordinates']
+move_to(water_position)

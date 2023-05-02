@@ -1,0 +1,156 @@
+[94mcomment("Inspect the resources around me")
+resources = inspect_resources()
+[94mcomment("Locate and move to the nearest coal deposit")
+coal_position = nearest('coal')
+move_to(coal_position)
+[94mcomment("Place a burner-mining-drill at the coal deposit")
+place_entity('burner-mining-drill', direction=RIGHT, exact=False, position=coal_position)
+[92m1: (-8, -5)
+[94mcomment("Inspect entities within a 5-meter radius to ensure the burner-mining-drill is placed")
+inspect_entities(5)
+[92m1: [{'name': 'burner_mining_drill', 'position': (-8, -5), 'warning': 'The entity is out of fuel', 'status': 'empty'}, {'name': 'player_character', 'position': (-5.6015625, -5), 'warning': '', 'status': 'empty'}]
+[94mcomment("Move to the nearest iron ore deposit")
+iron_ore_position = nearest('iron_ore')
+move_to(iron_ore_position)
+[91mWarning: burner-mining-drill at (-5, -8): out of fuel
+[94mcomment("Pick up some coal to refuel the burner-mining-drill")
+pickup_entity('coal', coal_position)
+[91mError line 1: Could not pickup, did you intend to harvest?. 0
+[91mWarning: burner-mining-drill at (-5, -8): out of fuel
+[94mcomment("Harvest some coal to refuel the burner-mining-drill")
+harvest_resource(coal_position, quantity=5)
+[91mError line 1: Could not harvest at position (-8, -5), possibly out of reach?
+[94mcomment("Move back to the coal deposit")
+move_to(coal_position)
+[94mcomment("Harvest some coal to refuel the burner-mining-drill")
+harvest_resource(coal_position, quantity=5)
+[91mWarning: burner-mining-drill at (-5, -8): out of fuel
+[94mharvest_resource(coal_position, quantity=5)
+[94mcomment("Move back to the drill that needs fuel")
+move_to((-5, -8))
+[94mcomment("Refuel the burner-mining-drill with the harvested coal")
+insert_item('coal', target_position=(-5, -8), quantity=5)
+[94mcomment("Now setting up iron ore mining and smelting operations")
+[91mWarning: burner-mining-drill at (-5, -8): out of fuel
+[94mcomment("Move back to the coal deposit")
+move_to(coal_position)
+[94mcomment("Harvest more coal")
+harvest_resource(coal_position, quantity=10)
+[94mcomment("Move back to the drill that needs fuel")
+move_to((-5, -8))
+[91mWarning: burner-mining-drill at (-5, -8): waiting for space in destination as the output is full. Place a transport-belt or furnace at (-6.5, -5.5) to unblock.
+[94mmove_to((-5, -8))
+[94mcomment("Refuel the burner-mining-drill with coal")
+insert_item('coal', target_position=(-5, -8), quantity=5)
+[94mcomment("Place a transport-belt to unblock the output of the mining-drill")
+place_entity('transport-belt', direction=LEFT, position=(-6.5, -5.5))
+[92m1: (-6.5, -5.5)
+[91mWarning: burner-mining-drill at (-5, -8): waiting for space in destination as the output is full. Place a transport-belt or furnace at (-6.5, -5.5) to unblock.
+[94mplace_entity('transport-belt', direction=LEFT, exact=False, position=(-6.5, -5.5))
+[92m0: (-7.5, -6.5)
+[94mcomment("Verify that the transport-belt is placed correctly")
+inspect_entities(radius=5)
+[92m1: [{'name': 'transport_belt', 'position': (-7.5, -6.5), 'warning': '', 'status': 'empty'}, {'name': 'transport_belt', 'position': (-6.5, -5.5), 'warning': '', 'status': 'empty'}, {'name': 'burner_mining_drill', 'position': (-8, -5), 'warning': '', 'contents': {'coal': 9}, 'status': 'not empty'}, {'name': 'player_character', 'position': (-5, -8), 'warning': '', 'status': 'empty'}]
+[94mcomment("Move to the iron ore deposit")
+move_to(iron_ore_position)
+[94mcomment("Harvest more iron ore")
+harvest_resource(iron_ore_position, quantity=10)
+[91mError line 1: Could only harvest 9 at position (22, -5)
+[94mcomment("We harvested 9 iron ore instead of the requested 10")
+iron_ore_harvested = 9
+[94mcomment("Prepare to smelt the iron ore")
+[94mcomment("Place a stone furnace")
+stone_furnace_position = place_entity('stone_furnace', exact=False, position=(25, -5))
+[94mcomment("Insert iron ore into the stone furnace for smelting")
+insert_item('iron_ore', target_position=stone_furnace_position, quantity=iron_ore_harvested)
+[94mcomment("Place a burner-mining-drill next to the stone furnace to extract coal for smelting")
+burner_drill_position = place_entity_next_to('burner-mining-drill', reference_position=stone_furnace_position, direction=LEFT, gap=1)
+[91mWarning: stone-furnace at (-5, 25): out of fuel, no ingredients to smelt
+[94mcomment("We need to provide fuel for the stone furnace")
+[94mcomment("Move to the coal deposit to collect coal")
+move_to(coal_position)
+[94mcomment("Harvest coal")
+harvest_resource(coal_position, quantity=5)
+[94mcomment("Move back to the stone furnace")
+move_to(stone_furnace_position)
+[91mWarning: burner-mining-drill at (-5, 23): out of fuel
+Warning: stone-furnace at (-5, 25): out of fuel
+[94mcomment("Refuel the stone furnace and the burner-mining-drill with harvested coal")
+[94mcomment("Move to the stone furnace")
+move_to(stone_furnace_position)
+[94mcomment("Insert harvested coal as fuel into the stone furnace")
+insert_item('coal', target_position=stone_furnace_position, quantity=2)
+[91mWarning: burner-mining-drill at (-5, 23): out of fuel
+Warning: stone-furnace at (-5, 25): out of fuel
+[94mcomment("Refuel the stone furnace and the burner-mining-drill with harvested coal")
+[94minsert_item('coal', target_position=stone_furnace_position, quantity=2)
+[94mcomment("Move to the burner-mining-drill")
+move_to(burner_drill_position)
+[94mcomment("Insert harvested coal as fuel into the burner-mining-drill")
+insert_item('coal', target_position=burner_drill_position, quantity=2)
+[91mWarning: burner-mining-drill at (-5, 23): out of fuel
+[94minsert_item('coal', target_position=burner_drill_position, quantity=2)
+[94mcomment("Check the inventory for iron plates")
+inspect_inventory()
+[92m1: {'iron-chest': 1, 'transport-belt': 48, 'assembling-machine-1': 1, 'coal': 57, 'iron-plate': 50, 'copper-plate': 50}
+[94mcomment("Move resources to the nearest assembling machine")
+assembling_machine_position = nearest('assembling-machine-1')
+move_to(assembling_machine_position)
+[91mError line 1: No assembling-machine-1 found on the map
+[94mcomment("Place an assembling machine close to the stone furnace")
+move_to((stone_furnace_position[0]+1, stone_furnace_position[1]))
+assembling_machine_position = place_entity('assembling-machine-1', direction=UP, position=(stone_furnace_position[0]+1, stone_furnace_position[1]))
+[94mcomment("Connect the stone-furnace's output to the assembling-machine's input using an inserter")
+connect_entities(source_position=stone_furnace_position, target_position=assembling_machine_position, connection_type='inserter')
+[91mError line 1: Cannot place connector here.
+[94mcomment("Move one tile down and try placing the inserter again")
+move_to((stone_furnace_position[0], stone_furnace_position[1] + 1))
+connect_entities(source_position=stone_furnace_position, target_position=assembling_machine_position, connection_type='inserter')
+[91mError line 2: Cannot place connector here.
+[91mWarning: assembling-machine-1 at (-5.5, 27.5): not receiving electricity
+[94mcomment("Set up a simple power generation infrastructure using coal-fired boilers and steam engines")
+[94mcomment("Find the nearest water source")
+nearest_water = nearest('water')
+move_to(nearest_water)
+[94mcomment("Place a offshore pump at the edge of the water source")
+offshore_pump_position = place_entity('offshore-pump', direction=UP, exact=False, position=nearest_water)
+[91mError line 1: Could not place offshore-pump at (25, -33). No offshore pump in inventory.
+[91mWarning: assembling-machine-1 at (-5.5, 27.5): not receiving electricity
+[94mcomment("Craft an offshore pump")
+craft_item('offshore-pump', quantity=1)
+[94mcomment("Place the offshore pump at the edge of the water source again")
+offshore_pump_position = place_entity('offshore-pump', direction=UP, exact=False, position=nearest_water)
+[94mcomment("Place a boiler connected to the offshore pump")
+boiler_position = place_entity_next_to('boiler', reference_position=offshore_pump_position, direction=RIGHT, gap=1)
+[91mError line 1: Cannot place here.
+[91mWarning: assembling-machine-1 at (-5.5, 27.5): not receiving electricity
+[94mcomment("Inspect inventory to check if we have the necessary items")
+inspect_inventory()
+[92m1: {'iron-chest': 1, 'transport-belt': 48, 'coal': 57, 'iron-plate': 45, 'copper-plate': 44}
+[94mcomment("Craft a boiler")
+craft_item('boiler', quantity=1)
+[91mError line 1: Failed to craft 1x boiler because missing ingredient stone
+[94mcomment("Find the location of the nearest stone resource")
+nearest_stone = nearest('stone')
+[91mWarning: assembling-machine-1 at (-5.5, 27.5): not receiving electricity
+[94mnearest_stone_pos = nearest('stone')
+move_to(nearest_stone_pos)
+[94mcomment("Harvest 10 stone for crafting the boiler")
+harvest_resource(nearest_stone_pos, quantity=10)
+[91mError line 1: Could only harvest 9 at position (-8, 6)
+[94mcomment("Harvest the remaining stone needed")
+harvest_resource(nearest_stone_pos, quantity=1)
+[91mWarning: assembling-machine-1 at (-5.5, 27.5): not receiving electricity
+[94mmove_to(nearest_stone_pos)
+harvest_resource(nearest_stone_pos, quantity=1)
+[94mcomment("Craft a boiler")
+craft_item('boiler', quantity=1)
+[94mcomment("Move back to the assembling machine location")
+move_to(assembling_machine_position)
+[91mWarning: assembling-machine-1 at (-5.5, 27.5): not receiving electricity
+[94mmove_to(assembling_machine_position)
+[94mcomment("Configure the assembling machine to craft steam engines")
+set_entity_recipe(assembling_machine_position, recipe='steam-engine')
+[94mcomment("Connect the assembling machine to the boiler")
+entity_position = place_entity_next_to('boiler', reference_position=assembling_machine_position, direction=UP, gap=1)
+connect_entities(source_position=entity_position, target_position=assembling_machine_position, connection_type='pipe_to_ground')

@@ -1,0 +1,2 @@
+[94mcomment("First, assess my surroundings and resources")
+resources = inspect_resources()

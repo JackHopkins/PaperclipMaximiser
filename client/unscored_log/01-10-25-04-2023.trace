@@ -1,0 +1,2 @@
+comment("Inspect natural resources and landscape")
+resources = inspect_resources()

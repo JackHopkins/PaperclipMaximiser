@@ -1,0 +1,5 @@
+# Lets start by checking my inventory.
+# Set up a coal mining drill and place an iron chest to store the mined coal
+coal_position = nearest('coal')
+place_entity('burner-mining-drill', direction=RIGHT, position=coal_position)
+place_entity('iron-chest', direction=UP, position=(coal_position[0]+1, coal_position[1]))

@@ -1,0 +1,17 @@
+# Lets start by checking my inventory.
+# I have some basic tools to start automating the production of iron-gear-wheels. 
+# Let's place a burner mining drill on top of an iron_ore source and start mining the material.
+iron_ore_pos = nearest('iron-ore')
+place_entity('burner-mining-drill', direction=LEFT, position=iron_ore_pos)
+move_to((iron_ore_pos[0]-1, iron_ore_pos[1]))
+move_to(nearest('stone-furnace'), laying='transport-belt')
+# In order to prevent the timeout, let's break the code down into smaller chunks
+# Let's first place a burner mining drill on the nearest iron_ore source 
+iron_ore_pos = nearest('iron-ore')
+place_entity('burner-mining-drill', direction=LEFT, position=iron_ore_pos)
+# To prevent timeout, here's a simplified version of the code which will only place a burner mining drill on the nearest iron ore.
+iron_ore_pos = nearest('iron-ore') 
+place_entity('burner-mining-drill',position=iron_ore_pos,direction=LEFT) 
+# Let's try that again without the comments
+iron_ore_pos = nearest('iron-ore') 
+place_entity('burner-mining-drill',position=iron_ore_pos,direction=LEFT)

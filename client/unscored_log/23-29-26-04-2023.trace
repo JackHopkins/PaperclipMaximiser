@@ -1,0 +1,3 @@
+comment("Initialize game by inspecting resources and entities")
+inspect_resources()
+inspect_entities()

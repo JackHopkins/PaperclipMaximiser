@@ -1,0 +1,136 @@
+[94mcomment("Check for available resources in the area")
+resource_data = inspect_resources()
+[92mScore: 585
+[94mcomment("Inspect entities within a 20-meter radius")
+entities_nearby = inspect_entities(20)
+[92mScore: 585
+[94mcomment("Check the items in the inventory")
+inventory_data = inspect_inventory()
+[92mScore: 585
+[94mcomment("Move to the nearest coal deposit and place a burner-mining-drill")
+coal_position = nearest('coal')
+move_to(coal_position)
+burner_drill_position = (coal_position[0]-2, coal_position[1])
+place_entity('burner-mining-drill', direction=DOWN, position=burner_drill_position)
+[92mLine 1: (-10, -5)
+Score: 585
+[94mcomment("Move to the nearest stone deposit and place a burner-mining-drill")
+stone_position = nearest('stone')
+move_to(stone_position)
+burner_drill_position_stone = (stone_position[0]-2, stone_position[1])
+place_entity('burner-mining-drill', direction=DOWN, position=burner_drill_position_stone)
+[92mLine 1: Error: Could not place burner-mining-drill. "global.actions.place entity = function(player..."]:14: No burner mining drill in inventory.
+Score: 585
+[94mcomment("Craft a burner-mining-drill and place it at the nearest stone deposit")
+craft_item('burner-mining-drill', quantity=1)
+stone_position = nearest('stone')
+move_to(stone_position)
+burner_drill_position_stone = (stone_position[0]-2, stone_position[1])
+place_entity('burner-mining-drill', direction=DOWN, position=burner_drill_position_stone)
+[92mLine 1: (-11, 6)
+Score: 585
+[94mcomment("Pick up coal and insert it into the burner-mining-drill at the stone deposit")
+pickup_entity('coal', coal_position)
+insert_item('coal', target_position=burner_drill_position_stone, quantity=1)
+[92mLine 1: Error: Could not pickup, did you intend to harvest?. 0
+Score: 585
+[94mcomment("Harvest coal and insert it into the burner-mining-drill at the stone deposit")
+harvest_resource(coal_position, quantity=1)
+insert_item('coal', target_position=burner_drill_position_stone, quantity=1)
+[92mLine 1: Error: Could not harvest.. "global.actions.harvest resource = function(pl..."]:65: Could only harvest 0
+Score: 585
+[94mcomment("Move to coal_position, harvest coal and insert it into the burner-mining-drill at the stone deposit")
+move_to(coal_position)
+harvest_resource(coal_position, quantity=1)
+insert_item('coal', target_position=burner_drill_position_stone, quantity=1)
+[92mLine 1: Error: Could not harvest.. "global.actions.harvest resource = function(pl..."]:65: Could only harvest 0
+Score: 624
+[94mcomment("Find the nearest coal deposit with coal available, harvest it and insert it into the burner-mining-drill at the stone deposit")
+available_coal_deposits = [r for r in inspect_resources() if r['name'] == 'coal' and r['amount'] > 0]
+if available_coal_deposits:
+    nearest_coal_deposit_position = available_coal_deposits[0]['position']
+    move_to(nearest_coal_deposit_position)
+    harvest_resource(nearest_coal_deposit_position, quantity=1)
+    insert_item('coal', target_position=burner_drill_position_stone, quantity=1)
+else:
+    comment("No coal deposits with coal available found")
+[92mLine 1: Error: string indices must be integers
+Score: 624
+[94mcomment("Extract 1 coal from the burner-mining-drill at coal_position and insert it into the one at the stone deposit")
+extract_item('coal', source_position=coal_position, quantity=1)
+insert_item('coal', target_position=burner_drill_position_stone, quantity=1)
+[92mLine 1: Error: Could not extract.. "global.actions.extract item = function(player..."]:32: No item to extract
+Score: 624
+[94mcomment("Check the status of the burner-mining-drill at coal_position and extract 1 coal if there is any")
+entities_around_coal_position = inspect_entities(2, position=coal_position)
+burner_drill = next((e for e in entities_around_coal_position if e['name'] == 'burner-mining-drill'), None)
+if burner_drill is not None and burner_drill['inventory']['coal'] > 0:
+    extract_item('coal', source_position=coal_position, quantity=1)
+    insert_item('coal', target_position=burner_drill_position_stone, quantity=1)
+else:
+    comment("No coal to extract from burner-mining-drill at coal_position")
+[92mLine 1: Error:   call  () got an unexpected keyword argument 'position'
+Score: 624
+[94mcomment("Check the status of the burner-mining-drill at coal_position and extract 1 coal if there is any")
+entities_around_coal_position = inspect_entities(2, pos=coal_position)
+burner_drill = next((e for e in entities_around_coal_position if e['name'] == 'burner-mining-drill'), None)
+if burner_drill is not None and burner_drill['inventory']['coal'] > 0:
+    extract_item('coal', source_position=coal_position, quantity=1)
+    insert_item('coal', target_position=burner_drill_position_stone, quantity=1)
+else:
+    comment("No coal to extract from burner-mining-drill at coal_position")
+[92mLine 1: Error:   call  () got an unexpected keyword argument 'pos'
+Score: 624
+[94mcomment("Check the status of the burner-mining-drill at coal_position and extract 1 coal if there is any")
+entities_around_coal_position = inspect_entities(2, position_filter=coal_position)
+burner_drill = next((e for e in entities_around_coal_position if e['name'] == 'burner-mining-drill'), None)
+if burner_drill is not None and burner_drill['inventory']['coal'] > 0:
+    extract_item('coal', source_position=coal_position, quantity=1)
+    insert_item('coal', target_position=burner_drill_position_stone, quantity=1)
+else:
+    comment("No coal to extract from burner-mining-drill at coal_position")
+[92mLine 1: Error:   call  () got an unexpected keyword argument 'position filter'
+Score: 624
+[94mcomment("Check the status of the burner-mining-drill at coal_position and extract 1 coal if there is any")
+entities_around_coal_position = inspect_entities(2, position=coal_position)
+burner_drill = next((e for e in entities_around_coal_position if e['name'] == 'burner-mining-drill'), None)
+if burner_drill is not None and burner_drill['inventory']['coal'] > 0:
+    extract_item('coal', source_position=coal_position, quantity=1)
+    insert_item('coal', target_position=burner_drill_position_stone, quantity=1)
+else:
+    comment("No coal to extract from burner-mining-drill at coal_position")
+[92mLine 1: Error:   call  () got an unexpected keyword argument 'position'
+Score: 624
+[94mcomment("Check the status of the burner-mining-drill at coal_position and extract 1 coal if there is any")
+entities_around_coal_position = inspect_entities(2)
+burner_drill = next((e for e in entities_around_coal_position if e['name'] == 'burner-mining-drill' and e['position'] == coal_position), None)
+if burner_drill is not None and burner_drill['inventory']['coal'] > 0:
+    extract_item('coal', source_position=coal_position, quantity=1)
+    insert_item('coal', target_position=burner_drill_position_stone, quantity=1)
+else:
+    comment("No coal to extract from burner-mining-drill at coal_position")
+[92mLine 1: Error: name
+Score: 624
+[94mcomment("Check the status of the burner-mining-drill at coal_position and extract 1 coal if there is any")
+entities_around_coal_position = inspect_entities(2)
+burner_drill = next((e for e in entities_around_coal_position if e['entity.name'] == 'burner-mining-drill' and e['entity.position'] == coal_position), None)
+if burner_drill is not None and burner_drill['inventory']['coal'] > 0:
+    extract_item('coal', source_position=coal_position, quantity=1)
+    insert_item('coal', target_position=burner_drill_position_stone, quantity=1)
+else:
+    comment("No coal to extract from burner-mining-drill at coal_position")
+[92mLine 1: Error: entity.name
+Score: 624
+[94mcomment("Check the status of the burner-mining-drill at coal_position and extract 1 coal if there is any")
+entities_around_coal_position = inspect_entities(2)
+burner_drill = next((e for e in entities_around_coal_position if e.get('name') == 'burner-mining-drill' and e.get('position') == coal_position), None)
+if burner_drill is not None and burner_drill['inventory']['coal'] > 0:
+    extract_item('coal', source_position=coal_position, quantity=1)
+    insert_item('coal', target_position=burner_drill_position_stone, quantity=1)
+else:
+    comment("No coal to extract from burner-mining-drill at coal_position")
+[92mScore: 624
+[94mcomment("Finding nearest iron ore patch position")
+nearest_iron_position = nearest('iron-ore')
+move_to(nearest_iron_position)
+[92mScore: 624

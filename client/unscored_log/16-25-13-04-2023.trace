@@ -1,0 +1,21 @@
+# Lets start by checking my inventory.
+# We can start with setting up mining for coal, iron ore, stone, and copper ore
+# Place a burner drill for each resource
+coal_position = nearest('coal')
+iron_position = nearest('iron_ore')
+stone_position = nearest('stone')
+copper_position = nearest('copper_ore')
+place_entity('burner-mining-drill', direction=2, position=coal_position)
+place_entity('burner-mining-drill', direction=2, position=iron_position)
+place_entity('burner-mining-drill', direction=2, position=stone_position)
+place_entity('burner-mining-drill', direction=2, position=copper_position)
+# My apologies, let's first craft burner-mining-drills before placing them
+craft_item('burner-mining-drill', quantity=4)
+# First, let's mine some stone manually to craft burner-mining-drills
+move_to(stone_position)
+harvest_resource((0, 0), quantity=15) # Mine stone to craft 3x burner-mining-drill
+craft_item('burner-mining-drill', quantity=3)
+# I apologize for the error, let's correct the position for mining stone
+move_to(stone_position)
+harvest_resource((0, 1), quantity=15) # Mine stone to craft 3x burner-mining-drill
+craft_item('burner-mining-drill', quantity=3)

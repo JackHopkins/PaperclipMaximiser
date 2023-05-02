@@ -1,0 +1,77 @@
+# First, I need to find some resources to start my mining operation.
+inspect_resources()
+# Based on the observation, there are coal, iron_ore and stone nearby.
+# First, I will start by placing a burner mining drill on the nearest coal resource.
+coal_position = nearest('coal')
+move_to(coal_position)
+entity_position = place_entity('burner-mining-drill', direction=DOWN, position=(coal_position[0], coal_position[1]+2))
+inspect_entities(5)
+# It seems that there are obstacles preventing me from placing the burner mining drill. I need to inspect my surroundings first.
+inspect_entities(5)
+# I am at position (-8, -5) which is close to the coal resource. Now, I will inspect the entities within 10-meter radius of me to find out what the obstacles are. 
+inspect_entities(10)
+# It seems there are no obstacles, I will try placing the burner mining drill again.
+coal_position = nearest('coal')
+move_to(coal_position)
+entity_position = place_entity('burner-mining-drill', direction=DOWN, position=(coal_position[0], coal_position[1]+2))
+inspect_entities(5)
+# It's still not working. I think there might be a problem with the position of the burner mining drill. I will try a different direction.
+coal_position = nearest('coal')
+move_to(coal_position)
+entity_position = place_entity('burner-mining-drill', direction=LEFT, position=(coal_position[0]-2, coal_position[1]))
+inspect_entities(5)
+# Now that I have successfully placed the burner mining drill, I will move to the stone resource, place a stone furnace and automate the production of stone bricks.
+stone_position = nearest('stone')
+move_to(stone_position)
+entity_position = place_entity('stone-furnace', direction=UP, position=(stone_position[0], stone_position[1]-2))
+inspect_entities(5)
+# It seems the furnace needs fuel. I will check my inventory for coal and insert some into the furnace.
+check_inventory()
+insert_item('coal', target_position=entity_position, quantity=5) #assuming I have 5 coal in inventory
+inspect_entities(5)
+# I will insert input material into the furnace 
+entity_position = nearest('stone-furnace')
+insert_item('stone', target_position=entity_position, quantity=5)
+# It seems I do not have any stone. I will find a stone deposit and harvest some.
+stone_position = nearest('stone')
+move_to(stone_position)
+harvest_resource(stone_position, quantity=5)
+# It appears I wasn't close enough to the resource. I will move closer and try again.
+stone_position = nearest('stone')
+move_to(stone_position)
+harvest_resource(stone_position, quantity=5)
+# I think the resource might have been depleted. I will check the resources around me.
+inspect_resources()
+# There is a coal deposit nearby, I will move there and harvest some coal.
+coal_position = nearest('coal')
+move_to(coal_position)
+harvest_resource(coal_position, quantity=5)
+# I think the coal patch might have been depleted. I will move towards the iron ore deposit and try to gather some.
+iron_ore_position = nearest('iron_ore')
+move_to(iron_ore_position)
+harvest_resource(iron_ore_position, quantity=10)
+# It seems the quantity was too high. I will try again with a lower quantity.
+iron_ore_position = nearest('iron_ore')
+move_to(iron_ore_position)
+harvest_resource(iron_ore_position, quantity=5)
+# It seems that no resource is available here. Maybe, I can place a mining drill here to extract the iron ore automatically.
+iron_ore_position = nearest('iron_ore')
+move_to(iron_ore_position)
+entity_position = place_entity('burner-mining-drill', direction='south', position=(iron_ore_position[0], iron_ore_position[1]+2)) #Placed the mining drill 2 tiles away from the iron-resource
+entity_position = place_entity('transport-belt', direction='north', position=(entity_position[0], entity_position[1]+1)) #Placed a transport belt to collect the ore.
+Score: 10
+# I see the mistake I made. I need to pass the tuple value to add y value to position[1].
+iron_ore_position = nearest('iron_ore')
+move_to(iron_ore_position)
+entity_position = place_entity('burner-mining-drill', direction='south', position=(iron_ore_position[0], iron_ore_position[1]+2)) #Placed the mining drill 2 tiles away from the iron-resource
+entity_position = place_entity('transport-belt', direction='north', position=(entity_position[0], entity_position[1]+1)) #Placed a transport belt to collect the ore.
+Score: 15
+# Sorry, I have made another mistake, I forgot to add the inventory check before harvesting the resource.
+check_inventory()
+iron_ore_position = nearest('iron_ore')
+move_to(iron_ore_position)
+entity_position = place_entity('burner-mining-drill', direction='south', position=(iron_ore_position[0], iron_ore_position[1]+2)) #Placed the mining drill 2 tiles away from the iron-resource
+entity_position = place_entity('transport-belt', direction='north', position=(entity_position[0], entity_position[1]+1)) #Placed a transport belt to collect the ore.
+harvest_resource(iron_ore_position, quantity=5)
+check_inventory()
+Score: 20

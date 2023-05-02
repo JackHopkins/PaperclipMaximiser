@@ -1,0 +1,86 @@
+[92mThere are 4.2k tree_01s scattered 23km northwest, 17km north-northwest, 16km north, 16km north-northeast, 21km northeast, 1km east-northeast, 3km west-northwest, 760 metres west, 32 metres east, 4km west-southwest, 720 metres east-southeast, 17km southeast, 17km southwest, 13km south-southwest, 13km south-southeast, and 11km south 
+- 100x coal 10 metres northwest (-17, -14) x (-8, -5)
+- 100x iron_ore 10 metres east-northeast (22, -14) x (31, -5)
+- 100x stone 10 metres southwest (-17, 6) x (-8, 15)
+- 100x copper_ore 10 metres east-southeast (22, 6) x (31, 15)
+- 100x uranium_ore 30 metres southeast (22, 26) x (31, 35)
+[96m# Lets start by checking my inventory.
+[92m{'iron-chest': 1, 'transport-belt': 50, 'stone-furnace': 1, 'assembling-machine-1': 1, 'coal': 50, 'iron-plate': 50, 'copper-plate': 50}
+[92mThere are 4.2k tree_01s scattered 23km northwest, 17km north-northwest, 16km north, 16km north-northeast, 21km northeast, 1km east-northeast, 3km west-northwest, 760 metres west, 32 metres east, 4km west-southwest, 720 metres east-southeast, 17km southeast, 17km southwest, 13km south-southwest, 13km south-southeast, and 11km south 
+- 100x coal 10 metres northwest (-17, -14) x (-8, -5)
+- 100x iron_ore 10 metres east-northeast (22, -14) x (31, -5)
+- 100x stone 10 metres southwest (-17, 6) x (-8, 15)
+- 100x copper_ore 10 metres east-southeast (22, 6) x (31, 15)
+- 100x uranium_ore 30 metres southeast (22, 26) x (31, 35)
+[96m# Lets start by checking my inventory.
+[92m{'iron-chest': 1, 'transport-belt': 50, 'stone-furnace': 1, 'assembling-machine-1': 1, 'coal': 50, 'iron-plate': 50, 'copper-plate': 50}
+[94m# Good, we have some basic items in our inventory. Let's start by placing a burner-drill next to the nearest coal resource.
+place_entity('burner-mining-drill', direction=2, position=nearest('coal'))
+[91mCould not place burner-mining-drill. No burner mining drill in inventory
+[94m# Oops, I made a mistake in the name of the entity. Let me replace it with the correct name.
+place_entity('burner-mining-drill', direction=2, position=nearest('coal'))
+[91mCould not place burner-mining-drill. No burner mining drill in inventory
+[94m# I apologize for that mistake, I forgot to craft the burner mining drill first. Let me craft it and then place it.
+craft_item('burner-mining-drill', quantity=1)
+place_entity('burner-mining-drill', direction=2, position=nearest('coal'))
+[92m1
+True
+[94m# Great, now that we have a burner mining drill placed next to the coal resource, let's create a trail of transport belts to move the coal to a furnace. 
+# First, let's move to nearest stone furnace to place it
+move_to(nearest('stone-furnace'), laying='transport-belts')
+[91mYou can't do that action. 'NoneType' object is not subscriptable
+[94m# My mistake, the nearest function returned none. Maybe there are no furnaces nearby. Therefore, let's craft one and then place it in a suitable location. 
+craft_item('stone-furnace', quantity=1)
+place_entity('stone-furnace', position=(0, 0)) # Placing it at the starting position for demonstration purposes.
+[91mCould not craft a stone-furnace. {'stone': 5}
+[94m# I made a mistake, looks like we don't have enough resources to craft a furnace. Let's inspect nearby resources to gather materials for crafting.
+inspect_radius(20)
+[92mentities:
+- direction: north
+  position: !!python/tuple
+  - -7
+  - -4
+  status: empty
+  type: burner_mining_drill
+
+[94m# Looks like there is a burner mining drill nearby. Let's inspect it to see if it is operational and gathering any resources.
+inspect_radius(1)
+[92mentities:
+- direction: north
+  position: !!python/tuple
+  - -7
+  - -4
+  status: empty
+  type: burner_mining_drill
+
+[94m# It seems that the burner mining drill near us is currently not mining any resources. Let's move on to gather resources ourselves.
+# Let's move to the nearest iron ore resource.
+move_to(nearest('iron-ore'))
+[92mNone
+[94m# Oops, it looks like there are no iron-ore resources nearby. Let's try the nearest copper ore instead.
+move_to(nearest('copper-ore'))
+[92mNone
+[96m# It may take some time to reach an ore site. Let's use the `observe_nature()` method to see the landscape around us and search for ore.
+[94mobserve_nature()
+[92mThere are 5.0k tree_01s scattered 21km northwest, 11km north-northwest, 10km north, 11km north-northeast, 10km northeast, 12km west-northwest, 2km west, 22 metres east-northeast, 37 metres east, 13km west-southwest, 203 metres east-southeast, 9km southeast, 32km southwest, 18km south-southwest, 16km south-southeast, and 15km south 
+- 1104x water 44 metres north (4, -73) x (53, -48)
+- There are 5.0k waters scattered 816 metres north-northwest, 3km north, and 2km north-northeast 
+- 100x coal 10 metres northwest (5, -29) x (14, -20)
+- 100x iron_ore 10 metres east-northeast (44, -29) x (53, -20)
+- 100x stone 10 metres southwest (5, -9) x (14, 0)
+- 100x copper_ore 10 metres east-southeast (44, -9) x (53, 0)
+- 100x uranium_ore 30 metres southeast (44, 11) x (53, 20)
+- There are 5.0k burner_mining_drills scattered 4 metres west-northwest 
+[94m# Great, it looks like there are copper and iron ore resources nearby as well as some burner mining drills. Let's start by moving towards the nearest burner mining drill and see if it is mining any resources yet.
+move_to(nearest('burner-mining-drill'), laying='transport-belts')
+inspect_radius(1)
+[91mYou can't do that action. 'NoneType' object is not subscriptable
+[94m# Sorry about that, it looks like there is no burner mining drill nearby yet. Let's continue moving to the nearest copper ore and gather some resources ourselves.
+# Let's move to the nearest copper ore resource and start harvesting it.
+move_to(nearest('copper-ore'))
+harvest_resource(nearest('copper-ore'), 10)
+[91mCould not harvest.. Nothing to here to harvest
+[94m# My bad again. It seems like there are no copper ore resources here. Let's check the nearest iron ore site.
+move_to(nearest('iron-ore'))
+harvest_resource(nearest('iron-ore'), 10)
+[91mCould not harvest.. Nothing to here to harvest

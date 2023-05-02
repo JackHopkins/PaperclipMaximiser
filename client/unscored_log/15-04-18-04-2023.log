@@ -1,0 +1,62 @@
+[94m# Start by inspecting the resources and entities around.
+inspect_resources()
+inspect_entities(10)
+[92mLine 1: There are 4.2k tree_01s scattered 23km northwest, 17km north-northwest, 16km north, 16km north-northeast, 21km northeast, 1km east-northeast, 3km west-northwest, 760 metres west, 32 metres east, 4km west-southwest, 720 metres east-southeast, 17km southeast, 17km southwest, 13km south-southwest, 13km south-southeast, and 11km south 
+- 100x coal 10 metres northwest (-17, -14) x (-8, -5)
+- 100x iron_ore 10 metres east-northeast (22, -14) x (31, -5)
+- 100x stone 10 metres southwest (-17, 6) x (-8, 15)
+- 100x copper_ore 10 metres east-southeast (22, 6) x (31, 15)
+- 100x uranium_ore 30 metres southeast (22, 26) x (31, 35)
+Line 2: {'entities': [{'type': 'player_character', 'direction': 'west', 'position': (0, 0), 'status': 'empty'}, {'type': 'boiler', 'direction': 'south', 'position': (1.5, -2), 'status': 'empty'}, {'type': 'steam_engine', 'direction': 'north', 'position': (1.5, 3.5), 'status': 'empty'}]}
+[94m# It looks like we have access to coal, iron ore, stone, copper ore and uranium ore.
+[94m# Let's start by placing a few mining drills on the coal and the iron ore.
+[94m# First, let's place a burner mining drill on the nearest coal resource.
+move_to(nearest('coal'))
+place_entity('burner-mining-drill', direction=DOWN, position=nearest('coal'))
+[92mLine 1: Error: Could not place burner-mining-drill. Maybe inspect your surroundings before placing
+[94m# Oops! Looks like there might not be enough space or the ground is uneven to place the burner mining drill.
+[94m# Let's check our surroundings to see if we can find a better spot to place the mining drill.
+inspect_entities(10)
+[92mLine 1: {'entities': [{'type': 'player_character', 'direction': 'west', 'position': (0, 0), 'status': 'empty'}, {'type': 'boiler', 'direction': 'south', 'position': (9.5, 3), 'status': 'empty'}, {'type': 'steam_engine', 'direction': 'north', 'position': (9.5, 8.5), 'status': 'empty'}]}
+[94m# It looks like we are close to the power generation setup. 
+[94m# Let's move a bit further away from the existing entities and inspect our surroundings again.
+move_to((5, -5))
+inspect_entities(10)
+[92mLine 1: {'entities': [{'type': 'boiler', 'direction': 'south', 'position': (-3.5, 3), 'status': 'empty'}, {'type': 'player_character', 'direction': 'west', 'position': (0, 0), 'status': 'empty'}, {'type': 'steam_engine', 'direction': 'north', 'position': (-3.5, 8.5), 'status': 'empty'}]}
+[94m# This looks like a good spot. Let's try to place the burner mining drill again.
+move_to(nearest('coal'))
+place_entity('burner-mining-drill', direction=DOWN, position=nearest('coal'))
+[92mLine 1: Error: Could not place burner-mining-drill. Maybe inspect your surroundings before placing
+[94m# It looks like there still might not be enough space. We could try adding some transport belts to move the coal to a different spot for the mining drill.
+[94m# Let's try moving further away from the existing entities to get a better view of the terrain.
+move_to((-20, 0))
+inspect_entities(20)
+inspect_resources()
+[92mLine 1: {'entities': [{'type': 'player_character', 'direction': 'west', 'position': (0, 0), 'status': 'empty'}, {'type': 'boiler', 'direction': 'south', 'position': (21.5, -2), 'status': 'empty'}, {'type': 'steam_engine', 'direction': 'north', 'position': (21.5, 3.5), 'status': 'empty'}]}
+Line 2: There are 5.1k tree_01s scattered 17km north-northwest, 14km north, 18km north-northeast, 20km northeast, 22km northwest, 7km west-northwest, 1km east-northeast, 1km west, 71 metres east, 7km west-southwest, 693 metres east-southeast, 21km southwest, 16km southeast, 14km south-southwest, 10km south, and 13km south-southeast 
+- 100x coal 10 metres northeast (3, -14) x (12, -5)
+- 100x iron_ore 10 metres east-northeast (42, -14) x (51, -5)
+- 100x stone 10 metres southeast (3, 6) x (12, 15)
+- 100x copper_ore 10 metres east-southeast (42, 6) x (51, 15)
+- 100x uranium_ore 30 metres east-southeast (42, 26) x (51, 35)
+- There are 5.1k boilers scattered 2 metres east 
+- There are 5.1k steam_engines scattered 3 metres east 
+[94m# It looks like we have quite a few resources around. Let's try to place the burner mining drill on a different coal resource.
+[94m# First, let's move to the closest coal resources.
+coal_positions = [resource['position'] for resource in inspect_resources().values() if 'coal' in resource['name']]
+nearest_resource = min(coal_positions, key=lambda p: distance(p, player_position()))
+move_to(nearest_resource)
+[92mError: 'str' object has no attribute 'values'
+[94m# That's because we forgot to use `inspect_resources()` to get the dictionary, instead of just the string.
+[94m# Let's make that correction and try again.
+resources = inspect_resources()
+coal_positions = [resource['position'] for resource in resources.values() if 'coal' in resource['name']]
+nearest_resource = min(coal_positions, key=lambda p: distance(p, player_position()))
+move_to(nearest_resource)
+[92mError: 'str' object has no attribute 'values'
+[94m# It looks like we forgot to assign the output of `inspect_resources()` to resources variable. Let's fix that.
+resources = inspect_resources()
+coal_positions = [resource['position'] for resource in resources.values() if 'coal' in resource['name']]
+nearest_resource = min(coal_positions, key=lambda p: distance(p, player_position()))
+move_to(nearest_resource)
+[92mError: 'str' object has no attribute 'values'

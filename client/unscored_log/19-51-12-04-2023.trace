@@ -1,0 +1,10 @@
+# Lets start by checking my inventory.
+# First, we need to setup some mining drills for the resources.
+# 1. Move to coal resource and place burner drill
+# 2. Move to iron resource and place burner drill
+# 3. Move to stone resource and place burner drill
+# 4. Move to copper resource and place burner drill
+coal_resource = nearest('coal')
+move_to(coal_resource)
+place_entity('burner-drill', direction=2, position=coal_resource)
+I apologize for the mistake. I will rewrite the code without variable assignment.

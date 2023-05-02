@@ -1,0 +1,9 @@
+[94mcomment("Find the nearest coal and move to it")
+coal_position = nearest('coal')
+move_to(coal_position)
+[94mcomment("Place a burner-mining-drill facing LEFT")
+place_entity('burner-mining-drill', direction=LEFT, position=(coal_position[0]-2, coal_position[1]))
+[92m1: (-10, -5)
+[94mcomment("Move to coordinate (-10, -5)")
+move_to(-10, -5)
+[92m1: Error: Could not move to. You need to pass in a tuple like (x, y) for the absolute position. You passed in scalar.

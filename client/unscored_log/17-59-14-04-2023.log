@@ -1,0 +1,20 @@
+[92mThere are 4.2k tree_01s scattered 23km northwest, 17km north-northwest, 16km north, 16km north-northeast, 21km northeast, 1km east-northeast, 3km west-northwest, 760 metres west, 32 metres east, 4km west-southwest, 720 metres east-southeast, 17km southeast, 17km southwest, 13km south-southwest, 13km south-southeast, and 11km south 
+- 100x coal 10 metres northwest (-17, -14) x (-8, -5)
+- 100x copper_ore 10 metres east-southeast (22, 6) x (31, 15)
+- 100x uranium_ore 30 metres southeast (22, 26) x (31, 35)
+- 94x iron_ore 10 metres east-northeast (22, -14) x (31, -5)
+- 94x stone 10 metres southwest (-17, 6) x (-8, 15)
+- There are 4.2k item_on_grounds scattered 4 metres west-northwest 
+[96m# Lets start by checking my inventory.
+[92m{'iron-chest': 1, 'transport-belt': 50, 'burner-mining-drill': 1, 'stone-furnace': 1, 'assembling-machine-1': 1, 'coal': 50, 'iron-plate': 50, 'copper-plate': 50}
+[96m# Great! Let's get to work. First, let's gather some coal.
+# We will start by picking up the closest coal.
+[94mpickup_entity('coal', nearest(('coal',)))
+[92mLine 1: Error: 'tuple' object has no attribute 'replace'
+[96m# I apologize for the confusion. Here, the correct way to use the nearest function is by passing a string with the desired entity. Let's try again.
+[94mpickup_entity('coal', nearest('coal'))
+[92mLine 1: Error: ('Could not pickup.', 'Nothing_to_here_to_pick_up')
+[94m# It seems like there is no coal to pickup near me. I will move towards the nearest coal and attempt to pick it up again.
+# I'll first define the position of the nearest coal using the observe_nature() function:
+coal_positions = observe_nature()['coal']
+nearest_coal_position = min(coal_positions, key=lambda c: distance_to(c))

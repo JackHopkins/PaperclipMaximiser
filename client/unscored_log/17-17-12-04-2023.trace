@@ -1,0 +1,4 @@
+# Lets start by checking my inventory.
+# First, let's move to the nearest coal resource and place down a burner drill.
+move_to(nearest("coal"))
+place_entity("burner-drill", direction=2, position=nearest("coal"))

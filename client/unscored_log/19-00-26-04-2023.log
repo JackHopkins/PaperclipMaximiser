@@ -1,0 +1,14 @@
+[94mcomment("Plan:")
+[94mcomment("Plan:")
+[94mcomment("Start by inspecting the surrounding resources and creating a plan for our mining operation.")
+inspect_resources()
+[92m1: {'water': [{'size': 900, 'min_coordinates': (-18, -50), 'max_coordinates': (31, -33)}], 'coal': [{'size': 100, 'min_coordinates': (-17, -14), 'max_coordinates': (-8, -5)}], 'iron_ore': [{'size': 100, 'min_coordinates': (22, -14), 'max_coordinates': (31, -5)}], 'stone': [{'size': 100, 'min_coordinates': (-17, 6), 'max_coordinates': (-8, 15)}], 'copper_ore': [{'size': 100, 'min_coordinates': (22, 6), 'max_coordinates': (31, 15)}], 'uranium_ore': [{'size': 100, 'min_coordinates': (22, 26), 'max_coordinates': (31, 35)}]}
+[94mcomment("We currently have an iron ore deposit at position (-8, -5). Our plan will be to use a burner-mining-drill to extract ore and transport it to a nearby furnace for smelting.")
+comment("We will also need to create a source of power using boilers and steam engines.")
+place_entity('burner-mining-drill', position=ore, exact=True)
+[91m2: Error: Could not place burner-mining-drill.  No burner mining drill in inventory.
+[94mcomment("We currently do not have any burner-mining-drills in our inventory. Let's craft a few and then place them on the ore deposit.")
+craft_item('burner-mining-drill', quantity=10) #Craft 10 burner-mining drills
+inspect_inventory() #Check inventory to ensure we have the drills
+place_entity('burner-mining-drill', position=ore, exact=True) #Place a the burner-mining-drill
+[91m1: Error: Could not craft a burner-mining-drill. "global.actions.craft item = function(player i..."]:70: Successfully crafted 1x but failed to craft 9x burner-mining-drill because missing ingredient stone

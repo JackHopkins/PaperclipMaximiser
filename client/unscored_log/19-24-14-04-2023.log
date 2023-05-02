@@ -1,0 +1,263 @@
+[92mThere are 4.2k tree_01s scattered 23km northwest, 17km north-northwest, 16km north, 16km north-northeast, 21km northeast, 1km east-northeast, 3km west-northwest, 760 metres west, 32 metres east, 4km west-southwest, 720 metres east-southeast, 17km southeast, 17km southwest, 13km south-southwest, 13km south-southeast, and 11km south 
+- 100x copper_ore 10 metres east-southeast (22, 6) x (31, 15)
+- 100x uranium_ore 30 metres southeast (22, 26) x (31, 35)
+- 94x coal 10 metres northwest (-17, -14) x (-8, -5)
+- There are 4.2k stones scattered 24 metres west-southwest, and 14 metres southwest 
+- There are 4.2k iron_ores scattered 24 metres east-northeast 
+- There are 4.2k item_on_grounds scattered 4 metres west-northwest 
+[96m# Lets start by checking my inventory.
+[92m{'iron-chest': 1, 'transport-belt': 50, 'burner-mining-drill': 1, 'stone-furnace': 1, 'assembling-machine-1': 1, 'coal': 50, 'iron-plate': 50, 'copper-plate': 50}
+[94m# I have a decent inventory here for getting started. Lets craft some items
+craft_item('transport-belt', quantity=50)
+craft_item('burner-mining-drill', quantity=1)
+craft_item('stone-furnace', quantity=1)
+craft_item('assembling-machine-1', quantity=1)
+craft_item('iron-chest', quantity=1)  # To store our items
+[92mLine 1: Error: ('Could not craft a transport-belt', 'Successfully crafted 17x but failed to craft 33x transport belt because missing ingredient iron ore')
+Line 2: Error: ('Could not craft a burner-mining-drill', 'Failed to craft 1x burner mining drill because missing ingredient iron ore')
+Line 3: Error: ('Could not craft a stone-furnace', 'Failed to craft 1x stone furnace because missing ingredient stone')
+Line 4: Error: ('Could not craft a assembling-machine-1', 'Failed to craft 1x assembling machine 1 because missing ingredient iron ore')
+Line 5: Error: ('Could not craft a iron-chest', 'Failed to craft 1x iron chest because missing ingredient iron ore')
+[94m# Seems like we are short on raw materials. Let's gather some resources from nearby sources
+harvest_resource((-2, 0), quantity=30)  # Gather some coal nearby
+harvest_resource((22, 6), quantity=100)  # Gather copper ore from the specified location
+harvest_resource((22, 26), quantity=100)  # Gather uranium ore from the specified location
+harvest_resource((-17, -14), quantity=94)  # Gather coal from the specified location.
+harvest_resource((24, 14), quantity=4200)  # Gather stones from the specified location
+harvest_resource((24, -14), quantity=4200)  # Gather iron ores from the specified location
+harvest_resource((0, 4), quantity=4200)  # Gather item on grounds from the specified location
+[92mLine 1: Error: ('Could not harvest.', 'Nothing within reach to harvest')
+Line 2: Error: ('Could not harvest.', 'Nothing within reach to harvest')
+Line 3: Error: ('Could not harvest.', 'Nothing within reach to harvest')
+Line 4: Error: ('Could not harvest.', 'Nothing within reach to harvest')
+Line 5: Error: ('Could not harvest.', 'Nothing within reach to harvest')
+Line 6: Error: ('Could not harvest.', 'Nothing within reach to harvest')
+Line 7: Error: ('Could not harvest.', 'Nothing within reach to harvest')
+[94m# Looks like I made some mistakes with the coordinates of the resources. Let me correct them
+harvest_resource((-2, 0), quantity=30)  # Gather some coal nearby
+harvest_resource((22, 6), quantity=100)  # Gather copper ore from the specified location
+harvest_resource((22, 26), quantity=100)  # Gather uranium ore from the specified location
+harvest_resource((-8, -14), quantity=94)  # Gather coal from the specified location.
+harvest_resource((-24, -14), quantity=4200)  # Gather iron ores from the specified location
+harvest_resource((-24, 14), quantity=4200)  # Gather stones from the specified location
+harvest_resource((0, 4), quantity=4200)  # Gather item on grounds from the specified location
+[92mLine 1: Error: ('Could not harvest.', 'Nothing within reach to harvest')
+Line 2: Error: ('Could not harvest.', 'Nothing within reach to harvest')
+Line 3: Error: ('Could not harvest.', 'Nothing within reach to harvest')
+Line 4: Error: ('Could not harvest.', 'Nothing within reach to harvest')
+Line 5: Error: ('Could not harvest.', 'Nothing within reach to harvest')
+Line 6: Error: ('Could not harvest.', 'Nothing within reach to harvest')
+Line 7: Error: ('Could not harvest.', 'Nothing within reach to harvest')
+[94m# Seems like the resources are still out of reach. Let's go to the nearest one
+coal_pos = nearest('coal')
+move_to(coal_pos)
+harvest_resource(coal_pos, quantity=30)
+[92mError: Evaluation timed out
+[94m# Let's check our inventory again to see if we have enough resources
+check_inventory()
+[92mLine 1: {'iron-chest': 1, 'transport-belt': 67, 'burner-mining-drill': 1, 'stone-furnace': 1, 'assembling-machine-1': 1, 'coal': 440, 'copper-plate': 50}
+[94m# Now that we have some resources, let's craft the necessary items and place them
+craft_item('transport-belt', quantity=50)
+craft_item('burner-mining-drill', quantity=1)
+craft_item('stone-furnace', quantity=1)
+craft_item('assembling-machine-1', quantity=1)
+craft_item('iron-gear-wheel', quantity=10)
+[92mLine 1: Error: ('Could not craft a transport-belt', 'Failed to craft 50x transport belt because missing ingredient iron ore')
+Line 2: Error: ('Could not craft a burner-mining-drill', 'Failed to craft 1x burner mining drill because missing ingredient iron ore')
+Line 3: Error: ('Could not craft a stone-furnace', 'Failed to craft 1x stone furnace because missing ingredient stone')
+Line 4: Error: ('Could not craft a assembling-machine-1', 'Failed to craft 1x assembling machine 1 because missing ingredient iron ore')
+Line 5: Error: ('Could not craft a iron-gear-wheel', 'Failed to craft 10x iron gear wheel because missing ingredient iron ore')
+[94m# Seems like we are short on some materials. Let's gather them first and then try to craft again
+harvest_resource((-24, -14), quantity=100)
+harvest_resource((-24, -16), quantity=100)
+harvest_resource((22, 10), quantity=100)
+harvest_resource((22, 12), quantity=100)
+harvest_resource((22, 8), quantity=100)
+craft_item('transport-belt', quantity=50)
+craft_item('burner-mining-drill', quantity=1)
+craft_item('stone-furnace', quantity=1)
+craft_item('assembling-machine-1', quantity=1)
+craft_item('iron-gear-wheel', quantity=10)
+[92mLine 1: Error: ('Could not harvest.', 'Nothing within reach to harvest')
+Line 2: Error: ('Could not harvest.', 'Nothing within reach to harvest')
+Line 3: Error: ('Could not harvest.', 'Nothing within reach to harvest')
+Line 4: Error: ('Could not harvest.', 'Nothing within reach to harvest')
+Line 5: Error: ('Could not harvest.', 'Nothing within reach to harvest')
+Line 6: Error: ('Could not craft a transport-belt', 'Failed to craft 50x transport belt because missing ingredient iron ore')
+Line 7: Error: ('Could not craft a burner-mining-drill', 'Failed to craft 1x burner mining drill because missing ingredient iron ore')
+Line 8: Error: ('Could not craft a stone-furnace', 'Failed to craft 1x stone furnace because missing ingredient stone')
+Line 9: Error: ('Could not craft a assembling-machine-1', 'Failed to craft 1x assembling machine 1 because missing ingredient iron ore')
+Line 10: Error: ('Could not craft a iron-gear-wheel', 'Failed to craft 10x iron gear wheel because missing ingredient iron ore')
+[94m# Let's finally craft the missing ingredients first
+harvest_resource((-24, -14), quantity=100)
+harvest_resource((-24, -16), quantity=100)
+harvest_resource((22, 10), quantity=100)
+harvest_resource((22, 12), quantity=100)
+harvest_resource((22, 8), quantity=100)
+craft_item('iron-plate', quantity=100)
+craft_item('iron-gear-wheel', quantity=10)
+craft_item('stone', quantity=100)
+craft_item('transport-belt', quantity=50)
+craft_item('burner-mining-drill', quantity=1)
+craft_item('stone-furnace', quantity=1)
+craft_item('assembling-machine-1', quantity=1)
+[92mLine 1: Error: ('Could not harvest.', 'Nothing within reach to harvest')
+Line 2: Error: ('Could not harvest.', 'Nothing within reach to harvest')
+Line 3: Error: ('Could not harvest.', 'Nothing within reach to harvest')
+Line 4: Error: ('Could not harvest.', 'Nothing within reach to harvest')
+Line 5: Error: ('Could not harvest.', 'Nothing within reach to harvest')
+Line 6: Error: ('Could not craft a iron-plate', 'Failed to craft 100x iron plate because missing ingredient iron ore')
+Line 7: Error: ('Could not craft a iron-gear-wheel', 'Failed to craft 10x iron gear wheel because missing ingredient iron ore')
+Line 8: Error: ('Could not craft a stone', 'Failed to craft 100x stone because recipe doesnt exist')
+Line 9: Error: ('Could not craft a transport-belt', 'Failed to craft 50x transport belt because missing ingredient iron ore')
+Line 10: Error: ('Could not craft a burner-mining-drill', 'Failed to craft 1x burner mining drill because missing ingredient iron ore')
+Line 11: Error: ('Could not craft a stone-furnace', 'Failed to craft 1x stone furnace because missing ingredient stone')
+Line 12: Error: ('Could not craft a assembling-machine-1', 'Failed to craft 1x assembling machine 1 because missing ingredient iron ore')
+[94m# Let's harvest some iron ore and stone first
+harvest_resource(nearest('iron-ore'), quantity=100)
+harvest_resource(nearest('stone'), quantity=100)
+craft_item('iron-plate', quantity=100)
+craft_item('iron-gear-wheel', quantity=10)
+craft_item('transport-belt', quantity=50)
+craft_item('burner-mining-drill', quantity=1)
+craft_item('stone-furnace', quantity=1)
+craft_item('assembling-machine-1', quantity=1)
+[92mLine 1: Error: ('Could not harvest.', 'Nothing within reach to harvest')
+Line 2: Error: ('Could not harvest.', 'Nothing within reach to harvest')
+Line 3: Error: ('Could not craft a iron-plate', 'Failed to craft 100x iron plate because missing ingredient iron ore')
+Line 4: Error: ('Could not craft a iron-gear-wheel', 'Failed to craft 10x iron gear wheel because missing ingredient iron ore')
+Line 5: Error: ('Could not craft a transport-belt', 'Failed to craft 50x transport belt because missing ingredient iron ore')
+Line 6: Error: ('Could not craft a burner-mining-drill', 'Failed to craft 1x burner mining drill because missing ingredient iron ore')
+Line 7: Error: ('Could not craft a stone-furnace', 'Failed to craft 1x stone furnace because missing ingredient stone')
+Line 8: Error: ('Could not craft a assembling-machine-1', 'Failed to craft 1x assembling machine 1 because missing ingredient iron ore')
+[94m# Let's find a location which have sufficient resources for mining
+observe_nature() # check the resources and their types available
+[92mLine 1: There are 4.4k tree_01s scattered 25km northwest, 17km north-northwest, 16km north, 16km north-northeast, 18km northeast, 6km west-northwest, 514 metres east-northeast, 1km west, 61 metres east, 7km west-southwest, 323 metres east-southeast, 12km southeast, 17km southwest, 11km south-southwest, 10km south-southeast, and 9km south 
+- 100x copper_ore 10 metres east-southeast (30, 11) x (39, 20)
+- 100x uranium_ore 30 metres southeast (30, 31) x (39, 40)
+- 94x coal 10 metres northwest (-9, -9) x (0, 0)
+- There are 4.4k stones scattered 24 metres west-southwest, and 14 metres southwest 
+- There are 4.4k iron_ores scattered 24 metres east-northeast 
+- There are 4.4k item_on_grounds scattered 4 metres west-northwest 
+[94m# Let's head towards a spot with abundant iron ore and coal
+move_to((-12, -10))
+harvest_resource(nearest('iron-ore'), quantity=500)
+harvest_resource(nearest('coal'), quantity=500)
+craft_item('iron-plate', quantity=100)
+craft_item('iron-gear-wheel', quantity=10)
+craft_item('transport-belt', quantity=50)
+craft_item('burner-mining-drill', quantity=1)
+craft_item('stone-furnace', quantity=1)
+craft_item('assembling-machine-1', position=(3,3))   # placing the assembling machine here so that we have to use fewer transport belts 
+                                                    # for transporting iron gears to the machine.
+[92mLine 1: None
+Line 2: Error: ('Could not harvest.', 'Nothing within reach to harvest')
+Line 3: True
+Line 4: Error: ('Could not craft a iron-plate', 'Failed to craft 100x iron plate because missing ingredient iron ore')
+Line 5: Error: ('Could not craft a iron-gear-wheel', 'Failed to craft 10x iron gear wheel because missing ingredient iron ore')
+Line 6: Error: ('Could not craft a transport-belt', 'Failed to craft 50x transport belt because missing ingredient iron ore')
+Line 7: Error: ('Could not craft a burner-mining-drill', 'Failed to craft 1x burner mining drill because missing ingredient iron ore')
+Line 8: Error: ('Could not craft a stone-furnace', 'Failed to craft 1x stone furnace because missing ingredient stone')
+Line 9: Error: craft item() got an unexpected keyword argument 'position'
+[94m# Let's move towards another spot and gather the resources we need
+move_to((19, -16))
+pickup_entity('iron-ore', (20, -20))
+pickup_entity('coal', (20, -18))
+craft_item('iron-plate', quantity=100)
+craft_item('iron-gear-wheel', quantity=10)
+craft_item('transport-belt', quantity=50)
+craft_item('burner-mining-drill', quantity=1)
+craft_item('stone-furnace', quantity=1)
+craft_item('assembling-machine-1', quantity=1)
+[92mLine 1: None
+Line 2: Error: ('Could not pickup.', 'Nothing to here to pick up')
+Line 3: Error: ('Could not pickup.', 'Nothing to here to pick up')
+Line 4: Error: ('Could not craft a iron-plate', 'Failed to craft 100x iron plate because missing ingredient iron ore')
+Line 5: Error: ('Could not craft a iron-gear-wheel', 'Failed to craft 10x iron gear wheel because missing ingredient iron ore')
+Line 6: Error: ('Could not craft a transport-belt', 'Failed to craft 50x transport belt because missing ingredient iron ore')
+Line 7: Error: ('Could not craft a burner-mining-drill', 'Failed to craft 1x burner mining drill because missing ingredient iron ore')
+Line 8: Error: ('Could not craft a stone-furnace', 'Failed to craft 1x stone furnace because missing ingredient stone')
+Line 9: Error: ('Could not craft a assembling-machine-1', 'Failed to craft 1x assembling machine 1 because missing ingredient iron ore')
+[94m# Let's move towards somewhere closer to where there is iron-ore and coal
+move_to((5, -19))
+pickup_entity('coal', (3, -19))
+pickup_entity('coal', (4, -19))
+pickup_entity('iron-ore', (4, -20))
+harvest_resource(nearest('iron-ore'), quantity=100)
+harvest_resource(nearest('iron-ore'), quantity=100)
+harvest_resource(nearest('coal'), quantity=100)
+harvest_resource(nearest('coal'), quantity=100)
+craft_item('iron-plate', quantity=100)
+craft_item('iron-gear-wheel', quantity=10)
+craft_item('transport-belt', quantity=50)
+craft_item('burner-mining-drill', quantity=1)
+craft_item('stone-furnace', quantity=1)
+craft_item('assembling-machine-1', position=(2,2))   # placing the assembling machine here so that we have to use fewer transport belts 
+                                                    # for transporting iron gears to the machine.
+[92mLine 1: None
+Line 2: Error: ('Could not pickup.', 'Nothing to here to pick up')
+Line 3: Error: ('Could not pickup.', 'Nothing to here to pick up')
+Line 4: Error: ('Could not pickup.', 'Nothing to here to pick up')
+Line 5: Error: ('Could not harvest.', 'Nothing within reach to harvest')
+Line 6: Error: ('Could not harvest.', 'Nothing within reach to harvest')
+Line 7: Error: ('Could not harvest.', 'Nothing within reach to harvest')
+Line 8: Error: ('Could not harvest.', 'Nothing within reach to harvest')
+Line 9: Error: ('Could not craft a iron-plate', 'Failed to craft 100x iron plate because missing ingredient iron ore')
+Line 10: Error: ('Could not craft a iron-gear-wheel', 'Failed to craft 10x iron gear wheel because missing ingredient iron ore')
+Line 11: Error: ('Could not craft a transport-belt', 'Failed to craft 50x transport belt because missing ingredient iron ore')
+Line 12: Error: ('Could not craft a burner-mining-drill', 'Failed to craft 1x burner mining drill because missing ingredient iron ore')
+Line 13: Error: ('Could not craft a stone-furnace', 'Failed to craft 1x stone furnace because missing ingredient stone')
+Line 14: Error: craft item() got an unexpected keyword argument 'position'
+[94m# Let's move towards a better location with more resources
+move_to((12, 8))
+harvest_resource(nearest('iron-ore'), quantity=250)
+harvest_resource(nearest('iron-ore'), quantity=250)
+harvest_resource(nearest('iron-ore'), quantity=250)
+harvest_resource(nearest('coal'), quantity=250)
+harvest_resource(nearest('coal'), quantity=250)
+craft_item('iron-plate', quantity=100)
+craft_item('iron-gear-wheel', quantity=100)
+craft_item('transport-belt', quantity=200)
+place_entity('burner-mining-drill', direction=RIGHT, position=nearest('iron-ore'))
+place_entity('burner-mining-drill', direction=UP, position=(12, 6))
+place_entity('stone-furnace', position=(14, 6))
+place_entity('assembling-machine-1', position=(16, 6))
+insert_item('coal', target_position=(14, 6), quantity=20)
+set_entity_recipe((16, 6), recipe='iron-gear-wheel')   # crafting iron-gear-wheels with the assembling machine
+rotate_entity((14, 6), direction=UP)   # rotating the furnace towards the machine for easier transport
+move_to((14, 8))    # moving to the next location for mining resources
+harvest_resource(nearest('iron-ore'), quantity=250)
+harvest_resource(nearest('iron-ore'), quantity=250)
+harvest_resource(nearest('coal'), quantity=250)
+craft_item('iron-plate', quantity=100)
+craft_item('iron-gear-wheel', quantity=50)
+craft_item('transport-belt', quantity=100)
+[92mError: Evaluation timed out
+[96m# Let's optimize our production by automating the transport of materials to the assembling machine
+[96m# Starting from the previous location
+[94m# Place the entities and start the production line
+place_entity('burner-mining-drill', direction=DOWN, position=(14, 11))
+place_entity('burner-mining-drill', direction=DOWN, position=(17, 11))
+place_entity('burner-mining-drill', direction=DOWN, position=(20, 11))
+place_entity('stone-furnace', position=(14, 9))
+place_entity('assembling-machine-1', position=(17, 9))
+insert_item('coal', target_position=(14, 9), quantity=20)
+set_entity_recipe((17, 9), recipe='iron-gear-wheel')
+rotate_entity((14, 9), direction=UP)
+rotate_entity((17, 9), direction=UP)
+[92mLine 1: Error: ('Could not place burner-mining-drill', 'No burner mining drill in inventory')
+Line 2: Error: ('Could not place burner-mining-drill', 'No burner mining drill in inventory')
+Line 3: Error: ('Could not place burner-mining-drill', 'No burner mining drill in inventory')
+Line 4: Error: ('Could not place stone-furnace', 'No stone furnace in inventory')
+Line 5: Error: ('Could not place assembling-machine-1', 'No assembling machine 1 in inventory')
+Line 6: Error: ('Could not insert.', 'Could not find a nearby entity to insert into')
+Line 7: Error: ('Could not set recipe to iron-gear-wheel', 'No building found that could have its recipe set')
+Line 8: True
+Line 9: True
+[94m# We need to craft the necessary entities first
+craft_item('burner-mining-drill', quantity=3)
+craft_item('stone-furnace', quantity=2)
+craft_item('assembling-machine-1', quantity=2)
+[92mLine 1: Error: ('Could not craft a burner-mining-drill', 'Failed to craft 3x burner mining drill because missing ingredient iron ore')
+Line 2: Error: ('Could not craft a stone-furnace', 'Failed to craft 2x stone furnace because missing ingredient stone')
+Line 3: Error: ('Could not craft a assembling-machine-1', 'Failed to craft 2x assembling machine 1 because missing ingredient iron ore')

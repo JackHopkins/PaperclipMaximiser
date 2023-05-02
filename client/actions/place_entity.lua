@@ -134,7 +134,8 @@ global.actions.place_entity = function(player_index, entity, direction, x, y, ex
                     local blocking_entities = {}
 
                     for _, overlapping_entity in ipairs(overlapping_entities) do
-                        if overlapping_entity.prototype.collision_box and not overlapping_entity.prototype.has_flag("placeable_off_grid") then
+                        if overlapping_entity.prototype.collision_box and not overlapping_entity.prototype.has_flag("not-on-map") then
+                        --if overlapping_entity.prototype.collision_box and not overlapping_entity.prototype.has_flag("placeable_off_grid") then
                             local name = overlapping_entity.name:gsub(" ", "_"):gsub("-", "_")
                             table.insert(blocking_entities, name)
                         end

@@ -1,0 +1,57 @@
+[94m# Start by checking the available resources in the area
+inspect_resources()
+[92mLine 1: {'coal': {'size': 100, 'direction': {'offset': 10, 'named_direction': 'northwest', 'min_coordinates': (-17, -14), 'max_coordinates': (-8, -5)}}, 'iron_ore': {'size': 100, 'direction': {'offset': 10, 'named_direction': 'east-northeast', 'min_coordinates': (22, -14), 'max_coordinates': (31, -5)}}, 'stone': {'size': 100, 'direction': {'offset': 10, 'named_direction': 'southwest', 'min_coordinates': (-17, 6), 'max_coordinates': (-8, 15)}}, 'copper_ore': {'size': 100, 'direction': {'offset': 10, 'named_direction': 'east-southeast', 'min_coordinates': (22, 6), 'max_coordinates': (31, 15)}}, 'uranium_ore': {'size': 100, 'direction': {'offset': 30, 'named_direction': 'southeast', 'min_coordinates': (22, 26), 'max_coordinates': (31, 35)}}, 'tree_01': {'size': 4219, 'directions': [{'distance': 23, 'unit': 'km', 'direction': 'northwest'}, {'distance': 17, 'unit': 'km', 'direction': 'north-northwest'}, {'distance': 16, 'unit': 'km', 'direction': 'north'}, {'distance': 16, 'unit': 'km', 'direction': 'north-northeast'}, {'distance': 21, 'unit': 'km', 'direction': 'northeast'}, {'distance': 1, 'unit': 'km', 'direction': 'east-northeast'}, {'distance': 3, 'unit': 'km', 'direction': 'west-northwest'}, {'distance': 760, 'unit': 'metres', 'direction': 'west'}, {'distance': 32, 'unit': 'metres', 'direction': 'east'}, {'distance': 4, 'unit': 'km', 'direction': 'west-southwest'}, {'distance': 720, 'unit': 'metres', 'direction': 'east-southeast'}, {'distance': 17, 'unit': 'km', 'direction': 'southeast'}, {'distance': 17, 'unit': 'km', 'direction': 'southwest'}, {'distance': 13, 'unit': 'km', 'direction': 'south-southwest'}, {'distance': 13, 'unit': 'km', 'direction': 'south-southeast'}, {'distance': 11, 'unit': 'km', 'direction': 'south'}], 'scattered': True}}
+Score: {'player': 139, 'enemy': 0, 'neutral': 0}
+[94m# It looks like we have coal, iron ore, stone, copper ore, uranium ore and trees. Let's start by mining coal.
+[92mScore: {'player': 139, 'enemy': 0, 'neutral': 0}
+[94m# First, we need to move towards the nearest coal source
+move_to(nearest('coal')) 
+[92mScore: {'player': 139, 'enemy': 0, 'neutral': 0}
+[94m# Now we will place a burner-mining-drill to extract coal and a stone furnace to convert it into plates
+place_entity('burner-mining-drill', direction=DOWN, position=(0, -4))
+place_entity('stone-furnace', direction=DOWN, position=(2, -4))
+[92mLine 1: Error: Could not place burner-mining-drill. Maybe inspect your surroundings before placing
+Score: {'player': 139, 'enemy': 0, 'neutral': 0}
+[94m# It seems that we can't place the burner-mining-drill here, let's check the area with inspect_entities
+inspect_entities(10)
+[92mLine 1: {'entities': [{'type': 'player_character', 'direction': 'west', 'position': (-8, -5), 'status': 'empty'}]}
+Score: {'player': 139, 'enemy': 0, 'neutral': 0}
+[94m# We need to move away from our current position so we don't overlap with the player_character that's nearby. We will move up and right
+move_to((2, -8))
+[92mScore: {'player': 139, 'enemy': 0, 'neutral': 0}
+[94m# Let's try placing the burner-mining-drill and stone furnace again
+place_entity('burner-mining-drill', direction=DOWN, position=(0, -4))
+place_entity('stone-furnace', direction=DOWN, position=(2, -4))
+[92mLine 1: Error: Could not place burner-mining-drill. Maybe inspect your surroundings before placing
+Score: {'player': 139, 'enemy': 0, 'neutral': 0}
+[94m# Let's inspect our surroundings again
+inspect_entities(10)
+[92mLine 1: {'entities': [{'type': 'player_character', 'direction': 'west', 'position': (10, -3), 'status': 'empty'}]}
+Score: {'player': 139, 'enemy': 0, 'neutral': 0}
+[94m# Looks like we have another player_character nearby, let's move down and left 
+move_to((-5, 0))
+[92mScore: {'player': 139, 'enemy': 0, 'neutral': 0}
+[94m# Now that we have a better position, let's try placing the burner-mining-drill and stone furnace again
+place_entity('burner-mining-drill', direction=DOWN, position=(0, -4))
+place_entity('stone-furnace', direction=DOWN, position=(2, -4))
+[92mLine 1: Error: Could not place burner-mining-drill. Maybe inspect your surroundings before placing
+Score: {'player': 139, 'enemy': 0, 'neutral': 0}
+[94m# Let's inspect our surroundings again
+inspect_entities(10)
+[92mLine 1: {'entities': [{'type': 'player_character', 'direction': 'west', 'position': (-7, 8), 'status': 'empty'}]}
+Score: {'player': 139, 'enemy': 0, 'neutral': 0}
+[94m# Looks like we have another player_character nearby, let's move further away 
+move_to((20, 0))
+[92mScore: {'player': 139, 'enemy': 0, 'neutral': 0}
+[94m# Now that we have a better position, let's try placing the burner-mining-drill and stone furnace again
+place_entity('burner-mining-drill', direction=DOWN, position=(0, 0))
+place_entity('stone-furnace', direction=DOWN, position=(2, 0))
+[92mLine 1: Error: Could not place burner-mining-drill. Maybe inspect your surroundings before placing
+Score: {'player': 139, 'enemy': 0, 'neutral': 0}
+[94m# Let's inspect our surroundings again
+inspect_entities(10)
+[92mLine 1: {'entities': [{'type': 'player_character', 'direction': 'west', 'position': (25, 0), 'status': 'empty'}]}
+Score: {'player': 139, 'enemy': 0, 'neutral': 0}
+[94m# It looks like we have another player_character nearby. Let's move further away in the opposite direction
+move_to((-20, 0))
+[92mScore: {'player': 139, 'enemy': 0, 'neutral': 0}

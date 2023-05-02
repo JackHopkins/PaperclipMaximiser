@@ -1,0 +1,90 @@
+[94mcomment("Inspect the natural resources around me")
+resources = inspect_resources()
+[92mScore: 290
+[94mcomment("Find the nearest coal resource and move to its position")
+coal_position = nearest('coal')
+move_to(coal_position)
+[92mScore: 290
+[94mcomment("Place a burner-mining-drill on the coal resource")
+place_entity('burner-mining-drill', direction=RIGHT, position=(coal_position[0]+2, coal_position[1]))
+comment("Ensure the burner-mining-drill has been placed")
+inspect_entities(5)
+[92mLine 1: Error: Could not place burner-mining-drill. "global.actions.place entity = function(player..."]:71: Maybe inspect your surroundings before placing
+Score: 290
+[94mcomment("Inspect the entities around me before placing the burner-mining-drill")
+inspect_entities(5)
+[92mLine 1: [{'type': 'player_character', 'direction': 'north', 'position': (-8, -5), 'status': 'empty'}]
+Score: 290
+[94mcomment("Move to a valid position for placing the burner-mining-drill")
+move_to((coal_position[0]+2, coal_position[1]))
+[92mScore: 290
+[94mcomment("Place the burner-mining-drill on the coal resource again")
+place_entity('burner-mining-drill', direction=RIGHT, position=(coal_position[0]+2, coal_position[1]))
+comment("Ensure the burner-mining-drill has been placed")
+inspect_entities(5)
+[92mLine 1: Error: Could not place burner-mining-drill. "global.actions.place entity = function(player..."]:71: Maybe inspect your surroundings before placing
+Score: 290
+[94mcomment("Inspect the entities around me again before placing the burner-mining-drill")
+inspect_entities(5)
+[92mLine 1: [{'type': 'player_character', 'direction': 'north', 'position': (-3.6015625, -5), 'status': 'empty'}]
+Score: 290
+[94mcomment("Move closer to the coal resource before placing the burner-mining-drill")
+move_to(coal_position)
+[92mScore: 290
+[94mcomment("Place the burner-mining-drill on the coal resource")
+place_entity('burner-mining-drill', direction=RIGHT, position=(coal_position[0]+1, coal_position[1]))
+comment("Ensure the burner-mining-drill has been placed")
+inspect_entities(5)
+[92mLine 1: (-7, -5)
+Line 2: [{'type': 'player_character', 'direction': 'north', 'position': (-8, -5), 'status': 'empty'}, {'type': 'burner_mining_drill', 'direction': 'east', 'position': (-7, -5), 'status': 'empty'}]
+Score: 290
+[94mcomment("Place a stone furnace next to the burner-mining-drill to receive and smelt the coal")
+place_entity('stone-furnace', direction=DOWN, position=(coal_position[0]+2, coal_position[1]))
+[92mLine 1: Error: Could not place stone-furnace. "global.actions.place entity = function(player..."]:71: Maybe inspect your surroundings before placing
+Score: 290
+[94mcomment("Inspect the entities in my surroundings before placing the stone-furnace")
+inspect_entities(5)
+[92mLine 1: [{'type': 'player_character', 'direction': 'north', 'position': (-8, -5), 'status': 'empty'}, {'type': 'burner_mining_drill', 'direction': 'east', 'position': (-7, -5), 'status': 'empty'}]
+Score: 290
+[94mcomment("Since the environment is already inspected, move one step closer to the burner-mining-drill and attempt to place the stone-furnace again")
+move_to((-7,-5))
+place_entity('stone-furnace', direction=DOWN, position=(coal_position[0]+2, coal_position[1]))
+comment("Ensure the stone-furnace has been placed")
+inspect_entities(5)
+[92mLine 1: Error: Could not place stone-furnace. "global.actions.place entity = function(player..."]:71: Maybe inspect your surroundings before placing
+Score: 290
+[94mcomment("Move closer to the burner-mining-drill and inspect the environment again")
+move_to((-6, -5))
+inspect_entities(5)
+[92mLine 1: [{'type': 'player_character', 'direction': 'north', 'position': (-6, -5), 'status': 'empty'}, {'type': 'burner_mining_drill', 'direction': 'east', 'position': (-7, -5), 'status': 'empty'}]
+Score: 290
+[94mcomment("Now that I am closer, attempt to place the stone-furnace again")
+place_entity('stone-furnace', direction=DOWN, position=(coal_position[0]+3, coal_position[1]))
+comment("Ensure the stone-furnace has been placed")
+inspect_entities(5)
+[92mLine 1: (-5, -5)
+Line 2: [{'type': 'player_character', 'direction': 'north', 'position': (-6, -5), 'status': 'empty'}, {'type': 'burner_mining_drill', 'direction': 'east', 'position': (-7, -5), 'status': 'empty'}, {'type': 'stone_furnace', 'direction': 'north', 'position': (-5, -5), 'warning': 'Lack of input material. Lack of fuel.', 'status': 'empty'}]
+Score: 290
+[94mcomment("Place an inserter between the burner-mining-drill and the stone-furnace")
+place_entity('inserter', direction=DOWN, position=(coal_position[0]+1, coal_position[1]))
+comment("Ensure the inserter has been placed")
+inspect_entities(5)
+[92mLine 1: Error: Could not place inserter. "global.actions.place entity = function(player..."]:14: No inserter in inventory.
+Score: 290
+[94mcomment("Craft an inserter and place it between the burner-mining-drill and the stone-furnace")
+craft_item('inserter', quantity=1)
+place_entity('inserter', direction=DOWN, position=(coal_position[0]+1, coal_position[1]))
+comment("Ensure the inserter has been placed")
+inspect_entities(5)
+[92mLine 1: Error: Could not place inserter. "global.actions.place entity = function(player..."]:71: Maybe inspect your surroundings before placing
+Score: 290
+[94mcomment("Inspect surroundings before placing the inserter")
+inspect_entities(5)
+[92mLine 1: [{'type': 'player_character', 'direction': 'north', 'position': (-6, -5), 'status': 'empty'}, {'type': 'burner_mining_drill', 'direction': 'east', 'position': (-7, -5), 'status': 'empty'}, {'type': 'stone_furnace', 'direction': 'north', 'position': (-5, -5), 'warning': 'Lack of input material. Lack of fuel.', 'status': 'empty'}]
+Score: 290
+[94mcomment("Place the inserter between the burner-mining-drill and the stone-furnace now that surroundings are inspected")
+place_entity('inserter', direction=DOWN, position=(coal_position[0]+1, coal_position[1]))
+comment("Ensure the inserter has been placed")
+inspect_entities(5)
+[92mLine 1: Error: Could not place inserter. "global.actions.place entity = function(player..."]:71: Maybe inspect your surroundings before placing
+Score: 290

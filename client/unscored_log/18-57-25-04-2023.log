@@ -1,0 +1,30 @@
+[94mcomment("First, let's inspect our surroundings and available resources")
+inspect_resources()
+inspect_entities(20)
+[92m1: {'water': [{'size': 900, 'min_coordinates': (-18, -50), 'max_coordinates': (31, -33)}], 'coal': [{'size': 100, 'min_coordinates': (-17, -14), 'max_coordinates': (-8, -5)}], 'iron_ore': [{'size': 100, 'min_coordinates': (22, -14), 'max_coordinates': (31, -5)}], 'stone': [{'size': 100, 'min_coordinates': (-17, 6), 'max_coordinates': (-8, 15)}], 'copper_ore': [{'size': 100, 'min_coordinates': (22, 6), 'max_coordinates': (31, 15)}], 'uranium_ore': [{'size': 100, 'min_coordinates': (22, 26), 'max_coordinates': (31, 35)}]}
+2: [{'type': 'player_character', 'position': (0, 0), 'warning': '', 'status': 'empty'}]
+[94mcomment("Next, let's start with a simple mining operation. We need some coal to start with.")
+[94mcomment("Move to the nearest coal resource and pick up 10 coal")
+coal_position = nearest('coal')
+move_to(coal_position)
+harvest_resource(coal_position, quantity=10)
+[94mcomment("Now that we have some coal, let's place a burner-mining-drill on the coal resource.")
+move_to(coal_position)
+place_entity('burner-mining-drill', direction=LEFT, position=nearest_buildable('burner-mining-drill'))
+[92m2: (-9, -6)
+[94mcomment("Next, let's inspect our inventory and make sure we have coal.")
+inspect_inventory()
+[92m1: {'iron-chest': 1, 'transport-belt': 50, 'stone-furnace': 1, 'assembling-machine-1': 1, 'coal': 60, 'iron-plate': 50, 'copper-plate': 50}
+[94mcomment("Great, we have some coal now. Let's place a stone furnace and smelt our coal into iron plates.")
+iron_ore_position = nearest('iron-ore')
+move_to(iron_ore_position)
+place_entity('stone-furnace', direction=LEFT, position=nearest_buildable('stone-furnace'))
+[92m3: (21, -6)
+[94mcomment("Let's check if the furnace is complete and in the inventory")
+inspect_inventory()
+[92m1: {'iron-chest': 1, 'transport-belt': 50, 'assembling-machine-1': 1, 'coal': 60, 'iron-plate': 50, 'copper-plate': 50}
+[94mcomment("Now we harvest some iron ore and have the furnace smelt it into iron plates.")
+harvest_resource(iron_ore_position, quantity=5)
+insert_item('iron-ore', target_position=nearest('stone-furnace'), quantity=5)
+set_entity_recipe(nearest('stone-furnace'), recipe='iron-plate')
+[91m3: Error: Could not set recipe to iron-plate. "global.actions.set entity recipe = function(p..."]:31: No building found that could have its recipe set.

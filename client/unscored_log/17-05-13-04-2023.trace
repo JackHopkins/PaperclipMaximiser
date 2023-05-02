@@ -1,0 +1,17 @@
+# Lets start by checking my inventory.
+# In order to maximize our score, lets aim for creating a large factory with high production. 
+# First, let's build a mining outpost near the nearest coal mine.
+# Let's harvest the coal manually first.
+coal_position = nearest('coal')
+harvest_resource(coal_position, quantity=100)
+# I apologize. I must have misunderstood the instructions about the resources available. 
+# Let's start with building a basic iron gearwheel main bus system.
+# From my current position (0,0), let's build a straight line of transport belts to the east to get access to the iron ore.
+# I'll also build a machine to smelt the iron ore into iron plates and another one to craft them into iron gearwheels.
+# I'll also set up a function to move the character to a given position with a given laying entity.
+def move_to_and_lay(target, laying):
+    x, y = target
+    path = [(i, y) for i in range(x)]
+    for position in path:
+        place_entity(laying, position=position)
+    move_to(target)

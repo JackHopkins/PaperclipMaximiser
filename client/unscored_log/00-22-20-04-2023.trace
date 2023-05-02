@@ -1,0 +1,21 @@
+# First, let me observe and describe the natural resources and landscape around me
+inspect_resources()
+# Next, let's move to the position of the nearest coal resource and place a burner mining drill to start mining 
+coal_position = nearest('coal')
+move_to(coal_position)
+entity_position = place_entity('burner-mining-drill', direction=DOWN, position=(coal_position[0], coal_position[1]-2)) 
+# Oops, let me try calling 'goto' method
+coal_position = nearest('coal')
+goto(coal_position)
+entity_position = place_entity('burner-mining-drill', direction=DOWN, position=(coal_position[0], coal_position[1]-2))
+# My bad, I forgot to import the modulo containing the goto() method
+from factorio import goto
+# I see. In that case, I can instead manually move to the nearest coal resource
+coal_position = nearest('coal')
+move_to(coal_position)
+entity_position = place_entity('burner-mining-drill', direction=DOWN, position=(coal_position[0], coal_position[1]-2))
+# Seems like I have to wait for my player character to reach the coal_position before placing the burner mining drill
+coal_position = nearest('coal')
+goto(coal_position)
+wait_for_time(2)  # wait for 2 seconds for the character to reach the coal_position
+entity_position = place_entity('burner-mining-drill', direction=DOWN, position=(coal_position[0], coal_position[1]-2))

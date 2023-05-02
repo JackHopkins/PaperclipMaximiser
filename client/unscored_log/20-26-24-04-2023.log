@@ -1,0 +1,10 @@
+[94mcomment("Inspect the resources and landscape around")
+resources = inspect_resources()
+[92mError: Evaluation timed out
+[94mcomment("Based on previous attempt, re-starting the process")
+[92m1: 
+Score: 0
+[94mcomment("Inspect the resources and landscape around")
+resources = inspect_resources()
+comment("Finding the nearest coal resource for mining operations")
+coal_position = nearest('coal')

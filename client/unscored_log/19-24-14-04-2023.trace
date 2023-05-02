@@ -1,0 +1,147 @@
+# Lets start by checking my inventory.
+# I have a decent inventory here for getting started. Lets craft some items
+craft_item('transport-belt', quantity=50)
+craft_item('burner-mining-drill', quantity=1)
+craft_item('stone-furnace', quantity=1)
+craft_item('assembling-machine-1', quantity=1)
+craft_item('iron-chest', quantity=1)  # To store our items
+# Seems like we are short on raw materials. Let's gather some resources from nearby sources
+harvest_resource((-2, 0), quantity=30)  # Gather some coal nearby
+harvest_resource((22, 6), quantity=100)  # Gather copper ore from the specified location
+harvest_resource((22, 26), quantity=100)  # Gather uranium ore from the specified location
+harvest_resource((-17, -14), quantity=94)  # Gather coal from the specified location.
+harvest_resource((24, 14), quantity=4200)  # Gather stones from the specified location
+harvest_resource((24, -14), quantity=4200)  # Gather iron ores from the specified location
+harvest_resource((0, 4), quantity=4200)  # Gather item on grounds from the specified location
+# Looks like I made some mistakes with the coordinates of the resources. Let me correct them
+harvest_resource((-2, 0), quantity=30)  # Gather some coal nearby
+harvest_resource((22, 6), quantity=100)  # Gather copper ore from the specified location
+harvest_resource((22, 26), quantity=100)  # Gather uranium ore from the specified location
+harvest_resource((-8, -14), quantity=94)  # Gather coal from the specified location.
+harvest_resource((-24, -14), quantity=4200)  # Gather iron ores from the specified location
+harvest_resource((-24, 14), quantity=4200)  # Gather stones from the specified location
+harvest_resource((0, 4), quantity=4200)  # Gather item on grounds from the specified location
+# Seems like the resources are still out of reach. Let's go to the nearest one
+coal_pos = nearest('coal')
+move_to(coal_pos)
+harvest_resource(coal_pos, quantity=30)
+# Let's check our inventory again to see if we have enough resources
+check_inventory()
+# Now that we have some resources, let's craft the necessary items and place them
+craft_item('transport-belt', quantity=50)
+craft_item('burner-mining-drill', quantity=1)
+craft_item('stone-furnace', quantity=1)
+craft_item('assembling-machine-1', quantity=1)
+craft_item('iron-gear-wheel', quantity=10)
+# Seems like we are short on some materials. Let's gather them first and then try to craft again
+harvest_resource((-24, -14), quantity=100)
+harvest_resource((-24, -16), quantity=100)
+harvest_resource((22, 10), quantity=100)
+harvest_resource((22, 12), quantity=100)
+harvest_resource((22, 8), quantity=100)
+craft_item('transport-belt', quantity=50)
+craft_item('burner-mining-drill', quantity=1)
+craft_item('stone-furnace', quantity=1)
+craft_item('assembling-machine-1', quantity=1)
+craft_item('iron-gear-wheel', quantity=10)
+# Let's finally craft the missing ingredients first
+harvest_resource((-24, -14), quantity=100)
+harvest_resource((-24, -16), quantity=100)
+harvest_resource((22, 10), quantity=100)
+harvest_resource((22, 12), quantity=100)
+harvest_resource((22, 8), quantity=100)
+craft_item('iron-plate', quantity=100)
+craft_item('iron-gear-wheel', quantity=10)
+craft_item('stone', quantity=100)
+craft_item('transport-belt', quantity=50)
+craft_item('burner-mining-drill', quantity=1)
+craft_item('stone-furnace', quantity=1)
+craft_item('assembling-machine-1', quantity=1)
+# Let's harvest some iron ore and stone first
+harvest_resource(nearest('iron-ore'), quantity=100)
+harvest_resource(nearest('stone'), quantity=100)
+craft_item('iron-plate', quantity=100)
+craft_item('iron-gear-wheel', quantity=10)
+craft_item('transport-belt', quantity=50)
+craft_item('burner-mining-drill', quantity=1)
+craft_item('stone-furnace', quantity=1)
+craft_item('assembling-machine-1', quantity=1)
+# Let's find a location which have sufficient resources for mining
+observe_nature() # check the resources and their types available
+# Let's head towards a spot with abundant iron ore and coal
+move_to((-12, -10))
+harvest_resource(nearest('iron-ore'), quantity=500)
+harvest_resource(nearest('coal'), quantity=500)
+craft_item('iron-plate', quantity=100)
+craft_item('iron-gear-wheel', quantity=10)
+craft_item('transport-belt', quantity=50)
+craft_item('burner-mining-drill', quantity=1)
+craft_item('stone-furnace', quantity=1)
+craft_item('assembling-machine-1', position=(3,3))   # placing the assembling machine here so that we have to use fewer transport belts 
+                                                    # for transporting iron gears to the machine.
+# Let's move towards another spot and gather the resources we need
+move_to((19, -16))
+pickup_entity('iron-ore', (20, -20))
+pickup_entity('coal', (20, -18))
+craft_item('iron-plate', quantity=100)
+craft_item('iron-gear-wheel', quantity=10)
+craft_item('transport-belt', quantity=50)
+craft_item('burner-mining-drill', quantity=1)
+craft_item('stone-furnace', quantity=1)
+craft_item('assembling-machine-1', quantity=1)
+# Let's move towards somewhere closer to where there is iron-ore and coal
+move_to((5, -19))
+pickup_entity('coal', (3, -19))
+pickup_entity('coal', (4, -19))
+pickup_entity('iron-ore', (4, -20))
+harvest_resource(nearest('iron-ore'), quantity=100)
+harvest_resource(nearest('iron-ore'), quantity=100)
+harvest_resource(nearest('coal'), quantity=100)
+harvest_resource(nearest('coal'), quantity=100)
+craft_item('iron-plate', quantity=100)
+craft_item('iron-gear-wheel', quantity=10)
+craft_item('transport-belt', quantity=50)
+craft_item('burner-mining-drill', quantity=1)
+craft_item('stone-furnace', quantity=1)
+craft_item('assembling-machine-1', position=(2,2))   # placing the assembling machine here so that we have to use fewer transport belts 
+                                                    # for transporting iron gears to the machine.
+# Let's move towards a better location with more resources
+move_to((12, 8))
+harvest_resource(nearest('iron-ore'), quantity=250)
+harvest_resource(nearest('iron-ore'), quantity=250)
+harvest_resource(nearest('iron-ore'), quantity=250)
+harvest_resource(nearest('coal'), quantity=250)
+harvest_resource(nearest('coal'), quantity=250)
+craft_item('iron-plate', quantity=100)
+craft_item('iron-gear-wheel', quantity=100)
+craft_item('transport-belt', quantity=200)
+place_entity('burner-mining-drill', direction=RIGHT, position=nearest('iron-ore'))
+place_entity('burner-mining-drill', direction=UP, position=(12, 6))
+place_entity('stone-furnace', position=(14, 6))
+place_entity('assembling-machine-1', position=(16, 6))
+insert_item('coal', target_position=(14, 6), quantity=20)
+set_entity_recipe((16, 6), recipe='iron-gear-wheel')   # crafting iron-gear-wheels with the assembling machine
+rotate_entity((14, 6), direction=UP)   # rotating the furnace towards the machine for easier transport
+move_to((14, 8))    # moving to the next location for mining resources
+harvest_resource(nearest('iron-ore'), quantity=250)
+harvest_resource(nearest('iron-ore'), quantity=250)
+harvest_resource(nearest('coal'), quantity=250)
+craft_item('iron-plate', quantity=100)
+craft_item('iron-gear-wheel', quantity=50)
+craft_item('transport-belt', quantity=100)
+# Let's optimize our production by automating the transport of materials to the assembling machine
+# Starting from the previous location
+# Place the entities and start the production line
+place_entity('burner-mining-drill', direction=DOWN, position=(14, 11))
+place_entity('burner-mining-drill', direction=DOWN, position=(17, 11))
+place_entity('burner-mining-drill', direction=DOWN, position=(20, 11))
+place_entity('stone-furnace', position=(14, 9))
+place_entity('assembling-machine-1', position=(17, 9))
+insert_item('coal', target_position=(14, 9), quantity=20)
+set_entity_recipe((17, 9), recipe='iron-gear-wheel')
+rotate_entity((14, 9), direction=UP)
+rotate_entity((17, 9), direction=UP)
+# We need to craft the necessary entities first
+craft_item('burner-mining-drill', quantity=3)
+craft_item('stone-furnace', quantity=2)
+craft_item('assembling-machine-1', quantity=2)

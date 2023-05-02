@@ -1,0 +1,9 @@
+# Lets start by checking my inventory.
+# Setting up coal and iron_ore production
+coal_position = nearest('coal')
+place_entity('burner-mining-drill', direction=2, position=coal_position)
+furnace_coal_position = (coal_position[0]-1, coal_position[1])
+place_entity('stone-furnace', position=furnace_coal_position)
+# Place the stone-furnace at a different position
+furnace_coal_position = (coal_position[0] + 1, coal_position[1])
+place_entity('stone-furnace', position=furnace_coal_position)

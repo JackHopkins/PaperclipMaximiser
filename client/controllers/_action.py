@@ -7,7 +7,7 @@ from slpp import slpp as lua
 from timeit import default_timer as timer
 from factorio_rcon_utils import _lua2python, _load_action
 
-COMMAND = "/c" #"/silent-command"
+COMMAND = "/silent-command"
 
 class Action:
 

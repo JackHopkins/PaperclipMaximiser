@@ -1,0 +1,77 @@
+comment("Plan:")
+comment("First, I will move to the ore location.")
+move_to(ore)
+inspect_entities(5)
+comment("I can see there is a nearby coal deposit so I will pick up some coal.")
+coal_pos = nearest('coal')
+move_to(coal_pos)
+pickup_entity('coal', coal_pos, quantity=5)
+comment("I will instead pick up the coal in one go.")
+pickup_entity('coal', coal_pos)
+comment("It seems like there was no coal at this position. I will try another nearby location.")
+coal_pos = nearest('coal', radius=10)
+move_to(coal_pos)
+pickup_entity('coal', coal_pos)
+comment("It looks like there is no coal nearby. I will move towards the ore deposit instead.")
+ore_pos = nearest('stone', radius=10)
+move_to(ore_pos)
+place_entity('burner-mining-drill', position=ore_pos)
+set_entity_recipe(ore_pos, recipe='iron-plate')
+comment("Oh, I see that I must first mine stone to get iron ore to create iron plates. I will try setting the recipe of a burner mining drill to mine stone instead.")
+set_entity_recipe(ore_pos, recipe='stone')
+comment("My apologies, it seems like we need to have an assembling machine or furnace to set a recipe. I will try to place one to process the ore.")
+iron_furnace_pos = (ore_pos[0] + 2, ore_pos[1])
+place_entity('stone-furnace', position=iron_furnace_pos)
+set_entity_recipe(iron_furnace_pos, recipe='iron-plate')
+comment("It appears we are missing a research and need to unlock the iron smelting technology. I should prioritize that.")
+craft_item('automation-science-pack', quantity=10) # crafting the Automation Science Pack
+move_to((iron_furnace_pos[0], ore_pos[1]))
+place_entity('lab', position=(iron_furnace_pos[0], ore_pos[1])) # placing the lab to start research
+set_entity_recipe((iron_furnace_pos[0], ore_pos[1]), recipe='automation-science-pack') # setting lab recipe
+comment("Once we've got the science packs, we'll use them to unlock the iron smelting technology.")
+comment("Oh, I forgot that I need to first craft the lab")  
+craft_item('lab', quantity=1) # crafting the lab 
+move_to((iron_furnace_pos[0], ore_pos[1]))
+place_entity('lab', position=(iron_furnace_pos[0], ore_pos[1])) # placing the lab to start research
+comment("Now that we have got the lab, Let's start the research to unlock the iron smelting technology.")  
+set_entity_recipe((iron_furnace_pos[0], ore_pos[1]), recipe='iron-plate', quantity=3) # inserting the required items for research
+research('automation', quantity=1) # starting the automation research using the lab.
+comment("Sorry for the mistake, didn't check the function arguments properly.")  
+set_entity_recipe((iron_furnace_pos[0], ore_pos[1]), recipe='iron-plate') # setting the recipe without quantity parameter
+comment("Oh, Looks like the lab is placed a bit far. Let's move towards the lab")
+move_to((iron_furnace_pos[0], ore_pos[1])) # move to the location of the lab
+set_entity_recipe((iron_furnace_pos[0], ore_pos[1]), recipe='iron-plate') # setting the recipe without quantity parameter
+comment("It looks like we don't have enough resources to start the research.")  
+comment("Let's start mining the ore and smelting it to get the iron plates")  
+harvest_resource(ore, quantity=5) # collecting ore
+move_to(iron_furnace_pos)
+place_entity('stone-furnace', position=iron_furnace_pos) # placing stone-furnace for smelting
+entity_position = nearest('stone-furnace')
+craft_item('stone-furnace', quantity=1) # crafting the stone-furnace
+insert_item('coal', target_position=entity_position, quantity=5) # add fuel to the stone furnace
+extract_item('iron-ore', source_position=ore, quantity=5) # extract ore from inventory
+connect_entities(source_position=ore, target_position=entity_position, connection_type='transport-belt', distance=1) # connecting the stone furnace to the ore using transport-belt
+set_entity_recipe(entity_position, recipe='iron-plate') # setting the recipe to sm
+comment("Oops, the ore is unreachable because there are cliffs in the way.") 
+comment("Let me clear the way by crafting and placing some dynamite and explosive cannon shells.")
+craft_item('dynamite', quantity=20) # crafting 20 dynamite
+craft_item('explosive-cannon-shell', quantity=100) # crafting 100 explosive cannon shells
+rocky_train = find_nearest("enemy") # finding the nearest enemies to attack with the explosive cannon shells
+while rocky_train:
+    move_to(rocky_train)
+    distance = math.sqrt((player_character['position'][0] - rocky_train[0])**2 + (player_character['position'][1] - rocky_train[1])**2)
+    if distance <= 20: # only shoot if the enemy is within 20-meter radius of player
+        shoot_at(rocky_train)
+    rocky_train = find_nearest("enemy") 
+move_to((-8, -5)) # once the
+comment("Sorry, it looks like the dynamite recipe isn't available yet. We need to do some research for it.")
+set_entity_recipe((iron_furnace_pos[0], ore_pos[1]), recipe='automation-science-pack', quantity=1) # setting the recipe for Automation Science Pack
+comment("Now let's mine more of the ore and smelt it") 
+harvest_resource(ore, quantity=15) # collecting ore  
+move_to(iron_furnace_pos) # move to the furnace
+for i in range(5): # smelting the ore
+    insert_item('iron-ore', target_position=iron_furnace_pos, quantity=5)
+comment("Now we have 5 iron plates in our inventory.")  
+inspect_inventory()
+comment("Looks like there's an error with the quantity parameter in the harvest_resource method. We will harvest one piece of ore at a time.")
+harvest_resource(ore, quantity=1) # collecting one ore

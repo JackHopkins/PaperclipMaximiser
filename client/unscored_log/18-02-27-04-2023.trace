@@ -1,0 +1,246 @@
+comment("Plan:")
+
+# Plan:
+
+1. Inspect the resources to determine what types of resources are available.
+2. Identify the nearby resources to mine and extract resources. Assume that we have identified ore at position (-8,-6) and will focus on that initially.
+3. Move to the ore location and place a mining drill.
+4. Connect the mining drill to a furnace to smelt the ore.
+5. Use the produced iron to create transport belts.
+6. Create an assembly machine to create more complex items.
+7. Automate power production by setting up boilers and steam engines.
+8. Expand production as needed to increase score.
+
+comment("Plan:")
+comment("Plan:")
+comment("Plan:")
+comment("Plan:")
+comment("Plan:")
+comment("The burner-mining-drill at (-6, -7) is out of fuel, let's fill it up with coal from our inventory")
+comment("Find the nearest burner mining drill that is out of fuel")
+nearest_drill = None
+entities = inspect_entities()
+for entity in entities:
+    if entity['name'] == 'burner-mining-drill':
+        if entity['fuel'] == 0:
+            if nearest_drill is None or distance(entity['position'], player_character) < distance(nearest_drill['position'], player_character):
+                nearest_drill = entity
+nearest_drill = None
+for entity in entities:
+    if entity['name'] == 'burner_mining_drill' and entity['warning'] == 'The entity is out of fuel':
+        if nearest_drill is None or distance(entity['position'], entity_position) < distance(nearest_drill['position'], entity_position):
+            nearest_drill = entity
+comment("Check if we found the nearest burner mining drill and print its position")
+if nearest_drill is not None:
+    print(f"Nearest burner-mining-drill: {nearest_drill['position']}")
+else:
+    print("No burner-mining-drill found out of fuel")
+if nearest_drill:
+    print(f"Found nearest burner mining drill at position {nearest_drill['position']}")
+else:
+    print("No burner mining drill found with out of fuel warning.")
+comment("Now that we know the nearest burner mining drill that needs fuel, let's collect a coal item from our inventory and insert it into it")
+inventory = inspect_inventory()         
+if 'coal' in inventory and inventory['coal'] > 0:
+    # Insert 1 coal from your inventory into the nearest mining drill for fuel
+    insert_item('coal', target_position=nearest_drill['position'], quantity=1)
+else:
+    comment("We don't have any coal in the inventory to refuel the burner mining drill")
+if 'coal' in inventory:
+    if nearest_drill:
+        insert_item('coal', target_position=nearest_drill['position'], quantity=1)
+        print("Inserted coal into the nearest burner mining drill.")
+    else:
+        print("No burner mining drill found with out of fuel warning.")
+else:
+    print("No coal in inventory to insert into the nearest burner mining drill.")
+comment("Now that we've fueled the nearest burner mining drill, let's move towards the ore resources to extract them by placing another burner mining drill")
+ore_resource_pos = (-8, -6)
+move_to(ore_resource_pos)
+distance_to_ore_resource = distance(entity_position, ore_resource_pos)
+print(f"Player-character is now at a distance of {distance_to_ore_resource} meters from the ore resources")
+import math
+    
+def distance(position1, position2):
+    """
+    calculates euclidean distance between position 1 and position 2
+    
+    :param position1: tuple, position of the first entity, e.g (x1, y1)
+    :param position2: tuple, position of the second entity, e.g (x2, y2)
+    
+    :return: float, euclidean distance between the two positions
+    """
+    x1, y1 = position1
+    x2, y2 = position2
+    return math.sqrt((x2-x1)**2 + (y2-y1)**2)
+comment("Comparing the current smelting array to the desired ratio")
+desired_ratio = {"iron-ore": 2, "copper-ore": 1}
+num_iron_furnaces = 0
+num_copper_furnaces = 0
+for entity in inspect_entities():
+    if entity["name"] == "stone-furnace":
+        furnace_position = entity["position"]
+        for content in entity["contents"]:
+            if content["name"] == "iron-plate":
+                num_iron_furnaces += 1
+            elif content["name"] == "copper-plate":
+                num_copper_furnaces += 1       
+            
+if num_iron_furnaces/num_copper_furnaces > desired_ratio["iron-ore"]/desired_ratio["copper-ore"]:
+    print("More iron being produced than required per the desired ratio")
+elif num_iron_furnaces/num_copper_furnaces < desired_ratio["iron-ore"]/desired_ratio["copper-ore"]:
+    print("More copper being produced than required per the desired ratio")
+else:
+    print("Smelting array
+import math
+comment("Calculating the euclidean distance between two entity positions")
+def distance(position1, position2):
+    """
+    calculates euclidean distance between position 1 and position 2
+    
+    :param position1: tuple, position of the first entity, e.g (x1, y1)
+    :param position2: tuple, position of the second entity, e.g (x2, y2)
+    
+    :return: float, euclidean distance between the two positions
+    """
+    x1, y1 = position1
+    x2, y2 = position2
+    return math.sqrt((x2-x1)**2 + (y2-y1)**2)
+comment("Comparing the current smelting array to the desired ratio")
+desired_ratio = {"iron-ore": 2, "copper-ore": 1}
+num_iron_furnaces = 0
+def check_smelting_ratio():
+    """
+    compares the ratio of iron and copper extracted to the desired ratio
+    
+    :return: bool, returns if the desired ratio is achieved
+    """
+    
+    iron_ore_count = 0
+    copper_ore_count = 0
+    iron_plate_count = 0
+    copper_plate_count = 0
+    
+    entities = inspect_entities()
+    for entity in entities:
+        if entity["name"] == "burner-mining-drill":
+            for resource, count in entity["output_inventory"].items():
+                if resource == "iron-ore":
+                    iron_ore_count += count
+                elif resource == "copper-ore":
+                    copper_ore_count += count
+                    
+        elif entity["name"] == "stone-furnace":
+            for resource, count in entity["input_inventory"].items():
+                if resource == "iron-ore":
+                    iron_plate_count += count
+"""
+    compare the current smelting array to the desired ratio
+    
+    :return: string, either that we need more copper smelters or that we need more iron smelters
+    """
+    global num_iron_furnaces
+    smelting_array = inspect_entities(2)
+    iron_production = 0
+    copper_production = 0
+def check_smelting_ratio():
+    """
+    Check the ratio of smelting for each ore type to ensure it matches desired_ratio
+    
+    :return: bool, True if the ratio matches the desired ratio, False otherwise
+    """
+    global num_iron_furnaces
+    iron_ore_count = 0
+    copper_ore_count = 0
+    iron_plate_count = 0
+    copper_plate_count = 0
+    
+    # Count the number of each resource
+    for entity in inspect_entities():
+        entity_name = entity['name']
+        if entity_name == 'stone-furnace':
+            # Count the number of iron and copper in each furnace
+            contents = entity['burner']['currently_burning']
+            if contents:
+                if 'iron-ore' in contents:
+                    iron_ore_count += contents['iron-ore']
+                    iron_plate_count += contents['iron-plate']
+"""
+    Checks if smelting ratio between copper and iron is correct,
+    If not, calculates number of furnaces, drills and belts needed to achieve ratio.
+    """
+    global num_iron_furnaces # smelting furnace
+    iron_ore_count = 0
+    copper_ore_count = 0
+    for entity in inspect_entities():
+        if entity['name'] == 'burner-mining-drill' and entity['resource_category'] == 'basic-solid':
+            if entity['resources']['iron-ore'] > 0:
+                iron_ore_count += entity['resources']['iron-ore']
+            elif entity['resources']['copper-ore'] > 0:
+                copper_ore_count += entity['resources']['copper-ore']
+        elif entity['name'] == 'stone-furnace':
+            num_iron_furnaces += 1
+    ratio = iron_ore_count/copper_ore_count
+    if ratio ==
+def check_smelting_ratio():
+    global num_iron_furnaces
+    # Calculate number of furnaces for each ore type based on desired_ratio
+    num_copper_furnaces = math.ceil(num_iron_furnaces / desired_ratio['iron-ore'] * desired_ratio['copper-ore'])
+    
+    # Check if there's enough space for output of all the furnaces
+    smelting_output_positions = [(0, 0), (1, 0), (2, 0)]
+    for pos in smelting_output_positions:
+        entity = inspect_entities(radius=1, position=pos)
+        if entity and entity[0]['name'] == 'transport-belt':
+            continue
+        elif entity and entity[0]['name'] == 'stone-furnace':
+            continue
+        else:
+            return False
+    
+    # If there's enough space for output, update smelting ratio
+
+
+# Create a function to check the ratio of smelting for automated production
+def check_smelting_ratio():
+    
+    # Count the number of each ore resource in the inventory
+    iron_ore_count = inventory.get('iron-ore', 0)
+    copper_ore_count = inventory.get('copper-ore', 0)
+    
+    # Determine the required number of furnaces to achieve the desired ratio
+    ratio = desired_ratio.get('iron-ore', 0) / desired_ratio.get('copper-ore', 1)
+    num_iron_furnaces = math.ceil(iron_ore_count / (desired_ratio.get('iron-ore', 0) + desired_ratio.get('copper-ore', 1) / ratio))
+    
+    # Determine the actual number of furnaces in the vicinity
+    num_furnaces = 0
+    entities = inspect_entities()
+    for entity in entities:
+        if entity['name'] == '
+
+# Check if the smelting ratio needs to be adjusted
+import math
+comment("Let's start by inspecting our resources and surroundings")
+inspect_resources()
+comment("We need to set up a mining operation to extract resources")
+comment("Let's place a burner-mining-drill at the nearest coal field at (-2, 0)")
+move_to(nearest('coal'))
+place_entity('burner-mining-drill', direction=DOWN, exact=False, position=(0, 1))
+comment("Before placing any entity we need to make sure that we have the required inventory item to place the entity.")
+comment("Let's first check if we have burner-mining-drill inventory item.")
+if 'burner-mining-drill' in inspect_inventory():
+    comment("We have burner-mining-drill inventory item.")
+    comment("Let's place a burner-mining-drill at the nearest coal field at (-2, 0)")
+    move_to(nearest('coal'))
+    place_entity('burner-mining-drill', direction=DOWN, exact=False, position=(0, 1))
+else:
+    comment("We don't have burner-mining-drill inventory item to place it.")
+comment("Let's craft some burner-mining-drill inventory items.")
+craft_item('burner-mining-drill', quantity=5)
+comment("We don't have enough burner-mining-drill inventory items. Let's craft some more and extract the resources needed.")
+while 'burner-mining-drill' not in inspect_inventory() or inspect_inventory()['burner-mining-drill'] < 5:
+    comment("Crafting burner-mining-drill")
+    if 'iron-plate' not in inspect_inventory() or inspect_inventory()['iron-plate'] < 3:
+        comment("Mining iron ore")
+        harvest_resource(nearest('iron-ore'))
+        craft_item('iron-plate', quantity=3)

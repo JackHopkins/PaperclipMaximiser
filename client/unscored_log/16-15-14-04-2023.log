@@ -1,0 +1,123 @@
+[92mThere are 4.2k tree_01s scattered 23km northwest, 17km north-northwest, 16km north, 16km north-northeast, 21km northeast, 1km east-northeast, 3km west-northwest, 760 metres west, 32 metres east, 4km west-southwest, 720 metres east-southeast, 17km southeast, 17km southwest, 13km south-southwest, 13km south-southeast, and 11km south 
+- 100x coal 10 metres northwest (-17, -14) x (-8, -5)
+- 100x iron_ore 10 metres east-northeast (22, -14) x (31, -5)
+- 100x stone 10 metres southwest (-17, 6) x (-8, 15)
+- 100x copper_ore 10 metres east-southeast (22, 6) x (31, 15)
+- 100x uranium_ore 30 metres southeast (22, 26) x (31, 35)
+[96m# Lets start by checking my inventory.
+[92m{'iron-chest': 1, 'transport-belt': 50, 'burner-mining-drill': 1, 'stone-furnace': 1, 'assembling-machine-1': 1, 'coal': 50, 'iron-plate': 50, 'copper-plate': 50}
+[94m# Setting variables for the resources position
+coal_position = (-17, -14)
+iron_ore_position = (22, -14)
+stone_position = (-17, 6)
+copper_ore_position = (22, 6)
+uranium_ore_position = (22, 26)
+[94m# Place a burner mining drill on the coal patch and fill it with coal
+place_entity('burner-mining-drill', direction=RIGHT, position=coal_position)
+insert_item('coal', target_position=coal_position, quantity=1)
+[92mLine 1: True
+Line 2: True
+[94m# Now, place a stone furnace next to the iron ore patch and fill it with coal
+place_entity('stone-furnace', direction=UP, position=(iron_ore_position[0], iron_ore_position[1] - 1))
+insert_item('coal', target_position=(iron_ore_position[0], iron_ore_position[1] - 1), quantity=1)
+[92mLine 1: True
+Line 2: True
+[94m# Place a burner mining drill on the iron ore patch and fill it with coal
+place_entity('burner-mining-drill', direction=RIGHT, position=iron_ore_position)
+insert_item('coal', target_position=iron_ore_position, quantity=1)
+[92mLine 1: Error: ('Could not place burner-mining-drill', 'No burner mining drill in inventory')
+Line 2: True
+[94m# It seems there was an error due to lack of a burner-mining-drill in the inventory.
+# Let's move to the coal and mine some to make a burner-mining-drill.
+move_to(coal_position)
+harvest_resource(coal_position, quantity=5)
+[92mLine 1: None
+Line 2: True
+[94m# Now that we have mined additional coal, let's craft a burner-mining-drill and place it on the iron ore patch.
+craft_item('burner-mining-drill', quantity=1)
+place_entity('burner-mining-drill', direction=RIGHT, position=iron_ore_position)
+insert_item('coal', target_position=iron_ore_position, quantity=1)
+[92mLine 1: Error: ('Could not craft a burner-mining-drill', {'stone': 5})
+Line 2: Error: ('Could not place burner-mining-drill', 'No burner mining drill in inventory')
+Line 3: Error: ('Could not insert.', 'Could_not_find_a_nearby_entity_to_insert_into')
+[94m# It looks like I need more stone to craft the burner-mining-drill.
+# Let's move to the stone patch and mine 5 stone.
+move_to(stone_position)
+harvest_resource(stone_position, quantity=5)
+[92mLine 1: None
+Line 2: True
+[94m# Now with the required resources, let's craft a burner-mining-drill and place it on the iron ore patch.
+craft_item('burner-mining-drill', quantity=1)
+place_entity('burner-mining-drill', direction=RIGHT, position=iron_ore_position)
+insert_item('coal', target_position=iron_ore_position, quantity=1)
+[92mLine 1: 1
+Line 2: Error: ('Could not place burner-mining-drill', 'Cant build there due to existing stone furnace at 39,  21 and the size of the entity is 1')
+Line 3: Error: ('Could not insert.', 'Could_not_find_a_nearby_entity_to_insert_into')
+[94m# Let's recalculate the position of the burner-mining-drill and place it again.
+iron_ore_drill_position = (iron_ore_position[0] - 1, iron_ore_position[1])
+place_entity('burner-mining-drill', direction=RIGHT, position=iron_ore_drill_position)
+insert_item('coal', target_position=iron_ore_drill_position, quantity=1)
+[92mLine 1: Error: ('Could not place burner-mining-drill', 'Cant build there due to existing stone furnace at 39,  21 and the size of the entity is 1')
+Line 2: Error: ('Could not insert.', 'Could_not_find_a_nearby_entity_to_insert_into')
+[94m# Let's move the existing stone furnace and try again.
+pickup_entity((iron_ore_position[0], iron_ore_position[1] - 1))
+iron_ore_drill_position = (iron_ore_position[0] - 1, iron_ore_position[1])
+place_entity('burner-mining-drill', direction=RIGHT, position=iron_ore_drill_position)
+insert_item('coal', target_position=iron_ore_drill_position, quantity=1)
+[92mLine 1: Error: ('Could not pickup.', 'Nothing_to_here_to_pick_up')
+Line 2: Error: ('Could not place burner-mining-drill', 'Cant build there due to existing stone furnace at 39,  21 and the size of the entity is 1')
+Line 3: Error: ('Could not insert.', 'Could_not_find_a_nearby_entity_to_insert_into')
+[96m# I must have misunderstood the position of the existing stone furnace.
+# Let's try to clear a spot near the iron ore for the burner-mining-drill.
+[94mmove_to((iron_ore_position[0] - 2, iron_ore_position[1]))
+pickup_entity((iron_ore_position[0], iron_ore_position[1] - 1))
+iron_ore_drill_position = (iron_ore_position[0] - 1, iron_ore_position[1])
+place_entity('burner-mining-drill', direction=RIGHT, position=iron_ore_drill_position)
+insert_item('coal', target_position=iron_ore_drill_position, quantity=1)
+place_entity('stone-furnace', direction=UP, position=(iron_ore_position[0] - 1, iron_ore_position[1] - 2))
+insert_item('coal', target_position=(iron_ore_position[0] - 1, iron_ore_position[1] - 2), quantity=1)
+[92mLine 1: None
+Line 2: Error: ('Could not pickup.', 'Nothing_to_here_to_pick_up')
+Line 3: Error: ('Could not place burner-mining-drill', 'Cant build there due to existing stone furnace at 2,  1 and the size of the entity is 1')
+Line 4: Error: ('Could not insert.', 'Could_not_find_a_nearby_entity_to_insert_into')
+Line 5: Error: ('Could not place stone-furnace', 'No stone furnace in inventory')
+Line 6: Error: ('Could not insert.', 'Could_not_find_a_nearby_entity_to_insert_into')
+[94m# We must reevaluate the positioning again.
+# Before proceeding, let's observe our current surroundings.
+inspect_radius(20)
+[92mLine 1: entities:
+- direction: east
+  position: !!python/tuple
+  - -37
+  - 0
+  status: empty
+  type: burner_mining_drill
+- contents:
+    coal: 2
+  direction: north
+  position: !!python/tuple
+  - 2
+  - -1
+  status: not empty
+  type: stone_furnace
+  warning: Lack of input material.
+
+[94m# Based on the inspections of the surroundings, let's correct the positions and place the burner-mining-drill near the iron ore patch.
+iron_ore_drill_position = (-37, 0)
+place_entity('burner-mining-drill', direction=RIGHT, position=iron_ore_drill_position)
+insert_item('coal', target_position=iron_ore_drill_position, quantity=1)
+place_entity('stone-furnace', direction=UP, position=(2, -1))
+insert_item('coal', target_position=(2, -1), quantity=1)
+[92mLine 1: Error: ('Could not place burner-mining-drill', 'Cant build there due to existing burner mining drill at  37, 0 and the size of the entity is 1')
+Line 2: True
+Line 3: Error: ('Could not place stone-furnace', 'No stone furnace in inventory')
+Line 4: True
+[96m# It seems the burner-mining-drill and stone-furnace were already placed correctly.
+# Let's proceed with inserting iron ore into the stone-furnace and crafting iron-gear-wheels.
+[94m# Move to the iron ore drill, extract iron ore, and insert it into the stone furnace
+move_to(iron_ore_drill_position)
+extract_item('iron-ore', source_position=iron_ore_drill_position, quantity=1)
+insert_item('iron-ore', target_position=(2, -1), quantity=1)
+[92mLine 1: None
+Line 2: Error: ('Could not extract.', 'No_item_to_extract')
+Line 3: Error: ('Could not insert.', 'Could_not_find_a_nearby_entity_to_insert_into')

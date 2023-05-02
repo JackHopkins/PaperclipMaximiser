@@ -1,0 +1,4 @@
+# Command 1: Move to the nearest coal resource and place a burner-drill to extract coal
+coal_position = nearest('coal')
+move_to(coal_position)
+place_entity('burner-drill', direction=DOWN, position=(coal_position[0], coal_position[1]+2))

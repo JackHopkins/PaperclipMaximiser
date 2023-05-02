@@ -1,0 +1,212 @@
+[94mcomment("First, inspect the resources around me")
+resources = inspect_resources()
+[92m1: 
+2: 
+Score: 0
+[94mcomment("Find the nearest coal resource")
+coal_position = nearest('coal')
+[92m1: 
+2: 
+Score: 0
+[94mcomment("Move to the coal position")
+move_to(coal_position)
+[92m1: 
+2: 
+Score: 0
+[94mcomment("Place a burner-mining-drill facing LEFT and feed it to a stone-furnace")
+burner_drill_position =  place_entity('burner-mining-drill', direction=LEFT, position=(coal_position[0]-2, coal_position[1]))
+stone_furnace_position = place_entity('stone-furnace', direction=DOWN, position=(burner_drill_position[0]+1, burner_drill_position[1]))
+inserter_position = (burner_drill_position[0]+1, burner_drill_position[1])
+connect_entities(source_position=burner_drill_position, target_position=stone_furnace_position, connection_type='inserter')
+[92m1: 
+2: 
+3: Error: Could not place stone-furnace. Unknown
+Score: 0
+[94mcomment("It appears there was an error while trying to place the stone furnace. Let's try again by moving down to ensure there's enough space")
+[92m1: 
+Score: 0
+[94mcomment("Move down 2 squares")
+move_to((coal_position[0], coal_position[1]-2))
+[92m1: 
+2: 
+Score: 0
+[94mcomment("Place a burner-mining-drill facing LEFT and feed it to a stone-furnace")
+burner_drill_position =  place_entity('burner-mining-drill', direction=LEFT, position=(coal_position[0]-2, coal_position[1]-2))
+stone_furnace_position = place_entity('stone-furnace', direction=DOWN, position=(burner_drill_position[0]+1, burner_drill_position[1]))
+inserter_position = (burner_drill_position[0]+1, burner_drill_position[1])
+connect_entities(source_position=burner_drill_position, target_position=stone_furnace_position, connection_type='inserter')
+[92m1: 
+2: Error: Could not place burner-mining-drill. "global.actions.place entity = function(player..."]:42: No burner mining drill in inventory.
+Score: 0
+[94mcomment("It seems we don't have a burner-mining-drill in inventory. Let's craft one and try again.")
+[92m1: 
+Score: 0
+[94mcomment("Craft a burner-mining-drill")
+craft_item('burner-mining-drill', quantity=1)
+[92m1: 
+2: 
+Score: 0
+[94mcomment("Now that we have crafted a burner-mining-drill, let's try placing it again along with the stone-furnace and inserter connection")
+burner_drill_position = place_entity('burner-mining-drill', direction=LEFT, position=(coal_position[0]-2, coal_position[1]-2))
+stone_furnace_position = place_entity('stone-furnace', direction=DOWN, position=(burner_drill_position[0]+1, burner_drill_position[1]))
+inserter_position = (burner_drill_position[0]+1, burner_drill_position[1])
+connect_entities(source_position=burner_drill_position, target_position=stone_furnace_position, connection_type='inserter')
+[92m1: 
+2: 
+3: Error: Could not place stone-furnace. "global.actions.place entity = function(player..."]:42: No stone furnace in inventory.
+Score: 0
+[94mcomment("It seems we don't have a stone-furnace in inventory. Let's craft one and try again.")
+[92m1: 
+Score: 0
+[94mcomment("Craft a stone-furnace")
+craft_item('stone-furnace', quantity=1)
+[92m1: 
+2: Error: Could not craft a stone-furnace. "global.actions.craft item = function(player i..."]:72: Failed to craft 1x stone-furnace because missing ingredient stone
+Score: 0
+[94mcomment("It seems we don't have enough stone to craft a stone furnace. Let's find and mine some stone")
+[92m1: 
+Score: 0
+[94mcomment("Find and mine stone")
+stone_position = nearest('stone')
+move_to(stone_position)
+harvest_resource(stone_position, quantity=10)
+[92m1: 
+2: 
+3: 
+4: 
+Score: 24
+[94mcomment("Now we have enough stone, let's craft a stone-furnace and place it again.")
+craft_item('stone-furnace', quantity=1)
+burner_drill_position = place_entity('burner-mining-drill', direction=LEFT, position=(coal_position[0]-2, coal_position[1]-2))
+stone_furnace_position = place_entity('stone-furnace', direction=DOWN, position=(burner_drill_position[0]+1, burner_drill_position[1]))
+inserter_position = (burner_drill_position[0]+1, burner_drill_position[1])
+connect_entities(source_position=burner_drill_position, target_position=stone_furnace_position, connection_type='inserter')
+[92m1: 
+2: 
+3: Error: Could not place burner-mining-drill. "global.actions.place entity = function(player..."]:42: No burner mining drill in inventory.
+Score: 24
+[94mcomment("We need to craft a burner-mining-drill and then place it")
+craft_item('burner-mining-drill', quantity=1)
+burner_drill_position = place_entity('burner-mining-drill', direction=LEFT, position=(coal_position[0]-2, coal_position[1]-2))
+stone_furnace_position = place_entity('stone-furnace', direction=DOWN, position=(burner_drill_position[0]+1, burner_drill_position[1]))
+inserter_position = (burner_drill_position[0]+1, burner_drill_position[1])
+connect_entities(source_position=burner_drill_position, target_position=stone_furnace_position, connection_type='inserter')
+[92m1: 
+2: 
+3: Error: Could not place burner-mining-drill. "global.actions.place entity = function(player..."]:97: Cannot place burner-mining-drill due to missing minable resource on the tile.
+Score: 24
+[94mcomment("Let's move to a valid position for placing the burner-mining-drill")
+move_to((coal_position[0], coal_position[1] - 2))
+burner_drill_position = place_entity('burner-mining-drill', direction=LEFT, position=(coal_position[0], coal_position[1] - 2))
+stone_furnace_position = place_entity('stone-furnace', direction=DOWN, position=(burner_drill_position[0] + 1, burner_drill_position[1]))
+inserter_position = (burner_drill_position[0] + 1, burner_drill_position[1])
+connect_entities(source_position=burner_drill_position, target_position=stone_furnace_position, connection_type='inserter')
+[92m1: 
+2: 
+3: 
+4: Error: Could not place stone-furnace. "global.actions.place entity = function(player..."]:42: No stone furnace in inventory.
+Score: 24
+[94mcomment("It appears our stone furnace is missing. Let's craft another one and place it again.")
+craft_item('stone-furnace', quantity=1)
+stone_furnace_position = place_entity('stone-furnace', direction=DOWN, position=(burner_drill_position[0] + 1, burner_drill_position[1]))
+inserter_position = (burner_drill_position[0] + 1, burner_drill_position[1])
+connect_entities(source_position=burner_drill_position, target_position=stone_furnace_position, connection_type='inserter')
+[92m1: 
+2: 
+3: Error: Could not place stone-furnace. Unknown
+Score: 24
+[94mcomment("It appears there is an issue with placing the stone-furnace. We'll try a different position.")
+move_to((burner_drill_position[0] + 3, burner_drill_position[1] - 1))
+stone_furnace_position = place_entity('stone-furnace', direction=DOWN, position=(burner_drill_position[0] + 3, burner_drill_position[1] - 1))
+inserter_position = (burner_drill_position[0] + 1, burner_drill_position[1])
+connect_entities(source_position=burner_drill_position, target_position=stone_furnace_position, connection_type='inserter')
+[92mError: Evaluation timed out
+[94mcomment("It appears there is an issue placing the stone-furnace. Let's try moving to a different location and attempt again.")
+move_to((burner_drill_position[0] + 3, burner_drill_position[1]))
+stone_furnace_position = place_entity('stone-furnace', direction=DOWN, position=(burner_drill_position[0] + 3, burner_drill_position[1]))
+inserter_position = (burner_drill_position[0] + 1, burner_drill_position[1])
+connect_entities(source_position=burner_drill_position, target_position=stone_furnace_position, connection_type='inserter')
+[92mError: Evaluation timed out
+[94mcomment("There seems to be an issue with evaluating the desired stone-furnace position. Let's try placing it near the burner-mining-drill.")
+move_to((burner_drill_position[0] + 1, burner_drill_position[1] + 1))
+stone_furnace_position = place_entity('stone-furnace', direction=DOWN, position=(burner_drill_position[0] + 1, burner_drill_position[1] + 1))
+inserter_position = (burner_drill_position[0] + 1, burner_drill_position[1])
+connect_entities(source_position=burner_drill_position, target_position=stone_furnace_position, connection_type='inserter')
+[92m1: 
+2: 
+3: Error: Could not place stone-furnace. "global.actions.place entity = function(player..."]:42: No stone furnace in inventory.
+Score: 24
+[94mcomment("It appears we do not have a stone furnace in our inventory. Let's craft one and try placing it again.")
+craft_item('stone-furnace', quantity=1)
+stone_furnace_position = place_entity('stone-furnace', direction=DOWN, position=(burner_drill_position[0] + 1, burner_drill_position[1] + 1))
+inserter_position = (burner_drill_position[0] + 1, burner_drill_position[1])
+connect_entities(source_position=burner_drill_position, target_position=stone_furnace_position, connection_type='inserter')
+[92m1: 
+2: Error: Could not craft a stone-furnace. "global.actions.craft item = function(player i..."]:72: Failed to craft 1x stone-furnace because missing ingredient stone
+Score: 24
+[94mcomment("It seems we don't have enough stone to craft a stone furnace. Let's harvest some stone first.")
+stone_position = nearest('stone')
+move_to(stone_position)
+harvest_resource(stone_position, quantity=5)
+craft_item('stone-furnace', quantity=1)
+stone_furnace_position = place_entity('stone-furnace', direction=DOWN, position=(burner_drill_position[0] + 1, burner_drill_position[1] + 1))
+inserter_position = (burner_drill_position[0] + 1, burner_drill_position[1])
+connect_entities(source_position=burner_drill_position, target_position=stone_furnace_position, connection_type='inserter')
+[92m1: 
+2: 
+3: 
+4: 
+5: 
+6: Error: Could not place stone-furnace. Unknown
+Score: 36
+[94mcomment("There seems to be a problem placing the stone-furnace. Let's retry with an alternative position.")
+move_to((burner_drill_position[0] + 2, burner_drill_position[1] + 1))
+stone_furnace_position = place_entity('stone-furnace', direction=DOWN, position=(burner_drill_position[0] + 2, burner_drill_position[1] + 1))
+inserter_position = (burner_drill_position[0] + 1, burner_drill_position[1])
+connect_entities(source_position=burner_drill_position, target_position=stone_furnace_position, connection_type='inserter')
+[92m1: 
+2: 
+3: 
+4: 
+5: Error: Unexpected end of string while parsing Lua string.
+Score: 36
+[94mcomment("It seems like we encountered an unexpected error. Let's try a different approach by placing the stone-furnace next to the burner-mining-drill.")
+move_to((burner_drill_position[0] + 1, burner_drill_position[1]))
+stone_furnace_position = place_entity('stone-furnace', direction=DOWN, position=(burner_drill_position[0] + 1, burner_drill_position[1]))
+inserter_position = (burner_drill_position[0], burner_drill_position[1] - 1)
+connect_entities(source_position=burner_drill_position, target_position=stone_furnace_position, connection_type='inserter')
+[92m1: 
+2: 
+3: Error: Could not place stone-furnace. "global.actions.place entity = function(player..."]:42: No stone furnace in inventory.
+Score: 36
+[94mcomment("It appears that we lost the stone furnace from our inventory. Let's check our inventory and craft another stone furnace if needed.")
+[92m1: 
+Score: 36
+[94minspect_inventory()
+[92m1: {'iron-chest': 1, 'transport-belt': 50, 'assembling-machine-1': 1, 'coal': 50, 'iron-plate': 32, 'copper-plate': 50}
+Score: 36
+[94mcomment("We don't have a stone furnace in our inventory. Let's harvest some stone and craft one.")
+move_to(stone_position)
+harvest_resource(stone_position, quantity=5)
+craft_item('stone-furnace', quantity=1)
+move_to((burner_drill_position[0] + 1, burner_drill_position[1]))
+stone_furnace_position = place_entity('stone-furnace', direction=DOWN, position=(burner_drill_position[0] + 1, burner_drill_position[1]))
+inserter_position = (burner_drill_position[0], burner_drill_position[1] - 1)
+connect_entities(source_position=burner_drill_position, target_position=stone_furnace_position, connection_type='inserter')
+[92m1: 
+2: 
+3: 
+4: 
+5: 
+6: Error: Could not place stone-furnace. Unknown
+Score: 48
+[94mcomment("There seems to be a persistent issue placing the stone-furnace. Let's try placing the stone-furnace a little further away from the burner-mining-drill and connect them with transport belts.")
+[92m1: 
+Score: 48
+[94mmove_to((burner_drill_position[0] + 3, burner_drill_position[1]))
+stone_furnace_position = place_entity('stone-furnace', direction=DOWN, position=(burner_drill_position[0] + 3, burner_drill_position[1]))
+place_entity('transport-belt', direction=RIGHT, position=(burner_drill_position[0] + 1, burner_drill_position[1]))
+place_entity('transport-belt', direction=RIGHT, position=(burner_drill_position[0] + 2, burner_drill_position[1]))
+[92m1: 
+2: Error: Could not place stone-furnace. Unknown
+Score: 48

@@ -1,0 +1,6 @@
+# Lets start by checking my inventory.
+# I will place the stone furnace beside the coal resource and insert some coal
+furnace_position = (nearest("coal")[0]+1, nearest("coal")[1])
+move_to(furnace_position)
+place_entity("stone-furnace", position=furnace_position)
+insert_item("coal", target_position=furnace_position, quantity=5)

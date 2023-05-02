@@ -1,0 +1,4 @@
+comment("Observing my surroundings")
+resources = inspect_resources()
+entities = inspect_entities(20)
+inventory = inspect_inventory()

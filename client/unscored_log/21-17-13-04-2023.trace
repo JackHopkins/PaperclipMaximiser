@@ -1,0 +1,50 @@
+# Lets start by checking my inventory.
+# Start by placing burner-mining-drills near coal, iron_ore, stone, and copper_ore resources
+coal_position = nearest('coal')
+iron_position = nearest('iron_ore')
+stone_position = nearest('stone')
+copper_position = nearest('copper_ore')
+place_entity("burner-mining-drill", direction=UP, position=(coal_position[0], coal_position[1] - 1))
+place_entity("burner-mining-drill", direction=UP, position=(iron_position[0], iron_position[1] - 1))
+place_entity("burner-mining-drill", direction=UP, position=(stone_position[0], stone_position[1] - 1))
+place_entity("burner-mining-drill", direction=UP, position=(copper_position[0], copper_position[1] - 1))
+# Craft the required burner-mining-drills using the available resources
+craft_item("burner-mining-drill", quantity=3)
+# Let's gather more stone to craft the missing burner-mining-drills 
+move_to(nearest('stone'))
+harvest_resource(nearest('stone'), quantity=30)
+craft_item("burner-mining-drill", quantity=2)
+# Now that we have more burner-mining-drills, let's place them again
+place_entity("burner-mining-drill", direction=UP, position=(coal_position[0], coal_position[1] - 1))
+place_entity("burner-mining-drill", direction=UP, position=(iron_position[0], iron_position[1] - 1))
+place_entity("burner-mining-drill", direction=UP, position=(stone_position[0], stone_position[1] - 1))
+place_entity("burner-mining-drill", direction=UP, position=(copper_position[0], copper_position[1] - 1))
+# Adjust the position of the burner-mining-drills to avoid collisions
+place_entity("burner-mining-drill", direction=UP, position=(coal_position[0], coal_position[1] - 2))
+place_entity("burner-mining-drill", direction=UP, position=(iron_position[0], iron_position[1] - 2))
+place_entity("burner-mining-drill", direction=UP, position=(stone_position[0], stone_position[1] - 2))
+place_entity("burner-mining-drill", direction=UP, position=(copper_position[0], copper_position[1] - 2))
+# Apologies for the error, I misunderstood the coordinate system. Let's place them at a safe distance now.
+place_entity("burner-mining-drill", direction=UP, position=(coal_position[0] + 1, coal_position[1]))
+place_entity("burner-mining-drill", direction=UP, position=(iron_position[0] + 1, iron_position[1]))
+place_entity("burner-mining-drill", direction=UP, position=(stone_position[0] + 1, stone_position[1]))
+place_entity("burner-mining-drill", direction=UP, position=(copper_position[0] + 1, copper_position[1]))
+# I apologize for the confusion. Let's try another approach by placing the drills at the farthest point in each resource area.
+coal_position = (-17, -14)
+iron_position = (22, -14)
+stone_position = (-17, 6)
+copper_position = (22, 6)
+place_entity("burner-mining-drill", direction=UP, position=(coal_position[0], coal_position[1]))
+place_entity("burner-mining-drill", direction=UP, position=(iron_position[0], iron_position[1]))
+place_entity("burner-mining-drill", direction=UP, position=(stone_position[0], stone_position[1]))
+place_entity("burner-mining-drill", direction=UP, position=(copper_position[0], copper_position[1]))
+# Apologies for the confusion, and thank you for your patience. Let's craft and place the burner-mining-drills again.
+harvest_resource(nearest('stone'), quantity=30)
+craft_item("burner-mining-drill", quantity=4)
+place_entity("burner-mining-drill", direction=UP, position=(coal_position[0], coal_position[1]))
+place_entity("burner-mining-drill", direction=UP, position=(iron_position[0], iron_position[1]))
+place_entity("burner-mining-drill", direction=UP, position=(stone_position[0], stone_position[1]))
+place_entity("burner-mining-drill", direction=UP, position=(copper_position[0], copper_position[1]))
+# Let's gather more iron ore to craft the missing burner-mining-drills
+harvest_resource(nearest('iron_ore'), quantity=30)
+craft_item("burner-mining-drill", quantity=2)

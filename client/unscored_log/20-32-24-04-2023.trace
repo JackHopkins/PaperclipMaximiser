@@ -1,0 +1,7 @@
+comment("Inspect the natural resources and landscape")
+resources = inspect_resources()
+comment("Check for nearest resources")
+coal_position = nearest("coal")
+iron_position = nearest("iron-ore")
+copper_position = nearest("copper-ore")
+stone_position = nearest("stone")

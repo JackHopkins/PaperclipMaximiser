@@ -1,0 +1,56 @@
+[94mcomment("Inspect the natural resources around me")
+resources = inspect_resources()
+[92m1: 
+2: 
+Score: 402
+[94mcomment("Find the nearest coal resource and move to it")
+coal_position = nearest('coal')
+move_to(coal_position)
+[92m1: 
+2: 
+3: 
+Score: 402
+[94mcomment("Place a burner-mining-drill at the nearest coal resource")
+place_entity('burner-mining-drill', direction=LEFT, position=(coal_position[0]-2, coal_position[1]))
+[92m1: 
+2: (-10, -5)
+Score: 402
+[94mcomment("Find the nearest stone resource and move to it")
+stone_position = nearest('stone')
+move_to(stone_position)
+[92m1: 
+2: 
+3: 
+Score: 402
+[94mcomment("Place a burner-mining-drill at the nearest stone resource")
+place_entity('burner-mining-drill', direction=RIGHT, position=(stone_position[0]+2, stone_position[1]))
+[92m1: 
+2: Error: Could not place burner-mining-drill. "global.actions.place entity = function(player..."]:14: No burner mining drill in inventory.
+Score: 402
+[94mcomment("Harvest some stone to craft a burner-mining-drill")
+harvest_resource(stone_position, quantity=5)
+craft_item('burner-mining-drill', quantity=1)
+[92m1: 
+2: Error: Could not harvest.. "global.actions.harvest resource = function(pl..."]:65: Could only harvest 0 at position (-9, -9)
+Score: 428
+[94mcomment("Find the nearest iron resource and move to it")
+iron_position = nearest('iron-ore')
+move_to(iron_position)
+[92m1: 
+2: 
+3: 
+Score: 428
+[94mcomment("Harvest some iron to create a small electric pole")
+harvest_resource(iron_position, quantity=5)
+craft_item('small-electric-pole', quantity=1)
+[92m1: 
+2: Error: Could not harvest.. "global.actions.harvest resource = function(pl..."]:65: Could only harvest 0 at position (22, 22)
+Score: 456
+[94minspect_resources()
+[92m1: {'water': {'size': 900, 'direction': {'offset': 42, 'named_direction': 'north', 'min_coordinates': (-18, -50), 'max_coordinates': (31, -33)}}, 'coal': {'size': 100, 'direction': {'offset': 10, 'named_direction': 'northwest', 'min_coordinates': (-17, -14), 'max_coordinates': (-8, -5)}}, 'iron_ore': {'size': 100, 'direction': {'offset': 10, 'named_direction': 'east-northeast', 'min_coordinates': (22, -14), 'max_coordinates': (31, -5)}}, 'stone': {'size': 100, 'direction': {'offset': 10, 'named_direction': 'southwest', 'min_coordinates': (-17, 6), 'max_coordinates': (-8, 15)}}, 'copper_ore': {'size': 100, 'direction': {'offset': 10, 'named_direction': 'east-southeast', 'min_coordinates': (22, 6), 'max_coordinates': (31, 15)}}, 'uranium_ore': {'size': 100, 'direction': {'offset': 30, 'named_direction': 'southeast', 'min_coordinates': (22, 26), 'max_coordinates': (31, 35)}}, 'item_on_ground': {'size': 1, 'directions': [{'distance': 6, 'unit': 'metres', 'direction': 'northwest'}], 'scattered': True}}
+Score: 456
+[94mcomment("Moving closer to the coal resource")
+move_to(nearest('coal'))
+[92m1: 
+2: 
+Score: 456

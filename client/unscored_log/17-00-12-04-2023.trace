@@ -1,0 +1,22 @@
+# Lets start by checking my inventory.
+# Now I'll set up a basic production line for iron ore.
+move_to(nearest("iron_ore"))
+place_entity('burner-drill', direction=2, position=nearest('iron_ore'))
+insert_item('coal', target_position=nearest('burner-drill'), quantity=10)
+
+craft_item('iron-chest', quantity=1)
+place_entity('iron-chest', position=(1, 1))
+
+move_to(nearest("stone_furnace"))
+place_entity("stone_furnace", position=(0, 1))
+insert_item('coal', target_position=(0, 1), quantity=10)
+
+move_to((-1, 0))
+pickup_entity((-1, 0))
+place_entity('transport-belt', position=(-1, 0), direction=1)
+
+move_to((-1, 2))
+pickup_entity((-1, 2))
+place_entity('transport-belt', position=(-1, 2), direction=1)
+
+move_to((0, -1), laying='transport-belt')

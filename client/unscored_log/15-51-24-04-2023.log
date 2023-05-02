@@ -1,0 +1,40 @@
+[94mcomment("First, let's observe the resources and landscape around us")
+resources = inspect_resources()
+[92mScore: 290
+[94mcomment("Now we will inspect entities within a 20-meter radius")
+entities = inspect_entities(20)
+[92mScore: 290
+[94mcomment("Let's examine the items currently in our inventory")
+inventory = inspect_inventory()
+[92mScore: 290
+[94mcomment("Search for and move to the nearest coal resource")
+coal_position = nearest('coal')
+move_to(coal_position)
+[92mScore: 290
+[94mcomment("Place burner-mining-drill at the coal resource position")
+burner_drill_position = place_entity('burner-mining-drill', direction=LEFT, position=(coal_position[0]-2, coal_position[1]))
+[92mScore: 290
+[94mcomment("Move to the nearest stone resource")
+stone_position = nearest('stone')
+move_to(stone_position)
+[92mScore: 290
+[94mcomment("Place burner-mining-drill at the stone resource position")
+burner_drill_position = place_entity('burner-mining-drill', direction=LEFT, position=(stone_position[0]-2, stone_position[1]))
+[92mLine 1: Error: Could not place burner-mining-drill. "global.actions.place entity = function(player..."]:14: No burner mining drill in inventory.
+Score: 290
+[94mcomment("We do not have burner-mining-drill in our inventory. Let's check coal and stone in the inventory to craft a burner-mining-drill")
+inventory = inspect_inventory()
+[92mScore: 290
+[94mcomment("Craft a burner-mining-drill")
+craft_item('burner-mining-drill', quantity=1)
+[92mScore: 290
+[94mcomment("Place the crafted burner-mining-drill at the stone resource position")
+burner_drill_position = place_entity('burner-mining-drill', direction=LEFT, position=(stone_position[0]-2, stone_position[1]))
+[92mScore: 290
+[94mcomment("Now let's place a stone furnace next to the burner-mining-drill")
+stone_furnace_position = place_entity_next_to('stone-furnace', reference_position=burner_drill_position, direction='left', gap=1)
+[92mScore: 290
+[94mcomment("Connect the burner-mining-drill's output to the stone-furnace's input using an inserter")
+connect_entities(source_position=(burner_drill_position[0]-2, burner_drill_position[1]), target_position=stone_furnace_position, connection_type='inserter')
+[92mLine 1: Error: Unexpected end of string while parsing Lua string.
+Score: 290

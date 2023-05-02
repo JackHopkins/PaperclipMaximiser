@@ -1,0 +1,69 @@
+[94mcomment("First, let's inspect the resources and landscape to decide where to establish our base")
+resources = inspect_resources()
+[92mScore: 0
+[94mcomment("We need to start gathering resources, I'll look for the nearest coal resource")
+coal_position = nearest('coal')
+comment("Move to the coal position and place a burner-mining-drill to start gathering coal")
+move_to(coal_position)
+comment("Place the burner-mining-drill facing left")
+place_entity('burner-mining-drill', direction=LEFT, position=(coal_position[0]-2, coal_position[1]))
+[92mLine 1: (-10, -5)
+Score: 0
+[94mcomment("Now let's find nearest iron resource")
+iron_position = nearest('iron')
+comment("Move to the iron position and place a burner-mining-drill to start gathering iron")
+move_to(iron_position)
+comment("Place the burner-mining-drill facing the right side")
+place_entity('burner-mining-drill', direction=RIGHT, position=(iron_position[0]+2, iron_position[1]))
+[92mLine 1: Error: No iron found on the map
+Score: 0
+[94mcomment("It seems there is no iron around. Let's find the nearest copper resource instead")
+copper_position = nearest('copper')
+comment("Move to the copper position and place a burner-mining-drill to start gathering copper")
+move_to(copper_position)
+comment("Place the burner-mining-drill facing the right side")
+place_entity('burner-mining-drill', direction=RIGHT, position=(copper_position[0]+2, copper_position[1]))
+[92mLine 1: Error: No copper found on the map
+Score: 0
+[94mcomment("It seems there are no copper or iron resources nearby. Let's try to find the nearest stone resource instead")
+stone_position = nearest('stone')
+comment("Move to the stone position and place a burner-mining-drill to start gathering stone")
+move_to(stone_position)
+comment("Place the burner-mining-drill facing the right side")
+place_entity('burner-mining-drill', direction=RIGHT, position=(stone_position[0]+2, stone_position[1]))
+[92mLine 1: Error: Could not place burner-mining-drill. "global.actions.place entity = function(player..."]:14: No burner mining drill in inventory.
+Score: 0
+[94mcomment("It seems I don't have a burner-mining-drill in my inventory.")
+comment("Let's check the inventory to see what items we have")
+inventory = inspect_inventory()
+[92mScore: 0
+[94mcomment("I'll start by setting up a coal generation system with coal-fired boilers and steam engines since we need power to automate resource extraction.")
+comment("First let's craft a coal-fired boiler.")
+[92mScore: 0
+[94mcomment("Craft a stone furnace, needed for the coal-fired boiler")
+craft_item('stone-furnace', quantity=1)
+[92mLine 1: Error: Could not craft a stone-furnace. "global.actions.craft item = function(player i..."]:72: Failed to craft 1x stone-furnace because missing ingredient stone
+Score: 0
+[94mcomment("We don't have enough stone to craft a stone furnace.")
+comment("Let's mine some stone manually before automating this process")
+comment("Move the character to the nearest stone resource and harvest 5 units of stone")
+move_to(stone_position)
+harvest_resource(stone_position, quantity=5)
+[92mLine 1: Error: Could not harvest.. "global.actions.harvest resource = function(pl..."]:65: Could only harvest 0
+Score: 26
+[94mcomment("It seems there is no more stone to mine at this position.")
+comment("Let's find another stone resource nearby")
+nearest_stone = nearest('stone')
+comment("Move to the new stone position")
+move_to(nearest_stone)
+[92mScore: 26
+[94mcomment("Now that we are at the new stone position, let's harvest 5 units of stone")
+harvest_resource(nearest_stone, quantity=5)
+[92mLine 1: Error: Could not harvest.. "global.actions.harvest resource = function(pl..."]:65: Could only harvest 0
+Score: 52
+[94mcomment("It seems there is no more stone to mine at this position either.")
+comment("Let's try again with another stone resource nearby")
+nearest_stone2 = nearest('stone', ignore_positions=[nearest_stone])
+comment("Move to the new location")
+move_to(nearest_stone2)
+[92mScore: 52

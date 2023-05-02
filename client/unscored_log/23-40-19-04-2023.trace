@@ -1,0 +1,13 @@
+# First, I will inspect my surrounding resources and entities
+inspect_resources()
+inspect_entities(20)
+# I will inspect my surrounding resources and entities
+resources = inspect_resources()
+entities = inspect_entities(20)
+print(f"My resources: {resources}")
+print(f"My entities: {entities}")
+# I will inspect my surrounding resources and entities
+resources = inspect_resources()
+entities = inspect_entities(20)
+print(f"My resources: {resources}")
+print(f"My entities: {entities}")

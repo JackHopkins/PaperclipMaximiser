@@ -1,0 +1,132 @@
+# Let's inspect the resources around me 
+inspect_resources()
+# I need to start with a mining operation, let me check my inventory for mining drills 
+check_inventory()
+# Let me go to the nearest coal resource using the move_to function and lay a burner mining drill to start resource extraction
+coal_position = nearest('coal')
+move_to(coal_position)
+entity_position = place_entity('burner-mining-drill', direction=LEFT, position=(coal_position[0]-2, coal_position[1]))
+# I need to check my surroundings before placing the burner-mining-drill
+inspect_entities(5)
+# The burner mining drill cannot be placed here, it is obstructed by other entities so I need to move to another location
+# Let me check the nearest iron ore resource for mining
+iron_ore_position = nearest('iron-ore')
+iron_ore_position
+# I will now move to that location and place a mining drill to start mining iron ore
+move_to(iron_ore_position)
+entity_position = place_entity('burner-mining-drill', direction=LEFT, position=(iron_ore_position[0]-2, iron_ore_position[1]))
+# Let me inspect my surroundings and see what objects are around me
+inspect_entities(5)
+# I see that I can place the mining drill at (-3, 0). I will move there and place the drill
+move_to((-3, 0))
+entity_position = place_entity('burner-mining-drill', direction=LEFT, position=(-5, 0))
+# Let me inspect my surroundings again to see what is causing an obstruction
+inspect_entities(5)
+# I see that there is a mining drill already placed. I will move there to inspect it and ensure there is space
+drill_position = (-32, 0)
+move_to(drill_position)
+inspect_entities(2)
+# I see that to the left of the mining drill, I can place a new mining/extracting drill for coal.
+coal_position = nearest('coal', entity_filter=['coal'])
+move_to(coal_position)
+entity_position = place_entity('burner-mining-drill', direction=LEFT, position=(coal_position[0]-2, coal_position[1]))
+# I see that the position I want to place the mining drill is too close to the rocks. Let me move a bit to the left.
+move_to((coal_position[0]-5, coal_position[1]))
+entity_position = place_entity('burner-mining-drill', direction=DOWN, position=(coal_position[0]-7, coal_position[1]-1))
+# It looks like the position that I want to place the mining drill is blocked. Let me build a transport belt to move it to a better position.
+move_to((coal_position[0]-3, coal_position[1]-1))
+entity_position_1 = place_entity('transport-belt', direction=LEFT, position=(coal_position[0]-5, coal_position[1]-1))
+entity_position_2 = place_entity('transport-belt', direction=LEFT, position=(coal_position[0]-6, coal_position[1]-1))
+entity_position_3 = place_entity('burner-mining-drill', direction=LEFT, position=(coal_position[0]-8, coal_position[1]-1))
+# The position still seems to be obstructed. I will move to a different resource patch that does not seem to have any obstruction and set up my extraction there.
+resource_position = nearest('stone', entity_filter=['stone'])
+move_to(resource_position)
+place_entity('burner-mining-drill', direction=LEFT, position=(resource_position[0]-2, resource_position[1]))
+# I see I need to create some space for the mining drill. I can do this by clearing the trees around this resource patch
+trees_position = nearest('tree')
+while trees_position:
+    move_to(trees_position)
+    harvest_resource(trees_position, quantity=1)
+    trees_position = nearest('tree')    
+resource_position = nearest('stone', entity_filter=['stone'])
+move_to(resource_position)
+place_entity('burner-mining-drill', direction=LEFT, position=(resource_position[0]-2, resource_position[1]))
+# I noticed that the nearest resource patch is not clear with trees. I will clear it first before setting up the mining drill there.
+trees_position = nearest('tree')
+move_to(trees_position)
+while trees_position:
+    harvest_resource(trees_position, quantity=1)
+    trees_position = nearest('tree')
+    if trees_position:
+        move_to(trees_position)
+resource_position = nearest('stone', entity_filter=['stone'])
+move_to(resource_position)
+place_entity('burner-mining-drill', direction=LEFT, position=(resource_position[0]-2, resource_position[1]))
+# I see that there are no trees to cut down. I will just place the mining drill without removing any trees from the location.
+resource_position = nearest('stone', entity_filter=['stone'])
+move_to(resource_position)
+place_entity('burner-mining-drill', direction=LEFT, position=(resource_position[0]-2, resource_position[1]))
+# It seems the position is obstructed. Let me move further away from the resource patch and try again.
+resource_position = nearest('stone', entity_filter=['stone'])
+move_to((resource_position[0]-5, resource_position[1]))
+place_entity('burner-mining-drill', direction=LEFT, position=(resource_position[0]-7, resource_position[1]))
+# It seems that the location is still obstructed. I will have to inspect the surroundings of the resource location before trying again.
+resource_position = nearest('stone', entity_filter=['stone'])
+move_to(resource_position)
+resources = inspect_entities(3)
+if 'stone' in resources:
+    place_entity('burner-mining-drill', direction=LEFT, position=(resource_position[0]-2, resource_position[1]))
+# Great! Now that the resource location is clear, I will set up a simple smelting operation to process the mined stone into plates.
+stone_furnace_position = place_entity('stone-furnace', position=(resource_position[0]-6, resource_position[1]))
+coal_position = nearest('coal')
+move_to(coal_position)
+place_entity('burner-inserter', position=(coal_position[0]+2, coal_position[1]), direction=UP)
+connect_entities(source_position=(coal_position[0]+2, coal_position[1]), target_position=stone_furnace_position, connection_type='inserter')
+set_entity_recipe(stone_furnace_position, recipe='iron-plate')
+# My apologies, it seems my inventory is empty. I should craft some burner inserters before proceeding.
+craft_item('burner-inserter', quantity=1)
+coal_position = nearest('coal')
+move_to(coal_position)
+place_entity('burner-inserter', position=(coal_position[0]+2, coal_position[1]), direction=UP)
+connect_entities(source_position=(coal_position[0]+2, coal_position[1]), target_position=stone_furnace_position, connection_type='inserter')
+set_entity_recipe(stone_furnace_position, recipe='iron-plate')
+# It seems like I mistyped the position of the furnace while connecting it to the burner inserter. Let me inspect the entities first before connecting them.
+resources = inspect_entities(10)
+print(resources)
+# I can see that the furnace is at (-23, 15). Let me correct my previous code block.
+coal_position = nearest('coal')
+move_to(coal_position)
+place_entity('burner-inserter', position=(coal_position[0]+2, coal_position[1]), direction=UP)
+connect_entities(source_position=(coal_position[0]+2, coal_position[1]), target_position=(stone_furnace_position[0], stone_furnace_position[1]+1), connection_type='inserter')
+set_entity_recipe(stone_furnace_position, recipe='iron-plate')
+# I forgot to craft the burner inserter again after placing the stone furnace. Let me craft it again and then connect it to the furnace.
+craft_item('burner-inserter', quantity=1)
+coal_position = nearest('coal')
+move_to(coal_position)
+place_entity('burner-inserter', position=(coal_position[0]+2, coal_position[1]), direction=UP)
+connect_entities(source_position=(coal_position[0]+2, coal_position[1]), target_position=(stone_furnace_position[0], stone_furnace_position[1]+1), connection_type='inserter')
+set_entity_recipe(stone_furnace_position, recipe='iron-plate')
+# It seems that there are other entities near the coal resource, which is preventing me from placing the inserter. Let me inspect my surroundings before placing the inserter.
+resources = inspect_entities(10)
+print(resources)
+# It seems that there is a tree in the way. Let me move to the nearest tree and harvest it before proceeding.
+tree_position = nearest('tree')
+move_to(tree_position)
+harvest_resource(tree_position, quantity=1)
+coal_position = nearest('coal')
+move_to(coal_position)
+place_entity('burner-inserter', position=(coal_position[0]+2, coal_position[1]), direction=UP)
+connect_entities(source_position=(coal_position[0]+2, coal_position[1]), target_position=(stone_furnace_position[0], stone_furnace_position[1]+1), connection_type='inserter')
+set_entity_recipe(stone_furnace_position, recipe='iron-plate')
+# Seems like there is no tree near me to harvest. Let's craft an axe and try again.
+craft_item('iron-axe', quantity=1)
+tree_position = nearest('tree')
+move_to(tree_position)
+harvest_resource(tree_position, quantity=1)
+coal_position = nearest('coal')
+move_to(coal_position)
+place_entity('burner-inserter', position=(coal_position[0]+2, coal_position[1]), direction=UP)
+connect_entities(source_position=(coal_position[0]+2, coal_position[1]), target_position=(stone_furnace_position[0], stone_furnace_position[1]+1), connection_type='inserter')
+set_entity_recipe(stone_furnace_position, recipe='iron-plate')
+# It seems that I need to unlock the recipe for iron axe first. Let me increase my technology levels and unlock the recipe.
+# I'm going to construct a basic power generation setup using a few Burner Inserters and Burner mining drills, and then manually refuel them with coal.

@@ -1,0 +1,3 @@
+# Lets start by checking my inventory.
+# Start by placing a burner drill on the coal patch
+place_entity('burner-drill', direction=2, position=nearest('coal'))

@@ -1,0 +1,174 @@
+# Lets start by checking my inventory.
+# Since we need to produce Iron Gear Wheels, we need an assembling machine.
+# Let's check our surroundings for a good place to mine iron ore and coal.
+observe_nature()
+# We need to find an area with both iron ore and coal resources nearby. 
+# Let's move to a random location and check its resources.
+move_to((12, 34))
+observe_nature()
+# This location has iron ore and coal resources nearby, perfect for our needs.
+# Let's start by building a mining setup for the iron ore.
+# Let's craft some more burner mining drills to mine iron ore.
+for i in range(3):
+    craft_item('burner-mining-drill', quantity=1)
+# Craft some stone furnaces to produce iron plates, which we can turn into iron gear wheels.
+for i in range(3):
+    craft_item('stone-furnace', quantity=1)
+# We need stones to craft furnaces, let's move to the nearest stone location and harvest some.
+move_to(nearest('stone'))
+harvest_resource(nearest('stone'), quantity=50)
+# Now let's try crafting furnaces again
+for i in range(3):
+    craft_item('stone-furnace', quantity=1)
+# Let's build a mining setup for the iron ore
+# We need to find an iron ore deposit to mine
+# Let's move to the nearest iron ore deposit
+move_to(nearest('iron-ore'))
+# Let's start mining the iron ore using burner mining drills and transport belts
+iron_position = nearest('iron-ore')
+for i in range(4):
+    if check_inventory().get('burner-mining-drill') and check_inventory().get('transport-belt'):
+        place_entity('burner-mining-drill', direction=RIGHT, position=iron_position)
+        move_to((iron_position[0]+2, iron_position[1]), laying='transport-belt')
+    else:
+        break
+# It seems we need to clear some space. Let's move to the right and try again.
+move_to((iron_position[0]+2, iron_position[1]))
+for i in range(4):
+    if check_inventory().get('burner-mining-drill') and check_inventory().get('transport-belt'):
+        place_entity('burner-mining-drill', direction=RIGHT, position=iron_position)
+        move_to((iron_position[0]+2, iron_position[1]), laying='transport-belt')
+    else:
+        break
+# There may still be an obstruction. Let's inspect our surroundings and move away from any obstacles.
+observe_nature()
+inspect_radius(20)
+move_to((iron_position[0]-5, iron_position[1]))
+for i in range(4):
+    if check_inventory().get('burner-mining-drill') and check_inventory().get('transport-belt'):
+        place_entity('burner-mining-drill', direction=RIGHT, position=iron_position)
+        move_to((iron_position[0]+2, iron_position[1]), laying='transport-belt')
+    else:
+        break
+# Let's move even further to the right and try again.
+move_to((iron_position[0]+10, iron_position[1]))
+for i in range(4):
+    if check_inventory().get('burner-mining-drill') and check_inventory().get('transport-belt'):
+        place_entity('burner-mining-drill', direction=RIGHT, position=iron_position)
+        move_to((iron_position[0]+2, iron_position[1]), laying='transport-belt')
+    else:
+        break
+# This seems to be a persistent issue. Let's remove any remaining entities in the area.
+inspect_radius(20)
+pickup_entity('transport-belt', (iron_position[0]+2, iron_position[1]))
+for i in range(4):
+    if check_inventory().get('burner-mining-drill') and check_inventory().get('transport-belt'):
+        place_entity('burner-mining-drill', direction=RIGHT, position=iron_position)
+        move_to((iron_position[0]+2, iron_position[1]), laying='transport-belt')
+    else:
+        break
+# It looks like there might be an entity in the way that I didn't account for. Let's investigate.
+inspect_radius(20)
+# It seems there are no entities nearby. Let's move to the right even more and try one last time.
+move_to((iron_position[0]+20, iron_position[1]))
+for i in range(4):
+    if check_inventory().get('burner-mining-drill') and check_inventory().get('transport-belt'):
+        place_entity('burner-mining-drill', direction=RIGHT, position=(iron_position[0]+10, iron_position[1]))
+        move_to((iron_position[0]+12, iron_position[1]), laying='transport-belt')
+    else:
+        break
+# It seems there is already a burner-mining-drill present in the vicinity. Let's remove the entity and try again.
+inspect_radius(20)
+pickup_entity('burner-mining-drill', (iron_position[0]+10, iron_position[1]))
+for i in range(4):
+    if check_inventory().get('burner-mining-drill') and check_inventory().get('transport-belt'):
+        place_entity('burner-mining-drill', direction=RIGHT, position=(iron_position[0]+10, iron_position[1]))
+        move_to((iron_position[0]+12, iron_position[1]), laying='transport-belt')
+    else:
+        break
+# Hmm, it seems like we need more space before we can place another burner-mining-drill. Let's move further and try again.
+move_to((iron_position[0]+40, iron_position[1]))
+for i in range(4):
+    if check_inventory().get('burner-mining-drill') and check_inventory().get('transport-belt'):
+        place_entity('burner-mining-drill', direction=RIGHT, position=(iron_position[0]+30, iron_position[1]))
+        move_to((iron_position[0]+32, iron_position[1]), laying='transport-belt')
+    else:
+        break
+# It seems like we need to place more burner-mining-drills to maximize our iron-gear-wheels production. Let's keep placing.
+for i in range(4):
+    if check_inventory().get('burner-mining-drill') and check_inventory().get('transport-belt'):
+        place_entity('burner-mining-drill', direction=RIGHT, position=(iron_position[0]+20*i, iron_position[1]))
+        move_to((iron_position[0]+(20*i)+2, iron_position[1]), laying='transport-belt')
+    else:
+        break
+# Now let us set all the drills to mine iron ore
+for i in range(4):
+    set_entity_recipe((iron_position[0]+(20*i), iron_position[1]), recipe='iron-ore')
+    
+# Looks like we have placed some wrong entity on the iron ore. Let's investigate.
+inspect_radius(30)
+# It seems that we have some transport belts on the iron ore. Let's remove them and retry setting drills to mine iron ore.
+inspect_radius(30)
+for entity in entities:
+    if entity['type'] == 'transport_belt':
+        pickup_entity('transport-belt', (entity['position'][0], entity['position'][1]))
+for i in range(4):
+    set_entity_recipe((iron_position[0]+(20*i), iron_position[1]), recipe='iron-ore')
+# Oops, I forgot to call `observe_nature()` to get the entities around us. Let me try this again.
+observe_nature()
+for entity in entities:
+    if entity['type'] == 'transport_belt':
+        pickup_entity('transport-belt', (entity['position'][0], entity['position'][1]))
+for i in range(4):
+    set_entity_recipe((iron_position[0]+(20*i), iron_position[1]), recipe='iron-ore')
+# Oh, it seems like the `entities` array is only given after we call `inspect_radius()`. Let's use that instead.
+inspect_radius(30)
+for entity in entities:
+    if entity['type'] == 'transport_belt':
+        pickup_entity('transport-belt', (entity['position'][0], entity['position'][1]))
+for i in range(4):
+    set_entity_recipe((iron_position[0]+(20*i), iron_position[1]), recipe='iron-ore')
+# Let me modify the code to accept the scenario when there is no iron ore node.
+if 'iron-ore' in observe_nature():
+    iron_position = nearest('iron-ore')
+    inspect_radius(30)
+    for entity in entities:
+        if entity['type'] == 'transport_belt':
+            pickup_entity('transport-belt', (entity['position'][0], entity['position'][1]))
+    for i in range(4):
+        set_entity_recipe((iron_position[0]+(20*i), iron_position[1]), recipe='iron-ore')
+else:
+    print("No iron-ore found nearby. Can't produce iron gear wheels.")
+# Let's craft some iron gears
+while True:
+    inventory = check_inventory()
+    if inventory['iron-plate'] >= 2:
+        craft_item('iron-gear-wheel', quantity=1)
+    else:
+        break
+print("Crafted maximum number of iron gear wheels with available resources.")
+# It seems that the observation did not return any natural resources, hence the None value. Let's retry harvesting resources.
+harvest_resource(nearest('iron-ore'), quantity=1)
+if 'iron-ore' in observe_nature():
+    iron_position = nearest('iron-ore')
+    inspect_radius(30)
+    for entity in entities:
+        if entity['type'] == 'transport_belt':
+            pickup_entity('transport-belt', (entity['position'][0], entity['position'][1]))
+    for i in range(4):
+        set_entity_recipe((iron_position[0]+(20*i), iron_position[1]), recipe='iron-ore')
+else:
+    print("No iron-ore found nearby. Can't produce iron gear wheels.")
+# I see. There is nothing to harvest within reach. Let's move closer to the iron ore and try harvesting again.
+move_to(nearest('iron-ore'))
+harvest_resource(nearest('iron-ore'), quantity=1)
+if 'iron-ore' in observe_nature():
+    iron_position = nearest('iron-ore')
+    inspect_radius(30)
+    for entity in entities:
+        if entity['type'] == 'transport_belt':
+            pickup_entity('transport-belt', (entity['position'][0], entity['position'][1]))
+    for i in range(4):
+        set_entity_recipe((iron_position[0]+(20*i), iron_position[1]), recipe='iron-ore')
+else:
+    print("No iron-ore found nearby. Can't produce iron gear wheels.")

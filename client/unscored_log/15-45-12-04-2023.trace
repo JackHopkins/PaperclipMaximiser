@@ -1,0 +1,4 @@
+# Lets start by checking my inventory.
+# Let's set up a production line for iron plates
+# 1. Place a burner drill next to the nearest coal vein
+place_entity('burner-drill', direction=2, position=nearest('coal'))

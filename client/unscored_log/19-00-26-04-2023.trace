@@ -1,0 +1,11 @@
+comment("Plan:")
+comment("Plan:")
+comment("Start by inspecting the surrounding resources and creating a plan for our mining operation.")
+inspect_resources()
+comment("We currently have an iron ore deposit at position (-8, -5). Our plan will be to use a burner-mining-drill to extract ore and transport it to a nearby furnace for smelting.")
+comment("We will also need to create a source of power using boilers and steam engines.")
+place_entity('burner-mining-drill', position=ore, exact=True)
+comment("We currently do not have any burner-mining-drills in our inventory. Let's craft a few and then place them on the ore deposit.")
+craft_item('burner-mining-drill', quantity=10) #Craft 10 burner-mining drills
+inspect_inventory() #Check inventory to ensure we have the drills
+place_entity('burner-mining-drill', position=ore, exact=True) #Place a the burner-mining-drill

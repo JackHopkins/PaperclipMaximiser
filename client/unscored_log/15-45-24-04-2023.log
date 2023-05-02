@@ -1,0 +1,90 @@
+[94mcomment("Inspect natural resources and landscape")
+resources = inspect_resources()
+[92mScore: 290
+[94mcomment("Find nearest coal resource")
+nearest_coal = nearest("coal")
+[92mScore: 290
+[94mcomment("Move to the nearest coal resource and place a burner mining drill")
+move_to(nearest_coal)
+burner_drill_position = (nearest_coal[0] - 2, nearest_coal[1])
+place_entity("burner-mining-drill", direction=LEFT, position=burner_drill_position)
+[92mLine 1: (-10, -5)
+Score: 290
+[94mcomment("Place a stone furnace to the right of the burner mining drill with a gap of 1 tile")
+stone_furnace_position = (burner_drill_position[0] + 4, burner_drill_position[1])
+place_entity("stone-furnace", position=stone_furnace_position)
+[92mLine 1: (-6, -5)
+Score: 290
+[94mcomment("Connect the burner-mining-drill's output to the stone-furnace's input using an inserter")
+connect_entities(source_position=(burner_drill_position[0] + 2, burner_drill_position[1]), target_position=stone_furnace_position, connection_type='inserter')
+[92mLine 1: Error: Unexpected end of string while parsing Lua string.
+Score: 290
+[94mcomment("It seems there was an error in the previous command. Let's try connecting the entities again.")
+[92mScore: 290
+[94mcomment("Connect the burner-mining-drill's output to the stone-furnace's input using an inserter")
+connect_entities(source_position=(burner_drill_position[0] + 2, burner_drill_position[1]), target_position=stone_furnace_position, connection_type='inserter')
+
+[92mLine 1: Error: Unexpected end of string while parsing Lua string.
+Score: 290
+[94mcomment("It seems the connect_entities function is not working as intended. Let's manually place an inserter between the burner-mining-drill and the stone-furnace.")
+[92mScore: 290
+[94mcomment("Place an inserter between the burner-mining-drill and the stone-furnace, facing the stone-furnace.")
+inserter_position = (burner_drill_position[0] + 2, burner_drill_position[1])
+place_entity('inserter', position=inserter_position, direction=RIGHT)
+[92mLine 1: Error: Could not place inserter. "global.actions.place entity = function(player..."]:14: No inserter in inventory.
+Score: 290
+[94mcomment("Craft an inserter since there are none in the inventory.")
+craft_item('inserter', quantity=1)
+[92mScore: 290
+[94mcomment("Now that the inserter is in the inventory, place it between the burner-mining-drill and the stone-furnace, facing the stone-furnace.")
+inserter_position = (burner_drill_position[0] + 2, burner_drill_position[1])
+place_entity('inserter', position=inserter_position, direction=RIGHT)
+[92mLine 1: (-8, -5)
+Score: 290
+[94mcomment("Let's set up a power generation area using steam engines, boilers and water pumps.")
+[92mScore: 290
+[94mcomment("Locate the nearest water source.")
+water_position = nearest('water')
+move_to(water_position)
+[92mScore: 290
+[94mcomment("Place an offshore pump on the water.")
+offshore_pump_position = (water_position[0] + 2, water_position[1])
+place_entity('offshore-pump', position=offshore_pump_position, direction=RIGHT)
+[92mLine 1: Error: Could not place offshore-pump. "global.actions.place entity = function(player..."]:14: No offshore pump in inventory.
+Score: 290
+[94mcomment("Craft an offshore pump since there are none in the inventory.")
+craft_item('offshore-pump', quantity=1)
+[92mScore: 290
+[94mcomment("Place an offshore pump on the water now that it is in the inventory.")
+place_entity('offshore-pump', position=offshore_pump_position, direction=RIGHT)
+[92mLine 1: Error: Could not place offshore-pump. "global.actions.place entity = function(player..."]:71: Maybe inspect your surroundings before placing
+Score: 290
+[94mcomment("Check for other entities or obstacles that would prevent placing the offshore pump.")
+inspect_entities(5)
+[92mLine 1: [{'type': 'player_character', 'direction': 'north', 'position': (-7, -33), 'status': 'empty'}, {'type': 'inserter', 'direction': 'east', 'position': (-7.5, -4.5), 'status': 'empty'}, {'type': 'burner_mining_drill', 'direction': 'west', 'position': (-10, -5), 'status': 'empty'}, {'type': 'stone_furnace', 'direction': 'north', 'position': (-6, -5), 'warning': 'Lack of input material. Lack of fuel.', 'status': 'empty'}]
+Score: 290
+[94mcomment("Move away from nearby entities to allow for placement of the offshore pump.")
+move_to((water_position[0] + 5, water_position[1]))
+[92mScore: 290
+[94mcomment("Attempt to place the offshore pump again.")
+place_entity('offshore-pump', position=offshore_pump_position, direction=RIGHT)
+[92mLine 1: Error: Could not place offshore-pump. "global.actions.place entity = function(player..."]:71: Maybe inspect your surroundings before placing
+Score: 290
+[94mcomment("Inspect surroundings to find a suitable location for the offshore pump.")
+inspect_resources()
+[92mLine 1: {'water': {'size': 900, 'direction': {'offset': 42, 'named_direction': 'north', 'min_coordinates': (-18, -50), 'max_coordinates': (31, -33)}}, 'coal': {'size': 100, 'direction': {'offset': 10, 'named_direction': 'northwest', 'min_coordinates': (-17, -14), 'max_coordinates': (-8, -5)}}, 'iron_ore': {'size': 100, 'direction': {'offset': 10, 'named_direction': 'east-northeast', 'min_coordinates': (22, -14), 'max_coordinates': (31, -5)}}, 'stone': {'size': 100, 'direction': {'offset': 10, 'named_direction': 'southwest', 'min_coordinates': (-17, 6), 'max_coordinates': (-8, 15)}}, 'copper_ore': {'size': 100, 'direction': {'offset': 10, 'named_direction': 'east-southeast', 'min_coordinates': (22, 6), 'max_coordinates': (31, 15)}}, 'uranium_ore': {'size': 100, 'direction': {'offset': 30, 'named_direction': 'southeast', 'min_coordinates': (22, 26), 'max_coordinates': (31, 35)}}}
+Score: 290
+[94mcomment("Find a different suitable location for the offshore pump.")
+new_offshore_pump_position = (water_position[0] + 3, water_position[1])
+[92mScore: 290
+[94mcomment("Move to the new suitable location for the offshore pump.")
+move_to(new_offshore_pump_position)
+[92mScore: 290
+[94mcomment("Place the offshore pump at the new suitable location.")
+place_entity('offshore-pump', position=new_offshore_pump_position, direction=RIGHT)
+[92mLine 1: Error: Could not place offshore-pump. "global.actions.place entity = function(player..."]:71: Maybe inspect your surroundings before placing
+Score: 290
+[94mcomment("Inspect surroundings to ensure the new location is suitable for the offshore pump.")
+inspect_resources()
+[92mLine 1: {'water': {'size': 900, 'direction': {'offset': 42, 'named_direction': 'north', 'min_coordinates': (-18, -50), 'max_coordinates': (31, -33)}}, 'coal': {'size': 100, 'direction': {'offset': 10, 'named_direction': 'northwest', 'min_coordinates': (-17, -14), 'max_coordinates': (-8, -5)}}, 'iron_ore': {'size': 100, 'direction': {'offset': 10, 'named_direction': 'east-northeast', 'min_coordinates': (22, -14), 'max_coordinates': (31, -5)}}, 'stone': {'size': 100, 'direction': {'offset': 10, 'named_direction': 'southwest', 'min_coordinates': (-17, 6), 'max_coordinates': (-8, 15)}}, 'copper_ore': {'size': 100, 'direction': {'offset': 10, 'named_direction': 'east-southeast', 'min_coordinates': (22, 6), 'max_coordinates': (31, 15)}}, 'uranium_ore': {'size': 100, 'direction': {'offset': 30, 'named_direction': 'southeast', 'min_coordinates': (22, 26), 'max_coordinates': (31, 35)}}}
+Score: 290

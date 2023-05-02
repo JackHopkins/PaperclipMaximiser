@@ -1,0 +1,14 @@
+# Lets start by checking my inventory.
+# First, we'll set up the basic production line for iron and copper.
+# Move to the iron ore patch and place a burner drill and stone furnace.
+
+move_to(nearest('iron_ore'))  # Move to the iron ore patch
+place_entity('burner-drill', direction=2, position=nearest('iron_ore'))  # Place a burner drill facing north at the iron ore patch
+move_to((0, 1), laying='transport-belt')  # Move 1 meter north, laying transport belts as we go
+place_entity('stone-furnace', position=(0, 0))  # Place a stone furnace at the current position
+# Now, move to the copper ore patch and place a burner drill and stone furnace.
+
+move_to(nearest('copper_ore'))  # Move to the copper ore patch
+place_entity('burner-drill', direction=2, position=nearest('copper_ore'))  # Place a burner drill facing north at the copper ore patch
+move_to((0, 1), laying='transport-belt')  # Move 1 meter north, laying transport belts as we go
+place_entity('stone-furnace', position=(0, 0))  # Place a stone furnace at the current position

@@ -1,0 +1,9 @@
+# First, I'll check my surroundings to plan my next move
+inspect_resources()
+inspect_entities(20)
+# There's coal nearby, I'll start mining it with a Burner Mining Drill
+coal_pos = nearest('coal')
+move_to(coal_pos)
+entity_pos = place_entity('burner-mining-drill', direction=LEFT, position=(coal_pos[0]-2, coal_pos[1]))
+extract_item('coal', entity_pos, quantity=5)
+# Sorry about that! Let's fix it. I'll pick up the coal and then make my way back to place the transport belts.

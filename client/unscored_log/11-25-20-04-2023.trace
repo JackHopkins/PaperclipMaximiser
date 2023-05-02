@@ -1,0 +1,7 @@
+# First, let me check the resources around me
+inspect_resources()
+# Looks like there are a lot of resources around. 
+# I will start by getting some coal and extracting iron and copper
+# I will move to the nearest coal and pick up 10
+move_to(nearest('coal'))
+pickup_entity('coal', nearest('coal'), quantity=10)

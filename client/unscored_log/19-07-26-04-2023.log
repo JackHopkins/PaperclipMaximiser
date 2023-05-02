@@ -1,0 +1,59 @@
+[94mcomment("Plan:")
+[94mWe have an available ore at position `(-8, -5)`.
+Our plan is to automate the extraction of this ore by placing a burner mining drill to extract the ore and insert it into a stone furnace to smelt it into iron plates. Then use the iron plates to craft an iron chest. 
+[91mThe provided code is not syntactically valid Python. Only write valid python.
+[94mcomment("Plan:")
+[94mWe have an available ore at position `(-8, -5)`. Wolud like to:
+1. Move to the available ore.
+2. Place a mining drill there to extract the ore.
+3. Insert coal from our inventory into the drill to fuel it.
+[91mThe provided code is not syntactically valid Python. Only write valid python.
+[94mcomment("Plan:")
+[94mWe have an available ore at position `(-8, -5)`. We will do the following:
+1. Move to the position of the nearest coal patch
+2. Place a Burner Mining Drill on the coal patch as close as possible to the ore
+2. Insert 1 coal into the Burner Mining Drill for fuel
+3. Wait for the Burner Mining Drill to extract the ore and transfer it to its output
+4. Use an inserter to transfer the ore from the Burner Mining Drill to a Stone Furnace
+5. Wait for the Stone Furnace to process the ore and transfer it to its output
+6. Use another inserter to transfer the processed material to a Chest
+7. Repeat the process for all available ores
+[91mThe provided code is not syntactically valid Python. Only write valid python.
+[94mcomment("Plan:")
+[94mWe have an available ore at position `(-8, -5)`. We will do the following:
+1. Move to the ore position.
+2. Place a burner mining drill to mine the ore.
+3. Connect the mining drill to a furnace to smelt the ore.
+4. Insert a piece of coal from our inventory into the mining drill to get it started.
+5. Once the items have been smelted, we will pick up the processed platelets.
+6. Finally, move back to the initial position.
+[91mThe provided code is not syntactically valid Python. Only write valid python.
+[94mcomment("Plan:")
+[94mWe have an available ore at position `(-8, -5)`. We will do the following:
+- Move to the position of the ore
+- Place a burner mining drill to mine the ore
+- Insert coal from the inventory of player_character to the mining drill for fuel
+- Place a stone furnace nearby the mining drill
+- Connect the furnace's input to the mining drill's output with an inserter
+- Set the recipe of the furnace to smelt iron ore
+- Upon completion of smelting, insert the iron plates into an assembling machine
+- Craft gears from the iron plates in the assembling machine
+- Craft transport belts from the gears and iron plates in the assembling machine
+[91mThe provided code is not syntactically valid Python. Only write valid python.
+[94mcomment("Plan:")
+[94mWe have an available ore at position `(-8, -5)`. We will do the following:
+1. Move to the ore position
+2. Place a burner mining drill to extract the ore using the `place_entity()` method
+3. Place a Stone Furnace to smelt the ore into iron plate using the `place_entity()` method
+4. Connect the output of the mining drill to the input of the furnace using the `connect_entities()` method
+5. Load the fuel into the burner mining drill using the `insert_item()` method
+6. Load the extracted ore into the furnace using the `insert_item()` method
+7. Craft an iron chest using the `craft_item()` method
+8. Place the crafted chest near the furnace
+9. Move near the chest and insert the smelted iron plates using the `insert_item()` method.
+[91mThe provided code is not syntactically valid Python. Only write valid python.
+[94mcomment("Plan:")
+[94mWe have an available ore at position `(-8, -5)`. We will do the following:
+```
+[91mThe provided code is not syntactically valid Python. Only write valid python.
+[94mcomment("Plan:")

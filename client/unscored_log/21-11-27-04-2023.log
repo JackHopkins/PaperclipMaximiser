@@ -1,0 +1,11 @@
+[94mcomment("First, let's examine our surroundings and available resources")
+inspect_resources()
+inspect_entities()
+[92m1: {'water': [{'size': 900, 'min_coordinates': (-18, -50), 'max_coordinates': (31, -33)}], 'coal': [{'size': 100, 'min_coordinates': (-17, -14), 'max_coordinates': (-8, -5)}], 'iron_ore': [{'size': 100, 'min_coordinates': (22, -14), 'max_coordinates': (31, -5)}], 'stone': [{'size': 100, 'min_coordinates': (-17, 6), 'max_coordinates': (-8, 15)}], 'copper_ore': [{'size': 100, 'min_coordinates': (22, 6), 'max_coordinates': (31, 15)}], 'uranium_ore': [{'size': 100, 'min_coordinates': (22, 26), 'max_coordinates': (31, 35)}]}
+2: [{'name': 'player_character', 'position': (0, 0), 'warning': '', 'status': 'empty'}]
+[94mcomment("Next, let's move to the location of the iron ore we will be mining")
+move_to((-8, -5))
+[94mcomment("Now that we are at the location of the iron ore, let's place a burner mining drill and a stone furnace to begin processing it")
+place_entity('burner-mining-drill', direction=UP, position=(player_character.position[0]-1, player_character.position[1]))
+place_entity('stone-furnace', direction=UP, position=(player_character.position[0]-1, player_character.position[1]-2))
+[91mError line 1: name 'player character' is not defined

@@ -1,0 +1,75 @@
+[92mThere are 4.2k tree_01s scattered 23km northwest, 17km north-northwest, 16km north, 16km north-northeast, 21km northeast, 1km east-northeast, 3km west-northwest, 760 metres west, 32 metres east, 4km west-southwest, 720 metres east-southeast, 17km southeast, 17km southwest, 13km south-southwest, 13km south-southeast, and 11km south 
+- 100x coal 10 metres northwest (-17, -14) x (-8, -5)
+- 100x iron_ore 10 metres east-northeast (22, -14) x (31, -5)
+- 100x stone 10 metres southwest (-17, 6) x (-8, 15)
+- 100x copper_ore 10 metres east-southeast (22, 6) x (31, 15)
+- 100x uranium_ore 30 metres southeast (22, 26) x (31, 35)
+[96m# Lets start by checking my inventory.
+[92m{'iron-chest': 1, 'transport-belt': 50, 'burner-mining-drill': 1, 'stone-furnace': 1, 'assembling-machine-1': 1, 'coal': 50, 'iron-plate': 50, 'copper-plate': 50}
+[96m# I can see that there is a large amount of natural resources around. I should consider setting up mining and transport ratio for iron_ore, copper_ore, stone, and coal.
+[94m# First, let me set up mining for coal
+pickup_entity('coal', (-17, -14))
+place_entity('burner-mining-drill', direction=DOWN, position=nearest('coal'))
+move_to((0, 0), laying='transport-belt')
+insert_item('coal', target_position=(0, 0), quantity=10)
+[92mLine 1: Error: ('Could not pickup.', 'Nothing_to_here_to_pick_up')
+Line 2: True
+Line 3: None
+Line 4: True
+[94m# It seems there is no coal near my position at (-17, -14). I will find the nearest coal resource and mine it.
+pickup_entity('coal', nearest('coal'))
+place_entity('burner-mining-drill', direction=DOWN, position=nearest('coal'))
+move_to((0, 0), laying='transport-belt')
+insert_item('coal', target_position=(0, 0), quantity=10)
+[92mLine 1: Error: ('Could not pickup.', 'Nothing_to_here_to_pick_up')
+Line 2: Error: ('Could not place burner-mining-drill', 'No burner mining drill in inventory')
+Line 3: None
+Line 4: True
+[94m# I don't seem to have a burner mining drill in my inventory. I will craft it first.
+craft_item('burner-mining-drill', quantity=1)
+[92mLine 1: 1
+[94m# Now that I have the burner mining drill, let me retry mining coal.
+pickup_entity('coal', nearest('coal'))
+place_entity('burner-mining-drill', direction=DOWN, position=nearest('coal'))
+move_to((0, 0), laying='transport-belt')
+insert_item('coal', target_position=(0, 0), quantity=10)
+[92mLine 1: Error: ('Could not pickup.', 'Nothing_to_here_to_pick_up')
+Line 2: Error: ('Could not place burner-mining-drill', 'Cant build there due to existing burner mining drillwith the size 1')
+Line 3: None
+Line 4: True
+[94m# It looks like there is already a mining drill at the coal resource. Let me find another resource for coal.
+pickup_entity('coal', nearest('coal', exclude=set([(22, -14)])))
+place_entity('burner-mining-drill', direction=DOWN, position=nearest('coal'))
+move_to((0, 0), laying='transport-belt')
+insert_item('coal', target_position=(0, 0), quantity=10)
+[92mLine 1: Error: nearest() got an unexpected keyword argument 'exclude'
+Line 2: Error: ('Could not place burner-mining-drill', 'Cant build there due to existing burner mining drillwith the size 1')
+Line 3: None
+Line 4: True
+[94m# The `exclude` parameter is not part of the API. I will have to exclude those coordinates manually.
+coal_resources = [(23, -14), (14, -14), (13, -13), (16, -12), (14, -10), (15, -10), (15, -8), (14, -7), (13, -7), (13, -5), (15, -5), (13, -4), (17, -5), (11, -5), (9, -3), (8, -3), (7, -3), (22, -13), (21, -14), (19, -12), (21, -12), (18, -12), (18, -11), (17, -11), (18, -9), (16, -8), (18, -7), (19, -6), (18, -5), (20, -5), (21, -5), (21, -4), (20, -3), (19, -3), (18, -2), (17, -2), (16, -2), (12, -2), (7, -1)]
+[94m# Now that I excluded the coordinate, let me try again
+pickup_entity('coal', nearest('coal', exclude=set([(22, -14)] + coal_resources)))
+place_entity('burner-mining-drill', direction=DOWN, position=nearest('coal'))
+move_to((0, 0), laying='transport-belt')
+insert_item('coal', target_position=(0, 0), quantity=10)
+[92mLine 1: Error: nearest() got an unexpected keyword argument 'exclude'
+Line 2: Error: ('Could not place burner-mining-drill', 'Cant build there due to existing burner mining drillwith the size 1')
+Line 3: None
+Line 4: True
+[94m# I made a mistake, let me correct it
+coal_resources = [(23, -14), (14, -14), (13, -13), (16, -12), (14, -10), (15, -10), (15, -8), (14, -7), (13, -7), (13, -5), (15, -5), (13, -4), (17, -5), (11, -5), (9, -3), (8, -3), (7, -3), (22, -13), (21, -14), (19, -12), (21, -12), (18, -12), (18, -11), (17, -11), (18, -9), (16, -8), (18, -7), (19, -6), (18, -5), (20, -5), (21, -5), (21, -4), (20, -3), (19, -3), (18, -2), (17, -2), (16, -2), (12, -2), (7, -1)]
+# I will have to use a loop to keep mining coal resource until I have enough before moving on to other resources
+while check_inventory()['coal'] < 100:
+    pickup_entity('coal', nearest('coal', exclude=set([(22, -14)] + coal_resources)))
+    place_entity('burner-mining-drill', direction=DOWN, position=nearest('coal'))
+    move_to((0, 0), laying='transport-belt')
+    insert_item('coal', target_position=(0, 0), quantity=1)
+[91mYou can't do that action. 'coal'
+[94m# It seems there is an error with the API. Let me try a different approach.
+pickup_entity('coal', nearest('coal'))
+place_entity('burner-mining-drill', direction=DOWN, position=nearest('coal'))
+while check_inventory()['coal'] < 100:
+    move_to((0, 0), laying='transport-belt')
+    insert_item('coal', target_position=(0, 0), quantity=1)
+[91mYou can't do that action. 'coal'

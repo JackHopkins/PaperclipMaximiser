@@ -1,0 +1,6 @@
+# First, I will start by inspecting the resources and entities around me to plan my strategy
+inspect_resources()
+inspect_entities(20)
+# From my observations, I see that there's coal and iron ore nearby, so I'm going to start by setting up a basic mining operation for both resources.
+# First, I will move to the nearest coal resource
+move_to(nearest('coal'))

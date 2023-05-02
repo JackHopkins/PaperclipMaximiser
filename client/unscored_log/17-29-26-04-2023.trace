@@ -1,0 +1,45 @@
+comment("Start by inspecting your surroundings and available resources")
+inspect_resources()
+inspect_entities(20)
+inspect_inventory()
+comment("Let's move to the location of the ore and pick it up")
+move_to(ore)
+harvest_resource(ore, quantity=5)
+comment("Now, let's set up a basic smelting operation to convert the ore into plates")
+iron_ore = inspect_inventory()["iron-ore"]
+if iron_ore >= 5:
+    comment("We have enough iron ore to proceed with smelting")
+    furnace_pos = (ore[0]+1, ore[1])
+    move_to(furnace_pos)
+    place_entity('stone-furnace', position=furnace_pos)
+    coal_pos = nearest('coal')
+    move_to(coal_pos)
+    mining_drill_pos = place_entity('burner-mining-drill', position=coal_pos, direction=LEFT)
+    connect_entities(source_position=mining_drill_pos, target_position=furnace_pos, connection_type='inserter')
+    orient_entity(furnace_pos, direction=DOWN)
+    set_entity_recipe(furnace_pos, recipe='iron-plate')
+comment("We have successfully setup up a basic smelting operation. Now let's craft more items using the plates")
+plates = inspect_inventory()["iron-plate"]
+if plates >= 1:
+    comment("We have plates to craft items")
+    num_of_chests_to_craft = 2
+    while num_of_chests_to_craft > 0:
+        craft_item('iron-chest', quantity=1)
+        num_of_chests_to_craft -= 1
+    new_inventory = inspect_inventory()
+    comment(f"New Inventory after crafting {num_of_chests_to_craft} chest(s): {new_inventory}")
+comment("Now, let's set up a small transport belt manufacturing plant")
+plates = inspect_inventory()["iron-plate"]
+if plates >= 1:
+    comment("We have plates to use for manufacturing")
+    move_to((ore[0], ore[1]+1))
+    belt_pos_1 = place_entity('assembling-machine-1', position=(ore[0], ore[1]+1))
+    connect_entities(source_position=mining_drill_pos, target_position=belt_pos_1, connection_type='inserter')
+    move_to((furnace_pos[0], furnace_pos[1]-1))
+    belt_pos_2 = place_entity('assembling-machine-1', position=(furnace_pos[0], furnace_pos[1]-1))
+    connect_entities(source_position=furnace_pos, target_position=belt_pos_2, connection_type='inserter')
+    orient_entity(belt_pos_1, direction=UP)
+Apologies. That was a typo. 
+Here's the complete updated code:
+Apologies for the mistake. Here is a complete code example that uses valid Python:
+```

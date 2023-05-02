@@ -1,0 +1,48 @@
+# Lets start by checking my inventory.
+# Evaluate the resources we're working with
+coal_position = (-17, -14)
+iron_ore_position = (22, -14)
+stone_position = (-17, 6)
+copper_ore_position = (22, 6)
+uranium_ore_position = (22, 26)
+# Create a trail of transport-belts leading our resources to a central processing area
+move_to(coal_position, laying='transport-belt')
+central_processing_area = (0, 0)
+move_to(central_processing_area)
+# Now let's set up our resource production
+# First, we place a burner-mining-drill and feed the coal to a stone-furnace
+place_entity('burner-mining-drill', direction=2, position=coal_position)
+place_entity('stone-furnace', position=(coal_position[0] - 1, coal_position[1]))
+move_to((coal_position[0] - 1, coal_position[1]))
+extract_item('coal', source_position=coal_position, quantity=1)
+insert_item('coal', target_position=(coal_position[0] - 1, coal_position[1]), quantity=1)
+# Re-position the stone-furnace and burner-mining-drill accordingly 
+place_entity('burner-mining-drill', direction=2, position=(coal_position[0], coal_position[1] + 1))
+place_entity('stone-furnace', position=(coal_position[0] - 1, coal_position[1] + 1))
+# Move and feed the coal to the new stone-furnace position
+move_to((coal_position[0] - 1, coal_position[1] + 1))
+extract_item('coal', source_position=(coal_position[0], coal_position[1] + 1), quantity=1)
+insert_item('coal', target_position=(coal_position[0] - 1, coal_position[1] + 1), quantity=1)
+# You're out of burner-mining-drill. Let's check your inventory again.
+check_inventory()
+# Let's proceed using the assembling-machine-1 and available resources
+# First, set up a production chain to create burner-mining-drills
+# Place the assembling-machine-1 at a suitable position
+place_entity('assembling-machine-1', direction=2, position=(central_processing_area[0] + 1, central_processing_area[1]))
+set_entity_recipe((central_processing_area[0] + 1, central_processing_area[1]), recipe='burner-mining-drill')
+# Move to a different position and place the assembling-machine-1
+move_to((central_processing_area[0] + 3, central_processing_area[1]))
+place_entity('assembling-machine-1', direction=2, position=(central_processing_area[0] + 4, central_processing_area[1]))
+set_entity_recipe((central_processing_area[0] + 4, central_processing_area[1]), recipe='burner-mining-drill')
+# Move further away and retry placing the assembling-machine-1
+move_to((central_processing_area[0] + 6, central_processing_area[1]))
+place_entity('assembling-machine-1', direction=2, position=(central_processing_area[0] + 7, central_processing_area[1]))
+set_entity_recipe((central_processing_area[0] + 7, central_processing_area[1]), recipe='burner-mining-drill')
+# Plan an alternative approach, move far from the central_processing_area and try again
+move_to((central_processing_area[0], central_processing_area[1] - 6))
+place_entity('assembling-machine-1', direction=2, position=(central_processing_area[0], central_processing_area[1] - 5))
+set_entity_recipe((central_processing_area[0], central_processing_area[1] - 5), recipe='burner-mining-drill')
+# Since the building is not getting placed correctly, try placing east of the central_processing_area
+move_to((central_processing_area[0] + 6, central_processing_area[1]))
+place_entity('assembling-machine-1', direction=2, position=(central_processing_area[0] + 6, central_processing_area[1]))
+set_entity_recipe((central_processing_area[0] + 6, central_processing_area[1]), recipe='burner-mining-drill')

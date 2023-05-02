@@ -1,0 +1,343 @@
+comment("Plan:")
+comment("Plan:")
+comment("Plan:")
+comment("Plan:")
+comment("Navigate to the ore location")
+move_to((-8, -5))
+comment("Inspect the resources around you")
+inspect_resources()
+comment("Plan: Add a chest or transport belt at the output location of the burner-mining-drill.")
+comment("Place a chest at (-7.5, -6.5) and connect it to the output of the burner-mining-drill.")
+output_position = entity_position = (nearest("burner-mining-drill")[0] - 1.5, nearest("burner-mining-drill")[1] - 0.5)
+place_entity('wooden-chest', position=output_position)
+connect_entities(source_position=nearest("burner-mining-drill"), target_position=output_position, connection_type="inserter")
+comment("Plan:")
+comment("Craft a wooden chest")
+craft_item('wooden-chest', quantity=1)
+comment("Plan:")
+comment("Find and pick up wood")
+wood_position = nearest('tree')
+move_to(wood_position)
+pickup_entity('wood', wood_position)
+comment("Plan:")
+comment("Harvest wood from the nearest tree")
+harvest_resource(nearest('tree'), quantity = 1)
+comment("Plan:")
+comment("Place the wooden chest near the burner-mining-drill output position")
+output_position = entity_position = (nearest("burner-mining-drill")[0] - 1.5, nearest("burner-mining-drill")[1] - 0.5)
+place_entity('wooden-chest', position=output_position)
+comment("Plan:")
+comment("Craft and place a wooden chest")
+craft_item('wooden-chest', quantity=1)
+place_entity('wooden-chest', position=output_position)
+comment("Plan:")
+comment("Find and pick up wood")
+wood_position = nearest('tree')
+move_to(wood_position)
+harvest_resource(wood_position, quantity=1)
+comment("Plan:")
+comment("Place a burner mining drill on the iron ore and connect it to a wooden chest")
+comment("Checking inventory contents and resources")
+inspect_inventory()
+inspect_resources()
+inventory = inspect_inventory()
+if 'iron-plate' in inventory:
+    comment("Craft and place a transport-belt to connect the burner mining drill to the wooden chest")
+    output_position = (entity_position[0]-2, entity_position[1])
+    craft_item('transport-belt', quantity=1)
+    place_entity('transport-belt', position=output_position)
+    comment("Connect the output of the burner mining drill to the wooden chest with the transport-belt")
+    connect_entities(output_position, nearest('wooden-chest'), connection_type='transport-belt')
+else:
+    comment("Missing ingredient iron plate to craft a transport-belt")
+comment("Checking iron plate in inventory to enable crafting of iron chest")
+inventory = inspect_inventory()
+if 'iron-plate' in inventory:
+    comment('Crafting an iron chest')
+    craft_item('iron-chest', quantity=1)
+comment('Moving to the iron ore position and placing a burner mining drill on it')
+move_to(ore)
+entity_position = place_entity(entity='burner-mining-drill', direction=UP, position=ore)
+comment('Checking resources to ensure the availability of a burner-mining-drill')
+resources = inspect_resources()
+if resources['coal'] > 0:
+    comment('Crafting a burner-mining-drill.')
+    craft_item('burner-mining-drill', quantity=1)
+    comment('Moving to the iron ore position and placing a burner mining drill on it')
+    move_to(ore)
+    entity_position = place_entity(entity='burner-mining-drill', direction=UP, position=ore)      
+else:
+    comment('No coal to craft burner-mining-drill, harvesting coal.')
+    move_to(nearest('coal'))
+    harvest_resource(source_position=nearest('coal'), quantity=5)
+    craft_item('burner-mining-drill', quantity=1)
+    move_to(ore)
+    entity_position = place_entity(entity='burner-mining-drill', direction=UP, position=ore)
+comment('Checking resources to ensure the availability of a burner-mining-drill')
+resources = inspect_resources()
+if resources['coal'][0]['size'] > 0:
+    comment('Moving to the iron ore position and placing a burner mining drill on it')
+    ore = (22,-7)
+    move_to(ore)
+    entity_position = place_entity(entity='burner-mining-drill', direction=UP, position=ore)
+else:
+    comment('You have run out of coal. Please find a new coal deposit and harvest it, or upgrade to solar power.')
+comment('Crafting a burner-mining-drill')
+inventory = inspect_inventory()
+if 'iron-plate' in inventory and 'stone-furnace' in inventory:
+    craft_item('burner-mining-drill')
+    comment('Going to iron ore resource')
+    move_to((22, -5))
+    comment('Placing a burner-mining-drill')
+    entity_position = place_entity(entity='burner-mining-drill', direction=DOWN, position=(22, -5))
+comment('Crafting a burner-mining-drill')
+inventory = inspect_inventory()
+if 'iron-plate' in inventory and 'stone-furnace' in inventory:
+    craft_item('burner-mining-drill', quantity=1)
+comment('Moving near the coal deposit and placing the burner-mining-drill')
+move_to((22, -5))
+entity_position = place_entity('burner-mining-drill', direction=UP, position=(22,-5))
+comment('Checking availability of coal to fuel the burner-mining-drill')
+nearby_entities = inspect_entities(radius=6)
+coal_entity = None
+for entity in nearby_entities:
+    if entity['name'] == 'coal':
+        coal_entity = entity
+        break
+        
+if coal_entity:
+    comment('Moving to the location of the coal and picking up 1 coal')
+    move_to(coal_entity['position'])
+    pickup_entity('coal', coal_entity['position'])
+    
+    comment('Inserting the coal into the burner-mining-drill to fuel it')
+    insert_item('coal', target_position=(int(entity_position[0]), int(entity_position[1])-2), quantity=1) 
+else:
+    comment('No coal found nearby, move to another location to find coal deposit')
+inventory = inspect_inventory()
+if 'coal' in inventory and inventory['coal'] >= 1:
+    comment('Fueling the burner-mining-drill')
+    insert_item('coal', target_position=nearest('burner-mining-drill'), quantity=1)
+else:
+    comment('No coal in inventory to fuel the burner-mining-drill. Moving to find some coal.')
+    move_to(nearest('coal'))
+    coal_entity = inspect_entities(radius=4)
+    if coal_entity:
+        # Trying to harvest coal
+        extract_item('coal', source_position=coal_entity[0]['position'], quantity=1)
+    else:
+        comment('No coal found')
+comment('Finding a nearby coal deposit')
+resources = inspect_resources()
+coal_deposits = resources['coal']
+distance = 99999
+for deposit in coal_deposits:
+    coordinates = ((deposit['min_coordinates'][0] + deposit['max_coordinates'][0])/2, (deposit['min_coordinates'][1] + deposit['max_coordinates'][1])/2) 
+    deposit_distance = ((entity['position'][0]-coordinates[0])**2+(entity['position'][1]-coordinates[1])**2)**0.5
+    if deposit_distance < distance:
+        distance = deposit_distance
+        coal_position = coordinates
+     
+comment('Moving near the coal deposit and placing the burner-mining-drill')
+move_to(coal_position)
+entity_position = place_entity('burner-mining-drill', direction=UP, position=coal_position)
+inventory = inspect_inventory()
+comment('Moving to the optimal coal deposit')
+resources = inspect_resources()
+coal_deposits = resources['coal']
+distance = 99999
+for deposit in coal_deposits:
+    coordinates = ((deposit['min_coordinates'][0] + deposit['max_coordinates'][0])/2, (deposit['min_coordinates'][1] + deposit['max_coordinates'][1])/2)     deposit_size = deposit['size']
+    deposit_distance = ((coal_position[0]-coordinates[0])**2+(coal_position[1]-coordinates[1])**2)**0.5
+    if deposit_distance < distance:
+        distance = deposit_distance
+        optimal_deposit = deposit
+optimal_coordinates = ((optimal_deposit['min_coordinates'][0] + optimal_deposit['max_coordinates'][0])/2, (optimal_deposit['min_coordinates'][1] + optimal_deposit['max_coordinates'][1])/2)
+move_to(optimal_coordinates)
+
+inventory = inspect_inventory()
+inventory = inspect_inventory()
+comment('Placing a transport belt')
+place_entity('transport-belt', exact=False, position=(-7.5, -6.5))
+comment('Moving to the location to place a transport belt')
+move_to((-7.5, -6.5))
+comment('Attempting to place a transport belt at the alternate location')
+place_entity('transport-belt', exact=False, position=(22.5, -3.5))
+comment('Checking whether transport-belt is a researched technology.')
+inspect_inventory()
+comment("If transport-belt isn't in inventory, we will craft it.")
+comment('Checking whether transport-belt is in inventory')
+inventory = inspect_inventory()
+if 'transport-belt' not in inventory['items']:
+    comment('Crafting a transport belt')
+    craft_item('transport-belt', quantity=1)
+comment('Attempting to insert coal into the burner-mining-drill at (-5, -7).')
+insert_item('coal', target_position=(-5, -7), quantity=1)
+comment('Placing a chest to unblock the output of burner-mining-drill at (-5, -7).')
+place_entity('iron-chest', exact=False, position=(-7.5, -6.5))
+place_entity('iron-chest', exact=False, position=(22.5, -3.5))
+comment('Connecting the output of burner-mining-drill at (-5, -7) to the input of the chest at (22.5, -3.5).')
+connect_entities(source_position=(-5, -7), target_position=(22.5, -3.5), connection_type='inserter')
+
+comment('Inspecting entities within a 5-meter radius.')
+entities = inspect_entities(5)
+comment('Connecting the output of the burner-mining-drill to the nearest empty chest.')
+empty_chests = []
+for entity in entities:
+    if entity['name'] == 'iron_chest' and entity['status'] == 'empty':
+        empty_chests.append(entity)
+if empty_chests:
+    empty_chests.sort(key=lambda x: distance_between(x['position'], (-5, -7))) # sort the chests by proximity
+    chest_position = empty_chests[0]['position'] # use the closest empty chest
+    connect_entities(source_position=(-5, -7), target_position=chest_position, connection_type='inserter')
+else:
+    comment('No empty chests within range. Moving player to search for chest.')
+    move_to(nearest('iron_chest', only_empty=False))
+comment('Selecting the closest empty chest.')
+empty_chests = []
+distance_between = float('inf')
+for entity in entities:
+    if entity['name'] == 'iron_chest' and entity['status'] == 'empty':
+        chest_position = entity['position']
+        new_distance = ((-5-chest_position[0])**2 +(22.5-chest_position[1])**2)**0.5
+        if new_distance < distance_between:
+            distance_between = new_distance
+            closest_chest = entity
+empty_chests.append(closest_chest)
+comment('Found empty chest to connect, Chest at: ', closest_chest['position']) 
+[source_position, target_position] = [-5,-7], closest_chest['position'] 
+connect_entities(source_position=source_position, target_position=target_position, connection_type='inserter')
+comment("Selecting the closest empty chest.")
+empty_chests = []
+distance_between = float('inf')
+for entity in entities:
+    if entity['name'] == 'iron_chest' and entity['status'] == 'empty':
+        chest_position = entity['position']
+        new_distance = distance_between_points((-5, -7), chest_position)
+        if new_distance < distance_between:
+            distance_between = new_distance
+            closest_chest = entity
+empty_chests.append(closest_chest)
+comment('Selecting the closest empty chest.')
+empty_chests = []
+distance_between = float('inf')
+for entity in entities:
+    if entity['name'] == 'iron_chest' and entity['status'] == 'empty':
+        chest_position = entity['position']
+        distance = distance_between_points(player_position(), chest_position)
+        if distance < distance_between:
+            distance_between = distance
+            closest_chest['name'] = entity['name']
+            closest_chest['position'] = entity['position']
+            closest_chest['status'] = entity['status']
+if closest_chest['position'] != None:
+    connect_entities(source_position=(-5, -7), target_position=closest_chest['position'], connection_type='inserter')
+comment('Determining the closest empty chest.')
+empty_chests = []
+distance_between = float('inf')
+for entity in entities:
+    if entity['name'] == 'iron_chest' and entity['status'] == 'empty':
+        chest_position = entity['position']
+        new_distance = distance_between_points(player_character.position, chest_position)
+        if new_distance < distance_between:
+            closest_chest = entity
+            distance_between = new_distance
+comment('Finding the closest empty chest.')
+empty_chests = []
+distance_between = float('inf')
+comment("Finding the closest empty chest")
+comment('Finding the closest empty chest')
+empty_chests = []
+distance_between = float('inf')
+for entity in entities:
+    if entity['name'] == 'iron-chest' and entity['status'] == 'empty':
+        chest_position = entity['position']
+        distance = distance_between_points(player_character['position'], chest_position)
+        if distance < distance_between:
+            distance_between = distance
+            closest_chest['name'] = entity['name']
+            closest_chest['position'] = entity['position']
+            closest_chest['warning'] = ''
+            closest_chest['status'] = entity['status']
+if closest_chest['status'] == 'empty':
+    empty_chests.append(closest_chest)
+comment("Finding the closest empty chest.")
+empty_chests = []
+distance_between = float('inf')
+for entity in entities:
+    if entity['name'] == 'iron-chest' and entity['status'] == 'empty':
+        chest_position = entity['position']
+        distance = distance_between_points(player_character['position'], chest_position)
+        if distance < distance_between:
+            distance_between = distance
+            closest_chest = entity
+if closest_chest['status'] == 'empty':
+    empty_chests.append(closest_chest)
+comment("Check if we have coal in our inventory or near us")
+inspect_inventory()
+coal_position = nearest('coal')
+comment("Check if we have coal in our inventory or near us.")
+inspect_inventory()
+coal_position = nearest('coal')
+comment("Check if we have enough coal in our inventory or near us, otherwise move to the nearest coal deposit")
+coal_count = inspect_inventory()['coal']
+if coal_count < 50:
+    coal_position = nearest('coal')
+    move_to(coal_position)
+    extract_item('coal', source_position=coal_position, quantity=50)
+comment('Extract coal from the nearest coal resource.')
+coal_position = nearest('coal')
+comment('Extract coal from the nearest coal resource.')
+coal_position = nearest('coal')
+extract_item('coal', source_position=coal_position, quantity=50)
+comment('Extract coal from the nearest coal resource.')
+coal_position = nearest('coal')
+if coal_position is not None:
+    extract_item('coal', source_position=coal_position, quantity=50)
+else:
+    move_to(nearest('coal'))
+comment('Extract coal from the nearest coal resource if it exists.')
+coal_position = nearest('coal')
+if coal_position is not None:
+    extract_item('coal', source_position=coal_position, quantity=50)
+comment('Extract coal from the nearest coal resource if it exists and we do not have enough coal in our inventory.')
+coal_position = nearest('coal')
+coal_count = inspect_inventory()['coal']
+if coal_position is not None and coal_count < 50:
+    extract_item('coal', source_position=coal_position, quantity=50-coal_count)
+comment('Extract coal from the nearest coal resource if it exists and we do not have enough coal in our inventory.')
+coal_position = nearest('coal')
+coal_count = inspect_inventory()['coal']
+if coal_position is not None and coal_count < 50:
+    extract_item('coal', source_position=coal_position, quantity=50)
+comment('Extract coal from the nearest coal resource if it exists and we do not have enough coal in our inventory.')
+coal_position = nearest('coal')
+coal_count = inspect_inventory()['coal']
+if coal_position is not None and coal_count < 50:
+    extract_item('coal', source_position=coal_position, quantity=50-coal_count)
+comment('Extract coal from the nearest coal resource if it exists and we do not have enough coal in our inventory.')
+coal_position = nearest('coal')
+coal_count = inspect_inventory().get('coal', 0)
+comment('Extract coal from the nearest coal resource if it exists and we do not have enough coal in our inventory.')
+coal_position = nearest('coal')
+inventory = inspect_inventory()
+coal_count = inventory.get('coal', 0)
+comment('Extract coal from the nearest coal resource if it exists and we do not have enough coal in our inventory.')
+coal_position = nearest('coal')
+inventory = inspect_inventory()
+coal_count = inventory.get('coal', 0)
+comment("Place an assembling-machine-1")
+comment('Place assembling-machine to automate some production.')
+assembler_position = (6, 5)
+move_to(assembler_position)
+place_entity('assembling-machine-1', direction=UP, position=assembler_position)
+inspect_entities(radius=10)
+comment("Place an assembling-machine-1")
+comment('Place assembling-machine to automate some production.')
+assembler_position = (6, 5)
+move_to(assembler_position)
+result = place_entity('assembling-machine-1', direction=UP, position=assembler_position)
+if not result:
+    inspect_entities()  # Show details of any entity build error. 
+    # Handle errors accordingly to player_character's preference. 
+    # It might be advisable to build the structure at a different location.

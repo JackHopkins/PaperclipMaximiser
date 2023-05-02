@@ -1,0 +1,33 @@
+# Start by checking the available resources in the area
+inspect_resources()
+# It looks like we have coal, iron ore, stone, copper ore, uranium ore and trees. Let's start by mining coal.
+# First, we need to move towards the nearest coal source
+move_to(nearest('coal')) 
+# Now we will place a burner-mining-drill to extract coal and a stone furnace to convert it into plates
+place_entity('burner-mining-drill', direction=DOWN, position=(0, -4))
+place_entity('stone-furnace', direction=DOWN, position=(2, -4))
+# It seems that we can't place the burner-mining-drill here, let's check the area with inspect_entities
+inspect_entities(10)
+# We need to move away from our current position so we don't overlap with the player_character that's nearby. We will move up and right
+move_to((2, -8))
+# Let's try placing the burner-mining-drill and stone furnace again
+place_entity('burner-mining-drill', direction=DOWN, position=(0, -4))
+place_entity('stone-furnace', direction=DOWN, position=(2, -4))
+# Let's inspect our surroundings again
+inspect_entities(10)
+# Looks like we have another player_character nearby, let's move down and left 
+move_to((-5, 0))
+# Now that we have a better position, let's try placing the burner-mining-drill and stone furnace again
+place_entity('burner-mining-drill', direction=DOWN, position=(0, -4))
+place_entity('stone-furnace', direction=DOWN, position=(2, -4))
+# Let's inspect our surroundings again
+inspect_entities(10)
+# Looks like we have another player_character nearby, let's move further away 
+move_to((20, 0))
+# Now that we have a better position, let's try placing the burner-mining-drill and stone furnace again
+place_entity('burner-mining-drill', direction=DOWN, position=(0, 0))
+place_entity('stone-furnace', direction=DOWN, position=(2, 0))
+# Let's inspect our surroundings again
+inspect_entities(10)
+# It looks like we have another player_character nearby. Let's move further away in the opposite direction
+move_to((-20, 0))

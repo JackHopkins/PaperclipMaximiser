@@ -1,0 +1,9 @@
+# First, let's inspect our surroundings and resources.
+inspect_resources()
+inspect_entities(10)
+# Based on the resources, I will start by placing a burner mining drill on a coal resource and placing a burner furnace next to it to smelt the coal into iron
+# First, let's find the position of the nearest coal resource
+coal_position = nearest('coal')
+# Now let's move to the coal resource and place a burner mining drill on it
+move_to(coal_position)
+burner_drill_position = place_entity('burner-mining-drill', direction=LEFT, position=(coal_position[0]-2, coal_position[1]))

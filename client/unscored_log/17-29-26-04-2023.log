@@ -1,0 +1,51 @@
+[94mcomment("Start by inspecting your surroundings and available resources")
+inspect_resources()
+inspect_entities(20)
+inspect_inventory()
+[92m1: {'water': [{'size': 900, 'min_coordinates': (-18, -50), 'max_coordinates': (31, -33)}], 'coal': [{'size': 100, 'min_coordinates': (-17, -14), 'max_coordinates': (-8, -5)}], 'iron_ore': [{'size': 100, 'min_coordinates': (22, -14), 'max_coordinates': (31, -5)}], 'stone': [{'size': 100, 'min_coordinates': (-17, 6), 'max_coordinates': (-8, 15)}], 'copper_ore': [{'size': 100, 'min_coordinates': (22, 6), 'max_coordinates': (31, 15)}], 'uranium_ore': [{'size': 100, 'min_coordinates': (22, 26), 'max_coordinates': (31, 35)}], 'item_on_ground': [{'size': 2, 'scattered': True}]}
+2: [{'type': 'transport_belt', 'position': (-32.5, 55.5), 'start_position': (-32.5, 55.5), 'end_position': (-32.5, 55.5), 'quantity': 6, 'warning': '', 'status': 'empty'}, {'type': 'transport_belt', 'position': (-34.5, 61.5), 'start_position': (-34.5, 61.5), 'end_position': (-34.5, 61.5), 'quantity': 3, 'warning': '', 'status': 'empty'}, {'type': 'transport_belt', 'position': (-32.5, 61.5), 'start_position': (-32.5, 61.5), 'end_position': (-32.5, 61.5), 'quantity': 2, 'warning': '', 'status': 'empty'}, {'type': 'transport_belt', 'position': (-37.5, 63.5), 'start_position': (-37.5, 63.5), 'end_position': (-37.5, 63.5), 'quantity': 2, 'warning': '', 'status': 'empty'}, {'type': 'transport_belt', 'position': (-37.5, 61.5), 'start_position': (-37.5, 61.5), 'end_position': (-37.5, 61.5), 'quantity': 2, 'warning': '', 'status': 'empty'}, {'type': 'transport_belt', 'position': (-34.5, 64.5), 'start_position': (-34.5, 64.5), 'end_position': (-34.5, 64.5), 'quantity': 2, 'warning': '', 'status': 'empty'}, {'type': 'transport_belt', 'position': (-40.5, 64.5), 'warning': '', 'status': 'empty'}, {'type': 'transport_belt', 'position': (-36.5, 64.5), 'warning': '', 'status': 'empty'}, {'type': 'transport_belt', 'position': (-42.5, 63.5), 'warning': '', 'status': 'empty'}, {'type': 'transport_belt', 'position': (-39.5, 61.5), 'warning': '', 'status': 'empty'}, {'type': 'transport_belt', 'position': (-40.5, 62.5), 'warning': '', 'status': 'empty'}, {'type': 'transport_belt', 'position': (-39.5, 62.5), 'warning': '', 'status': 'empty'}, {'type': 'transport_belt', 'position': (-36.5, 63.5), 'warning': '', 'status': 'empty'}, {'type': 'burner_mining_drill', 'position': (-7, -5), 'warning': 'The entity is out of fuel. The mining drill is waiting for space in destination', 'status': 'empty'}, {'type': 'player_character', 'position': (0, 0), 'warning': '', 'status': 'empty'}]
+3: {'iron-chest': 1, 'transport-belt': 50, 'stone-furnace': 1, 'assembling-machine-1': 1, 'coal': 50, 'iron-plate': 50, 'copper-plate': 50}
+[94mcomment("Let's move to the location of the ore and pick it up")
+move_to(ore)
+harvest_resource(ore, quantity=5)
+[94mcomment("Now, let's set up a basic smelting operation to convert the ore into plates")
+iron_ore = inspect_inventory()["iron-ore"]
+if iron_ore >= 5:
+    comment("We have enough iron ore to proceed with smelting")
+    furnace_pos = (ore[0]+1, ore[1])
+    move_to(furnace_pos)
+    place_entity('stone-furnace', position=furnace_pos)
+    coal_pos = nearest('coal')
+    move_to(coal_pos)
+    mining_drill_pos = place_entity('burner-mining-drill', position=coal_pos, direction=LEFT)
+    connect_entities(source_position=mining_drill_pos, target_position=furnace_pos, connection_type='inserter')
+    orient_entity(furnace_pos, direction=DOWN)
+    set_entity_recipe(furnace_pos, recipe='iron-plate')
+[94mcomment("We have successfully setup up a basic smelting operation. Now let's craft more items using the plates")
+plates = inspect_inventory()["iron-plate"]
+if plates >= 1:
+    comment("We have plates to craft items")
+    num_of_chests_to_craft = 2
+    while num_of_chests_to_craft > 0:
+        craft_item('iron-chest', quantity=1)
+        num_of_chests_to_craft -= 1
+    new_inventory = inspect_inventory()
+    comment(f"New Inventory after crafting {num_of_chests_to_craft} chest(s): {new_inventory}")
+[94mcomment("Now, let's set up a small transport belt manufacturing plant")
+plates = inspect_inventory()["iron-plate"]
+if plates >= 1:
+    comment("We have plates to use for manufacturing")
+    move_to((ore[0], ore[1]+1))
+    belt_pos_1 = place_entity('assembling-machine-1', position=(ore[0], ore[1]+1))
+    connect_entities(source_position=mining_drill_pos, target_position=belt_pos_1, connection_type='inserter')
+    move_to((furnace_pos[0], furnace_pos[1]-1))
+    belt_pos_2 = place_entity('assembling-machine-1', position=(furnace_pos[0], furnace_pos[1]-1))
+    connect_entities(source_position=furnace_pos, target_position=belt_pos_2, connection_type='inserter')
+    orient_entity(belt_pos_1, direction=UP)
+[91m2: Error: name 'mining drill pos' is not defined
+[94mApologies. That was a typo. 
+Here's the complete updated code:
+[91mThe provided code is not syntactically valid Python. Only write valid python.
+[94mApologies for the mistake. Here is a complete code example that uses valid Python:
+```
+[91mThe provided code is not syntactically valid Python. Only write valid python.

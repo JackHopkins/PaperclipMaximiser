@@ -1,0 +1,68 @@
+[92mThere are 4.2k tree_01s scattered 23km northwest, 17km north-northwest, 16km north, 16km north-northeast, 21km northeast, 1km east-northeast, 3km west-northwest, 760 metres west, 32 metres east, 4km west-southwest, 720 metres east-southeast, 17km southeast, 17km southwest, 13km south-southwest, 13km south-southeast, and 11km south 
+- 100x coal 10 metres northwest (-17, -14) x (-8, -5)
+- 100x iron_ore 10 metres east-northeast (22, -14) x (31, -5)
+- 100x stone 10 metres southwest (-17, 6) x (-8, 15)
+- 100x copper_ore 10 metres east-southeast (22, 6) x (31, 15)
+- 100x uranium_ore 30 metres southeast (22, 26) x (31, 35)
+[96m# Lets start by checking my inventory.
+[92m{'iron-chest': 1, 'transport-belt': 50, 'burner-mining-drill': 1, 'stone-furnace': 1, 'assembling-machine-1': 1, 'coal': 50, 'iron-plate': 50, 'copper-plate': 50}
+[96m# Start by placing burner-mining-drills near coal, iron_ore, stone, and copper_ore resources
+[94mcoal_position = nearest('coal')
+iron_position = nearest('iron_ore')
+stone_position = nearest('stone')
+copper_position = nearest('copper_ore')
+[94mplace_entity("burner-mining-drill", direction=UP, position=(coal_position[0], coal_position[1] - 1))
+place_entity("burner-mining-drill", direction=UP, position=(iron_position[0], iron_position[1] - 1))
+place_entity("burner-mining-drill", direction=UP, position=(stone_position[0], stone_position[1] - 1))
+place_entity("burner-mining-drill", direction=UP, position=(copper_position[0], copper_position[1] - 1))
+[91mCould not place burner-mining-drill. No burner mining drill in inventory
+[94m# Craft the required burner-mining-drills using the available resources
+craft_item("burner-mining-drill", quantity=3)
+[91mCould not craft a burner-mining-drill. Successfully crafted 1x but failed to craft 2x burner mining drill because missing ingredient stone
+[96m# Let's gather more stone to craft the missing burner-mining-drills 
+[94mmove_to(nearest('stone'))
+harvest_resource(nearest('stone'), quantity=30)
+craft_item("burner-mining-drill", quantity=2)
+[92mNone
+True
+1
+[94m# Now that we have more burner-mining-drills, let's place them again
+place_entity("burner-mining-drill", direction=UP, position=(coal_position[0], coal_position[1] - 1))
+place_entity("burner-mining-drill", direction=UP, position=(iron_position[0], iron_position[1] - 1))
+place_entity("burner-mining-drill", direction=UP, position=(stone_position[0], stone_position[1] - 1))
+place_entity("burner-mining-drill", direction=UP, position=(copper_position[0], copper_position[1] - 1))
+[91mCould not place burner-mining-drill. Cant build there due to existing burner mining drill at 0,  12 and the size of the entity is 1
+[94m# Adjust the position of the burner-mining-drills to avoid collisions
+place_entity("burner-mining-drill", direction=UP, position=(coal_position[0], coal_position[1] - 2))
+place_entity("burner-mining-drill", direction=UP, position=(iron_position[0], iron_position[1] - 2))
+place_entity("burner-mining-drill", direction=UP, position=(stone_position[0], stone_position[1] - 2))
+place_entity("burner-mining-drill", direction=UP, position=(copper_position[0], copper_position[1] - 2))
+[91mCould not place burner-mining-drill. Cant build there due to existing burner mining drill at 0,  12 and the size of the entity is 1
+[94m# Apologies for the error, I misunderstood the coordinate system. Let's place them at a safe distance now.
+place_entity("burner-mining-drill", direction=UP, position=(coal_position[0] + 1, coal_position[1]))
+place_entity("burner-mining-drill", direction=UP, position=(iron_position[0] + 1, iron_position[1]))
+place_entity("burner-mining-drill", direction=UP, position=(stone_position[0] + 1, stone_position[1]))
+place_entity("burner-mining-drill", direction=UP, position=(copper_position[0] + 1, copper_position[1]))
+[91mCould not place burner-mining-drill. Cant build there due to existing burner mining drill at 0,  12 and the size of the entity is 1
+[96m# I apologize for the confusion. Let's try another approach by placing the drills at the farthest point in each resource area.
+[94mcoal_position = (-17, -14)
+iron_position = (22, -14)
+stone_position = (-17, 6)
+copper_position = (22, 6)
+[94mplace_entity("burner-mining-drill", direction=UP, position=(coal_position[0], coal_position[1]))
+place_entity("burner-mining-drill", direction=UP, position=(iron_position[0], iron_position[1]))
+place_entity("burner-mining-drill", direction=UP, position=(stone_position[0], stone_position[1]))
+place_entity("burner-mining-drill", direction=UP, position=(copper_position[0], copper_position[1]))
+[91mCould not place burner-mining-drill. No burner mining drill in inventory
+[94m# Apologies for the confusion, and thank you for your patience. Let's craft and place the burner-mining-drills again.
+harvest_resource(nearest('stone'), quantity=30)
+craft_item("burner-mining-drill", quantity=4)
+place_entity("burner-mining-drill", direction=UP, position=(coal_position[0], coal_position[1]))
+place_entity("burner-mining-drill", direction=UP, position=(iron_position[0], iron_position[1]))
+place_entity("burner-mining-drill", direction=UP, position=(stone_position[0], stone_position[1]))
+place_entity("burner-mining-drill", direction=UP, position=(copper_position[0], copper_position[1]))
+[91mCould not craft a burner-mining-drill. Successfully crafted 2x but failed to craft 2x burner mining drill because missing ingredient iron ore
+[94m# Let's gather more iron ore to craft the missing burner-mining-drills
+harvest_resource(nearest('iron_ore'), quantity=30)
+craft_item("burner-mining-drill", quantity=2)
+[91mCould not harvest.. Nothing within reach to harvest

@@ -1,0 +1,19 @@
+[94mcomment("First, let's inspect our surroundings and available resources")
+inspect_resources()
+[92m1: {'water': [{'size': 900, 'min_coordinates': (-18, -50), 'max_coordinates': (31, -33)}], 'coal': [{'size': 100, 'min_coordinates': (-17, -14), 'max_coordinates': (-8, -5)}], 'iron_ore': [{'size': 100, 'min_coordinates': (22, -14), 'max_coordinates': (31, -5)}], 'stone': [{'size': 100, 'min_coordinates': (-17, 6), 'max_coordinates': (-8, 15)}], 'copper_ore': [{'size': 100, 'min_coordinates': (22, 6), 'max_coordinates': (31, 15)}], 'uranium_ore': [{'size': 100, 'min_coordinates': (22, 26), 'max_coordinates': (31, 35)}]}
+[94mcomment("Next, let's move to the location of our ore deposit")
+move_to(ore)
+[94mcomment("Once we've arrived at the ore deposit, let's place a burner-mining-drill on it and connect it with a transport belt.")
+drill_position = place_entity('burner-mining-drill', direction=DOWN, exact=False, position=ore)
+belt_position = place_entity_next_to('transport-belt', drill_position, direction=RIGHT, gap=1)
+connect_entities(source_position=drill_position, target_position=belt_position, connection_type='transport-belt')
+[91m1: Error: Could not place burner-mining-drill.  No burner mining drill in inventory.
+[94mcomment("It looks like we don't have a burner mining drill in our inventory. Let's craft one first.")
+craft_item('burner-mining-drill', quantity=1)
+[94mcomment("Now, let's place the burner-mining-drill on the ore deposit and connect it with a transport belt.")
+drill_position = place_entity('burner-mining-drill', direction=DOWN, exact=False, position=ore)
+[94mcomment("Now, let's connect the burner-mining-drill with a transport belt.")
+belts = ['transport-belt'] * 5
+for i in range(5):
+    insert_item(belts[i], target_position=drill_position, quantity=1)
+[91m2: Error: Could not insert. Item

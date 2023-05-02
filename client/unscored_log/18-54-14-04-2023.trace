@@ -1,0 +1,11 @@
+# Lets start by checking my inventory.
+# I have some basic resources, but I will need more to make many iron-gear-wheels.
+# First, let's place a burner mining drill on an iron patch and craft some transport-belts.
+iron_patch = (12, 0)
+place_entity('burner-mining-drill', direction=DOWN, position=iron_patch)
+move_to((iron_patch[0], iron_patch[1]+1), laying='transport-belt')
+craft_item('transport-belt', quantity=20)
+# It seems like the previous code took too long. Let's try a shorter snippet
+# Pick up the coal near the iron patch and place it in the mining drill.
+pickup_entity('coal', (iron_patch[0]-1, iron_patch[1]))
+insert_item('coal', (iron_patch[0], iron_patch[1]), quantity=10)

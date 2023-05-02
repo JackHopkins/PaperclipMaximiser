@@ -1,0 +1,10 @@
+comment("First, observe the resources and landscape around the player character")
+inspect_resources()
+comment("Next, let's move to the ore location and start mining it")
+move_to((-8, -5))
+harvest_resource(ore, quantity=5)
+comment("Now that we have some iron ore, let's smelt it into iron plates")
+smelting_furnace = place_entity('stone-furnace', direction=UP, position=(0,-5))
+insert_item('iron-ore', target_position=nearest(smelting_furnace), quantity=2)
+set_entity_recipe(smelting_furnace, recipe='iron-plate')
+inspect_entities(5) # Check to see if the furnace is smelting and producing iron plates. Our goal is to produce at least 1 iron plate.

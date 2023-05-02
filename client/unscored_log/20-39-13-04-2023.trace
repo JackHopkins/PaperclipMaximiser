@@ -1,0 +1,46 @@
+# Lets start by checking my inventory.
+# Since I have some resources in my inventory, I will start building basic production factory
+# Let's start by placing a burner-mining-drill next to the coal.
+coal_position = nearest('coal')
+place_entity('burner-mining-drill', direction=2, position=coal_position)
+# Now I will place another burner-mining-drill for iron_ore.
+iron_ore_position = nearest('iron_ore')
+place_entity('burner-mining-drill', direction=2, position=iron_ore_position)
+# I need to craft a burner-mining-drill first
+craft_item('burner-mining-drill', quantity=1)
+# Now that I crafted a burner-mining-drill, I will place it next to the iron_ore.
+place_entity('burner-mining-drill', direction=2, position=iron_ore_position)
+# I will place a stone-furnace next to the iron_ore burner-mining-drill to smelt the iron_ore into iron-plates.
+furnace_position = (iron_ore_position[0] - 1, iron_ore_position[1])
+place_entity('stone-furnace', direction=2, position=furnace_position)
+# I need to craft a stone-furnace first
+craft_item('stone-furnace', quantity=1)
+# I need to mine some stone to craft the stone-furnace.
+# Let's move to the stone resource and mine it.
+stone_position = nearest('stone')
+move_to(stone_position)
+harvest_resource(stone_position, quantity=5)
+# Now that I have gathered enough stone, I will craft the stone-furnace.
+craft_item('stone-furnace', quantity=1)
+# Now that I crafted a stone-furnace, I will place it next to the iron_ore burner-mining-drill.
+place_entity('stone-furnace', direction=2, position=furnace_position)
+# I will place the stone-furnace one tile left from the iron_ore burner-mining-drill.
+furnace_position = (iron_ore_position[0] - 2, iron_ore_position[1])
+place_entity('stone-furnace', direction=2, position=furnace_position)
+# Now, I will insert some coal into the burner-mining-drill for the iron_ore and the stone-furnace.
+insert_item('coal', target_position=iron_ore_position, quantity=5)
+insert_item('coal', target_position=furnace_position, quantity=5)
+# Next, we will place an assembling-machine-1 to automate production of simple items.
+# I will place it two tiles left from the stone-furnace.
+assembling_position = (furnace_position[0] - 2, furnace_position[1])
+place_entity('assembling-machine-1', direction=2, position=assembling_position)
+# Now, I will set a recipe for the assembling-machine-1.
+# Let's make it produce transport-belts, since we have iron-plates in our inventory.
+set_entity_recipe(assembling_position, recipe='transport-belt')
+# I forgot that the assembling-machine-1 cannot have recipes set directly. I'll craft an assembling-machine-2 instead
+# Pick up the assembling-machine-1
+pickup_entity(assembling_position)
+# I apologize for the mistake, it looks like I made an error with the API call. Let's try again.
+craft_item('assembling-machine-2', quantity=1)
+place_entity('assembling-machine-2', direction=2, position=assembling_position)
+set_entity_recipe(assembling_position, recipe='transport-belt')

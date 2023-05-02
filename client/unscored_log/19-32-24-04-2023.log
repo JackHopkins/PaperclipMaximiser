@@ -1,0 +1,299 @@
+[94mcomment("Inspect the natural resources and landscape around me")
+resources = inspect_resources()
+[92m1: 
+2: 
+Score: 747
+[94mcomment("Find the nearest coal position and move to it")
+coal_position = nearest("coal")
+move_to(coal_position)
+[92m1: 
+2: 
+3: 
+Score: 747
+[94mcomment("Place a burner-mining-drill near the coal and fuel it with coal")
+burner_drill_position = place_entity("burner-mining-drill", direction=DOWN, position=(coal_position[0], coal_position[1]-2))
+pickup_entity("coal", coal_position)
+insert_item("coal", target_position=burner_drill_position, quantity=1)
+[92m1: 
+2: 
+3: Error: Could not pickup, did you intend to harvest?. 0
+Score: 747
+[94mcomment("Harvest coal instead of picking up")
+harvest_resource(coal_position, quantity=5)
+insert_item("coal", target_position=burner_drill_position, quantity=1)
+[92m1: 
+2: 
+3: 
+Score: 759
+[94mcomment("Find the nearest iron ore position and move to it")
+iron_ore_position = nearest("iron-ore")
+move_to(iron_ore_position)
+[92m1: 
+2: 
+3: 
+Score: 765
+[94mcomment("Place a burner-mining-drill near the iron ore and fuel it with coal")
+iron_drill_position = place_entity("burner-mining-drill", direction=UP, position=(iron_ore_position[0], iron_ore_position[1] + 2))
+insert_item("coal", target_position=iron_drill_position, quantity=1)
+[92m1: 
+2: Error: Could not place burner-mining-drill. "global.actions.place entity = function(player..."]:14: No burner mining drill in inventory.
+Score: 765
+[94mcomment("Craft a burner-mining-drill and place it near the iron ore")
+craft_item("burner-mining-drill", quantity=1)
+iron_drill_position = place_entity("burner-mining-drill", direction=UP, position=(iron_ore_position[0], iron_ore_position[1] + 2))
+insert_item("coal", target_position=iron_drill_position, quantity=1)
+[92m1: 
+2: 
+3: Error: Could not place burner-mining-drill. "global.actions.place entity = function(player..."]:71: Maybe inspect your surroundings before placing
+Score: 765
+[94mcomment("Inspect the surroundings before placing the burner-mining-drill near the iron ore")
+inspect_resources()
+craft_item("burner-mining-drill", quantity=1)
+iron_drill_position = place_entity("burner-mining-drill", direction=UP, position=(iron_ore_position[0], iron_ore_position[1] + 2))
+insert_item("coal", target_position=iron_drill_position, quantity=1)
+[92m1: 
+2: {'water': {'size': 900, 'direction': {'offset': 42, 'named_direction': 'north', 'min_coordinates': (-18, -50), 'max_coordinates': (31, -33)}}, 'coal': {'size': 100, 'direction': {'offset': 10, 'named_direction': 'northwest', 'min_coordinates': (-17, -14), 'max_coordinates': (-8, -5)}}, 'iron_ore': {'size': 100, 'direction': {'offset': 10, 'named_direction': 'east-northeast', 'min_coordinates': (22, -14), 'max_coordinates': (31, -5)}}, 'stone': {'size': 100, 'direction': {'offset': 10, 'named_direction': 'southwest', 'min_coordinates': (-17, 6), 'max_coordinates': (-8, 15)}}, 'copper_ore': {'size': 100, 'direction': {'offset': 10, 'named_direction': 'east-southeast', 'min_coordinates': (22, 6), 'max_coordinates': (31, 15)}}, 'uranium_ore': {'size': 100, 'direction': {'offset': 30, 'named_direction': 'southeast', 'min_coordinates': (22, 26), 'max_coordinates': (31, 35)}}, 'item_on_ground': {'size': 1, 'directions': [{'distance': 6, 'unit': 'metres', 'direction': 'northwest'}], 'scattered': True}}
+3: Error: Could not craft a burner-mining-drill. "global.actions.craft item = function(player i..."]:72: Failed to craft 1x burner-mining-drill because missing ingredient stone
+Score: 765
+[94mcomment("Find the nearest stone position and move to it")
+stone_position = nearest("stone")
+move_to(stone_position)
+[92m1: 
+2: 
+3: 
+Score: 765
+[94mcomment("Mine 5 stone to craft a burner-mining-drill")
+harvest_resource(stone_position, quantity=5)
+[92m1: 
+2: 
+Score: 777
+[94mcomment("Craft the burner-mining-drill and place it near the iron ore")
+craft_item("burner-mining-drill", quantity=1)
+iron_drill_position = place_entity("burner-mining-drill", direction=UP, position=(iron_ore_position[0], iron_ore_position[1] + 2))
+insert_item("coal", target_position=iron_drill_position, quantity=1)
+[92m1: 
+2: 
+3: Error: Could not place burner-mining-drill. "global.actions.place entity = function(player..."]:71: Maybe inspect your surroundings before placing
+Score: 777
+[94mcomment("Inspect the surroundings and ensure that there is space for the burner-mining-drill near the iron ore")
+inspect_resources()
+iron_drill_position = place_entity("burner-mining-drill", direction=UP, position=(iron_ore_position[0], iron_ore_position[1] + 2))
+insert_item("coal", target_position=iron_drill_position, quantity=1)
+[92m1: 
+2: {'water': {'size': 900, 'direction': {'offset': 42, 'named_direction': 'north', 'min_coordinates': (-18, -50), 'max_coordinates': (31, -33)}}, 'coal': {'size': 100, 'direction': {'offset': 10, 'named_direction': 'northwest', 'min_coordinates': (-17, -14), 'max_coordinates': (-8, -5)}}, 'iron_ore': {'size': 100, 'direction': {'offset': 10, 'named_direction': 'east-northeast', 'min_coordinates': (22, -14), 'max_coordinates': (31, -5)}}, 'stone': {'size': 100, 'direction': {'offset': 10, 'named_direction': 'southwest', 'min_coordinates': (-17, 6), 'max_coordinates': (-8, 15)}}, 'copper_ore': {'size': 100, 'direction': {'offset': 10, 'named_direction': 'east-southeast', 'min_coordinates': (22, 6), 'max_coordinates': (31, 15)}}, 'uranium_ore': {'size': 100, 'direction': {'offset': 30, 'named_direction': 'southeast', 'min_coordinates': (22, 26), 'max_coordinates': (31, 35)}}, 'item_on_ground': {'size': 1, 'directions': [{'distance': 6, 'unit': 'metres', 'direction': 'northwest'}], 'scattered': True}}
+3: Error: Could not place burner-mining-drill. "global.actions.place entity = function(player..."]:71: Maybe inspect your surroundings before placing
+Score: 777
+[94mcomment("Move to the iron ore position and try placing the burner-mining-drill again")
+move_to(iron_ore_position)
+iron_drill_position = place_entity("burner-mining-drill", direction=UP, position=(iron_ore_position[0], iron_ore_position[1] + 2))
+insert_item("coal", target_position=iron_drill_position, quantity=1)
+[92m1: 
+2: 
+3: Error: Could not place burner-mining-drill. "global.actions.place entity = function(player..."]:71: Maybe inspect your surroundings before placing
+Score: 777
+[94mcomment("Inspect entities around the iron ore position")
+inspect_entities(5)
+[92m1: 
+2: [{'type': 'burner_mining_drill', 'direction': 'south', 'position': (-9, -7), 'status': 'empty'}, {'type': 'player_character', 'direction': 'north', 'position': (22, -5), 'status': 'empty'}]
+Score: 777
+[94mcomment("Remove the existing burner-mining-drill and place a new one facing north")
+pickup_entity("burner-mining-drill", (-9, -7))
+iron_drill_position = place_entity("burner-mining-drill", direction=UP, position=(iron_ore_position[0], iron_ore_position[1] + 2))
+insert_item("coal", target_position=iron_drill_position, quantity=1)
+[92m1: 
+2: 
+3: Error: Could not place burner-mining-drill. "global.actions.place entity = function(player..."]:71: Maybe inspect your surroundings before placing
+Score: 777
+[94mcomment("Try placing the burner-mining-drill facing north one tile away from the initial position")
+iron_drill_position = place_entity("burner-mining-drill", direction=UP, position=(iron_ore_position[0] + 1, iron_ore_position[1] + 2))
+insert_item("coal", target_position=iron_drill_position, quantity=1)
+[92m1: 
+2: Error: Could not place burner-mining-drill. "global.actions.place entity = function(player..."]:71: Maybe inspect your surroundings before placing
+Score: 777
+[94mcomment("Inspect entities in a larger radius around the iron ore position")
+inspect_entities(10)
+[92m1: 
+2: [{'type': 'player_character', 'direction': 'north', 'position': (22, -5), 'status': 'empty'}]
+Score: 777
+[94mcomment("Ensure there are no obstacles before placing the burner-mining-drill")
+move_to(iron_ore_position)
+iron_drill_position = place_entity("burner-mining-drill", direction=UP, position=(iron_ore_position[0], iron_ore_position[1] + 2))
+insert_item("coal", target_position=iron_drill_position, quantity=1)
+[92m1: 
+2: 
+3: Error: Could not place burner-mining-drill. "global.actions.place entity = function(player..."]:71: Maybe inspect your surroundings before placing
+Score: 777
+[94mcomment("Inspect resources and find a suitable location for placing the burner-mining-drill")
+resources = inspect_resources()
+iron_ore_position_new = resources['iron-ore']
+move_to(iron_ore_position_new)
+iron_drill_position = place_entity("burner-mining-drill", direction=UP, position=(iron_ore_position_new[0], iron_ore_position_new[1] + 2))
+insert_item("coal", target_position=iron_drill_position, quantity=1)
+[92m1: 
+2: 
+3: Error: iron-ore
+Score: 777
+[94mcomment("Retrieving iron ore positions from the dictionary response")
+iron_ore_position_new = resources['iron-ore']['position']
+move_to(iron_ore_position_new)
+iron_drill_position = place_entity("burner-mining-drill", direction=UP, position=(iron_ore_position_new[0], iron_ore_position_new[1] + 2))
+insert_item("coal", target_position=iron_drill_position, quantity=1)
+[92m1: 
+2: Error: iron-ore
+Score: 777
+[94mcomment("Inspect resources again and extract iron ore positions correctly")
+resources = inspect_resources()
+iron_ore_positions = resources['iron-ore']['positions']
+iron_ore_position_new = iron_ore_positions[0]
+move_to(iron_ore_position_new)
+iron_drill_position = place_entity("burner-mining-drill", direction=UP, position=(iron_ore_position_new[0], iron_ore_position_new[1] + 2))
+insert_item("coal", target_position=iron_drill_position, quantity=1)
+[92m1: 
+2: 
+3: Error: iron-ore
+Score: 777
+[94mcomment("Inspect entities around the current iron ore position")
+inspect_entities(10)
+[92m1: 
+2: [{'type': 'player_character', 'direction': 'north', 'position': (22, -5), 'status': 'empty'}]
+Score: 777
+[94mcomment("Inspect resources again and try a different iron ore position")
+resources = inspect_resources()
+iron_ore_positions = resources['iron-ore']['positions']
+iron_ore_position_new = iron_ore_positions[1] if len(iron_ore_positions) > 1 else iron_ore_positions[0]
+move_to(iron_ore_position_new)
+iron_drill_position = place_entity("burner-mining-drill", direction=UP, position=(iron_ore_position_new[0], iron_ore_position_new[1] + 2))
+insert_item("coal", target_position=iron_drill_position, quantity=1)
+[92m1: 
+2: 
+3: Error: iron-ore
+Score: 777
+[94mcomment("Manually set the iron ore position and place the burner-mining-drill")
+iron_ore_position_new = (20, -5)
+move_to(iron_ore_position_new)
+iron_drill_position = place_entity("burner-mining-drill", direction=UP, position=(iron_ore_position_new[0], iron_ore_position_new[1] + 2))
+insert_item("coal", target_position=iron_drill_position, quantity=1)
+[92m1: 
+2: 
+3: 
+4: Error: Could not place burner-mining-drill. "global.actions.place entity = function(player..."]:71: Maybe inspect your surroundings before placing
+Score: 777
+[94mcomment("Inspect entities around the manually set iron ore position")
+move_to(iron_ore_position_new)
+inspect_entities(10)
+[92m1: 
+2: 
+3: [{'type': 'player_character', 'direction': 'north', 'position': (20, -5), 'status': 'empty'}]
+Score: 777
+[94mcomment("Inspect resources and iron ore positions once more")
+resources = inspect_resources()
+iron_ore_positions = resources['iron-ore']['positions']
+print(iron_ore_positions)
+[92m1: 
+2: 
+3: Error: iron-ore
+Score: 777
+[94mcomment("Move to a different iron ore position")
+move_to(iron_ore_position, laying='transport-belt')
+[92m1: 
+2: 
+Score: 777
+[94mcomment("Place the burner-mining-drill again")
+iron_drill_position = place_entity("burner-mining-drill", direction=UP, position=(iron_ore_position[0], iron_ore_position[1] + 2))
+insert_item("coal", target_position=iron_drill_position, quantity=1)
+[92m1: 
+2: Error: Could not place burner-mining-drill. "global.actions.place entity = function(player..."]:71: Maybe inspect your surroundings before placing
+Score: 777
+[94mcomment("Inspect entities around the current position")
+inspect_entities(10)
+[92m1: 
+2: [{'type': 'transport_belt', 'direction': 'east', 'position': (20.5, -4.5), 'start_position': (20.5, -4.5), 'end_position': (-1.5, 0.5), 'quantity': 2, 'status': 'empty'}, {'type': 'player_character', 'direction': 'north', 'position': (22, -5), 'status': 'empty'}]
+Score: 777
+[94mcomment("Clear the transport belt obstructing the placement of the burner-mining-drill")
+pickup_entity('transport_belt', (20.5, -4.5))
+[92m1: 
+2: Error: Could not pickup, did you intend to harvest?. 0
+Score: 777
+[94mcomment("Move away from transport belt and try placing burner-mining-drill again")
+move_to((iron_ore_position[0]-1, iron_ore_position[1]+2))
+iron_drill_position = place_entity("burner-mining-drill", direction=UP, position=(iron_ore_position[0], iron_ore_position[1] + 2))
+insert_item("coal", target_position=iron_drill_position, quantity=1)
+[92m1: 
+2: 
+3: Error: Could not place burner-mining-drill. "global.actions.place entity = function(player..."]:71: Maybe inspect your surroundings before placing
+Score: 777
+[94mcomment("Inspect the surroundings again")
+inspect_entities(5)
+[92m1: 
+2: [{'type': 'transport_belt', 'direction': 'east', 'position': (20.5, -4.5), 'start_position': (20.5, -4.5), 'end_position': (-0.5, -1.5), 'quantity': 2, 'status': 'empty'}, {'type': 'player_character', 'direction': 'north', 'position': (21, -3), 'status': 'empty'}]
+Score: 777
+[94mcomment("Move further away from transport belt and try placing burner-mining-drill again")
+move_to((iron_ore_position[0]-2, iron_ore_position[1]+4))
+iron_drill_position = place_entity("burner-mining-drill", direction=UP, position=(iron_ore_position[0], iron_ore_position[1] + 2))
+insert_item("coal", target_position=iron_drill_position, quantity=1)
+[92m1: 
+2: 
+3: Error: Could not place burner-mining-drill. "global.actions.place entity = function(player..."]:71: Maybe inspect your surroundings before placing
+Score: 777
+[94mcomment("Inspect the surroundings further away from the transport belt")
+inspect_entities(10)
+[92m1: 
+2: [{'type': 'transport_belt', 'direction': 'east', 'position': (20.5, -4.5), 'start_position': (20.5, -4.5), 'end_position': (0.5, -3.5), 'quantity': 2, 'status': 'empty'}, {'type': 'player_character', 'direction': 'north', 'position': (20, -1), 'status': 'empty'}]
+Score: 777
+[94mcomment("Move further up and away from transport belt")
+move_to((iron_ore_position[0]+20, iron_ore_position[1]))
+[92m1: 
+2: 
+Score: 777
+[94mcomment("Attempt to place the burner-mining-drill again in a new position")
+iron_drill_position = place_entity("burner-mining-drill", direction=UP, position=(iron_ore_position[0], iron_ore_position[1]))
+insert_item("coal", target_position=iron_drill_position, quantity=1)
+[92m1: 
+2: Error: Could not place burner-mining-drill. "global.actions.place entity = function(player..."]:71: Maybe inspect your surroundings before placing
+Score: 777
+[94mcomment("Inspect the surroundings and check for any obstacles")
+inspect_entities(5)
+[92m1: 
+2: [{'type': 'transport_belt', 'direction': 'east', 'position': (20.5, -4.5), 'start_position': (20.5, -4.5), 'end_position': (-21.5, 0.5), 'quantity': 2, 'status': 'empty'}, {'type': 'player_character', 'direction': 'north', 'position': (42, -5), 'status': 'empty'}]
+Score: 777
+[94mcomment("Try a different area to place the burner-mining-drill for iron ore extraction")
+move_to((iron_ore_position[0], iron_ore_position[1] - 10))
+iron_drill_position = place_entity("burner-mining-drill", direction=UP, position=(iron_ore_position[0], iron_ore_position[1] - 8))
+insert_item("coal", target_position=iron_drill_position, quantity=1)
+[92m1: 
+2: 
+3: 
+4: 
+Score: 774
+[94mcomment("Place a stone furnace next to the burner-mining-drill for iron ore smelting")
+furnace_position = place_entity("stone_furnace", direction=UP, position=(iron_drill_position[0] + 2, iron_drill_position[1]))
+insert_item("coal", target_position=furnace_position, quantity=1)
+[92m1: 
+2: Error: Could not place stone furnace. "global.actions.place entity = function(player..."]:14: No stone furnace in inventory.
+Score: 781
+[94mcomment("Check for stone resource position and inventory")
+stone_position = nearest("stone")
+inspect_inventory()
+[92m1: 
+2: 
+3: {'iron-chest': 1, 'transport-belt': 48, 'burner-mining-drill': 3, 'assembling-machine-1': 1, 'coal': 53, 'stone': 1, 'iron-ore': 1, 'copper-ore': 1, 'iron-plate': 32, 'copper-plate': 50}
+Score: 781
+[94mcomment("Harvest more stone to craft a stone_furnace")
+move_to(stone_position)
+harvest_resource(stone_position, quantity=10)
+craft_item("stone_furnace", quantity=1)
+furnace_position = place_entity("stone_furnace", direction=UP, position=(iron_drill_position[0] + 2, iron_drill_position[1]))
+insert_item("coal", target_position=furnace_position, quantity=1)
+[92m1: 
+2: 
+3: Error: Could not harvest.. "global.actions.harvest resource = function(pl..."]:54: Could only harvest 9 at position (-8, 6)
+Score: 802
+[94mcomment("As we could not get enough stones, we will find more stones and harvest them.")
+stones_positions = find_resources("stone")
+stones_positions.remove(stone_position) comment("Exclude the already checked stone position")
+new_stone_position = stones_positions[0]
+move_to(new_stone_position)
+harvest_resource(new_stone_position, quantity=1)
+craft_item("stone_furnace", quantity=1)
+furnace_position = place_entity("stone_furnace", direction=UP, position=(iron_drill_position[0] + 2, iron_drill_position[1]))
+insert_item("coal", target_position=furnace_position, quantity=1)

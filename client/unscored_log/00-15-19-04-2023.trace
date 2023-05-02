@@ -1,0 +1,46 @@
+# First, let's inspect the resources and entities around us
+inspect_resources()
+inspect_entities(20)
+# Based on the resources available, let's start by setting up a basic coal mining operation
+# We need to first move to the nearest coal resource
+move_to(nearest('coal'))
+# Once we are there, let's place a burner mining drill, facing down
+place_entity('burner-mining-drill', direction=DOWN, position=nearest('coal'))
+# Next, let's place a furnace next to the drill and set the drills output to feed into the furnace using an inserter
+move_to((entity_position[0]-5, entity_position[1]))
+furnace_position = place_entity_next_to('stone-furnace', reference_position=(entity_position[0]-2, entity_position[1]), direction=LEFT, gap=1)
+connect_entities(source_position=(entity_position[0]-2, entity_position[1]), target_position=furnace_position, connection_type='inserter')
+# My mistake, let me correct that
+# To fix that, I will first set the entity position variable to the return value of the place_entity method
+# Let's try again
+coal_position = nearest('coal')
+drill_position = place_entity('burner-mining-drill', direction=DOWN, position=coal_position)
+move_to((drill_position[0]-5, drill_position[1]))
+furnace_position = place_entity_next_to('stone-furnace', reference_position=(drill_position[0]-2, drill_position[1]), direction=LEFT, gap=1)
+connect_entities(source_position=(drill_position[0]-2, drill_position[1]), target_position=furnace_position, connection_type='inserter')
+# Seems like we do not have any burner mining drills in our inventory. Let's go ahead and craft one first
+craft_item('burner-mining-drill', quantity=1)
+# Now let's attempt to execute the code block again
+coal_position = nearest('coal')
+drill_position = place_entity('burner-mining-drill', direction=DOWN, position=coal_position)
+move_to((drill_position[0]-5, drill_position[1]))
+furnace_position = place_entity_next_to('stone-furnace', reference_position=(drill_position[0]-2, drill_position[1]), direction=LEFT, gap=1)
+connect_entities(source_position=(drill_position[0]-2, drill_position[1]), target_position=furnace_position, connection_type='inserter')
+# Before we try placing the burner mining drill again, let's inspect our surroundings
+inspect_entities(10)
+# Looks like there's already a burner-mining-drill nearby, we should move to that location before placing another one
+mining_drill_location = nearest('burner-mining-drill')
+move_to(mining_drill_location)
+furnace_position = place_entity_next_to('stone-furnace', reference_position=mining_drill_location, direction=LEFT, gap=1)
+connect_entities(source_position=(mining_drill_location[0], mining_drill_location[1]), target_position=furnace_position, connection_type='inserter')
+# It looks like the problem is with the position '(-10.8984375, -5)'. Let's re-inspect our furnace position
+inspect_entities(5)
+# Looks like the issue is with the source position. We should change it to the tile behind the mining drill to extract the coal
+mining_drill_location = nearest('burner-mining-drill')
+move_to(mining_drill_location)
+coal_position = (mining_drill_location[0] + 1, mining_drill_location[1])
+furnace_position = place_entity_next_to('stone-furnace', reference_position=mining_drill_location, direction=LEFT, gap=1)
+connect_entities(source_position=coal_position, target_position=furnace_position, connection_type='inserter')
+# It looks like we need more space in order to place the stone furnace. Let's move back and inspect before trying again
+move_to((-9, -5))
+inspect_entities(10)

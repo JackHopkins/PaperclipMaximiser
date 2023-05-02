@@ -1,0 +1,164 @@
+# First, let us observe the available natural resources and landscape
+resources = inspect_resources()
+# Now, let's find the nearest coal deposit
+coal_position = nearest('coal')
+# Move to the nearest coal deposit
+move_to(coal_position)
+# Place a burner-mining-drill on the coal deposit
+place_entity('burner-mining-drill', direction=DOWN, position=(coal_position[0]-2, coal_position[1]))
+# Check to ensure that burner-mining-drill has been placed 
+inspect_entities(5)
+# Place a stone furnace near the burner-mining-drill
+stone_furnace_position = place_entity('stone-furnace', direction=DOWN, position=(coal_position[0]-4, coal_position[1]))
+# Place a wooden chest near the stone furnace
+wooden_chest_position = place_entity('wooden-chest', direction=DOWN, position=(coal_position[0]-6, coal_position[1]))
+# Check current inventory
+inspect_inventory()
+# Place an iron chest near the stone furnace instead of a wooden chest
+iron_chest_position = place_entity('iron-chest', direction=DOWN, position=(coal_position[0]-6, coal_position[1]))
+# Connect the burner-mining-drill's output to the stone-furnace's input using an inserter
+connect_entities(source_position=(coal_position[0]-2, coal_position[1]), target_position=(coal_position[0]-4, coal_position[1]), connection_type='inserter')
+# Connect the burner-mining-drill's output to the stone-furnace's input using an inserter
+burner_drill_position = (coal_position[0]-2, coal_position[1])
+connect_entities(source_position=burner_drill_position, target_position=stone_furnace_position, connection_type='inserter')
+# Find nearest copper ore
+copper_position = nearest('copper-ore')
+move_to(copper_position)
+# Place burner mining drill near copper ore
+place_entity('burner-mining-drill', direction=LEFT, position=(copper_position[0]-2, copper_position[1]))
+# Craft a burner-mining-drill and place it near the copper ore
+craft_item('burner-mining-drill', quantity=1)
+place_entity('burner-mining-drill', direction=LEFT, position=(copper_position[0]-2, copper_position[1]))
+# Find nearest stone resource
+stone_position = nearest('stone')
+move_to(stone_position)
+# Place a burner mining drill near stone resource
+place_entity('burner-mining-drill', direction=LEFT, position=(stone_position[0]-2, stone_position[1]))
+# Craft another burner-mining-drill and place it near the stone resource
+craft_item('burner-mining-drill', quantity=1)
+place_entity('burner-mining-drill', direction=LEFT, position=(stone_position[0]-2, stone_position[1]))
+# Harvest 5 stone resources
+harvest_resource(stone_position, quantity=5)
+# Craft a burner-mining-drill and place it near the stone resource
+craft_item('burner-mining-drill', quantity=1)
+place_entity('burner-mining-drill', direction=LEFT, position=(stone_position[0]-2, stone_position[1]))
+# Find nearest coal resource
+coal_position = nearest('coal')
+move_to(coal_position)
+# Place a burner-mining-drill on the coal resource
+place_entity('burner-mining-drill', direction=LEFT, position=(coal_position[0]-2, coal_position[1]))
+# Craft a burner-mining-drill
+craft_item('burner-mining-drill', quantity=1)
+# Place a burner-mining-drill on the coal resource
+place_entity('burner-mining-drill', direction=LEFT, position=(coal_position[0]-2, coal_position[1]))
+# Check inventory to see available items
+inspect_inventory()
+# Craft a burner-mining-drill using available resources
+craft_item('burner-mining-drill', quantity=1)
+# Find the nearest stone resource and mine 5 units
+stone_position = nearest('stone')
+move_to(stone_position)
+harvest_resource(stone_position, quantity=5)
+# Craft a burner-mining-drill using the newly acquired stone
+craft_item('burner-mining-drill', quantity=1)
+# Place a burner-mining-drill on the coal resource
+coal_position = nearest('coal')
+move_to(coal_position)
+place_entity('burner-mining-drill', direction=LEFT, position=(coal_position[0]-2, coal_position[1]))
+# Inspect surroundings to find a suitable place for the burner-mining-drill
+inspect_entities(20)
+# Place a burner-mining-drill for coal extraction at a suitable position
+place_entity('burner-mining-drill', direction=LEFT, position=(-6, coal_position[1]))
+# Check the nearby resources to get an idea of the terrain
+inspect_resources()
+# Move closer to the coal resource
+move_to((-14, -7))
+# Place a burner-mining-drill for coal extraction at a suitable position
+place_entity('burner-mining-drill', direction=LEFT, position=(-14, -7))
+# Place a stone furnace next to the coal burner-mining-drill, leaving a gap of 1 tile
+stone_furnace_position = place_entity_next_to('stone_furnace', reference_position=(-14, -7), direction='right', gap=1)
+# Check the items in the inventory
+inspect_inventory()
+# Craft a stone furnace
+craft_item('stone-furnace', quantity=1)
+# Place a stone furnace next to the coal burner-mining-drill, leaving a gap of 1 tile
+stone_furnace_position = place_entity_next_to('stone_furnace', reference_position=(-14, -7), direction='right', gap=1)
+# Inspect entities within a 20-meter radius around you
+inspect_entities(20)
+# Move to the nearest coal resource
+move_to(nearest('coal'))
+# Place a burner-mining-drill on the coal resource, facing left
+place_entity('burner-mining-drill', direction=LEFT, position=(-2, 0))
+# Craft a burner-mining-drill
+craft_item('burner-mining-drill', quantity=1)
+# Place the crafted burner-mining-drill on the coal resource, facing left
+place_entity('burner-mining-drill', direction=LEFT, position=(-2, 0))
+# Inspect surroundings before placing the burner-mining-drill
+inspect_entities(5)
+# The burner-mining-drill is already placed on the coal resource. Now, place a stone furnace to the right of the burner-mining-drill
+place_entity('stone-furnace', direction=UP, position=(0, 0))
+# Craft a stone furnace
+craft_item('stone-furnace', quantity=1)
+# Place the crafted stone furnace to the right of the burner-mining-drill
+place_entity('stone-furnace', direction=UP, position=(0, 0))
+# Place an inserter between the burner-mining-drill and the stone furnace
+place_entity('inserter', direction=RIGHT, position=(-1, 0))
+# Craft an inserter
+craft_item('inserter', quantity=1)
+# Place the crafted inserter between the burner-mining-drill and the stone furnace
+place_entity('inserter', direction=RIGHT, position=(-1, 0))
+# Inspect the surroundings to find the correct positions for the inserter
+inspect_entities(5)
+# Place the crafted inserter between the burner-mining-drill at (-2, 0) and the stone furnace at (0, 2)
+place_entity('inserter', direction=RIGHT, position=(-1, 1))
+# Add fuel (coal) to the burner-mining-drill at (-2, 0) and the stone furnace at (0, 2)
+# Move to the coal location
+coal_position = nearest('coal')
+move_to(coal_position)
+# Harvest 10 coal
+harvest_resource(coal_position, quantity=10)
+# Inspect inventory to ensure we have coal
+inspect_inventory()
+# Move to the burner-mining-drill at (-2, 0)
+move_to((-2, 0))
+# Insert 5 coal into the burner-mining-drill at (-2, 0)
+insert_item('coal', target_position=(-2, 0), quantity=5)
+# Move to the nearest iron ore location
+iron_ore_position = nearest('iron-ore')
+move_to(iron_ore_position)
+# Place a burner-mining-drill for extracting iron ore
+place_entity('burner-mining-drill', direction=LEFT, position=(iron_ore_position[0]-2, iron_ore_position[1]))
+# Inspect surroundings to find an appropriate location for the burner-mining-drill
+inspect_entities(20)
+# Find a different location for the burner-mining-drill
+move_to((iron_ore_position[0]-4, iron_ore_position[1]))
+# Place a burner-mining-drill for extracting iron ore
+place_entity('burner-mining-drill', direction=LEFT, position=(iron_ore_position[0]-6, iron_ore_position[1]))
+# Inspect surroundings to find an appropriate location for the burner-mining-drill
+inspect_entities(20)
+# Move to an open area to place the burner-mining-drill for extracting iron ore
+move_to((iron_ore_position[0]-8, iron_ore_position[1]))
+# Place a burner-mining-drill for extracting iron ore
+place_entity('burner-mining-drill', direction=LEFT, position=(iron_ore_position[0]-10, iron_ore_position[1]))
+# Inspect surroundings to find an appropriate location for the burner-mining-drill
+inspect_entities(20)
+# Move closer to the iron ore position to find an open area to place the burner-mining-drill
+move_to((iron_ore_position[0]-3, iron_ore_position[1]))
+# Place a burner-mining-drill for extracting iron ore
+place_entity('burner-mining-drill', direction=LEFT, position=(iron_ore_position[0]-5, iron_ore_position[1]))
+# Inspect surroundings again to find an open area for the burner-mining-drill
+inspect_entities(20)
+# Move further away to find an open area to place the burner-mining-drill
+move_to((iron_ore_position[0]-6, iron_ore_position[1]))
+# Place a burner-mining-drill for extracting iron ore
+place_entity('burner-mining-drill', direction=LEFT, position=(iron_ore_position[0]-8, iron_ore_position[1]))
+# Inspect surroundings to find an open area for the burner-mining-drill
+inspect_entities(20)
+# Move even further away to find an open area to place the burner-mining-drill
+move_to((iron_ore_position[0]-10, iron_ore_position[1]))
+# Place a burner-mining-drill for extracting iron ore
+place_entity('burner-mining-drill', direction=LEFT, position=(iron_ore_position[0]-12, iron_ore_position[1]))
+# Inspect surroundings to find an open area for the burner-mining-drill
+inspect_entities(20)
+# Move to an open area near the iron ore to place the burner-mining-drill
+move_to((iron_ore_position[0]-14, iron_ore_position[1]))

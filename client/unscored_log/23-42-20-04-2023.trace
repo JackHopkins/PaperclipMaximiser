@@ -1,0 +1,4 @@
+# Inspect the resources around me
+inspect_resources()
+# Move closer to the coal resource
+move_to(nearest('coal'))

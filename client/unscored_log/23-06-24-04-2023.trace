@@ -1,0 +1,7 @@
+comment("Find the nearest coal and move to it")
+coal_position = nearest('coal')
+move_to(coal_position)
+comment("Place a burner-mining-drill facing LEFT")
+place_entity('burner-mining-drill', direction=LEFT, position=(coal_position[0]-2, coal_position[1]))
+comment("Move to coordinate (-10, -5)")
+move_to(-10, -5)

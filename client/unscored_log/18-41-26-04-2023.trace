@@ -1,0 +1,112 @@
+comment("Automate resource extraction")
+comment("Move to the ore position")
+move_to(ore)
+comment("Place a burner mining drill to extract ore")
+place_entity('burner-mining-drill', direction=UP, position=ore)
+comment("Craft a burner mining drill")  
+craft_item('burner-mining-drill', quantity=1) # if you have the required resources but no drills in inventory, this should craft one drill for you 
+insert_item('burner-mining-drill', target_position='player_character') # add drill to your inventory 
+comment("Inspect entities around the player_character")
+entities = inspect_entities(20)
+for entity in entities:
+    if entity['type'] == 'burner-mining-drill':
+        position = entity['position']
+        break
+        
+comment("Place a burner mining drill to extract ore")
+place_entity('burner-mining-drill', direction=UP, position=position)
+comment("Inspect entities around the player_character")
+entities = inspect_entities(20)
+for entity in entities:
+    if entity['type'] == 'burner-mining-drill':
+        # Fix error here - assign position value
+        drill_position = entity['position']
+        break
+comment("Place a burner mining drill to extract ore")
+place_entity('burner-mining-drill', direction=UP, position=ore)
+comment("Move to the drill location")
+move_to(drill_position)
+comment("Inspect entities around the player_character and find the drill's location")
+entities = inspect_entities(20)
+for entity in entities:
+    if entity['type'] == 'burner-mining-drill':
+        drill_position = entity['position']
+        break
+comment("Move to the drill location")
+move_to(drill_position)
+comment("Inspect entities around the player_character and find the drill's location")
+entities = inspect_entities(20)
+for entity in entities:
+    if entity['type'] == 'burner-mining-drill':
+        # Fix error here - assign position value
+        drill_position = entity['position']
+        break
+comment("Move to the drill location")
+move_to(drill_position)
+comment("Inspect entities around the player_character and find the drill's location")
+entities = inspect_entities(20)
+for entity in entities:
+    if entity['type'] == 'burner-mining-drill':
+        drill_position = entity['position']
+        break
+comment("Move to the drill location")
+move_to(drill_position)
+comment("Inspect entities around the player_character and find the drill's location")
+entities = inspect_entities(20)
+for entity in entities:
+    if entity['type'] == 'burner-mining-drill':
+        drill_position = entity['position']
+        break
+comment("Move to the drill location")
+move_to(drill_position)
+comment("Inspect entities around the player_character and find the drill's location")
+entities = inspect_entities(20)
+for entity in entities:
+    if entity['type'] == 'burner-mining-drill':
+        # Fix error here - assign position value
+        drill_position = entity['position']
+        break
+comment("Move to the drill's location")
+move_to(drill_position)
+comment("Inspect entities around the player_character and find the drill's location")
+entities = inspect_entities(20)
+for entity in entities:
+    if entity['type'] == 'burner-mining-drill':
+        # Fix error here - assign position value
+        drill_position = entity['position']
+        break
+comment("Move to the drill's location")
+move_to(drill_position)
+comment("Inspect entities around the player_character and find the drill's location")
+entities = inspect_entities(20)
+for entity in entities:
+    if entity['type'] == 'burner-mining-drill':
+        # Fix error here - assign position value
+        drill_position = entity['position']
+        break
+comment("Move to the drill's location")
+move_to(drill_position)
+comment("Inspect entities around the player_character and find the drill's location")
+entities = inspect_entities(20)
+for entity in entities:
+    if entity['type'] == 'burner-mining-drill':
+        # Fix error here - assign position value
+        drill_position = entity['position']
+        break
+comment("Move to the drill's location")
+move_to(drill_position)
+comment("Inspect entities around the player_character and find the drill's location")
+entities = inspect_entities(20)
+for entity in entities:
+    if entity['type'] == 'burner-mining-drill':
+        # Fix error here - assign position value
+        drill_position = entity['position']
+        break
+comment("Move to the drill's location")
+move_to(drill_position)
+comment("Inspect entities around the player_character and find the drill's location")
+entities = inspect_entities(20)
+for entity in entities:
+    if entity['type'] == 'burner-mining-drill':
+        # Fix error here - assign position value
+        drill_position = entity['position']

@@ -3,6 +3,7 @@ from datetime import datetime
 from typing import List
 
 from bcolors import bcolors
+from models.insufficient_score_exception import InsufficientScoreException
 from models.slot import Slot
 
 schema = \
@@ -89,7 +90,7 @@ Instructions:
 
 class Memory(object):
 
-    def __init__(self, size=10, max_history=100, ignore_members=[]):
+    def __init__(self, size=10, max_history=16, ignore_members=[]):
         self._ignore_members = ignore_members
         self.history = []
         self.max_size = max_history
@@ -98,6 +99,7 @@ class Memory(object):
         self.log_file = "log/" + datetime.now().strftime("%H-%M-%d-%m-%Y") + ".log"
         self.trace_file = "log/" + datetime.now().strftime("%H-%M-%d-%m-%Y") + ".trace"
         self.variables = {}
+        self._score = []
 
     def __iter__(self, *args, **kwargs) -> List[Slot]:
         """
@@ -106,7 +108,6 @@ class Memory(object):
         :param kwargs:
         :return:
         """
-
 
     def log_variables(self, instance):
         members = [attr for attr in dir(instance) if not callable(getattr(instance, attr)) and not attr.startswith("__") and attr not in self._ignore_members]
@@ -130,6 +131,15 @@ class Memory(object):
         self._log_to_file(output)
         print(output)
         self._log_history(message, "assistant")
+
+    def log_score(self, score):
+        self._score = self._score[-self.max_size:]
+        self._score.append(score)
+
+        if self._score == self._score[-1] and len(self._score) == self.max_size:
+            raise InsufficientScoreException("Insufficient score. Resetting.")
+        print("Score: ",score)
+
 
     def log_observation(self, message):
         output = f"{bcolors.OKGREEN}{message}"

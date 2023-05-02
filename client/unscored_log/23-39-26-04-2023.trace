@@ -1,0 +1,303 @@
+comment("First, let's inspect our resources and surroundings")
+inspect_resources()
+inspect_entities()
+comment("Next, let's move to the ore position and harvest it")
+move_to((ore))
+harvest_resource((ore), quantity=10)
+inspect_inventory()
+comment("Now, let's smelt the ore into iron")
+smelting_furnace_position = nearest('stone-furnace')
+move_to(smelting_furnace_position)
+place_entity('stone-furnace', direction=UP, position=smelting_furnace_position)
+set_entity_recipe(smelting_furnace_position, recipe='iron-plate', quantity=10)
+inspect_entities()
+comment("My apologies, let's start by placing a burner-mining-drill on our ore")
+move_to((ore))
+entity_position = place_entity('burner-mining-drill', direction=DOWN, exact=False, position=ore)
+inspect_entities(5)
+comment("Oh, I must not have a mining drill in my inventory. Let me craft one and then continue.")
+craft_item('burner-mining-drill', quantity=1)
+comment("Alright, now let's place a burner-mining-drill on our ore")
+move_to((ore))
+entity_position = place_entity('burner-mining-drill', direction=DOWN, exact=False, position=ore)
+comment("Before we convert the ore to iron, let's transport it using a conveyor belt to our smelting furnace")
+move_to(entity_position)
+entity_position = place_entity('transport-belt', position=(ore[0] + 1, ore[1]), direction=RIGHT)
+entity_position = place_entity('transport-belt', position=(ore[0] + 2, ore[1]), direction=RIGHT)
+entity_position = place_entity('transport-belt', position=(ore[0] + 3, ore[1]), direction=RIGHT)
+entity_position = place_entity('transport-belt', position=(ore[0] + 4, ore[1]), direction=RIGHT)
+entity_position = place_entity('transport-belt', position=(ore[0] + 5, ore[1]), direction=RIGHT)
+entity_position = place_entity('transport-belt', position=(ore[0] + 6, ore[1]), direction=RIGHT)
+inspect_entities
+comment("Let's start by checking our inventory to know the number of ores we have")
+inventory = inspect_inventory()
+print(inventory)
+ore_inventory = inventory['iron-ore']
+print(ore_inventory)
+comment("We can now extract the ore using the burner-mining-drill and put it on the conveyor belt")
+while ore_inventory > 0:
+    extract_item('iron-ore', source_position=entity_position, quantity=1)
+    move_to((ore[0], ore[1]+1), laying='transport-belt')
+    rotate_entity(move_to((ore[0], ore[1]+1), laying='transport-belt'), direction=DOWN)
+    ore_inventory -= 1
+print("Done generating conveyor belt moving ore")
+move_to(ore)
+harvest_resource(ore, quantity=ore_inventory)
+belt_position = (entity_position[0]-4, entity_position[1]+1)
+move_to(belt_position)
+place_entity('transport-belt', position=belt_position, direction=RIGHT)
+comment("Next, we will connect our burner-mining-drill to the transport belt so that it automatically drops ore on the belt.")
+connect_entities(source_position=entity_position, target_position=belt_position, connection_type='inserter')
+comment("Seems we can't place a connector between the inserters and the power source or directly connect our drill to the conveyor belt. We will have to add another inserter which picks from the mining drill's output and moves to the conveyor belt.")
+comment("Move to burner-mining-drill")
+move_to(entity_position)
+comment("Add inserter to take mined ores from the mining drill and put it on the transport belt")
+inserter_position = (belt_position[0]-2, belt_position[1])
+place_entity('inserter', position=inserter_position, direction=UP)
+connect_entities(source_position=entity_position, target_position=inserter_position, connection_type='inserter')
+connect_entities(source_position=inserter_position, target_position=belt_position, connection_type='inserter')
+comment("Oh no, we need to supply our mining drill with fuel before connecting!")
+comment("Move to coal deposit")
+move_to(nearest('coal'))
+comment("Pick up coal from deposit")
+pickup_entity('coal', entity_position)
+comment("It seems like we can't pick up coal, let's try harvesting it instead.")
+harvest_resource(nearest('coal'))
+comment("Harvesting coal")
+harvest_resource(nearest('coal'), quantity=1)
+comment("Move to burner-mining-drill to add fuel")
+move_to(entity_position)
+comment("Add coal to burner-mining-drill")
+insert_item('coal', nearest('burner-mining-drill'), quantity=1)
+comment("Move to coal deposit again to pick up some more for fuel")
+move_to(nearest('coal'))
+comment("Let's pick up more coal to add as fuel to our mining drill which has run out of fuel.")
+move_to(nearest('coal'))
+harvest_resource(nearest('coal'), quantity=1)
+comment("Add coal to burner-mining-drill.")
+insert_item('coal', nearest('burner-mining-drill'), quantity=1)
+comment("Extract iron ore and put it into our inventory")
+harvest_resource(nearest('iron-ore'), quantity=1)
+insert_item('iron-ore', nearest('player_character'), quantity=1)
+comment("Looks like we are out of fuel for our burner mining drill again, let's add more coal and fix our output issue.")
+move_to(entity_position)
+insert_item('coal', nearest('burner-mining-drill'), quantity=1)
+inspect_entities(5) # to check what object the output is going into
+connect_entities(source_position=nearest('burner-mining-drill'), target_position=nearest('stone-furnace'), connection_type='inserter')
+inspect_entities(5) # to check the connection between the entities currently
+comment("We are having an output space issue, let's make a chest to store the output until we have more furnaces")
+if 'iron-chest' not in inventory:
+    craft_item('iron-chest', quantity=1)
+entity_position = nearest('burner-mining-drill')
+move_to(entity_position)
+inspect_entities(radius=2)
+entity_output_pos = None
+for entity in inspect_entities(radius=2):
+    if entity['position'] == (entity_position[0] - 2, entity_position[1]):
+        entity_output_pos = entity['position']
+        break
+place_entity('iron-chest', direction=DOWN, position=(entity_output_pos[0], entity_output_pos[1]-1))
+connect_entities(source_position=entity_output_pos, target_position=(entity_output_pos[0], entity_output_pos[1]-1), connection_type='inserter')
+comment("Let's place a chest next to the burner mining drill to store the output resources.")
+entity_position = nearest('burner-mining-drill')
+place_entity_next_to('iron-chest', entity_position, direction=LEFT, gap=1)
+inspect_entities(5)
+comment("Now, let's connect the mining drill and the chest using an inserter.")
+entity = inspect_entities(radius=1)
+entity = [x for x in entity if x['type'] == "iron-chest"]
+entity_position = entity[0]['position']
+comment("Looks like there is no chest nearby, let's place one first.")
+move_to(entity_position)
+place_entity_next_to('iron-chest', entity_position, direction=LEFT, gap=1)
+inspect_entities(5)
+comment("Sorry about that, it seems like there is no space on the left side. Let's place it on the right side.")
+place_entity_next_to('iron-chest', entity_position, direction=RIGHT, gap=1)
+comment("It seems there is something wrong. Let's make sure we have enough space to place the chest.")
+entity_output_pos = entity[0]['output_positions'][0]
+if not is_position_buildable(entity_output_pos):
+    comment("Output position not buildable. Let's clear some space by moving 5 meters left and then trying to place the chest.")
+    move_to((-3, -4))
+    place_entity_next_to('iron-chest', entity_position, direction=LEFT, gap=1)
+else:
+    comment("Output position is buildable. Let's place the chest beside it.")
+    place_entity_next_to('iron-chest', entity_position, direction=RIGHT, gap=1)
+comment("Hmm, let's find a new location for the chest.")
+move_to(entity_output_pos)  # Move to the output position of the mining drill
+chest_position = (entity_output_pos[0] - 1, entity_output_pos[1])
+place_entity('iron-chest', direction=LEFT, exact=True, position=chest_position)
+comment("Sorry about that. Let's make sure the drill has finished mining the resources before attempting to extract them.")
+move_to(entity_position)
+wait_for_full_output(entity[0])
+entity_output_pos = entity[0]['output_positions'][0]  # Find the position of the output of the mining drill
+comment("Okay. Let's make sure the inserters don't back up by checking if they have space before inserting.")
+while True:
+    if check_inventory_space(belt_position) and check_inventory_space(inserter_position):
+        insert_item('iron-ore', target_position=inserter_position, quantity=5)
+        move_to(belt_position)
+        place_entity('transport-belt', direction=RIGHT)
+        break
+    else:
+        wait(2)
+comment("Sorry about that. Here's a helper function to check inventory space before inserting items.")
+def check_inventory_space(entity_pos, item_name):
+    inv = inspect_entity(entity_pos)['inventory']
+    if item_name in inv and inv[item_name] < 50:
+        return True
+    elif item_name not in inv:
+        return True
+    else:
+        return False
+```
+def check_inventory_space(item_name, quantity=1):
+    inventory = inspect_inventory()
+    if item_name in inventory.keys():
+        if inventory[item_name] < inventory_size():
+            return True
+        else:
+            return False
+    else:
+        if inventory_size() - len(inventory.keys()) >= 1:
+            return True
+        else:
+            return False
+```
+
+comment("Okay. Let's make sure the inserters don't back up by checking if they have space before inserting items.")
+while True:
+    if check_inventory_space(inserter_position):
+        insert_item('iron-ore', target_position=entity_output_pos)
+        ore_inventory += 1
+    else:
+        wait() #waiting for space in inventory. 
+    
+    if ore_inventory >= 20:
+        comment("Our inventory is getting full. Let's move the ore to the smelter.")
+        move_to(belt_position)
+        drop_inventory(belt_position, item='iron-ore', quantity=20)
+        ore_inventory -= 20
+        break
+
+comment("Okay. Let's make sure the inserters don't back up by checking if they have space before inserting items.")
+available_slots = inspect_inventory()['empty_slots']
+if available_slots > 0:
+    insert_item('iron-ore', quantity=1, target_position=inserter_position)
+    ore_inventory += 1
+else:
+    comment("Inventory is full. Waiting for space...")
+
+# Let's find burner-mining-drills which are waiting for space in the output 
+entity = inspect_entities()
+for e in entity:
+    if e['name'] == "burner-mining-drill" and e['position'] in [(-6, -9), (-5, -7)] and e['output_inventory_full']:
+        # We found a burner-mining drill which needs space 
+        entity_output_pos = e['output_inventory_position']
+        while available_slots == 0:
+          # If inventory is full, wait for the user to clear some space
+            comment("Waiting for space in inventory")	  
+            available_slots = inspect_inventory()['empty_slots']
+        
+        # Insert a single coal into the burner-mining-drill
+        insert_item('coal', entity_output_pos, available_slots-1, 1)
+        comment("Added coal into burner-mining-drill")
+        break
+drills = inspect_entities(radius=10)
+for drill in drills:
+    if 'burner-mining-drill' in drill['type'] and drill['warning'] and 'output is full' in drill['warning']:
+        comment(f"{drill['type']} at {drill['position']}: {drill['warning']}")
+comment("Let's find burner-mining-drills which are waiting for space in the output")
+drills = inspect_entities(radius=10)
+for drill in drills:
+    if 'burner-mining-drill' in drill['type'] and drill['warning'] and 'output is full' in drill['warning']:
+        comment(f"{drill['type']} at {drill['position']}: {drill['warning']}")
+for drill in drills:
+    if 'burner_mining_drill' in drill['type'] and 'warning' in drill:
+        if 'output is full' in drill['warning']:
+            comment(f"Output full at {drill['position']}. Waiting for space in destination.")
+for drill in drills:
+    if 'burner-mining-drill' in drill['type'] and drill['warning'] and 'output is full' in drill['warning']:
+        comment(f"{drill['type']} at {drill['position']}: {drill['warning']}")
+comment("These drills are waiting for space in the output")
+We need to create space in the output. There are different ways to achieve this depending on the layout of your setup but some usual methods:
+- Use inserters to move items from the output side of the miner to a near transport belt that takes it away (the transport belt could be a chained one that look like an "S" and goes back into the mining area and then outwards)
+- Use long-handed inserters to directly place items from the output to another output, such as a chest or a furnace
+- Move your output over so that the items don't interfere with the operations of the mining drill.
+
+comment("First we need to find the drills waiting for space")
+for drill in drills:
+    if drill['type'] == 'burner-mining-drill' and 'waiting for space in destination' in drill['warning']:
+        comment(f"{drill['type']} at {drill['position']}: {drill['warning']}")
+
+comment("We can try to clear the output by connecting it to other machines")
+for entity in inspect_entities():
+    if entity['type'] == 'transport-belt' and entity['end_position'] in [(x['position'][0], x['position'][1]) for x in drills if 'burner-mining-drill' in x['type'] and 'waiting for space in destination' in x['warning']]:
+        entity_output_pos = entity['end_position']
+        available_slots = entity['quantity']
+        break
+comment("Here are some possible ways to create space at the output:")
+comment("1. Connect the drill's output to an empty inventory such as a new chest or a conveyor belt that is supplying the ingredients")
+comment("2. Create additional output space through the use of splitters or underground belts")
+comment("3. Move products away from the output faster with faster-moving conveyors or inserters that can transfer items to a waiting container.")
+
+# Here are a couple of methods that we can use:
+comment("Method 1: Connect the drill's output to a chest to store excess items")
+chest_position = nearest("iron-chest", player_position)
+for drill in drills:
+    if drill['type'] == 'burner-mining-drill' and 'waiting for space in destination' in drill['warning']:
+        connect_entities(drill['position'], chest_position, connection_type="inserter")
+        comment(f"Connected {drill['type']} at {drill['position']} to a chest for storage")
+        break
+
+comment("Method 1: Connect the drill's output to a chest to store excess items")
+chest_position = nearest('iron-chest', player_character_position)
+drill_output_pos = (-8.5, -4.5)
+if inspect_entities(1,drill_output_pos)[0]['type']== 'iron-chest':
+    chest_entity = inspect_entities(1,drill_output_pos)[0]
+    available_slots = chest_entity['inventory_size'] - sum(chest_entity['contents'].values())
+comment('Method 1: Connect the drill output to a chest to store excess items')
+chest_position = nearest('iron-chest', player_character['position'])
+comment('Method 1: Connect the drill output to a chest to store excess items')
+comment("Finding the player character position")
+player_character_position = None
+entities = inspect_entities(0)
+for entity in entities:
+    if entity['type'] == 'player_character':
+        player_character_position = entity['position']
+        break
+player_character_position = nearest('player_character', verbose=True)
+comment('Make sure player character is present on the map')
+comment('Method 1: Connect a chest to the drill to store excess items')
+chest_position = nearest('iron-chest', verbose=True)
+comment("Move to nearest iron ore deposit")
+iron_ore_pos = nearest('iron-ore', player_character_position)
+move_to(iron_ore_pos)
+iron_ore_pos = nearest('iron-ore', verbose=True)
+move_to(iron_ore_pos)
+comment("Place a burner mining drill on the nearest ore deposit and connect a chest to its output")
+drill_position = place_entity_next_to('burner-mining-drill', reference_position=iron_ore_pos, direction=LEFT, gap=1, verbose=True)
+chest_position = nearest('iron-chest', verbose=True)
+connect_entities(source_position=drill_position, target_position=chest_position, connection_type='inserter', verbose=True)
+comment("Place a chest to store the extracted ore")
+chest_position = place_entity_next_to('iron-chest', reference_position=drill_position, direction=RIGHT, gap=1, verbose=True)
+
+comment("Place a chest to store the extracted ore")
+chest_position = place_entity_next_to('iron-chest', reference_position=iron_ore_pos, direction=LEFT, gap=1, verbose=True)
+
+comment("Place a chest to store the extracted ore")
+chest_position = place_entity_next_to('iron-chest', reference_position=iron_ore_pos, direction=LEFT, gap=1)
+comment("Place a chest to store the extracted ore")
+chest_position = place_entity_next_to('iron-chest', reference_position=iron_ore_pos, direction=LEFT, gap=1)
+comment("Let's try to move the placement position of the chest to another location")
+chest_position = place_entity_next_to('iron-chest', reference_position=player_character_position, direction=RIGHT, gap=3)
+comment("Chest position : ", chest_position)
+comment("There seems to be an issue with the ore transportation. Let's check the setup.")
+inspect_entities(radius=10)
+comment("It seems like the output of the mining drills are full. Let's create a transport belt to move the ore to the chest.")
+drills = inspect_entities(radius=10)
+chest_position = (19.8125, -6.5)
+comment("Let's check the status of the drills")
+for drill in drills:
+    if drill['type'] == 'burner_mining_drill' and drill['status'] == 'not empty':
+        print(f"{drill['type']} at {drill['position']}: {drill['contents']}")
+    else:
+        print(f"{drill['type']} at {drill['position']}: {drill['status']}")
+print("\n")

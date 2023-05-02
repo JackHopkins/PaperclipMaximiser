@@ -1,0 +1,11 @@
+# First, let me inspect the resources around me and plan my next moves
+resources = inspect_resources()
+print(resources)
+# Based on the resources, I will start by mining iron ore and coal
+# Alright, let me move to the nearest iron ore and coal positions and start mining them
+iron_position = nearest('iron-ore')
+coal_position = nearest('coal')
+move_to(iron_position)
+harvest_resource(iron_position, quantity=5)
+move_to(coal_position)
+harvest_resource(coal_position, quantity=10)

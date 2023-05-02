@@ -1,0 +1,82 @@
+[94m# Find a coal resource and place a burner-mining-drill
+coal_position = nearest('coal')
+move_to(coal_position)
+place_entity('burner-mining-drill', direction=LEFT, position=(coal_position[0]-2, coal_position[1]))
+[92mLine 1: Error: Could not place burner-mining-drill. Maybe inspect your surroundings before placing
+[94m# Inspect the entities before placing the burner-mining-drill
+inspect_entities(5)
+[92mLine 1: {'entities': [{'type': 'player_character', 'direction': 'north', 'position': (0, 0), 'status': 'empty'}]}
+[94m# It seems there are no resources nearby. I will move around and check again.
+move_to((5, 5))
+inspect_entities(10)
+[92mLine 1: {'entities': [{'type': 'player_character', 'direction': 'north', 'position': (0, 0), 'status': 'empty'}]}
+[94m# Let me check the landscape instead
+inspect_resources()
+[92mLine 1: There are 4.1k tree_01s scattered 23km northwest, 19km north-northwest, 18km north, 18km north-northeast, 23km northeast, 2km west-northwest, 561 metres east-northeast, 453 metres west, 31 metres east, 3km west-southwest, 1km east-southeast, 17km southeast, 20km southwest, 14km south-southwest, 14km south-southeast, and 13km south 
+- 100x coal 15 metres northwest (-22, -19) x (-13, -10)
+- 100x stone 5 metres west-southwest (-22, 1) x (-13, 10)
+- 100x copper_ore 5 metres east-southeast (17, 1) x (26, 10)
+- 100x uranium_ore 25 metres southeast (17, 21) x (26, 30)
+- 93x iron_ore 15 metres northeast (17, -19) x (26, -10)
+- There are 4.1k coals scattered 10 metres north-northwest 
+- There are 4.1k iron_ores scattered 11 metres east-northeast 
+- There are 4.1k item_on_grounds scattered 9 metres west-northwest 
+[94m# Let's find a location with coal and place a burner-mining-drill there
+coal_position = nearest('coal')
+move_to(coal_position)
+place_entity('burner-mining-drill', direction=LEFT, position=(coal_position[0]-2, coal_position[1]))
+[92mLine 1: Error: Could not place burner-mining-drill. Maybe inspect your surroundings before placing
+[94m# This coal resource may already have a mining drill. Let's check and move to another coal resource
+entities = inspect_entities(20)
+for entity in entities['entities']:
+    if 'burner-mining-drill' in entity['type']:
+        print("There is already a drill at this coal resource. Looking for another one...")
+        coal_position = nearest('coal', exclude=[entity['position']])
+if coal_position:
+    move_to(coal_position)
+    place_entity('burner-mining-drill', direction=LEFT, position=(coal_position[0]-2, coal_position[1]))
+else:
+    print("No coal resources found.")
+[92mError: ('Could not place burner-mining-drill', 'Maybe inspect your surroundings before placing')
+[94m# Let's move around a bit more to find another coal resource
+move_to((10, 10))
+inspect_entities(20)
+coal_position = nearest('coal')
+move_to(coal_position)
+place_entity('burner-mining-drill', direction=LEFT, position=(coal_position[0]-2, coal_position[1]))
+[92mLine 1: {'entities': [{'type': 'player_character', 'direction': 'north', 'position': (0, 0), 'status': 'empty'}]}
+Line 2: Error: Could not place burner-mining-drill. Maybe inspect your surroundings before placing
+[94m# The nearest coal resource may not be close enough. Let’s try a prompt to see where we can place a burner-mining-drill
+[94m# First we move to a different location
+move_to((5,5))
+[94m# Let's check the surrounding area to see if we can find a place for a burner-mining-drill
+entities = inspect_entities(20)
+for entity in entities['entities']:
+    if 'coal' in entity['type'] and 'ore' not in entity['type']:
+        print(f"Found a coal entity at ({entity['position'][0]}, {entity['position'][1]})")
+        place_entity('burner-mining-drill', direction=LEFT, position=(entity['position'][0]-1, entity['position'][1]))
+        break
+else:
+    print("No coal entities found nearby.")
+[94m# Let's move closer to the center of our resources to set up our base
+move_to(nearest('item-on-ground'))
+[94m# The nearest coal resource may not be close enough. Let's try a prompt to see where we can place a burner-mining-drill
+[94m
+[94m# Let's craft some transport belts to connect the mining drill to a furnace
+craft_item('transport-belt', quantity=10)
+[92mLine 1: Crafting successful
+[94m# Let's place a furnace near our drill
+[94m# Let's place a furnace near our drill
+furnace_position = (coal_position[0]+2, coal_position[1])
+place_entity('stone-furnace', direction=LEFT, position=furnace_position)
+[94m# Now we need to connect the burner-mining-drill to our furnace using the transport belts
+[94m# Let's connect the miner drill to the furnace using transport belts
+mining_position = (coal_position[0]-1, coal_position[1])
+entity_to = (furnace_position[0], furnace_position[1]+1)
+insert_entity = 'transport-belt'
+while mining_position[1] < furnace_position[1]:
+    place_entity(insert_entity, direction=UP, position=entity_to)
+    entity_to = (entity_to[0], entity_to[1]-1)
+    pickup_entity(insert_entity, mining_position)
+[94m# Let's set up a coal belt to keep our furnace running
+[94m# Let's set up a coal belt to keep our furnace running

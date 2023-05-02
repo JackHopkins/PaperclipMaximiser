@@ -1,0 +1,21 @@
+[94mcomment("First, let's inspect the resources and landscape around us")
+resources = inspect_resources()
+[92mScore: 290
+[94mcomment("Check entities within 20-meter radius")
+entities = inspect_entities(20)
+[92mScore: 290
+[94mcomment("Now, let's set up some coal mining operations")
+coal_position = nearest('coal')
+move_to(coal_position)
+place_entity('burner-mining-drill', direction=LEFT, position=(coal_position[0]-2, coal_position[1]))
+[92mLine 1: (-10, -5)
+Score: 290
+[94mcomment("Place a stone furnace to the left of the burner-mining-drill")
+burner_drill_position = (-10, -5)
+stone_furnace_position = (burner_drill_position[0] - 2, burner_drill_position[1])
+place_entity('stone-furnace', position=stone_furnace_position)
+[92mLine 1: (-12, -5)
+Score: 290
+[94mcomment("Connect the burner-mining-drill's output to the stone-furnace's input using an inserter")
+connect_entities(source_position=(burner_drill_position[0]-2, burner_drill_position[1]), target_position=stone_furnace_position, connection_type='inserter')
+[92mError: Evaluation timed out

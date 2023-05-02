@@ -1,0 +1,18 @@
+# Initial setup
+# Let's begin by inspecting our surroundings
+inspect_resources()
+inspect_entities(20)
+# Sorry about that typo, let's move on. 
+# Initial setup
+# Let's begin by inspecting our surroundings
+inspect_resources()
+inspect_entities(20)
+# Sorry about that typo, let's move on. 
+# We will start by mining coal
+# Collect 10 coal
+coal_position = nearest('coal')
+move_to(coal_position)
+harvest_resource(coal_position, 10)
+# My apologies. We seem to not have any coal minable by hand within our reach.
+# Let's start by creating a coal mining setup
+# Create a coal mining setup

@@ -1,0 +1,38 @@
+comment("Inspect the resources in the surroundings")
+resources = inspect_resources()
+print(resources)
+comment("Inspect the resources in the surroundings")
+resources = inspect_resources()
+print(resources)
+comment("Inspect the resources in the surroundings")
+resources = inspect_resources()
+print(resources)
+comment("Inspect the resources in the surroundings")
+resources = inspect_resources()
+print(resources)
+comment("Inspect the resources in the surroundings")
+resources = inspect_resources()
+print(resources)
+comment("Inspect the available resources around me")
+resources = inspect_resources()
+comment("Again, inspect the available resources around me")
+resources = inspect_resources()
+comment("Inspect the available resources around me")
+resources = inspect_resources()
+comment("Move to the nearest ore")
+nearest_ore = nearest("ore")
+comment("Move to the nearest coal resource")
+nearest_coal = nearest("coal")
+move_to(nearest_coal)
+Moved to nearest coal location at (-8, -5).
+# Moved to nearest coal location at (-8, -5).1: [{'type': 'coal', 'position': (-8, -5), 'amount': 842}]
+# Moved to nearest coal location at (-8, -5).
+# Moved to nearest coal location at (-8, -5).1: [{'type': 'coal', 'position': (-8, -5), 'amount': 842}]# Place a burner-mining-drill at the nearest buildable position next to the coal resource
+burner_drill_position = place_entity('burner-mining-drill', direction=LEFT, position=nearest_buildable('burner-mining-drill'))
+# Moved to nearest coal location at (-8, -5).
+# Moved to nearest coal location at (-8, -5).1: [{'type': 'coal', 'position': (-8, -5), 'amount': 842}]
+# Moved to nearest coal location at (-8, -5).
+# Moved to nearest coal location at (-8, -5).1: [{'type': 'coal', 'position': (-8, -5), 'amount': 842}]# Place a burner-mining-drill at the nearest buildable position next to the coal resource
+burner_drill_position = place_entity('burner-mining-drill', direction=LEFT, position=nearest_buildable('burner-mining-drill'))You are now at the nearest coal resource located at (-8, -5).
+comment("Place a burner-mining-drill at the nearest buildable position next to the coal resource")
+burner_drill_position = place_entity('burner-mining-drill', direction=LEFT, position=nearest_buildable('burner-mining-drill'))

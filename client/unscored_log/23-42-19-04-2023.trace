@@ -1,0 +1,6 @@
+# Inspect resources and entities around me to plan my next move
+inspect_resources()
+inspect_entities(20)
+# Inspect resources and entities around me to plan my next move
+print(inspect_resources())
+print(inspect_entities(20))

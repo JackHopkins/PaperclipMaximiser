@@ -1,0 +1,6 @@
+comment("Observe and describe the natural resources and landscape around me")
+resources = inspect_resources()
+print(resources)
+comment("Inspect natural resources and landscape")
+resources = inspect_resources()
+print(resources)

@@ -1,0 +1,10 @@
+# Inspect the natural resources around me
+inspect_resources()
+# Inspect the entities around me
+inspect_entities(20)
+# Move to the nearest coal resource and place a burner-mining-drill to automate coal extraction
+coal_position = nearest('coal')
+move_to(coal_position)
+place_entity('burner-mining-drill', direction=LEFT, position=(coal_position[0]-2, coal_position[1]))
+# Place a stone furnace next to my burner mining drill to process coal
+furnace_position = place_entity_next_to('stone-furnace', reference_position=(coal_position[0]-2, coal_position[1]), direction=LEFT, gap=1)

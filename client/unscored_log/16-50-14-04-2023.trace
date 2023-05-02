@@ -1,0 +1,32 @@
+# Lets start by checking my inventory.
+# First, let's set up the coal and iron ore mining stations.
+coal_position = nearest('coal')
+iron_ore_position = nearest('iron_ore')
+place_entity('burner-mining-drill', direction=RIGHT, position=coal_position)
+place_entity('burner-mining-drill', direction=LEFT, position=iron_ore_position)
+# I forgot that we only have one burner-mining-drill. Let's create another one.
+craft_item('burner-mining-drill', quantity=1)
+# Now let's place the second burner-mining-drill at the iron_ore_position.
+place_entity('burner-mining-drill', direction=LEFT, position=iron_ore_position)
+# Now let's place a stone furnace next to the iron ore drill.
+furnace_position = (iron_ore_position[0]-1, iron_ore_position[1])
+place_entity('stone-furnace', position=furnace_position)
+# I need to craft a stone furnace before placing it.
+craft_item('stone-furnace', quantity=1)
+# We don't have enough stone in our inventory, let's mine some stone.
+stone_position = nearest('stone')
+harvest_resource(stone_position, quantity=5)
+# Let's move closer to the stone resource and harvest it.
+move_to(stone_position)
+harvest_resource(stone_position, quantity=5)
+# Now that we have enough stone, let's craft the stone furnace.
+craft_item('stone-furnace', quantity=1)
+# Sorry, I forgot to update the quantity. Let's try again with the correct number of stones.
+harvest_resource(stone_position, quantity=5)
+craft_item('stone-furnace', quantity=1)
+# I apologize for the confusion. Let's harvest the correct amount of stone and then craft the furnace.
+harvest_resource(stone_position, quantity=10)
+craft_item('stone-furnace', quantity=1)
+# I'm sorry for the confusion. Let's harvest the remaining stones and craft the furnace.
+harvest_resource(stone_position, quantity=15)
+craft_item('stone-furnace', quantity=1)

@@ -1,0 +1,28 @@
+[92mThere are 4.2k tree_01s scattered 23km northwest, 17km north-northwest, 16km north, 16km north-northeast, 21km northeast, 1km east-northeast, 3km west-northwest, 760 metres west, 32 metres east, 4km west-southwest, 720 metres east-southeast, 17km southeast, 17km southwest, 13km south-southwest, 13km south-southeast, and 11km south 
+- 100x copper_ore 10 metres east-southeast (22, 6) x (31, 15)
+- 100x uranium_ore 30 metres southeast (22, 26) x (31, 35)
+- 94x coal 10 metres northwest (-17, -14) x (-8, -5)
+- There are 4.2k stones scattered 24 metres west-southwest, and 14 metres southwest 
+- There are 4.2k iron_ores scattered 12 metres east-northeast 
+- There are 4.2k item_on_grounds scattered 4 metres west-northwest 
+[96m# Lets start by checking my inventory.
+[92m{'iron-chest': 1, 'transport-belt': 50, 'burner-mining-drill': 1, 'stone-furnace': 1, 'assembling-machine-1': 1, 'coal': 50, 'iron-plate': 50, 'copper-plate': 50}
+[96m# I have some basic tools to start automating the production of iron-gear-wheels. 
+[94m# Let's place a burner mining drill on top of an iron_ore source and start mining the material.
+iron_ore_pos = nearest('iron-ore')
+place_entity('burner-mining-drill', direction=LEFT, position=iron_ore_pos)
+move_to((iron_ore_pos[0]-1, iron_ore_pos[1]))
+move_to(nearest('stone-furnace'), laying='transport-belt')
+[92mError: Evaluation timed out
+[96m# In order to prevent the timeout, let's break the code down into smaller chunks
+[94m# Let's first place a burner mining drill on the nearest iron_ore source 
+iron_ore_pos = nearest('iron-ore')
+place_entity('burner-mining-drill', direction=LEFT, position=iron_ore_pos)
+[92mError: Evaluation timed out
+[94m# To prevent timeout, here's a simplified version of the code which will only place a burner mining drill on the nearest iron ore.
+iron_ore_pos = nearest('iron-ore') 
+place_entity('burner-mining-drill',position=iron_ore_pos,direction=LEFT) 
+[92mError: decoding str is not supported
+[94m# Let's try that again without the comments
+iron_ore_pos = nearest('iron-ore') 
+place_entity('burner-mining-drill',position=iron_ore_pos,direction=LEFT)

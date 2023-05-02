@@ -1,0 +1,96 @@
+[92mThere are 4.2k tree_01s scattered 23km northwest, 17km north-northwest, 16km north, 16km north-northeast, 21km northeast, 1km east-northeast, 3km west-northwest, 760 metres west, 32 metres east, 4km west-southwest, 720 metres east-southeast, 17km southeast, 17km southwest, 13km south-southwest, 13km south-southeast, and 11km south 
+- 100x copper_ore 10 metres east-southeast (22, 6) x (31, 15)
+- 100x uranium_ore 30 metres southeast (22, 26) x (31, 35)
+- 75x coal 9 metres northwest (-17, -14) x (-8, -5)
+- There are 4.2k stones scattered 24 metres west-southwest, and 14 metres southwest 
+- There are 4.2k iron_ores scattered 13 metres east-northeast 
+- There are 4.2k item_on_grounds scattered 4 metres west-northwest 
+[96m# Lets start by checking my inventory.
+[92m{'iron-chest': 1, 'transport-belt': 50, 'burner-mining-drill': 1, 'stone-furnace': 1, 'assembling-machine-1': 1, 'coal': 50, 'iron-plate': 50, 'copper-plate': 50}
+[96m# Now that we know what we have, let's start by creating a coal mining operation, and smelting iron.
+[96m# First, let us create a spot for our mining operation by placing a burner mining drill over the nearest coal mine.
+[94mcoal_position = nearest('coal')
+place_entity('burner-mining-drill', direction=LEFT, position=coal_position)
+move_to((coal_position[0]-1, coal_position[1]))
+move_to(nearest('stone-furnace'), laying='transport-belts')
+[92mLine 1: True
+Line 2: None
+Line 3: Error: No stone-furnace found on the map
+[94m# Oops, looks like we don't have a stone-furnace nearby. Let's create one first.
+stone_position = (coal_position[0]-5, coal_position[1]-5)
+place_entity('stone-furnace', direction=UP, position=stone_position)
+[92mLine 1: True
+[96m# Now that we have a stone furnace, let's start creating iron plates using the coal we mined earlier and the nearby iron resource. 
+[94m# Place a burner-mining drill at the nearest iron resource:
+iron_position = nearest('iron-ore')
+place_entity('burner-mining-drill', direction=LEFT, position=iron_position)
+move_to((iron_position[0]-1, iron_position[1]))
+move_to((stone_position[0]+1, stone_position[1]), laying='transport-belts')
+[92mLine 1: Error: ('Could not place burner-mining-drill', 'No burner mining drill in inventory')
+Line 2: None
+Line 3: Error: ('Could not goto', Exception('Could not lay entity, perhaps a typo?'))
+[94m# Oops, looks like we haven't crafted the burner mining drill yet. Let's craft them first.
+craft_item('burner-mining-drill')
+[92mLine 1: Error: ('Could not craft a burner-mining-drill', 'Failed to craft 1x burner mining drill because missing ingredient stone')
+[94m# I forgot to check my inventory before crafting. Looks like we are missing stone. Let's mine some stone first.
+stone_position = nearest('stone')
+harvest_resource(stone_position,quantity=5)
+move_to((stone_position[0]-1,stone_position[1]))
+craft_item('burner-mining-drill')
+[92mLine 1: Error: ('Could not harvest.', 'Nothing within reach to harvest')
+Line 2: None
+Line 3: Error: ('Could not craft a burner-mining-drill', 'Failed to craft 1x burner mining drill because missing ingredient stone')
+[94m# Oh no! We don't have any nearby stone. Let's go find some.
+move_to(nearest('stone'))
+harvest_resource(nearest('stone'),quantity=5)
+move_to((stone_position[0]-1,stone_position[1]))
+craft_item('burner-mining-drill')
+[92mLine 1: None
+Line 2: True
+Line 3: None
+Line 4: Crafting successful
+[94m# Great! Now let's set up the burner mining drill at the iron mine and create a path of transport belts back to the furnace.
+iron_position = nearest('iron-ore')
+place_entity('burner-mining-drill', direction=LEFT, position=iron_position)
+move_to((iron_position[0]-1, iron_position[1]))
+move_to((stone_position[0]+1, stone_position[1]), laying='transport-belts')
+set_entity_recipe(iron_position, recipe='iron-plate')
+[92mLine 1: True
+Line 2: None
+Line 3: Error: ('Could not goto', Exception('Could not lay entity, perhaps a typo?'))
+Line 4: Error: ('Could not set recipe to iron-plate', 'No building found that could have its recipe set')
+[94m# Oops! Looks like we need an assembling machine to automate the production of iron plates. Let's craft one.
+craft_item('assembling-machine-1')  # Craft one assembling machine
+[92mLine 1: Crafting successful
+[94m# Place the assembling machine near the furnace
+assembling_position = (stone_position[0]+3, stone_position[1])
+place_entity('assembling-machine-1', direction=UP, position=assembling_position)
+move_to((stone_position[0]+2, stone_position[1]), laying='transport-belts')
+[92mLine 1: True
+Line 2: Error: ('Could not goto', Exception('Could not lay entity, perhaps a typo?'))
+[94m# Let's pick up the transport belts and try again
+pickup_entity('transport-belt', (stone_position[0]+2, stone_position[1]))
+move_to((stone_position[0]+2, stone_position[1]), laying='transport-belts')
+[92mLine 1: Error: ('Could not pickup.', 'Nothing to here to pick up')
+Line 2: Error: ('Could not goto', Exception('Could not lay entity, perhaps a typo?'))
+[94m# My mistake, let's move the assembling machine one step further to make space for the transport belt
+assembling_position = (stone_position[0]+4, stone_position[1])
+place_entity('assembling-machine-1', direction=UP, position=assembling_position)
+move_to((stone_position[0]+3, stone_position[1]), laying='transport-belts')
+[92mLine 1: Error: ('Could not place assembling-machine-1', 'Cant build there due to existing assembling machine 1with the size 2')
+Line 2: Error: ('Could not goto', Exception('Could not lay entity, perhaps a typo?'))
+[94m# Right, let's try placing the assembling machine on the other side of the transport belts instead
+assembling_position = (stone_position[0]+2, stone_position[1])
+place_entity('assembling-machine-1', direction=UP, position=assembling_position)
+move_to((stone_position[0]+3, stone_position[1]), laying='transport-belts')
+[92mLine 1: Error: ('Could not place assembling-machine-1', 'Cant build there due to existing assembling machine 1with the size 2')
+Line 2: Error: ('Could not goto', Exception('Could not lay entity, perhaps a typo?'))
+[94m# Looks like there's still not enough space. Let's try moving the transport belts one step further
+pickup_entity('transport-belt', (stone_position[0]+2, stone_position[1]))
+place_entity('transport-belt', position=(stone_position[0]+3, stone_position[1]))
+place_entity('assembling-machine-1', direction=UP, position=(stone_position[0]+2, stone_position[1]))
+move_to((stone_position[0]+3, stone_position[1]), laying='transport-belts')
+[92mLine 1: Error: ('Could not pickup.', 'Nothing to here to pick up')
+Line 2: Error: ('Could not place transport-belt', 'Cant build there due to existing assembling machine 1with the size 0')
+Line 3: Error: ('Could not place assembling-machine-1', 'Cant build there due to existing assembling machine 1with the size 2')
+Line 4: Error: ('Could not goto', Exception('Could not lay entity, perhaps a typo?'))

@@ -1,0 +1,531 @@
+[92mThere are 4.2k tree_01s scattered 23km northwest, 17km north-northwest, 16km north, 16km north-northeast, 21km northeast, 1km east-northeast, 3km west-northwest, 760 metres west, 32 metres east, 4km west-southwest, 720 metres east-southeast, 17km southeast, 17km southwest, 13km south-southwest, 13km south-southeast, and 11km south 
+- 100x copper_ore 10 metres east-southeast (22, 6) x (31, 15)
+- 100x uranium_ore 30 metres southeast (22, 26) x (31, 35)
+- 75x coal 9 metres northwest (-17, -14) x (-8, -5)
+- There are 4.2k stones scattered 24 metres west-southwest, and 14 metres southwest 
+- There are 4.2k iron_ores scattered 13 metres east-northeast 
+- There are 4.2k item_on_grounds scattered 4 metres west-northwest 
+[96m# Lets start by checking my inventory.
+[92m{'iron-chest': 1, 'transport-belt': 50, 'burner-mining-drill': 1, 'stone-furnace': 1, 'assembling-machine-1': 1, 'coal': 50, 'iron-plate': 50, 'copper-plate': 50}
+[96m# Great, I have some basic items that I can start with. I will set up a coal-powered factory to keep producing iron-gear-wheels.
+[94m# Finding the coal deposit nearest to current position
+coal_position = nearest('coal')
+[94m# Checking my surroundings and resources
+observe_nature()
+[92mLine 1: There are 2.3k tree_01s scattered 5km northwest, 4km north-northwest, 4km north, 5km north-northeast, 8km northeast, 5km east-northeast, 23 metres west-northwest, 21 metres east, 24km southeast, 5km east-southeast, 18km south-southwest, 6km southwest, 16km south-southeast, and 15km south 
+- 1104x water 44 metres north (-48, -88) x (1, -63)
+- There are 2.3k waters scattered 502 metres north-northwest, 1km north, and 1km north-northeast 
+- 100x copper_ore 10 metres east-southeast (-8, -24) x (1, -15)
+- 100x uranium_ore 30 metres southeast (-8, -4) x (1, 5)
+- 75x coal 9 metres northwest (-47, -44) x (-38, -35)
+- There are 2.3k stones scattered 24 metres west-southwest, and 14 metres southwest 
+- There are 2.3k iron_ores scattered 13 metres east-northeast 
+- There are 2.3k item_on_grounds scattered 4 metres west-northwest 
+[94m# Inspecting the area around the coal deposit
+inspect_radius(10)
+[92mLine 1: entities: []
+
+[96m# Since there are no obstructions or entity in the area, I will start setting up a coal-powered factory to produce iron-gear-wheels extensively
+[94m# Placing the mining drill on the coal deposit
+place_entity('burner-mining-drill', direction=LEFT, position=coal_position)
+[92mLine 1: Error: ('Could not place burner-mining-drill', 'Cant build there maybe inspect your surroundings false')
+[94m# There seems to be an obstruction. I will inspect the position where the mining drill was supposed to be placed
+inspect_radius(1)
+[92mLine 1: entities: []
+
+[94m# Since there are no entities within 1 meter radius, I will reduce the proximity to 0.5 meters instead, before retrying to place the mining drill
+inspect_radius(0.5)
+[92mLine 1: entities: []
+
+[94m# Since there are no obstructions, I will try placing the mining drill again
+place_entity('burner-mining-drill', direction=LEFT, position=coal_position)
+[92mLine 1: Error: ('Could not place burner-mining-drill', 'Cant build there maybe inspect your surroundings false')
+[94m# I will use a `while` loop to keep checking for any changes in the environment before retarting the mining drill placement process
+while True:
+    observe = observe_nature()
+    if 'an obstruction' in observe:
+        print('Waiting for obstruction to clear')
+        continue
+    place_entity('burner-mining-drill', direction=LEFT, position=coal_position)
+    break
+[92mError: ('Could not place burner-mining-drill', 'Cant build there maybe inspect your surroundings false')
+[94m# It appears there is still an obstruction, so I will check the surroundings again
+inspect_radius(1)
+[92mLine 1: entities: []
+
+[94m# Since there are no immediate obstructions, I will try again, but this time I will place the drill one tile down and retry laying the transport belts.
+place_entity('burner-mining-drill', direction=LEFT, position=(coal_position[0], coal_position[1]+1))
+move_to((coal_position[0]-1, coal_position[0]+1), laying='transport-belt')
+inspect_radius(20)
+[92mLine 1: Error: ('Could not place burner-mining-drill', 'Cant build there due to existing uranium orewith the size 1')
+Line 2: Error: ('Could not goto', TypeError("'str' object is not callable"))
+Line 3: entities:
+- direction: west
+  end_position: !!python/tuple
+  - 31.5
+  - 26.5
+  position: &id001 !!python/tuple
+  - 31.5
+  - 26.5
+  quantity: 10
+  start_position: *id001
+  status: empty
+  type: transport_belt
+- direction: north
+  end_position: !!python/tuple
+  - 16.5
+  - 22.5
+  position: &id002 !!python/tuple
+  - 16.5
+  - 22.5
+  quantity: 8
+  start_position: *id002
+  status: empty
+  type: transport_belt
+- direction: north
+  end_position: !!python/tuple
+  - 33.5
+  - 33.5
+  position: &id003 !!python/tuple
+  - 33.5
+  - 33.5
+  quantity: 4
+  start_position: *id003
+  status: empty
+  type: transport_belt
+- direction: west
+  end_position: !!python/tuple
+  - 21.5
+  - 25.5
+  position: &id004 !!python/tuple
+  - 21.5
+  - 25.5
+  quantity: 4
+  start_position: *id004
+  status: empty
+  type: transport_belt
+- direction: west
+  end_position: !!python/tuple
+  - 36.5
+  - 33.5
+  position: &id005 !!python/tuple
+  - 36.5
+  - 33.5
+  quantity: 3
+  start_position: *id005
+  status: empty
+  type: transport_belt
+- direction: north
+  end_position: !!python/tuple
+  - 15.5
+  - 14.5
+  position: &id006 !!python/tuple
+  - 15.5
+  - 14.5
+  quantity: 3
+  start_position: *id006
+  status: empty
+  type: transport_belt
+- direction: north
+  end_position: !!python/tuple
+  - 36.5
+  - 36.5
+  position: &id007 !!python/tuple
+  - 36.5
+  - 36.5
+  quantity: 3
+  start_position: *id007
+  status: empty
+  type: transport_belt
+- direction: north
+  end_position: !!python/tuple
+  - 31.5
+  - 29.5
+  position: &id008 !!python/tuple
+  - 31.5
+  - 29.5
+  quantity: 3
+  start_position: *id008
+  status: empty
+  type: transport_belt
+- direction: north
+  end_position: !!python/tuple
+  - 17.5
+  - 25.5
+  position: &id009 !!python/tuple
+  - 17.5
+  - 25.5
+  quantity: 3
+  start_position: *id009
+  status: empty
+  type: transport_belt
+- direction: west
+  end_position: !!python/tuple
+  - 33.5
+  - 29.5
+  position: &id010 !!python/tuple
+  - 33.5
+  - 29.5
+  quantity: 2
+  start_position: *id010
+  status: empty
+  type: transport_belt
+- direction: west
+  end_position: !!python/tuple
+  - 39.5
+  - 37.5
+  position: &id011 !!python/tuple
+  - 39.5
+  - 37.5
+  quantity: 2
+  start_position: *id011
+  status: empty
+  type: transport_belt
+- direction: west
+  position: !!python/tuple
+  - 16.5
+  - 14.5
+  status: empty
+  type: transport_belt
+- direction: north
+  position: !!python/tuple
+  - 37.5
+  - 37.5
+  status: empty
+  type: transport_belt
+- direction: west
+  position: !!python/tuple
+  - 37.5
+  - 36.5
+  status: empty
+  type: transport_belt
+- direction: west
+  position: !!python/tuple
+  - 17.5
+  - 22.5
+  status: empty
+  type: transport_belt
+- direction: north
+  position: !!python/tuple
+  - 21.5
+  - 26.5
+  status: empty
+  type: transport_belt
+
+[94m# It seems that we cannot place the mining drill because there is uranium ore in the way. We will need to mine the uranium ore first, and since we don't have the required technology yet, we will have to look for another coal source. I will move to the tree nearest to our current location, with the hope of finding coal on the way.
+move_to(nearest('tree'))
+inspect_radius(5)
+[92mLine 1: Error: ('Could not goto', TypeError("'str' object is not callable"))
+Line 2: entities:
+- direction: west
+  end_position: !!python/tuple
+  - 33.5
+  - 74.5
+  position: &id001 !!python/tuple
+  - 33.5
+  - 74.5
+  quantity: 10
+  start_position: *id001
+  status: empty
+  type: transport_belt
+- direction: north
+  end_position: !!python/tuple
+  - 18.5
+  - 70.5
+  position: &id002 !!python/tuple
+  - 18.5
+  - 70.5
+  quantity: 8
+  start_position: *id002
+  status: empty
+  type: transport_belt
+- direction: north
+  end_position: !!python/tuple
+  - 35.5
+  - 81.5
+  position: &id003 !!python/tuple
+  - 35.5
+  - 81.5
+  quantity: 4
+  start_position: *id003
+  status: empty
+  type: transport_belt
+- direction: west
+  end_position: !!python/tuple
+  - 23.5
+  - 73.5
+  position: &id004 !!python/tuple
+  - 23.5
+  - 73.5
+  quantity: 4
+  start_position: *id004
+  status: empty
+  type: transport_belt
+- direction: west
+  end_position: !!python/tuple
+  - 38.5
+  - 81.5
+  position: &id005 !!python/tuple
+  - 38.5
+  - 81.5
+  quantity: 3
+  start_position: *id005
+  status: empty
+  type: transport_belt
+- direction: north
+  end_position: !!python/tuple
+  - 17.5
+  - 62.5
+  position: &id006 !!python/tuple
+  - 17.5
+  - 62.5
+  quantity: 3
+  start_position: *id006
+  status: empty
+  type: transport_belt
+- direction: north
+  end_position: !!python/tuple
+  - 38.5
+  - 84.5
+  position: &id007 !!python/tuple
+  - 38.5
+  - 84.5
+  quantity: 3
+  start_position: *id007
+  status: empty
+  type: transport_belt
+- direction: north
+  end_position: !!python/tuple
+  - 33.5
+  - 77.5
+  position: &id008 !!python/tuple
+  - 33.5
+  - 77.5
+  quantity: 3
+  start_position: *id008
+  status: empty
+  type: transport_belt
+- direction: north
+  end_position: !!python/tuple
+  - 19.5
+  - 73.5
+  position: &id009 !!python/tuple
+  - 19.5
+  - 73.5
+  quantity: 3
+  start_position: *id009
+  status: empty
+  type: transport_belt
+- direction: west
+  end_position: !!python/tuple
+  - 35.5
+  - 77.5
+  position: &id010 !!python/tuple
+  - 35.5
+  - 77.5
+  quantity: 2
+  start_position: *id010
+  status: empty
+  type: transport_belt
+- direction: west
+  end_position: !!python/tuple
+  - 41.5
+  - 85.5
+  position: &id011 !!python/tuple
+  - 41.5
+  - 85.5
+  quantity: 2
+  start_position: *id011
+  status: empty
+  type: transport_belt
+- direction: west
+  position: !!python/tuple
+  - 18.5
+  - 62.5
+  status: empty
+  type: transport_belt
+- direction: north
+  position: !!python/tuple
+  - 39.5
+  - 85.5
+  status: empty
+  type: transport_belt
+- direction: west
+  position: !!python/tuple
+  - 39.5
+  - 84.5
+  status: empty
+  type: transport_belt
+- direction: west
+  position: !!python/tuple
+  - 19.5
+  - 70.5
+  status: empty
+  type: transport_belt
+- direction: north
+  position: !!python/tuple
+  - 23.5
+  - 74.5
+  status: empty
+  type: transport_belt
+
+[94m# There seem to be no coal in the immediate vicinity. I will move to another direction to search for coal.
+move_to((20, 0))
+[92mLine 1: Error: ('Could not goto', TypeError("'str' object is not callable"))
+[94m# It looks like I made a mistake in the previous move. Let's try moving to the same coordinates again.
+move_to((20, 0))
+inspect_radius(2)
+[92mLine 1: Error: ('Could not goto', TypeError("'str' object is not callable"))
+Line 2: entities:
+- direction: west
+  end_position: !!python/tuple
+  - 2.5
+  - 19.5
+  position: &id001 !!python/tuple
+  - 2.5
+  - 19.5
+  quantity: 10
+  start_position: *id001
+  status: empty
+  type: transport_belt
+- direction: north
+  end_position: !!python/tuple
+  - -12.5
+  - 15.5
+  position: &id002 !!python/tuple
+  - -12.5
+  - 15.5
+  quantity: 8
+  start_position: *id002
+  status: empty
+  type: transport_belt
+- direction: north
+  end_position: !!python/tuple
+  - 4.5
+  - 26.5
+  position: &id003 !!python/tuple
+  - 4.5
+  - 26.5
+  quantity: 4
+  start_position: *id003
+  status: empty
+  type: transport_belt
+- direction: west
+  end_position: !!python/tuple
+  - -7.5
+  - 18.5
+  position: &id004 !!python/tuple
+  - -7.5
+  - 18.5
+  quantity: 4
+  start_position: *id004
+  status: empty
+  type: transport_belt
+- direction: west
+  end_position: !!python/tuple
+  - 7.5
+  - 26.5
+  position: &id005 !!python/tuple
+  - 7.5
+  - 26.5
+  quantity: 3
+  start_position: *id005
+  status: empty
+  type: transport_belt
+- direction: north
+  end_position: !!python/tuple
+  - -13.5
+  - 7.5
+  position: &id006 !!python/tuple
+  - -13.5
+  - 7.5
+  quantity: 3
+  start_position: *id006
+  status: empty
+  type: transport_belt
+- direction: north
+  end_position: !!python/tuple
+  - 7.5
+  - 29.5
+  position: &id007 !!python/tuple
+  - 7.5
+  - 29.5
+  quantity: 3
+  start_position: *id007
+  status: empty
+  type: transport_belt
+- direction: north
+  end_position: !!python/tuple
+  - 2.5
+  - 22.5
+  position: &id008 !!python/tuple
+  - 2.5
+  - 22.5
+  quantity: 3
+  start_position: *id008
+  status: empty
+  type: transport_belt
+- direction: north
+  end_position: !!python/tuple
+  - -11.5
+  - 18.5
+  position: &id009 !!python/tuple
+  - -11.5
+  - 18.5
+  quantity: 3
+  start_position: *id009
+  status: empty
+  type: transport_belt
+- direction: west
+  end_position: !!python/tuple
+  - 4.5
+  - 22.5
+  position: &id010 !!python/tuple
+  - 4.5
+  - 22.5
+  quantity: 2
+  start_position: *id010
+  status: empty
+  type: transport_belt
+- direction: west
+  end_position: !!python/tuple
+  - 10.5
+  - 30.5
+  position: &id011 !!python/tuple
+  - 10.5
+  - 30.5
+  quantity: 2
+  start_position: *id011
+  status: empty
+  type: transport_belt
+- direction: west
+  position: !!python/tuple
+  - -12.5
+  - 7.5
+  status: empty
+  type: transport_belt
+- direction: north
+  position: !!python/tuple
+  - 8.5
+  - 30.5
+  status: empty
+  type: transport_belt
+- direction: west
+  position: !!python/tuple
+  - 8.5
+  - 29.5
+  status: empty
+  type: transport_belt
+- direction: west
+  position: !!python/tuple
+  - -11.5
+  - 15.5
+  status: empty
+  type: transport_belt
+- direction: north
+  position: !!python/tuple
+  - -7.5
+  - 19.5
+  status: empty
+  type: transport_belt
+

@@ -1,0 +1,9 @@
+# Lets start by checking my inventory.
+# Lets start by checking my inventory.
+# First, let's automate the production of iron plates.
+# Go to the iron_ore resource.
+move_to(nearest('iron_ore'))
+# Place a burner mining drill facing north at the nearest iron_ore.
+place_entity('burner-drill', direction=2, position=nearest('iron_ore'))
+# Place a burner mining drill facing north at the nearest iron_ore.
+place_entity('burner-drill', direction=2, position=nearest('iron_ore'))

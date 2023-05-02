@@ -1,0 +1,47 @@
+[94mcomment("Identify nearby natural resources")
+resources = inspect_resources()
+[92mScore: 307
+[94mcomment("Locate closest coal resource")
+coal_position = nearest('coal')
+[92mScore: 307
+[94mcomment("Place a burner-mining-drill on the coal resource")
+move_to(coal_position)
+place_entity('burner-mining-drill', direction=LEFT, position=(coal_position[0]-2, coal_position[1]))
+[92mLine 1: (-10, -5)
+Score: 307
+[94mcomment("Inspect the resources around me")
+resources = inspect_resources()
+[92mScore: 307
+[94mcomment("Find the nearest coal resource and move to its location")
+coal_position = nearest('coal')
+move_to(coal_position)
+[92mScore: 307
+[94mcomment("Place a burner-mining-drill near coal resource")
+place_entity('burner-mining-drill', direction=LEFT, position=(coal_position[0]-2, coal_position[1]))
+[92mLine 1: (-10, -5)
+Score: 307
+[94mcomment("Find the nearest stone resource and move to its location")
+stone_position = nearest('stone')
+move_to(stone_position)
+[92mScore: 307
+[94mcomment("Place a burner-mining-drill near stone resource")
+place_entity('burner-mining-drill', direction=LEFT, position=(stone_position[0]-2, stone_position[1]))
+[92mLine 1: Error: Could not place burner-mining-drill. "global.actions.place entity = function(player..."]:14: No burner mining drill in inventory.
+Score: 307
+[94mcomment("Harvest some trees for wood to create more burner-mining-drills")
+tree_position = nearest('tree')
+move_to(tree_position)
+harvest_resource(tree_position, quantity=5)
+[92mLine 1: Error: Could not harvest.. "global.actions.harvest resource = function(pl..."]:65: Could only harvest 0
+Score: 307
+[94mcomment("Find a location with more trees to harvest")
+tree_position2 = move_to(nearest('tree', exclude_positions=[tree_position]))
+harvest_resource(tree_position2, quantity=5)
+[92mLine 1: Error: cannot unpack non-iterable NoneType object
+Score: 307
+[94mcomment("Find more trees to harvest in another way")
+trees = inspect_entities(20, entity_type='tree')
+move_to(trees[1]['position'])
+harvest_resource(trees[1]['position'], quantity=5)
+[92mLine 1: Error:   call  () got an unexpected keyword argument 'entity type'
+Score: 307

@@ -1,0 +1,34 @@
+[94mcomment("First, let's check the resources around us")
+map_resources = inspect_resources()
+[92m1: 
+2: 
+Score: 0
+[94mcomment("Check for nearby coal deposits")
+coal_position = nearest('coal')
+move_to(coal_position)
+[92m1: 
+2: 
+3: 
+Score: 0
+[94mcomment("Place the burner-mining-drill on the coal deposit")
+place_entity('burner-mining-drill', direction=DOWN, position=(coal_position[0]-2, coal_position[1]))
+[92m1: 
+2: (-10, -5)
+Score: 0
+[94mcomment("Now let's find a nearby Iron ore deposit and mine it")
+iron_position = nearest('iron-ore')
+move_to(iron_position)
+[92m1: 
+2: 
+3: 
+Score: 0
+[94mcomment("Place the burner-mining-drill on the iron ore deposit")
+place_entity('burner-mining-drill', direction=DOWN, position=(iron_position[0]-2, iron_position[1]))
+[92m1: 
+2: Error: Could not place burner-mining-drill. "global.actions.place entity = function(player..."]:42: No burner mining drill in inventory.
+Score: 0
+[94mcomment("Oops! I need a burner-mining-drill in my inventory. Let's craft one first.")
+craft_item('burner-mining-drill', quantity=1)
+[92m1: 
+2: 
+Score: 0

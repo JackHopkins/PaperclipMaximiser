@@ -1,0 +1,10 @@
+[94mcomment("First, let's inspect our surroundings and available resources")
+print(inspect_resources())
+[94mcomment("We then need to move towards the location of the ore")
+move_to((-8, -5))
+print("Arrived at ore location")
+[94mcomment("Now that we're at the ore location, we need to place a mining drill to extract the ore")
+ore_position = nearest('stone')
+place_entity('burner-mining-drill', direction=RIGHT, exact=False, position=ore_position)
+print("Mining drill placed successfully")
+[91mError line 2: Could not place burner-mining-drill at (-9, 6).  No burner mining drill in inventory.

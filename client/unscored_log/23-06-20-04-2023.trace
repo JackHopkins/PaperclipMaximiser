@@ -1,0 +1,25 @@
+# First, I will check my inventory and surroundings
+check_inventory()
+inspect_resources()
+inspect_entities(10)
+# Based on the surrounding resources, I will start by getting coal and iron ore into their respective chests with burner mining drills.
+# First, I'll place a burner mining drill on the nearest coal resource, and set it to output on a transport belt. I will then place an iron chest next to it, and insert the coal from the mining drill into the chest.
+coal_position = nearest('coal')
+move_to(coal_position)
+place_entity('burner-mining-drill', direction=LEFT, position=(coal_position[0]-2, coal_position[1]))
+transport_position = (coal_position[0]-3, coal_position[1])
+place_entity_next_to('transport-belt', reference_position=(coal_position[0]-1, coal_position[1]), direction=LEFT, gap=0)
+place_entity_next_to('transport-belt', reference_position=transport_position, direction=LEFT, gap=0)
+chest_position = (coal_position[0]-5, coal_position[1])
+place_entity_next_to('iron-chest', reference_position=transport_position, direction=LEFT, gap=1)
+connect_entities(source_position=(coal_position[0]-3, coal_position[1]), target_position=transport_position, connection_type='inserter')
+connect_entities(source_position=transport_position, target_position=chest_position, connection_type='inserter', output=True)
+insert_item('coal', target_position=chest_position, quantity=50)
+# I got an error, maybe there wasn't any coal to mine in the radius, I'll check for nearby resources.
+inspect_resources()
+# There is in fact coal nearby, so I'll try placing the burner mining drill again.
+coal_position = nearest('coal')
+move_to(coal_position)
+place_entity('burner-mining-drill', direction=LEFT, position=(coal_position[0]-2, coal_position[1]))
+# It looks like there might not be enough space to place the drill, I'll check the entities around the coal resource.
+inspect_entities(5)

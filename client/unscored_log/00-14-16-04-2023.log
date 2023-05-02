@@ -1,0 +1,18 @@
+[94m# First, let's inspect the resources and surroundings
+inspect_resources()
+inspect_entities(20)
+[92mLine 1: There are 3.3k tree_01s scattered 14km northwest, 17km north-northwest, 16km north, 16km north-northeast, 28km northeast, 5km east-northeast, 18km southeast, 3km east-southeast, 10km south-southwest, 7km southwest, 9km south-southeast, and 8km south 
+- 100x coal 10 metres northwest (-39, -8) x (-30, 1)
+- 100x stone 10 metres southwest (-39, 12) x (-30, 21)
+- 100x copper_ore 10 metres east-southeast (0, 12) x (9, 21)
+- 100x uranium_ore 30 metres southeast (0, 32) x (9, 41)
+- 95x iron_ore 10 metres east-northeast (0, -8) x (9, 1)
+- There are 3.3k coals scattered 5 metres north 
+- There are 3.3k item_on_grounds scattered 4 metres west-northwest 
+Line 2: {'entities': [{'type': 'player_character', 'direction': 'north', 'position': (0, 0), 'status': 'empty'}]}
+[94m# From inspecting the surroundings, we know there's coal nearby, so let's move towards it.
+coal_position = nearest('coal')
+move_to(coal_position)
+[94m# Next, let's place our first burner mining drill to extract coal.
+place_entity('burner-mining-drill', direction=DOWN, position=(coal_position[0], coal_position[1] + 2))
+[92mLine 1: Error: Could not place burner-mining-drill. Maybe inspect your surroundings before placing

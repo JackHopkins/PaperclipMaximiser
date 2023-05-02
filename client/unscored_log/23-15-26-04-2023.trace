@@ -1,0 +1,100 @@
+comment("First, let's inspect the resources and entities around us")
+inspect_resources()
+inspect_entities()
+comment("We will start by mining some iron ore")
+move_to(nearest('iron-ore'))
+place_entity('burner-mining-drill', position=nearest('iron-ore'), direction=UP)
+move_to(nearest('stone-furnace'))
+place_entity('stone-furnace', position=nearest('stone-furnace'), direction=UP)
+comment("To use the burner mining drill, we need fuel. Let's pick up some coal")
+move_to(nearest('coal'))
+pickup_entity('coal', nearest('coal'))
+insert_item('coal', nearest('burner-mining-drill'), quantity=5)
+comment("Oops, looks like there's no coal lying around. We'll have to harvest some trees to get wood for fuel")
+move_to(nearest('tree'))
+harvest_resource(nearest('tree'), 5)
+craft_item('wooden-chest', quantity=1)
+pickup_entity('wooden-chest', nearest('wooden-chest'))
+place_entity('burner-mining-drill', position=nearest('iron-ore'), direction=UP)
+comment("Let's try harvesting a different tree that's closer")
+move_to(nearest('tree'))
+harvest_resource(nearest('tree'), 5)
+comment("We need more fuel, let's harvest some more trees")
+move_to(nearest('tree'))
+harvest_resource(nearest('tree'), 5)
+comment("Great, now that we have enough fuel, let's insert coal into the burner mining drill")
+insert_item('coal', target_position=nearest('burner-mining-drill'), quantity=5)
+insert_item('coal', target_position=nearest('burner-mining-drill'), quantity=3)
+Comment("Let's check if we can inspect inventory")
+inspect_inventory()
+comment("Let's check if we can inspect inventory")
+extract_item("iron-ore", source_position=(-5,-7), quantity=10)
+comment("We will check inventory to make sure we have some iron ore before we extract it")
+inventory = inspect_inventory()
+if "iron-ore" in inventory and inventory['iron-ore'] >= 10:
+    extract_item("iron-ore", source_position=(-5,-7), quantity=10) 
+else:
+    comment("We don't have enough iron ore to extract, let's check our miners and update mining locations")
+inspect_inventory()
+comment("Looks like we have no iron ore in our inventory. Let's mine some first")
+move_to((-8, -5))
+harvest_resource(position=(-8, -5), quantity=10)
+comment("Now that we have some iron ore, let's try and extract it from the burner-mining-drill")
+extract_item("iron-ore", source_position=(-5,-7), quantity=10)
+comment("It seems like the mining drill's output is blocked, we need to check the output belt and make sure there is room to put the ore")
+inspect_entities(radius=2)
+comment("Let's find the output transport belt connected to the mining drill")
+comment("Looks like it's indeed blocked, let's find the connected transport belt that's full or causing the backup")
+for entity in inspect_entities(radius=2):
+    if entity["name"] == "transport-belt" and entity["direction"] == 2 and entity["position"][0] == -7.5 and entity["position"][1] == -6.296875:
+        connected_belt = entity
+        if connected_belt["items"] >= connected_belt["throughput"]:
+            comment("The transport belt is full, we have to insert a splitter and create another output lane")
+            splitter_position = (connected_belt["position"][0]-1,connected_belt["position"][1])
+            place_entity("splitter", direction=RIGHT, position=splitter_position)
+            connect_entities(((splitter_position[0], splitter_position[1]-1),(splitter_position[0], splitter_position[1]+1)), connected_belt["position"], connection_type="transport-belt", throughput=16)  
+for entity in inspect_entities(radius=2):
+    if entity['type'] == 'transport-belt':
+        if entity['position'] == (-7, -6):
+            comment("This is the transport belt connected to the mining drill's output")
+            if entity['items'] == []:
+                comment("The transport belt is not blocked")
+            else:
+                comment(f"The transport belt has {entity['items'][0]['count']} items in it, we need to clear it out")
+                move_to((-7, -6))
+                extract_item(entity['items'][0]['name'], source_position=(-7, -6), quantity=entity['items'][0]['count'])
+if entity['type'] == 'transport-belt' and entity['position'] == (-7.5, -6.296875):
+        if len(entity['contents']) == entity['max_content_size']:
+            comment("The transport-belt outputting from the mining drill is full")
+        else:
+            comment("It looks like a different belt is blocking the output, let's clear it and see if that helps")
+            clear_belt(entity_position=entity['position'], search_range=5)
+        break
+comment("We found the transport belt connected to the mining drill. Let's check if it's full or blocked") 
+if entity['contents'] == None: 
+    comment("The transport belt is empty. Moving on to other possible issues.")
+if entity['type'] == 'transport-belt' and entity['position'] == (-7.5, -6.296875):
+    if not entity['contents']:
+        comment("The transport belt is not blocked, let's extract ore from the mining drill")
+        extract_item('iron-ore', source_position=(-5, -7), quantity=1)
+    else:
+        comment("The transport belt is blocked, let's find a nearby inserter to put the ore in a chest")
+        for entity in inspect_entities(radius=2):
+            if entity['type'] == 'inserter':
+                insert_item('iron-ore', target_position=entity['position'], quantity=1)
+                break
+if entity['type'] == 'transport-belt' and entity['position'] == (-7.5, -6.296875):
+    if 'contents' not in entity.keys():  # belt is empty
+        comment("Transport belt is empty. Let's add items from the drill's output.")
+        insert_item('coal', target_position=(entity['position'][0], entity['position'][1]+0.5))
+    else:
+        comment("Transport belt is not empty. Let's check the next belt.")
+else:
+    comment("No transport belt found nearby.")
+if entity['type'] == 'transport-belt' and entity['position'] == (-7.5, -6.296875):
+    if entity['contents'] != {}:
+        comment("The transport belt is not empty. Let's wait for it to be emptied.")
+    else:
+        comment("The transport belt is empty. Let's remove it and place a new one.")
+        remove_entity(entity['position'])
+        place_entity('transport-belt', entity['position'], direction=LEFT)

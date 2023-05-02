@@ -1,0 +1,3 @@
+[94m# Inspect resources and entities in the area
+inspect_resources()
+inspect_entities(20)

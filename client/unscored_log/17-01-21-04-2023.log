@@ -1,0 +1,112 @@
+[94m# Inspect nearby resources and entities
+inspect = inspect_resources()
+entities = inspect_entities(10)
+[92mLine 1: Executed successfully
+Line 2: Executed successfully
+Score: 320
+[94m# Find the closest iron ore patch and move to it
+iron_position = nearest('iron-ore')
+move_to(iron_position) 
+[92mLine 1: Executed successfully
+Score: 320
+[94m# Place a burner-mining-drill over the iron deposit using an inserter to feed coal
+mining_position = (iron_position[0] - 2, iron_position[1])
+place_entity('burner-mining-drill', direction=UP, position=mining_position)
+insert_position = (mining_position[0], mining_position[1]+1)
+place_entity('inserter', direction=LEFT, position=insert_position)
+connect_entities(source_position=entity_position, target_position=insert_position, connection_type='inserter')
+[92mLine 1: Executed successfully
+Line 2: Error: Could not place burner-mining-drill. "global.actions.place entity = function(player..."]:71: Maybe inspect your surroundings before placing
+Score: 320
+[94m# Inspect my surroundings before placing the entity
+inspect_entities(5)
+[92mLine 1: {'entities': [{'type': 'player_character', 'direction': 'north', 'position': (0, 0), 'status': 'empty'}]}
+Score: 320
+[94m# Move to the iron deposit before placing the entity
+iron_position = nearest('iron-ore')
+move_to(iron_position)
+[92mLine 1: Executed successfully
+Score: 320
+[94m# Place a burner mining drill to extract iron ore
+entity_position = place_entity('burner-mining-drill', direction=DOWN, position=(iron_position[0], iron_position[1]+2))
+[92mLine 1: Error: Could not place burner-mining-drill. "global.actions.place entity = function(player..."]:71: Maybe inspect your surroundings before placing
+Score: 320
+[94m# Check the surroundings before placing the entity
+inspect_entities(5)
+[92mLine 1: {'entities': [{'type': 'player_character', 'direction': 'north', 'position': (0, 0), 'status': 'empty'}]}
+Score: 320
+[94m# There are no existing entities. Move to the nearest iron ore
+move_to(nearest('iron-ore'))
+[92mScore: 320
+[94m# Now that I'm at the iron ore, let's place a burner-mining-drill
+entity_position = place_entity('burner-mining-drill', direction=DOWN, position=nearest('iron-ore'))
+[92mLine 1: Executed successfully
+Score: 320
+[94m# Next, let's add a furnace to smelt the iron ore
+furnace_position = place_entity_next_to('stone-furnace', reference_position=entity_position, direction=RIGHT, gap=1)
+[92mLine 1: Error: Could not place stone-furnace at (22, -5).. "global.actions.place entity next to = functio..."]:57: Cannot place here.
+Score: 320
+[94m# I see, seems like there's no space on the right to place the furnace. Let's place it on the left
+furnace_position = place_entity_next_to('stone-furnace', reference_position=entity_position, direction=LEFT, gap=1)
+[92mLine 1: Executed successfully
+Score: 320
+[94m# Let's connect the burner mining drill to the furnace using transport belts
+connect_entities(source_position=burner_drill_position, target_position=furnace_position, connection_type='transport-belt')
+[92mScore: 320
+[94m# Great, now let's insert 5 coal and 5 iron ore into the furnace to make 5 iron plates
+insert_item('coal', target_position=furnace_position, quantity=5)
+insert_item('iron-ore', target_position=furnace_position, quantity=5)
+[92mLine 1: Error: Could not insert. "global.actions.insert item = function(player ..."]:32: Could not find a nearby entity to insert into.
+Score: 320
+[94m# Oops, looks like the furnace is not at the expected position, let's check again
+inspect_entities(10)  # To check the current position of the furnace and burner mining drill
+[92mLine 1: {'entities': [{'type': 'stone_furnace', 'direction': 'north', 'position': (-4.3984375, 0), 'warning': 'Lack of input material. Lack of fuel.', 'status': 'empty'}, {'type': 'burner_mining_drill', 'direction': 'south', 'position': (-2.3984375, 0), 'status': 'empty'}, {'type': 'player_character', 'direction': 'north', 'position': (0, 0), 'status': 'empty'}]}
+Score: 320
+[94m# It seems like the furnace was not placed correctly, let's place it again
+coal_position = nearest('coal')
+place_entity('stone-furnace', direction=UP, position=(coal_position[0]-2, coal_position[1]))
+[92mLine 1: Executed successfully
+Line 2: Error: Could not place stone-furnace. "global.actions.place entity = function(player..."]:14: No stone furnace in inventory.
+Score: 320
+[94m# Oops, looks like I don't have the required item to place the furnace. 
+[92mScore: 320
+[94m# I am going to harvest more stone to craft a furnace.
+[92mScore: 320
+[94m# First, I am going to inspect the surroundings and entities to find a good place to set up my mining operation, using inspect_resources() and inspect_entities()
+inspect_resources()
+inspect_entities(20) 
+[92mLine 1: {'water': {'size': 900, 'direction': {'offset': 42, 'named_direction': 'north', 'min_coordinates': (-18, -50), 'max_coordinates': (31, -33)}}, 'coal': {'size': 100, 'direction': {'offset': 10, 'named_direction': 'northwest', 'min_coordinates': (-17, -14), 'max_coordinates': (-8, -5)}}, 'iron_ore': {'size': 100, 'direction': {'offset': 10, 'named_direction': 'east-northeast', 'min_coordinates': (22, -14), 'max_coordinates': (31, -5)}}, 'stone': {'size': 100, 'direction': {'offset': 10, 'named_direction': 'southwest', 'min_coordinates': (-17, 6), 'max_coordinates': (-8, 15)}}, 'copper_ore': {'size': 100, 'direction': {'offset': 10, 'named_direction': 'east-southeast', 'min_coordinates': (22, 6), 'max_coordinates': (31, 15)}}, 'uranium_ore': {'size': 100, 'direction': {'offset': 30, 'named_direction': 'southeast', 'min_coordinates': (22, 26), 'max_coordinates': (31, 35)}}, 'item_on_ground': {'size': 1, 'directions': [{'distance': 4, 'unit': 'metres', 'direction': 'west-northwest'}], 'scattered': True}}
+Line 2: {'entities': [{'type': 'stone_furnace', 'direction': 'north', 'position': (-4.3984375, 0), 'warning': 'Lack of input material. Lack of fuel.', 'status': 'empty'}, {'type': 'burner_mining_drill', 'direction': 'south', 'position': (-2.3984375, 0), 'status': 'empty'}, {'type': 'player_character', 'direction': 'north', 'position': (0, 0), 'status': 'empty'}]}
+Score: 320
+[94m# Based on the resource inspection, I see that there is a coal resource 10 tiles to the northwest, and a stone resource 10 tiles to the southwest.
+[92mScore: 320
+[94m# I'm going to move to the coal resource, place a burner mining drill there, and connect its output to a nearby stone furnace using an inserter. 
+[92mScore: 320
+[94mmove_to(nearest('coal'))
+place_entity('burner-mining-drill', direction=DOWN, position=(player_position[0]-2, player_position[1]))
+connect_entities(source_position=(player_position[0]-4, player_position[1]), target_position=nearest('stone'), connection_type='inserter')
+[92mLine 1: Error: name 'player position' is not defined
+Score: 320
+[94m# My apologies, I made a mistake. I forgot to use the inspect_entities() method to get my current position before trying to execute the move_to() method
+[92mScore: 320
+[94m# Let me inspect my surroundings to get my current position and resources
+my_surroundings = inspect_entities(20)
+[92mLine 1: Executed successfully
+Score: 320
+[94m# Now that I have my position, let me assign a variable to it for convenience
+player_position = my_surroundings['player_character']['position']
+[92mScore: 320
+[94m# I see some nearby coal, let me go pick it up
+pickup_entity('coal', nearest('coal')) # pick up as much coal as possible since we'll need it later
+[92mLine 1: Error: Could not pickup, did you intend to harvest?. attempt
+Score: 320
+[94m# My apologies, let me adjust the code
+harvest_resource(nearest('coal'), 10) # harvest up to 10 coal resources
+[92mScore: 359
+[94m# Great, now let's place a burner mining drill to extract more coal automatically
+move_to((0, 5)) # move to a suitable location to set up the drill
+entity_position = place_entity('burner-mining-drill', direction=DOWN, position=(0, 3)) # place the drill facing down so that it can extract the coal in the area
+[92mLine 1: Error: Could not place burner-mining-drill. "global.actions.place entity = function(player..."]:14: No burner mining drill in inventory.
+Score: 359
+[94m# It looks like we need to craft a burner mining drill first
+craft_item('burner-mining-drill', quantity=1) # let's craft one burner mining drill and add it to our inventory

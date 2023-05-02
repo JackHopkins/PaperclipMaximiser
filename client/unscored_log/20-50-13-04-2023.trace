@@ -1,0 +1,14 @@
+# Lets start by checking my inventory.
+# Now, let's set up a basic mining and smelting setup for coal, iron, stone, and copper
+# Starting with coal
+coal_position = nearest('coal')
+place_entity('burner-mining-drill', direction=RIGHT, position=coal_position)
+place_entity('stone-furnace', position=(coal_position[0] + 2, coal_position[1]))
+insert_item('coal', target_position=(coal_position[0] + 2, coal_position[1]), quantity=5)
+wait_duration(10)
+# My apologies, seems like I made a mistake placing the stone furnace. Let's place an iron chest instead.
+coal_position = nearest('coal')
+place_entity('burner-mining-drill', direction=RIGHT, position=coal_position)
+place_entity('iron-chest', position=(coal_position[0] + 2, coal_position[1]))
+insert_item('coal', target_position=(coal_position[0] + 2, coal_position[1]), quantity=5)
+wait_duration(10)

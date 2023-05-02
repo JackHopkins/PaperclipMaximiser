@@ -1,0 +1,52 @@
+# Plan:
+# Start by inspecting the natural resources and landscape around you
+inspect_resources()
+# Based on the resources around us, we should start by setting up a simple mining operation to extract coal and iron ore resources
+coal_position = nearest('coal')
+iron_ore_position = nearest('iron_ore')
+# I see that there is an abundant water supply and various natural resources, and I will start by extracting coal
+# Move to the location of the nearest coal resource and place a burner mining drill to extract coal
+move_to(coal_position)
+place_entity('burner-mining-drill', direction=LEFT, position=(coal_position[0]-2, coal_position[1]))
+# Move to the nearest coal resource and place a burner mining drill, facing downwards
+coal_position = nearest('coal')
+move_to(coal_position)
+place_entity('burner-mining-drill', direction=DOWN, position=(coal_position[0], coal_position[1]-2))
+# I need to craft a burner mining drill first before placing it.
+craft_item('burner-mining-drill', quantity=1)
+# Oops, looks like we need to craft a burner mining drill first
+craft_item('burner-mining-drill', quantity=1)
+# I just realized that I need stone to craft the burner mining drill
+# I need to check my inventory and make sure I have all the required ingredients to craft the burner mining drill
+inventory = inspect_inventory()
+if inventory.get('coal') and inventory.get('iron-plate') and inventory.get('stone'):
+    craft_item('burner-mining-drill', quantity=1)
+else:
+    # If any of the required ingredients are missing, move to the nearest resource and harvest them
+    if not inventory.get('coal'):
+        move_to(nearest('coal'))
+        harvest_resource(nearest('coal'), quantity=10)
+    if not inventory.get('iron-plate'):
+        move_to(nearest('iron-ore'))
+        place_entity('burner-mining-drill', direction=DOWN, position=(nearest('iron-ore')[0], nearest('iron-ore')[1]-2))
+        move_to((nearest('iron-ore')[0], nearest('iron-ore')[1]-2))
+        craft_item('iron-plate', quantity=10)
+    if not inventory.get('stone'):
+        move_to(nearest('stone'))
+        harvest_resource(nearest('stone'), quantity=10)
+    # Recursively call this function again now that we should have all the ingredients needed
+    inventory = inspect_inventory()
+    if inventory.get('coal') and inventory.get('iron-plate') and inventory.get('stone'):
+        craft_item('burner-mining-drill', quantity=1)
+# Now that we have crafted the burner mining drill, let's move to the nearest coal resource and place it, facing downwards
+coal_position = nearest('coal')
+move_to(coal_position)
+place_entity('burner-mining-drill', direction=DOWN, position=(coal_position[0], coal_position[1]-2))
+# Now we can try placing the burner mining drill again
+coal_position = nearest('coal')
+move_to(coal_position)
+place_entity('burner-mining-drill', direction=DOWN, position=(coal_position[0], coal_position[1]-2))
+# Let's inspect our surroundings and see if there are any obstacles that prevent us from placing the burner mining drill
+inspect_entities(5)
+# Oops, let's inspect the entities around us before trying to place anything again
+inspect_entities(5)

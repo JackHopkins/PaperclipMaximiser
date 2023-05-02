@@ -1,0 +1,53 @@
+# Lets start by checking my inventory.
+# Set up basic production for iron plates, copper plates, and stone bricks
+move_to(nearest('coal'))
+place_entity('burner-drill', direction=2, position=nearest('coal'))
+insert_item('coal', target_position=(0, 0), quantity=1)
+
+move_to(nearest('iron_ore'))
+place_entity('burner-drill', direction=2, position=nearest('iron_ore'))
+insert_item('coal', target_position=(0, 0), quantity=1)
+
+move_to(nearest('copper_ore'))
+place_entity('burner-drill', direction=2, position=nearest('copper_ore'))
+insert_item('coal', target_position=(0, 0), quantity=1)
+
+move_to(nearest('stone'))
+place_entity('burner-drill', direction=2, position=nearest('stone'))
+insert_item('coal', target_position=(0, 0), quantity=1)
+# move_to(nearest('coal'))
+place_entity('burner-drill', direction=2, position=nearest('coal'))
+insert_item('coal', target_position=(0, 0), quantity=1)
+
+move_to(nearest('iron_ore'))
+place_entity('burner-drill', direction=2, position=nearest('iron_ore'))
+insert_item('coal', target_position=(0, 0), quantity=1)
+
+move_to(nearest('copper_ore'))
+place_entity('burner-drill', direction=2, position=nearest('copper_ore'))
+insert_item('coal', target_position=(0, 0), quantity=1)
+
+move_to(nearest('stone'))
+place_entity('burner-drill', direction=2, position=nearest('stone'))
+insert_item('coal', target_position=(0, 0), quantity=1)
+# Set up stone furnace to process iron and copper
+move_to(nearest('iron_ore'))
+place_entity('stone-furnace', direction=2, position=(1, 0))  # Place iron furnace
+extract_item('coal', source_position=nearest('burner-drill'), quantity=1)
+insert_item('coal', target_position=(0, 0), quantity=1)
+
+move_to(nearest('copper_ore'))
+place_entity('stone-furnace', direction=2, position=(1, 0))  # Place copper furnace
+extract_item('coal', source_position=nearest('burner-drill'), quantity=1)
+insert_item('coal', target_position=(0, 0), quantity=1)
+# Set up stone furnace to process iron and copper
+move_to(nearest('iron_ore'))
+place_entity('stone-furnace', direction=2, position=(1, 0))  # Place iron furnace
+extract_item('coal', source_position=nearest('burner-drill'), quantity=1)
+insert_item('coal', target_position=(0, 0), quantity=1)
+
+move_to(nearest('copper_ore'))
+place_entity('stone-furnace', direction=2, position=(1, 0))  # Place copper furnace
+extract_item('coal', source_position=nearest('burner-drill'), quantity=1)
+insert_item('coal', target_position=(0, 0), quantity=1)
+# My apologies for the confusion. Let's restructure the code to avoid invalid syntax.

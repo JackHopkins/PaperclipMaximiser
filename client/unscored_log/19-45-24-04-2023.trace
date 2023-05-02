@@ -1,0 +1,6 @@
+comment("Check natural resources and landscape around")
+resources = inspect_resources()
+print(resources)
+comment("Find the nearest coal and iron ore")
+nearest_coal_position = nearest('coal')
+nearest_iron_position = nearest('iron-ore')

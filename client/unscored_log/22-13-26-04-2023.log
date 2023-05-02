@@ -1,0 +1,18 @@
+[94mcomment("Start by inspecting the resources around me")
+inspect_resources()
+[92m1: {'water': [{'size': 900, 'min_coordinates': (-18, -50), 'max_coordinates': (31, -33)}], 'coal': [{'size': 100, 'min_coordinates': (-17, -14), 'max_coordinates': (-8, -5)}], 'iron_ore': [{'size': 100, 'min_coordinates': (22, -14), 'max_coordinates': (31, -5)}], 'stone': [{'size': 100, 'min_coordinates': (-17, 6), 'max_coordinates': (-8, 15)}], 'copper_ore': [{'size': 100, 'min_coordinates': (22, 6), 'max_coordinates': (31, 15)}], 'uranium_ore': [{'size': 100, 'min_coordinates': (22, 26), 'max_coordinates': (31, 35)}]}
+[94mcomment("I see that there is an ore deposit at (-8, -5). I will move to that location and mine the ore.")
+ore = (-8, -5)
+move_to(ore)
+harvest_resource(ore, quantity=5)
+[94mcomment("Now that I have some ore, I will smelt it into iron plates. I will need to find a suitable location first.")
+inspect_entities()
+comment("I see some open space at (10, 0) that looks suitable. I will move there and begin building my furnace.")
+furnace_position = (10, 0)
+move_to(furnace_position)
+place_entity('stone-furnace', direction=UP, position=furnace_position)
+inspect_entities()
+comment("Now that the furnace is built, I will add fuel and the ore to it.")
+insert_item('coal', target_position=furnace_position, quantity=2)
+insert_item('iron-ore', target_position=furnace_position, quantity=5)
+[91m1: No iron-ore to place

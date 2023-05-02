@@ -1,0 +1,6 @@
+comment("First, let's inspect our surroundings and resources")
+inspect_resources()
+inspect_entities(20)
+comment("We can see that we have some coal nearby to provide fuel for our initial set up. Let's move to a suitable location and set up a mining operation")
+coal = nearest('coal')
+move_to(coal)

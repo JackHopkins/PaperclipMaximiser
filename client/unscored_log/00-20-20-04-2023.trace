@@ -1,0 +1,9 @@
+# First, I want to inspect my surroundings and resources
+inspect_resources()
+inspect_entities(20)
+check_inventory()
+# Based on the information obtained, I want to set up a coal mining operation, smelting setup and power generation.
+# First, I want to move to the nearest coal resource and place a burner mining drill
+move_to(nearest('coal'))
+place_entity('burner-mining-drill', direction=DOWN)
+# I apologize for the previous command, let me fix it by separating `move_to` and `place_entity` methods.

@@ -1,0 +1,19 @@
+[94m# Step 1: Check resources and inventory
+inspect_resources()
+check_inventory()
+[92mLine 1: There are 3.3k tree_01s scattered 14km northwest, 17km north-northwest, 16km north, 16km north-northeast, 28km northeast, 5km east-northeast, 20km southeast, 3km east-southeast, 11km south-southwest, 8km southwest, 10km south-southeast, and 9km south 
+- 100x coal 10 metres northwest (-39, -9) x (-30, 0)
+- 100x stone 10 metres southwest (-39, 11) x (-30, 20)
+- 100x copper_ore 10 metres east-southeast (0, 11) x (9, 20)
+- 100x uranium_ore 30 metres southeast (0, 31) x (9, 40)
+- 99x iron_ore 10 metres east-northeast (0, -9) x (9, 0)
+- There are 3.3k item_on_grounds scattered 4 metres west-northwest 
+Line 2: {'iron-chest': 1, 'transport-belt': 50, 'burner-mining-drill': 1, 'stone-furnace': 1, 'assembling-machine-1': 1, 'coal': 50, 'iron-ore': 18, 'iron-plate': 50, 'copper-plate': 50}
+[96m# Step 2: Create a basic mining operation
+[94m# Move to the nearest coal resource 
+move_to(nearest('coal'))
+[96m# Step 2 (continued): Create a basic mining operation
+[94m# lay transport belts as  you move
+move_to((0,0), laying='transport-belt')
+[96m# Step 3: Set up a smelting operation
+[96m# Step 3: Set up a smelting operation

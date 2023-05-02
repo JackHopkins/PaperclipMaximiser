@@ -1,0 +1,128 @@
+[92mThere are 4.2k tree_01s scattered 23km northwest, 17km north-northwest, 16km north, 16km north-northeast, 21km northeast, 1km east-northeast, 3km west-northwest, 760 metres west, 32 metres east, 4km west-southwest, 720 metres east-southeast, 17km southeast, 17km southwest, 13km south-southwest, 13km south-southeast, and 11km south 
+- 100x coal 10 metres northwest (-17, -14) x (-8, -5)
+- 100x iron_ore 10 metres east-northeast (22, -14) x (31, -5)
+- 100x stone 10 metres southwest (-17, 6) x (-8, 15)
+- 100x copper_ore 10 metres east-southeast (22, 6) x (31, 15)
+- 100x uranium_ore 30 metres southeast (22, 26) x (31, 35)
+[96m# Lets start by checking my inventory.
+[92m- 1 iron-chest
+- 50 transport-belt
+- 1 stone-furnace
+- 1 assembling-machine-1
+- 50 coal
+- 50 iron-plate
+- 50 copper-plate
+[92mThere are 4.2k tree_01s scattered 23km northwest, 17km north-northwest, 16km north, 16km north-northeast, 21km northeast, 1km east-northeast, 3km west-northwest, 760 metres west, 32 metres east, 4km west-southwest, 720 metres east-southeast, 17km southeast, 17km southwest, 13km south-southwest, 13km south-southeast, and 11km south 
+- 100x coal 10 metres northwest (-17, -14) x (-8, -5)
+- 100x iron_ore 10 metres east-northeast (22, -14) x (31, -5)
+- 100x stone 10 metres southwest (-17, 6) x (-8, 15)
+- 100x copper_ore 10 metres east-southeast (22, 6) x (31, 15)
+- 100x uranium_ore 30 metres southeast (22, 26) x (31, 35)
+[96m# Lets start by checking my inventory.
+[92m- 1 iron-chest
+- 50 transport-belt
+- 1 stone-furnace
+- 1 assembling-machine-1
+- 50 coal
+- 50 iron-plate
+- 50 copper-plate
+[94mcheck_inventory()
+[92m- 1 iron-chest
+- 50 transport-belt
+- 1 stone-furnace
+- 1 assembling-machine-1
+- 50 coal
+- 50 iron-plate
+- 50 copper-plate
+[94m# Now let's move to the iron ore and lay transport belts as we go.
+move_to(nearest('iron_ore'), laying='transport-belt')
+[92mNone
+[96m# We have reached the iron ore patch. Let's create a mining setup for this resource.
+[94m# Place the stone furnace for smelting iron ore
+place_entity('stone-furnace', direction=2, position=(0, 1))
+[91mCould not place stone-furnace. Cant build there due to existing transport
+[96m# Place the stone furnace for smelting iron ore
+place_entity('stone-furnace', direction=2, position=(0, 1))
+[94m# Since there's an existing transport belt, we need to pick it up before placing the stone furnace
+pickup_entity((0, 1))
+place_entity('stone-furnace', direction=2, position=(0, 1))
+[92mTrue
+True
+[94m# Now, let's place a burner drill to mine the iron ore.
+place_entity('burner-drill', direction=2, position=nearest('iron_ore'))
+[91mCould not place burner-drill. burner drill isnt something that exists
+[96m# Now, let's place a burner drill to mine the iron ore.
+place_entity('burner-drill', direction=2, position=nearest('iron_ore'))
+[94m# I apologize for the previous error. I meant to write 'burner-mining-drill'.
+# Let's place a burner mining drill to mine the iron ore.
+place_entity('burner-mining-drill', direction=2, position=nearest('iron_ore'))
+[91mCould not place burner-mining-drill. No burner mining drill in inventory
+[96m# I apologize for the previous error. I meant to write 'burner-mining-drill'.
+# Let's place a burner mining drill to mine the iron ore.
+place_entity('burner-mining-drill', direction=2, position=nearest('iron_ore'))
+[94m# Since we don't have a burner mining drill in our inventory, let's craft one.
+craft_item('burner-mining-drill', quantity=1)
+[91mCould not craft a burner-mining-drill. {'stone': 5}
+[96m# Since we don't have a burner mining drill in our inventory, let's craft one.
+craft_item('burner-mining-drill', quantity=1)
+[96m# We need to gather more stone to craft a burner-mining-drill
+[94m# Let's move to the nearest stone location and mine some stone
+move_to(nearest('stone'))
+[92mNone
+[94m# Mine 5 stones so we can craft the burner-mining-drill
+harvest_resource((0, 0), quantity=5)
+[92mTrue
+[94m# Now that we have enough stone, let's craft a burner-mining-drill
+craft_item('burner-mining-drill', quantity=1)
+[91mCould not craft a burner-mining-drill. {'stone': 5}
+[96m# Now that we have enough stone, let's craft a burner-mining-drill
+craft_item('burner-mining-drill', quantity=1)
+[94m# We need to gather more stone to craft a burner-mining-drill
+# Let's move to the nearest stone location and mine some stone
+move_to(nearest('stone'))
+# Mine 5 stones so we can craft the burner-mining-drill, making sure to pick them up this time 
+harvest_resource((0, 0), quantity=5, pickup=True)
+# Now that we have enough stone, let's craft a burner-mining-drill
+craft_item('burner-mining-drill', quantity=1)
+[91mYou can't do that action. harvest_resource() got an unexpected keyword argument 'pickup'
+[96m# We need to gather more stone to craft a burner-mining-drill
+# Let's move to the nearest stone location and mine some stone
+move_to(nearest('stone'))
+# Mine 5 stones so we can craft the burner-mining-drill, making sure to pick them up this time 
+harvest_resource((0, 0), quantity=5, pickup=True)
+# Now that we have enough stone, let's craft a burner-mining-drill
+craft_item('burner-mining-drill', quantity=1)
+[94m# We need to gather more stone to craft a burner-mining-drill
+# Let's move to the nearest stone location and mine some stone
+move_to(nearest('stone'))
+# Mine 5 stones so we can craft the burner-mining-drill
+harvest_resource((0, 0), quantity=5)
+[92mNone
+True
+[94m# Now we have mined 5 stones, pick them up to add them to the inventory
+pickup_entity((0, 0))
+[91mCould not pickup.. Nothing to here to pick up
+[96m# Now we have mined 5 stones, pick them up to add them to the inventory
+pickup_entity((0, 0))
+[96m# I apologize for the confusion in picking up the stones. 
+[94m# Now we have mined 5 stones, pick them up to add them to the inventory
+pickup_entity((0, 0))
+# I apologize for the confusion in picking up the stones. 
+[91mCould not pickup.. Nothing to here to pick up
+[96m# Now we have mined 5 stones, pick them up to add them to the inventory
+pickup_entity((0, 0))
+# I apologize for the confusion in picking up the stones. 
+[94m# Now that we have enough stone (as per the previous 'True' confirmation), let's craft a burner mining drill.
+craft_item('burner-mining-drill', quantity=1)
+[91mCould not craft a burner-mining-drill. {'stone': 5}
+[96m# Now that we have enough stone (as per the previous 'True' confirmation), let's craft a burner mining drill.
+craft_item('burner-mining-drill', quantity=1)
+[94m# I apologize for the misunderstanding. It seems like we're unable to craft a burner-mining-drill with just the stones.
+# Instead, let's place the burner-mining-drill to mine coal and use the coal to mine iron ore
+place_entity('burner-mining-drill', direction=2, position=nearest('coal'))
+insert_item('coal', target_position=(0, 0), quantity=1)
+[91mCould not place burner-mining-drill. No burner mining drill in inventory
+[96m# I apologize for the misunderstanding. It seems like we're unable to craft a burner-mining-drill with just the stones.
+# Instead, let's place the burner-mining-drill to mine coal and use the coal to mine iron ore
+place_entity('burner-mining-drill', direction=2, position=nearest('coal'))
+insert_item('coal', target_position=(0, 0), quantity=1)

@@ -1,0 +1,5 @@
+[94mcomment("My plan is to set up a basic mining operation by placing a burner-mining-drill near a coal deposit and a stone furnace near an iron-ore deposit. I will then connect the two using an inserter and set the recipe for the stone furnace to 'iron-plate'.")
+[94mcomment("Move to the ore deposit and place the burner mining drill")
+move_to(ore)
+burner_drill_pos = place_entity('burner-mining-drill', direction=DOWN, exact=False, position=ore)
+[91m2: Could not place burner-mining-drill at (-8, -5).  No burner mining drill in inventory.

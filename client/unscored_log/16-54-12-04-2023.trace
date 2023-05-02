@@ -1,0 +1,6 @@
+# Lets start by checking my inventory.
+# First, I will set up coal and iron mining, using burner drills and furnaces.
+# Then, I will set up a basic production setup for iron plates and copper plates.
+# Move to the coal patch and place a burner drill
+move_to(nearest('coal'))
+place_entity('burner-drill', direction=2, position=nearest('coal'))

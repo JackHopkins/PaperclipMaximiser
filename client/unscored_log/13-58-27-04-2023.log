@@ -1,0 +1,105 @@
+[94mcomment("First, let's inspect the resources around us")
+inspect_resources()
+[92m1: {'water': [{'size': 900, 'min_coordinates': (-18, -50), 'max_coordinates': (31, -33)}], 'coal': [{'size': 100, 'min_coordinates': (-17, -14), 'max_coordinates': (-8, -5)}], 'iron_ore': [{'size': 100, 'min_coordinates': (22, -14), 'max_coordinates': (31, -5)}], 'stone': [{'size': 100, 'min_coordinates': (-17, 6), 'max_coordinates': (-8, 15)}], 'copper_ore': [{'size': 100, 'min_coordinates': (22, 6), 'max_coordinates': (31, 15)}], 'uranium_ore': [{'size': 100, 'min_coordinates': (22, 26), 'max_coordinates': (31, 35)}]}
+[94mcomment("Next, let's move to the location of the ore and harvest it")
+move_to(ore)
+harvest_resource(ore, quantity=5)
+[94mcomment("Now, let's craft iron plates from the ore")
+craft_item('iron-plate', quantity=5)
+[91mError line 1: Failed to craft 5x iron-plate because missing ingredient iron ore
+[94m
+comment("I see! We need to smelt the iron ore into iron plates. Let's place a stone furnace and insert the ore.")  
+stone_furnace_position = (0, 0) # Choosing position for the furnace
+place_entity('stone-furnace', position=stone_furnace_position)
+    
+comment("Great! Now, let's insert the iron ore into the furnace to smelt it into iron plates.")  
+ore_position = nearest('iron-ore') # find the nearest iron ore
+move_to(ore_position) # move to nearest iron ore
+harvest_resource(ore_position, quantity=5) # harvest 5 iron ore
+insert_item('iron-ore', target_position=stone_furnace_position, quantity=5) # insert 5 iron ore into the furnace to start smelting
+[91mError line 2: Could not place stone-furnace at (0, 0). attempt to concatenate field 'name' (a nil value)
+[91mWarning: burner-mining-drill at (-5, -7): out of fuel
+[94mcomment("Oh, I forgot to insert fuel. Let's insert some coal into the burner-mining-drill")
+coal_position = nearest('coal')
+move_to(coal_position)
+pickup_entity('coal', coal_position)
+move_to(stone_furnace_position)
+stone_furnace = inspect_entities(radius=2)[0]
+connect_entities(source_position=coal_position, target_position=stone_furnace_position, connection_type='inserter')
+insert_item('coal', target_position=(stone_furnace['position']['x'], stone_furnace['position']['y']), quantity=5)
+[91mError line 3: Could not pickup, did you intend to harvest?. 0
+[91mWarning: stone-furnace at (0, 0): out of fuel
+[94mcomment("I see. It seems we have a few issues that we need to address.")
+comment("First, let's place a burner-mining-drill on the iron ore")
+move_to(ore)
+entity_position = place_entity('burner-mining-drill', direction=DOWN, exact=False, position=ore)
+[91mError line 3: Could not place burner-mining-drill at (-8, -5). No burner mining drill in inventory.
+[94mcomment("We appear to be missing a burner-mining-drill in our inventory! Let's manually craft one.")
+craft_item('burner-mining-drill', quantity=1)
+[91mError line 1: Failed to craft 1x burner-mining-drill because missing ingredient stone
+[91mWarning: stone-furnace at (0, 0): out of fuel
+[94mcomment("Looks like we don't have any stone to use for our stone-furnace. Let's find a stone node to mine some stone.")
+stone_position = nearest('stone')
+move_to(stone_position)
+entity_position = place_entity('burner-mining-drill', direction=DOWN, exact=False, position=stone_position)
+harvest_resource(stone_position, quantity=5)
+[91mError line 3: Could not place burner-mining-drill at (-11, 6). No burner mining drill in inventory.
+[94mcomment("Once again, it appears we are missing a burner-mining-drill. Let's craft one manually.")
+craft_item('burner-mining-drill', quantity=1)
+[91mError line 1: Failed to craft 1x burner-mining-drill because missing ingredient stone
+[91mWarning: stone-furnace at (0, 0): out of fuel
+[94mcomment("Let's go ahead and supply some fuel for our stone-furnace before it runs out.")
+inventory = inspect_inventory()
+if 'coal' in inventory and inventory['coal'] >= 1:
+    insert_item('coal', target_position= stone_furnace_position, quantity=1)
+else:
+    comment("We have no fuel to supply the stone-furnace!")
+[94mcomment("Now, let's find an ore node to start mining.")
+ore_position = nearest('iron-ore')
+move_to(ore_position)
+entity_position = place_entity('burner-mining-drill', direction=LEFT, exact=False, position=ore_position)
+[91mError line 3: Could not place burner-mining-drill at (22, -5). No burner mining drill in inventory.
+[91mWarning: stone-furnace at (0, 0): out of fuel
+[94mcomment("Sorry about that. Let's craft some more burner-mining-drills before we find another ore node.") 
+craft_item('burner-mining-drill', quantity=2)
+[91mError line 1: Failed to craft 2x burner-mining-drill because missing ingredient stone
+[94mcomment("We need to ensure we keep an eye on our inventory. Let's find a source of stone so we can make more of what we need.")
+stone_pos = nearest('stone-rock')
+move_to(stone_pos)
+place_entity('burner-mining-drill', direction=LEFT, exact=False, position=stone_pos)
+[91mError line 1: No stone-rock found on the map
+[91mWarning: stone-furnace at (0, 0): out of fuel
+[94mcomment("In that case we'll expand our search for another ore node with the aim to set up a more efficient mining setup.") 
+ore_position = nearest('iron-ore')
+move_to(ore_position)
+entity_position = place_entity('burner-mining-drill', direction=LEFT, exact=False, position=ore_position)
+[91mError line 3: Could not place burner-mining-drill at (22, -5). No burner mining drill in inventory.
+[94mcomment("Oops! we haven't got enough resources to build a new burner mining drill. Let's check our inventory to see what we need.")
+inventory = inspect_inventory()
+if inventory.get('stone') < 5:
+    comment('We need more stone. Let us search for some.')
+    stone_pos = nearest('stone-rock')
+    move_to(stone_pos)
+    extract_item('stone', source_position=stone_pos, quantity=5)
+elif inventory.get('iron-plate') < 2:
+    comment('We need more iron plates. Let us craft some.')
+    craft_item('iron-plate', quantity=2)
+else:
+    comment('We have enough resources to craft burner mining drills now. Let us craft and continue.')
+    craft_item('burner-mining-drill', quantity=2)
+[91mError line 2: No stone-rock found on the map
+[91mWarning: stone-furnace at (0, 0): out of fuel
+[94mcomment("Looks like we need some more stone. Let's head out to search for a rock to mine.")
+stone_pos = nearest('stone-rock')
+move_to(stone_pos)
+harvest_resource(stone_pos, quantity=5)
+[91mError line 1: No stone-rock found on the map
+[94mcomment("Scratch that, let's focus on getting our power setup as our first priority.")
+coal_position = nearest('coal')
+move_to(coal_position)
+for _ in range(3):
+    entity_position = place_entity('burner-mining-drill', direction=LEFT, exact=False, position=coal_position)
+    insert_item('coal', target_position=entity_position, quantity=5)
+entity_position = place_entity('stone-furnace', position=(coal_position[0]-2, coal_position[1]))
+[91mError line 3: Could not place burner-mining-drill at (-8, -5). No burner mining drill in inventory.
+[91mWarning: stone-furnace at (0, 0): out of fuel

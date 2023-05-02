@@ -1,0 +1,121 @@
+# Command 1 - Move to nearest coal resource and place a burner-mining-drill
+coal_position = nearest('coal')
+move_to(coal_position)
+place_entity('burner-mining-drill', direction=LEFT, position=(coal_position[0]-2, coal_position[1]))
+# Command 2 - Set up a smelting operation to produce iron plates
+iron_position = nearest('iron-ore')
+move_to(iron_position)
+place_entity('burner-mining-drill', direction=DOWN, position=(iron_position[0], iron_position[1]+2))
+move_to((iron_position[0]+2, iron_position[1]))
+place_entity('stone-furnace', direction=UP, position=(iron_position[0]+2, iron_position[1]-1))
+# Command 1 - Craft and place a burner-mining-drill on coal
+count_drills = check_inventory().get('burner-mining-drill', 0)
+if count_drills < 1:
+    craft_item('burner-mining-drill', quantity=1)
+coal_position = nearest('coal')
+move_to(coal_position)
+place_entity('burner-mining-drill', direction=LEFT, position=(coal_position[0]-2, coal_position[1]))
+# Command 1 - Craft and place a burner-mining-drill on coal
+count_drills = check_inventory().get('burner-mining-drill', 0)
+if count_drills < 1:
+    # Check if we have the necessary ingredients to craft a burner-mining-drill
+    ingredients = {'iron-plate': 3, 'stone-furnace': 1}
+    for ingredient, count in ingredients.items():
+        if check_inventory().get(ingredient, 0) < count:
+            # If we are lacking resources, we move to the required resource to harvest it
+            required_resource = nearest(ingredient)
+            move_to(required_resource)
+            # We harvest the necessary resource and move back to the coal
+            harvest_resource(required_resource, quantity=count)
+            move_to(coal_position)
+            break
+    # Now we can craft burner-mining-drill
+    craft_item('burner-mining-drill', quantity=1)
+# Command 1 - Check the inventory before crafting
+count_drills = check_inventory().get('burner-mining-drill', 0)
+# Command 2 - Harvest required resources to craft a burner-mining-drill
+missing_item = 'stone-furnace'
+move_to(nearest(missing_item))
+harvest_resource(nearest(missing_item), quantity=1)
+move_to(coal_position)
+# Command 1 - Check the inventory before crafting
+count_drills = check_inventory().get('burner-mining-drill', 0)
+# I see now what went wrong previously - we harvested an extra resource which doesn't contribute to crafting of the burner-mining-drill. Here's some correction.
+# Command 1 - Check the inventory before crafting
+count_drills = check_inventory().get('burner-mining-drill', 0)
+if count_drills < 1:
+    # Check if we have the necessary ingredients to craft a burner-mining-drill
+    ingredients = {'iron-plate': 3, 'stone-furnace': 1}
+    for ingredient, count in ingredients.items():
+        if check_inventory().get(ingredient, 0) < count:
+            # If we are lacking resources, we move to the required resource to harvest it
+            required_resource = nearest(ingredient)
+            move_to(required_resource)
+            # We harvest the necessary resource and move back to the coal
+            if inspect_resources().find(f"{ingredient.replace('-', '_')}_resource") != -1:
+                harvest_resource(required_resource, quantity=count)
+                move_to(coal_position)
+            else:
+                break
+    # Now we can craft burner-mining-drill
+    if check_inventory().get('iron-plate', 0) >= 3 and check_inventory().get('stone-furnace', 0) >= 1:
+        craft_item('burner-mining-drill', quantity=1)
+# Alternatively, we can obtain the resource first before checking inventory
+# Command 1 - Check the inventory before crafting
+count_drills = check_inventory().get('burner-mining-drill', 0)
+if count_drills < 1:
+    # Check if we have the necessary ingredients to craft a burner-mining-drill
+    ingredients = {'iron-plate': 3, 'stone-furnace': 1}
+    for ingredient, count in ingredients.items():
+        if check_inventory().get(ingredient, 0) < count:
+            # If we are lacking resources, we move to the required resource to harvest it
+            required_resource = nearest(ingredient)
+            if inspect_resources().find(f"{ingredient.replace('-', '_')}_resource") == -1:
+                break
+            move_to(required_resource)
+            # We harvest the necessary resource and move back to the coal
+            harvest_resource(required_resource, quantity=count)
+            move_to(coal_position)
+    # Now we can craft burner-mining-drill
+    if check_inventory().get('iron-plate', 0) >= 3 and check_inventory().get('stone-furnace', 0) >= 1:
+        craft_item('burner-mining-drill', quantity=1)
+# Command 2 - Setting up the smelting operation
+coal_position = nearest('coal')
+iron_position = nearest('iron-ore')
+# Apologies, there was a mistake in the code above while checking for the absence of the ingredient. Please find below the corrected code -
+# Command 1 - Check the inventory before crafting
+count_drills = check_inventory().get('burner-mining-drill', 0)
+if count_drills < 1:
+    # Check if we have the necessary ingredients to craft a burner-mining-drill
+    ingredients = {'iron-plate': 3, 'stone-furnace': 1}
+    for ingredient, count in ingredients.items():
+        if check_inventory().get(ingredient, 0) < count:
+            # If we are lacking resources, we move to the required resource to harvest it
+            required_resource = nearest(ingredient)
+            if inspect_resources().find(f"{ingredient}_resource") == -1:
+                break
+            move_to(required_resource)
+            # We harvest the necessary resource and move back to the coal
+            harvest_resource(required_resource, quantity=count)
+            move_to(coal_position)
+    # Now we can craft burner-mining-drill
+    if check_inventory().get('iron-plate', 0) >= 3 and check_inventory().get('stone-furnace', 0) >= 1:
+        craft_item('burner-mining-drill', quantity=1)
+# Command 1 - Check the inventory before crafting
+count_drills = check_inventory().get('burner-mining-drill', 0)
+if count_drills < 1:
+    # Check if we have the necessary ingredients to craft a burner-mining-drill
+    ingredients = {'iron-plate': 3, 'stone-furnace': 1}
+    for ingredient, count in ingredients.items():
+        if check_inventory().get(ingredient, 0) < count:
+            # If we are lacking resources, we move to the required resource to harvest it
+            required_resource = nearest(ingredient)
+            if inspect_resources().find(f"{ingredient}_resource") == -1:
+                break
+            move_to(required_resource)
+            # We harvest the necessary resource and move back to the coal
+            harvest_resource(required_resource, quantity=count)
+            move_to(coal_position)
+    # Now we can craft burner-mining-drill
+    if check_inventory().get('iron-plate', 0) >= 3 and check_inventory().get('stone-furnace', 0) >= 1:
+        craft_item('burner-mining-drill', quantity=1)

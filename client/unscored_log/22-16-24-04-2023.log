@@ -1,0 +1,59 @@
+[94mcomment("Inspect the resources around me")
+resources = inspect_resources()
+[92m1: 
+2: 
+Score: 0
+[94mcomment("Locate coal, iron ore, copper ore, and nearest tree positions")
+coal_position = nearest('coal')
+iron_ore_position = nearest('iron-ore')
+copper_ore_position = nearest('copper-ore')
+tree_position = nearest('tree')
+
+[92m1: 
+2: 
+3: 
+4: 
+5: 
+Score: 0
+[94mcomment("Build a burner-mining-drill at the closest coal position")
+move_to(coal_position)
+place_entity('burner-mining-drill', direction=LEFT, position=(coal_position[0]-2, coal_position[1]))
+
+comment("Build a burner-mining-drill at the closest iron ore position")
+move_to(iron_ore_position)
+place_entity('burner-mining-drill', direction=LEFT, position=(iron_ore_position[0]-2, iron_ore_position[1]))
+
+comment("Build a burner-mining-drill at the closest copper ore position")
+move_to(copper_ore_position)
+place_entity('burner-mining-drill', direction=LEFT, position=(copper_ore_position[0]-2, copper_ore_position[1]))
+
+comment("Cut down nearest tree for wood")
+move_to(tree_position)
+harvest_resource(tree_position, quantity=5)
+
+comment("Check the inventory after performing these actions")
+inspect
+[92m1: 
+2: 
+3: (-10, -14)
+4: 
+5: 
+6: Error: Could not place burner-mining-drill.  No burner mining drill in inventory.
+Score: 0
+[94mcomment("Craft burner-mining-drills for placing on resources")
+craft_item('burner-mining-drill', quantity=3)
+[92m1: 
+2: Error: Could not craft a burner-mining-drill. "global.actions.craft item = function(player i..."]:70: Successfully crafted 1x but failed to craft 2x burner-mining-drill because missing ingredient stone
+Score: 0
+[94mcomment("Locate stone position")
+stone_position = nearest('stone')
+[92m1: 
+2: 
+Score: 0
+[94mcomment("Mine some stone to craft the burner-mining-drills")
+move_to(stone_position)
+harvest_resource(stone_position, quantity=10)
+[92m1: 
+2: 
+3: Error: Could not harvest.. "global.actions.harvest resource = function(pl..."]:50: Could only harvest 9 at position (-8, 6)
+Score: 21

@@ -1,0 +1,11 @@
+comment("Observe and describe the natural resources and landscape around me")
+resources = inspect_resources()
+comment("Locate coal, iron ore, stone, and water resources")
+coal = resources['coal'][0]
+iron_ore = resources['iron_ore'][0]
+stone = resources['stone'][0]
+water = resources['water'][0]
+comment("Move to the coal resource and place a burner-mining-drill")
+coal_position = (coal['min_coordinates'][0], coal['min_coordinates'][1])
+move_to(coal_position)
+place_entity('burner-mining-drill', direction=RIGHT, position=nearest_buildable('burner-mining-drill'))

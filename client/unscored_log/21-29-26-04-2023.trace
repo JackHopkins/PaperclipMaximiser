@@ -1,0 +1,3 @@
+comment("First, let's observe the resources available around us")
+resources = inspect_resources()
+print(resources)

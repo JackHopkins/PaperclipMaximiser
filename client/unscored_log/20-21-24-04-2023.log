@@ -1,0 +1,21 @@
+[94mcomment("Check my surroundings for resources and entities")
+resources = inspect_resources()
+entities = inspect_entities(20)
+[92m1: 
+2: 
+3: 
+Score: 0
+[94mcomment("Find coal and move to its location")
+coal_position = nearest('coal')
+move_to(coal_position)
+[92m1: 
+2: 
+3: 
+Score: 0
+[94mcomment("Place a burner-mining-drill and a stone furnace")
+drill_position = place_entity('burner-mining-drill', direction=LEFT, position=(coal_position[0] - 2, coal_position[1]))
+furnace_position = place_entity('stone-furnace', direction=UP, position=(coal_position[0], coal_position[1] + 2))
+[92m1: 
+2: 
+3: 
+Score: 0

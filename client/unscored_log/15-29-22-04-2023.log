@@ -1,0 +1,27 @@
+[94m# Inspect resources around me
+resources = inspect_resources()
+[92mScore: 65
+[94m# Observe the landscape around me
+landscape = inspect_resources()
+[92mScore: 65
+[94m# Inspect entities within a 20-meter radius around me
+entities = inspect_entities(20)
+[92mScore: 65
+[94m# Inspect my inventory
+inventory = inspect_inventory()
+[92mScore: 65
+[94m# Find the nearest coal resource
+coal_position = nearest('coal')
+[92mScore: 65
+[94m# Move to the nearest coal resource to prepare for mining
+move_to(coal_position)
+[92mScore: 65
+[94m# Place a burner-mining-drill to extract the coal
+burner_drill_position = place_entity('burner-mining-drill', direction=DOWN, position=(coal_position[0], coal_position[1]+2))
+[92mLine 1: Error: Could not place burner-mining-drill. "global.actions.place entity = function(player..."]:71: Maybe inspect your surroundings before placing
+Score: 65
+[94m# Observe the surroundings before placing the burner-mining-drill
+resources = inspect_resources()
+[92mScore: 65
+[94m# Place a burner-mining-drill to extract the coal
+burner_drill_position = place_entity('burner-mining-drill', direction=DOWN, position=(coal_position[0], coal_position[1]+2))

@@ -1,0 +1,19 @@
+[94m# First, I will inspect my surrounding resources and entities
+inspect_resources()
+inspect_entities(20)
+[92mLine 1: Error: 1
+Score: 0
+[94m# I will inspect my surrounding resources and entities
+resources = inspect_resources()
+entities = inspect_entities(20)
+print(f"My resources: {resources}")
+print(f"My entities: {entities}")
+[92mLine 1: Error: 1
+Score: 0
+[94m# I will inspect my surrounding resources and entities
+resources = inspect_resources()
+entities = inspect_entities(20)
+print(f"My resources: {resources}")
+print(f"My entities: {entities}")
+[92mLine 1: Error: 1
+Score: 0

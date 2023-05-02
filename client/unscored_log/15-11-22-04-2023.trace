@@ -1,0 +1,52 @@
+# Inspect the natural resources and landscape around me
+resources_and_landscape = inspect_resources()
+# Find the nearest coal deposit
+nearest_coal = nearest("coal")
+# Check the current inventory
+current_inventory = inspect_inventory()
+# Move to the nearest coal deposit
+move_to(nearest_coal)
+# Place a burner-mining-drill near the coal deposit
+burner_drill_position = place_entity('burner-mining-drill', direction=LEFT, position=(nearest_coal[0]-2, nearest_coal[1]))
+# Move to the nearest coal deposit
+move_to(nearest_coal)
+# Place a burner-mining-drill near the coal deposit
+burner_drill_position = place_entity('burner-mining-drill', direction=LEFT, position=(nearest_coal[0]-2, nearest_coal[1]))
+# Inspect the resources around
+resource_list = inspect_resources()
+# Locate the nearest coal deposit
+for resource, position in resource_list.items():
+    if resource == 'coal':
+        nearest_coal = position
+        break
+# Move to the nearest coal deposit
+move_to(nearest_coal)
+# Move to the nearest coal deposit by providing the position as a tuple
+move_to((nearest_coal[0], nearest_coal[1]))
+# Separate coordinates of the nearest coal deposit
+coal_x, coal_y = nearest_coal
+# Move to the nearest coal deposit using separated coordinates
+move_to((coal_x, coal_y))
+# Check the contents of nearest_coal
+print(nearest_coal)
+# Find the nearest coal deposit
+nearest_coal = nearest('coal')
+print(nearest_coal)
+# Separate coordinates of the nearest coal deposit
+coal_x, coal_y = nearest_coal
+# Move to the nearest coal deposit using separated coordinates
+move_to((coal_x, coal_y))
+# Place a burner-mining-drill on the coal deposit, facing a clear space
+place_entity('burner-mining-drill', direction=RIGHT, position=(coal_x-1, coal_y))
+# Inspect the inventory to check if burner-mining-drill is available
+inspect_inventory()
+# Place a burner-mining-drill on the coal deposit, facing outward
+place_entity('burner-mining-drill', direction=RIGHT, position=(coal_x-1, coal_y))
+# Move to a nearby safe position from the coal deposit
+move_to((coal_x-2, coal_y))
+# Place a burner-mining-drill on the coal deposit, facing outward
+place_entity('burner-mining-drill', direction=RIGHT, position=(coal_x-1, coal_y))
+# Place a stone-furnace to the right of the burner-mining-drill
+place_entity('stone-furnace', direction=UP, position=(coal_x+1, coal_y))
+# Move to a position to the left of the coal deposit
+move_to((coal_x-3, coal_y))

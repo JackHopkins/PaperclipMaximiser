@@ -1,0 +1,14 @@
+# Lets start by checking my inventory.
+# I have some resources, let's use them to gather more materials and craft some iron gear wheels
+# First, let's move to the nearest iron ore
+iron_position = nearest('iron-ore')
+move_to(iron_position)
+# Let's check the iron ore position
+iron_position = nearest('iron-ore')
+print(iron_position)
+# Let's observe the nature to check if there are any biters around
+observe_nature()
+# Let's check the inventory to ensure we have the resources required to mine the iron ore
+check_inventory()
+# Now that we have checked the inventory, let's craft a few burner mining drills so that we can extract ore faster.
+craft_item('burner-mining-drill', quantity=3)

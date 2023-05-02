@@ -1,0 +1,253 @@
+[94mcomment("Find the nearest coal deposit for power generation")
+coal_position = nearest('coal')
+move_to(coal_position)
+[94mcomment("Place a burner-mining-drill to extract coal")
+place_entity('burner-mining-drill', direction=RIGHT, exact=False, position=coal_position)
+[92m1: (-8, -5)
+[94mcomment("Check to ensure that burner-mining-drill has been placed")
+entities = inspect_entities(radius=5)
+for entity in entities:
+    if entity['name'] == 'burner-mining-drill':
+        burner_drill_position = entity['position']
+        break
+[94mcomment("Pick up 2 coal near the coal_position and add it to the burner-mining-drill for fuel")
+pickup_entity('coal', coal_position, quantity=2)
+insert_item('coal', target_position=burner_drill_position, quantity=2)
+[91mError line 1: call  () got an unexpected keyword argument 'quantity'
+[91mWarning: burner-mining-drill at (-5, -8): out of fuel
+[94mcomment("Pick up the 2 coal near the coal_position")
+pickup_entity('coal', coal_position)
+pickup_entity('coal', coal_position)
+[91mError line 1: Could not pickup, did you intend to harvest?. 0
+[94mcomment("Harvest 2 coal near the coal_position")
+harvest_resource(coal_position, quantity=2)
+[94mcomment("Insert 2 coal from your inventory into the burner-mining-drill for fuel")
+insert_item('coal', target_position=burner_drill_position, quantity=2)
+[91mError line 1: name 'burner drill position' is not defined
+[91mWarning: burner-mining-drill at (-5, -8): out of fuel
+[94mcomment("Move close to the burner-mining-drill")
+move_to(burner_drill_position)
+[91mError line 1: name 'burner drill position' is not defined
+[94mcoal_position = (-8, -5)
+entities = [{'name': 'burner_mining_drill', 'position': (-8, -5), 'warning': 'The entity is out of fuel', 'status': 'empty'}, {'name': 'player_character', 'position': (-5.6015625, -5), 'warning': '', 'status': 'empty'}]
+burner_drill_position = (-8, -5)
+[91mWarning: burner-mining-drill at (-5, -8): out of fuel
+[94mcomment("Look for burner-mining-drill's position and update the variable")
+for entity in entities:
+    if entity['name'] == 'burner-mining-drill':
+        burner_drill_position = entity['position']
+[94mcomment("Move close to the burner-mining-drill")
+move_to(burner_drill_position)
+[94mcomment("Harvest 2 coal near the coal_position")
+harvest_resource(coal_position, quantity=2)
+[91mWarning: burner-mining-drill at (-5, -8): out of fuel
+[94mcoal_position = (-8, -5)
+comment("Move close to the coal_position")
+move_to(coal_position)
+[94mcomment("Harvest 2 coal near the coal_position")
+harvest_resource(coal_position, quantity=2)
+[94mcomment("Insert 1 coal into the burner-mining-drill for fuel")
+insert_item('coal', target_position=burner_drill_position, quantity=1)
+[91mWarning: burner-mining-drill at (-5, -8): out of fuel
+[94minsert_item('coal', target_position=burner_drill_position, quantity=1)
+[94mcomment("Check if there is any remaining fuel shortage")
+inspect_entities(5)
+[92m1: [{'name': 'player_character', 'position': (-8.6015625, -5), 'warning': '', 'status': 'empty'}, {'name': 'burner_mining_drill', 'position': (-8, -5), 'warning': 'The mining drill is waiting for space in destination', 'contents': {'coal': 1}, 'status': 'not empty'}]
+[94mcomment("Establish a simple smelting setup")
+comment("Find nearby stone locations and move there")
+stone_position = nearest('stone')
+move_to(stone_position)
+[91mWarning: burner-mining-drill at (-5, -8): waiting for space in destination as the output is full. Place a transport-belt or furnace at (-6.5, -5.5) to unblock.
+[94mcomment("Place a stone furnace at the output of the burner-mining-drill")
+place_entity('stone-furnace', exact=False, position=(-6.5, -5.5))
+[92m1: (-6.5, -5.5)
+[94mcomment("Check if there are any warnings or issues after placing the stone furnace")
+inspect_entities(5)
+[92m1: [{'name': 'burner_mining_drill', 'position': (-8, -5), 'warning': 'The mining drill is waiting for space in destination', 'contents': {'coal': 1}, 'status': 'not empty'}, {'name': 'stone_furnace', 'position': (-6, -5), 'warning': 'The entity is out of fuel. Lack of input material', 'contents': {'coal': 6}, 'status': 'not empty'}, {'name': 'player_character', 'position': (-9.6015625, 6), 'warning': '', 'status': 'empty'}]
+[94mcomment("Establish a basic power generating system using coal-fired boilers and steam engines")
+[91mWarning: burner-mining-drill at (-5, -8): waiting for space in destination as the output is full. Place a transport-belt or furnace at (-6.5, -5.5) to unblock.
+[94mcomment("There might be an issue with placing the furnace at the correct position. Try placing a transport belt first")
+place_entity('transport-belt', exact=False, position=(-6.5, -5.5))
+[92m1: (-7.5, -6.5)
+[91mWarning: stone-furnace at (-5, -6): out of fuel
+[94mcomment("First, place a transport belt and then fuel the stone furnace")
+[94mcomment("Place a transport belt at the output of the burner-mining-drill")
+move_to((-5, -8))
+place_entity('transport-belt', direction=DOWN, exact=False, position=(-6.5, -5.5))
+[91mError line 2: x
+[91mWarning: burner-mining-drill at (-5, -8): waiting for space in destination as the output is full. Place a transport-belt or furnace at (-6.5, -5.5) to unblock.
+[94mcomment("It seems there is an issue with placing a transport belt, let's place a furnace directly at the output of the burner-mining-drill")
+[91mWarning: stone-furnace at (-5, -6): out of fuel
+[94mcomment("Refuel the stone furnace and place it at the output of the burner-mining-drill.")
+[94mcomment("Move to coal_position and pick up coal to refuel the stone furnace")
+move_to(coal_position)
+pickup_entity('coal', coal_position)
+[91mError line 2: Could not pickup, did you intend to harvest?. 0
+[91mWarning: burner-mining-drill at (-5, -8): waiting for space in destination as the output is full. Place a transport-belt or furnace at (-6.5, -5.5) to unblock.
+[94mcomment("Harvest coal to refuel the stone furnace")
+[94mharvest_resource(coal_position, quantity=5)
+[91mWarning: stone-furnace at (-5, -6): out of fuel
+[94mcomment("Move to the stone furnace position and insert coal into it to refuel it")
+move_to((-6.5, -5.5))
+insert_item('coal', target_position=(-6.5, -5.5), quantity=2)
+[91mError line 2: Could not insert. Item
+[91mWarning: burner-mining-drill at (-5, -8): waiting for space in destination as the output is full. Place a transport-belt or furnace at (-6.5, -5.5) to unblock.
+[94mcomment("Place stone furnace at the output of the burner-mining-drill to unblock")
+place_entity('stone-furnace', direction=LEFT, exact=False, position=(-6.5, -5.5))
+[91mError line 1: Could not place stone-furnace at (-6.5, -5.5). No stone furnace in inventory.
+[91mWarning: stone-furnace at (-5, -6): out of fuel
+[94mcomment("Check inventory for coal to refuel stone-furnace")
+inspect_inventory()
+[92m1: {'iron-chest': 1, 'transport-belt': 49, 'assembling-machine-1': 1, 'coal': 57, 'iron-plate': 50, 'copper-plate': 50}
+[94mcomment("Move to stone-furnace position and insert coal into it to refuel")
+move_to((-5, -6))
+insert_item('coal', target_position=(-5, -6), quantity=2)
+[91mError line 2: Could not insert. Item
+[91mWarning: burner-mining-drill at (-5, -8): waiting for space in destination as the output is full. Place a transport-belt or furnace at (-6.5, -5.5) to unblock.
+[94mcomment("Inspect inventory for necessary resources to craft a stone furnace")
+inspect_inventory()
+[92m1: {'iron-chest': 1, 'transport-belt': 49, 'assembling-machine-1': 1, 'coal': 55, 'iron-plate': 50, 'copper-plate': 50}
+[91mWarning: stone-furnace at (-5, -6): out of fuel
+[94minspect_inventory()
+[92m0: {'iron-chest': 1, 'transport-belt': 49, 'assembling-machine-1': 1, 'coal': 55, 'iron-plate': 50, 'copper-plate': 50}
+[94mcomment("Craft a stone furnace")
+craft_item('stone-furnace', quantity=1)
+[91mError line 1: Failed to craft 1x stone-furnace because missing ingredient stone
+[91mWarning: burner-mining-drill at (-5, -8): waiting for space in destination as the output is full. Place a transport-belt or furnace at (-6.5, -5.5) to unblock.
+Warning: stone-furnace at (-5, -6): out of fuel
+[94mcomment("Move to stone deposit and harvest some stones")
+move_to(stone_position)
+harvest_resource(stone_position, quantity=5)
+[94mcomment("Craft a stone furnace now that we have stones")
+craft_item('stone-furnace', quantity=1)
+[91mWarning: burner-mining-drill at (-5, -8): waiting for space in destination as the output is full. Place a transport-belt or furnace at (-6.5, -5.5) to unblock.
+Warning: stone-furnace at (-5, -6): out of fuel
+[94mcraft_item('stone-furnace', quantity=1)
+[91mError line 0: Failed to craft 1x stone-furnace because missing ingredient stone
+[94minspect_inventory()
+[92m0: {'iron-chest': 1, 'transport-belt': 49, 'stone-furnace': 1, 'assembling-machine-1': 1, 'coal': 55, 'iron-plate': 50, 'copper-plate': 50}
+[94mcomment("Move back to coal deposit and place the stone furnace next to the burner mining drill")
+move_to(coal_position)
+furnace_position = (coal_position[0]-1, coal_position[1])
+place_entity('stone-furnace', direction=RIGHT, exact=True, position=furnace_position)
+[91mError line 3: Could not place stone-furnace at (-9, -5). Unknown
+[91mWarning: burner-mining-drill at (-5, -8): waiting for space in destination as the output is full. Place a transport-belt or furnace at (-6.5, -5.5) to unblock.
+Warning: stone-furnace at (-5, -6): out of fuel
+[94mcomment("Move back to stone deposit and harvest more stones")
+move_to(stone_position)
+harvest_resource(stone_position, quantity=10)
+[94mcomment("Move back to coal deposit and place the stone furnace next to the burner mining drill")
+move_to(coal_position)
+furnace_position = (coal_position[0]-1, coal_position[1])
+place_entity('stone-furnace', direction=RIGHT, exact=True, position=furnace_position)
+[91mError line 3: Could not place stone-furnace at (-9, -5). Unknown
+[91mWarning: burner-mining-drill at (-5, -8): waiting for space in destination as the output is full. Place a transport-belt or furnace at (-6.5, -5.5) to unblock.
+Warning: stone-furnace at (-5, -6): out of fuel
+[94mcomment("Place transport belt add the output of the burner-mining-drill")
+move_to(burner_drill_position)
+transport_belt_position = (burner_drill_position[0]+1, burner_drill_position[1])
+place_entity('transport-belt', direction=UP, exact=True, position=transport_belt_position)
+[91mError line 3: Could not place transport-belt at (-7, -5). Unknown
+[91mWarning: burner-mining-drill at (-5, -8): waiting for space in destination as the output is full. Place a transport-belt or furnace at (-6.5, -5.5) to unblock.
+Warning: stone-furnace at (-5, -6): out of fuel
+[94mcomment("Move back to stone deposit and harvest more stones")
+move_to(stone_position)
+harvest_resource(stone_position, quantity=10)
+[94mcomment("Move to coal deposit and place stone furnace again")
+move_to(coal_position)
+furnace_position = (coal_position[0]-1, coal_position[1])
+place_entity('stone-furnace', direction=RIGHT, exact=True, position=furnace_position)
+[91mError line 3: Could not place stone-furnace at (-9, -5). Unknown
+[91mWarning: burner-mining-drill at (-5, -8): waiting for space in destination as the output is full. Place a transport-belt or furnace at (-6.5, -5.5) to unblock.
+Warning: stone-furnace at (-5, -6): out of fuel
+[94mcomment("Pick up some coal to fuel the stone furnace")
+move_to(coal_position)
+pickup_entity('coal', coal_position, quantity=10)
+[91mError line 2: call  () got an unexpected keyword argument 'quantity'
+[94mcomment("Pick up coal and move it to the stone furnace")
+move_to(coal_position)
+pickup_entity('coal', coal_position)
+move_to(furnace_position)
+insert_item('coal', target_position=furnace_position, quantity=5)
+[91mError line 2: Could not pickup, did you intend to harvest?. 0
+[91mWarning: burner-mining-drill at (-5, -8): waiting for space in destination as the output is full. Place a transport-belt or furnace at (-6.5, -5.5) to unblock.
+Warning: stone-furnace at (-5, -6): out of fuel
+[94mcomment("Harvest some coal to fuel the stone furnace")
+move_to(coal_position)
+harvest_resource(coal_position, quantity=10)
+[94mcomment("Insert coal into the stone furnace")
+insert_item('coal', target_position=furnace_position, quantity=4)
+[94mcomment("Clear the output of the burner mining drill by placing a transport belt")
+transport_belt_position = (burner_drill_position[0]-1.5, burner_drill_position[1]-0.5)
+place_entity('transport-belt', direction=RIGHT, exact=True, position=transport_belt_position)
+[92m2: (-9.5, -5.5)
+[91mWarning: burner-mining-drill at (-5, -8): waiting for space in destination as the output is full. Place a transport-belt or furnace at (-6.5, -5.5) to unblock.
+Warning: stone-furnace at (-5, -6): out of fuel
+[94mcomment("Place a transport belt to clear the output of the burner mining drill")
+move_to((-6.5, -5.5))
+place_entity("transport-belt", direction=RIGHT, exact=True, position=(-6.5, -5.5))
+[91mError line 2: Could not place transport-belt at (-6.5, -5.5). Unknown
+[94mcomment("Move to the correct position to place the transport belt")
+move_to((-6.5, -5.5))
+place_entity("transport-belt", direction=RIGHT, exact=False, position=(-6.5, -5.5))
+[91mError line 2: x
+[91mWarning: burner-mining-drill at (-5, -8): waiting for space in destination as the output is full. Place a transport-belt or furnace at (-6.5, -5.5) to unblock.
+Warning: stone-furnace at (-5, -6): out of fuel
+[94mcomment("Place a transport belt to clear the output of the burner mining drill")
+move_to((-6.5, -5.5))
+place_entity("transport-belt", direction=RIGHT, exact=True, position=(-6.5, -5.5))
+[91mError line 2: Could not place transport-belt at (-6.5, -5.5). Unknown
+[94mcomment("Insert coal into the stone furnace")
+insert_item('coal', target_position=furnace_position, quantity=4)
+[91mWarning: burner-mining-drill at (-5, -8): waiting for space in destination as the output is full. Place a transport-belt or furnace at (-6.5, -5.5) to unblock.
+Warning: stone-furnace at (-5, -6): out of fuel
+[94mcomment("Pick up coal from the nearby position and insert it into the stone furnace for fuel")
+move_to(coal_position)
+pickup_entity("coal", coal_position)
+insert_item("coal", target_position=(-5, -6), quantity=1)
+[91mError line 2: Could not pickup, did you intend to harvest?. 0
+[94mcomment("Harvest coal from the nearby position and insert it into the stone furnace for fuel")
+harvest_resource(coal_position, quantity=5)
+insert_item("coal", target_position=furnace_position, quantity=5)
+[91mWarning: burner-mining-drill at (-5, -8): waiting for space in destination as the output is full. Place a transport-belt or furnace at (-6.5, -5.5) to unblock.
+Warning: stone-furnace at (-5, -6): out of fuel
+[94mcomment("Harvest coal from the nearby position and insert it into the stone furnace for fuel")
+harvest_resource(nearby('coal'), quantity=5)
+move_to(furnace_position)
+insert_item("coal", target_position=furnace_position, quantity=5)
+[91mError line 1: name 'nearby' is not defined
+[94mcomment("Harvest coal from the nearest coal patch and insert it into the stone furnace for fuel")
+harvest_resource(nearest('coal'), quantity=5)
+[91mWarning: burner-mining-drill at (-5, -8): waiting for space in destination as the output is full. Place a transport-belt or furnace at (-6.5, -5.5) to unblock.
+Warning: stone-furnace at (-5, -6): out of fuel
+[94mcomment("Harvest coal from the nearest coal position and insert it into the stone furnace for fuel")
+harvest_resource(coal_position, quantity=5)
+move_to(furnace_position)
+insert_item('coal', target_position=furnace_position, quantity=5)
+[94mcomment("Unblock burner-mining-drill by placing a transport belt")
+move_to(burner_drill_position)
+transport_belt_position = (burner_drill_position[0] - 1.5, burner_drill_position[1])
+place_entity('transport-belt', direction=LEFT, exact=False, position=transport_belt_position)
+[92m3: (-9.5, -5)
+[91mWarning: burner-mining-drill at (-5, -8): waiting for space in destination as the output is full. Place a transport-belt or furnace at (-6.5, -5.5) to unblock.
+Warning: stone-furnace at (-5, -6): out of fuel
+[94mcomment("Unblock burner-mining-drill by placing a transport belt")
+move_to(transport_belt_position)
+place_entity('transport-belt', direction=RIGHT, exact=True, position=transport_belt_position)
+[91mError line 2: x
+[94mcomment("Unblock burner-mining-drill by placing a transport belt")
+move_to((transport_belt_position[0] - 0.5, transport_belt_position[1]))
+place_entity('transport-belt', direction=RIGHT, exact=True, position=(transport_belt_position[0] - 0.5, transport_belt_position[1]))
+[91mError line 2: x
+[91mWarning: burner-mining-drill at (-5, -8): waiting for space in destination as the output is full. Place a transport-belt or furnace at (-6.5, -5.5) to unblock.
+Warning: stone-furnace at (-5, -6): out of fuel
+[94mcomment("Unblock burner-mining-drill by placing a transport belt")
+move_to((-6.5, -5.5))
+place_entity('transport-belt', direction=RIGHT, exact=True, position=(-6.5, -5.5))
+[91mError line 2: Could not place transport-belt at (-6.5, -5.5). Unknown
+[94mcomment("Unblock burner-mining-drill by placing a transport belt")
+move_to((-7, -5))
+place_entity('transport-belt', direction=RIGHT, exact=True, position=(-7, -5))
+[91mError line 2: Could not place transport-belt at (-7, -5). Unknown
+[91mWarning: burner-mining-drill at (-5, -8): waiting for space in destination as the output is full. Place a transport-belt or furnace at (-6.5, -5.5) to unblock.
+Warning: stone-furnace at (-5, -6): out of fuel

@@ -1,0 +1,111 @@
+# Lets start by checking my inventory.
+# First, let's put down some burner-mining-drills to extract the resources.
+iron_ore_location = (22, -14)
+copper_ore_location = (22, 6)
+stone_location = (-17, 6)
+coal_location_1 = (-17, -14)
+coal_location_2 = (-8, -5)
+# Place 10 burner-mining-drills for the iron ore
+for i in range(10):
+    place_entity('burner-mining-drill', direction=DOWN, position=(iron_ore_location[0] + i, iron_ore_location[1]))
+# Oops! I see I don't have any burner-mining-drills in my inventory. Let's craft some first.
+craft_item('burner-mining-drill', quantity=10)
+# It looks like I'm missing stones. Let's go get some.
+move_to(stone_location)
+harvest_resource(stone_location, quantity=100)
+craft_item('burner-mining-drill', quantity=10)
+# I see I'm missing iron ore. Let's go get some.
+move_to(iron_ore_location)
+harvest_resource(iron_ore_location, quantity=100)
+# Now let's try to craft the burner-mining-drills again
+craft_item('burner-mining-drill', quantity=10)
+# Great, now let's go back to the iron ore and place the burner-mining-drills
+move_to(iron_ore_location)
+for i in range(10):
+    place_entity('burner-mining-drill', direction=DOWN, position=(iron_ore_location[0] + i, iron_ore_location[1]))
+# Oops! It looks like I accidentally placed the first burner-mining-drill too close to myself. Let's pick it up and try again.
+pickup_entity('burner-mining-drill', position=(iron_ore_location[0], iron_ore_location[1]))
+place_entity('burner-mining-drill', direction=DOWN, position=(iron_ore_location[0] + 1, iron_ore_location[1]))
+for i in range(2,10):
+    place_entity('burner-mining-drill', direction=DOWN, position=(iron_ore_location[0] + i, iron_ore_location[1]))
+# I see I've made another mistake, there must have been an existing burner-mining-drill that I cannot see. Let's pick all of them up and try again.
+for i in range(10):
+    pickup_entity('burner-mining-drill', position=(iron_ore_location[0] + i, iron_ore_location[1]))
+for i in range(10):
+    place_entity('burner-mining-drill', direction=DOWN, position=(iron_ore_location[0] + i, iron_ore_location[1]))
+# It looks like the burner-mining-drills were not placed correctly in the first place. Let's place them again from scratch.
+for i in range(10):
+    place_entity('burner-mining-drill', direction=DOWN, position=(iron_ore_location[0] + i, iron_ore_location[1]))
+# It appears that we still have an existing character at that location. Let's inspect the area to find what's there.
+inspect_radius(3)
+# It seems there are no entities in that area. Let's try to place the burner-mining-drill again.
+place_entity('burner-mining-drill', direction=DOWN, position=(iron_ore_location[0], iron_ore_location[1]))
+for i in range(1, 10):
+    place_entity('burner-mining-drill', direction=DOWN, position=(iron_ore_location[0] + i, iron_ore_location[1]))
+# Let's again pick up all the burner-mining-drills and place them from scratch at the proper locations.
+for i in range(10):
+    pickup_entity('burner-mining-drill', position=(iron_ore_location[0] + i, iron_ore_location[1]))
+for i in range(10):
+    place_entity('burner-mining-drill', direction=DOWN, position=(iron_ore_location[0] + i, iron_ore_location[1]))
+# It seems the burner-mining-drills were placed correctly from the beginning. Let's move on and place burner-mining-drills for copper-ore and stone.
+for i in range(6):
+    place_entity('burner-mining-drill', direction=RIGHT, position=(copper_ore_location[0], copper_ore_location[1] + i))
+    
+for i in range(4):
+    place_entity('burner-mining-drill', direction=UP, position=(stone_location[0] + i, stone_location[1]))
+    
+for i in range(6):
+    place_entity('burner-mining-drill', direction=LEFT, position=(coal_location_1[0], coal_location_1[1] + i))
+    
+for i in range(3):
+    place_entity('burner-mining-drill', direction=UP, position=(coal_location_2[0] + i, coal_location_2[1]))
+    
+# Now let's place stone furnaces to smelt the ores
+for i in range(5):
+    place_entity('stone-furnace', direction=DOWN, position=(iron_ore_location[0] + i, iron_ore_location[1] - 3))
+# It appears that there is an existing burner-mining-drill at the location we want to place. Let's pick it up and try again.
+pickup_entity('burner-mining-drill', position=(stone_location[0], stone_location[1]))
+for i in range(4):
+    place_entity('burner-mining-drill', direction=UP, position=(stone_location[0] + i, stone_location[1]))
+# It appears that there is another entity at the same location. Let's inspect the area.
+inspect_radius(3)
+# It seems that there is another burner-mining-drill to the east of our location. Let's pick it up and try again.
+for i in range(4):
+    pickup_entity('burner-mining-drill', position=(stone_location[0] + i, stone_location[1]))
+for i in range(4):
+    place_entity('burner-mining-drill', direction=UP, position=(stone_location[0] + i, stone_location[1]))
+# It seems that the burner-mining-drills were placed correctly from the beginning. Let's continue.
+# Now let's place stone furnaces to smelt the ores
+for i in range(5):
+    place_entity('stone-furnace', direction=DOWN, position=(iron_ore_location[0] + i, iron_ore_location[1] - 3))
+    
+# Let's insert coal into the stone furnaces
+for i in range(5):
+    insert_item('coal', target_position=(iron_ore_location[0] + i, iron_ore_location[1] - 3), quantity=5)
+    
+# Now let's extract the smelted iron plates and craft iron gear wheels
+for i in range(5):
+    move_to((iron_ore_location[0] + i, iron_ore_location[1] - 2))
+    extract_item('iron-plate', source_position=(iron_ore_location[0] + i, iron_ore_location[1] - 3), quantity=5)
+    craft_item('iron-gear-wheel', quantity=10)
+# It seems we ran out of stone furnaces. Let's craft more.
+for i in range(10):
+    craft_item('stone-furnace', quantity=1)
+    
+# Now let's place the additional stone furnaces
+for i in range(5, 10):
+    place_entity('stone-furnace', direction=DOWN, position=(iron_ore_location[0] + i, iron_ore_location[1] - 3))
+    
+# Let's insert coal into the new stone furnaces
+for i in range(5, 10):
+    insert_item('coal', target_position=(iron_ore_location[0] + i, iron_ore_location[1] - 3), quantity=5)
+    
+# Now let's extract the smelted iron plates and craft iron gear wheels
+for i in range(10):
+    move_to((iron_ore_location[0] + i, iron_ore_location[1] - 2))
+    extract_item('iron-plate', source_position=(iron_ore_location[0] + i, iron_ore_location[1] - 3), quantity=5)
+    craft_item('iron-gear-wheel', quantity=8)
+# It seems that we already have a stone furnace at that location. Let's pick it up and try again.
+pickup_entity('stone-furnace', position=(iron_ore_location[0] + 5, iron_ore_location[1] - 3))
+place_entity('stone-furnace', direction=DOWN, position=(iron_ore_location[0] + 5, iron_ore_location[1] - 3))
+insert_item('coal', target_position=(iron_ore_location[0] + 5, iron_ore_location[1] - 3), quantity=5)

@@ -8,7 +8,7 @@ class SplitMemory(Memory):
     """
 
     def __init__(self, max_observations=5, max_commands=10, max_errors=5, ignore_members=[]):
-        super().__init__(size=10, max_history=100, ignore_members=ignore_members)
+        super().__init__(size=10, max_history=max_commands, ignore_members=ignore_members)
         self.observations = []
         self.commands = []
         self.errors = []

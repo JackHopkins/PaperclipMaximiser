@@ -1,0 +1,180 @@
+[94mcomment("Inspect resources around me")
+resources = inspect_resources()
+[92m1: 
+2: 
+Score: 0
+[94mcomment("Find the nearest coal patch")
+coal_position = nearest('coal')
+[92m1: 
+2: 
+Score: 0
+[94mcomment("Move to the coal patch")
+move_to(coal_position)
+[92m1: 
+2: 
+Score: 0
+[94mcomment("Place a burner-mining-drill on the coal patch")
+place_entity('burner-mining-drill', direction=DOWN, position=(coal_position[0], coal_position[1] + 2))
+[92m1: 
+2: (-8, -12)
+Score: 0
+[94mcomment("Find the nearest iron patch")
+iron_position = nearest('iron-ore')
+[92m1: 
+2: 
+Score: 0
+[94mcomment("Move to the iron patch")
+move_to(iron_position)
+[92m1: 
+2: 
+Score: 0
+[94mcomment("Place a burner-mining-drill on the iron patch")
+place_entity('burner-mining-drill', direction=DOWN, position=(iron_position[0], iron_position[1] + 2))
+[92m1: 
+2: Error: Could not place burner-mining-drill.  No burner mining drill in inventory.
+Score: 0
+[94mcomment("Harvest 5 coal to craft a burner-mining-drill")
+harvest_resource(coal_position, quantity=5)
+[92m1: 
+2: Error: Could not harvest.. "global.actions.harvest resource = function(pl..."]:50: Could only harvest 0 at position (-8, -14)
+Score: 0
+[94mcomment("Pick up some coal from the placed burner-mining-drill")
+pickup_entity('coal', source_position=nearest('burner-mining-drill'))
+[92m1: 
+2: Error:   call  () got an unexpected keyword argument 'source position'
+Score: 0
+[94mcomment("Fix the syntax error and pick up some coal from the placed burner-mining-drill")
+pickup_entity('coal', position=nearest('burner-mining-drill'))
+[92m1: 
+2: Error: Could not pickup, did you intend to harvest?. 0
+Score: 0
+[94mcomment("Move to the nearest coal burner-mining-drill")
+move_to(nearest('burner-mining-drill'))
+[92m1: 
+2: 
+Score: 0
+[94mcomment("Harvest coal directly from the burner-mining-drill")
+harvest_resource(nearest('burner-mining-drill'), quantity=5)
+[92m1: 
+2: 
+Score: 15
+[94mcomment("Craft stone furnace to smelt resources")
+craft_item('stone-furnace', quantity=1)
+[92m1: 
+2: Error: Could not craft a stone-furnace. "global.actions.craft item = function(player i..."]:73: Failed to craft 1x stone-furnace because missing ingredient stone
+Score: 15
+[94mcomment("Harvest stones needed to craft stone furnace")
+stone_position = nearest('stone')
+move_to(stone_position)
+harvest_resource(stone_position, quantity=10)
+[92m1: 
+2: 
+3: 
+4: 
+Score: 39
+[94mcomment("Craft stone furnace to smelt resources")
+craft_item('stone-furnace', quantity=1)
+[92m1: 
+2: 
+Score: 39
+[94mcomment("Place the stone furnace near the coal burner-mining-drill")
+coal_position = nearest('burner-mining-drill')
+move_to(coal_position)
+furnace_position = (coal_position[0] - 3, coal_position[1])
+place_entity('stone-furnace', position=furnace_position)
+[92m1: 
+2: 
+3: 
+4: 
+5: (-11, -12)
+Score: 39
+[94mcomment("Craft an inserter to transfer coal from the mining drill to the stone furnace")
+craft_item('inserter', quantity=1)
+[92m1: 
+2: 
+Score: 39
+[94mcomment("Harvest iron to craft inserter and some additional iron for later use")
+iron_position = nearest('iron-ore')
+move_to(iron_position)
+harvest_resource(iron_position, quantity=15)
+[92m1: 
+2: 
+3: 
+4: Error: Could not harvest.. "global.actions.harvest resource = function(pl..."]:50: Could only harvest 9 at position (22, -13)
+Score: 67
+[94mcomment("Craft the inserter now that we have the required resources")
+craft_item('inserter', quantity=1)
+[92m1: 
+2: 
+Score: 67
+[94mcomment("Place the inserter to transfer coal from the mining drill to the stone furnace")
+move_to(coal_position)
+inserter_position = (coal_position[0]-2, coal_position[1])
+place_entity('inserter', position=inserter_position, direction=LEFT)
+[92m1: 
+2: 
+3: 
+4: (-10, -12)
+Score: 67
+[94mcomment("Craft an electric mining drill for iron and copper extraction")
+craft_item('electric-mining-drill', quantity=2)
+[92m1: 
+2: 
+Score: 67
+[94mcomment("Setup power generation using coal-fired boilers and steam engines")
+[92m1: 
+Score: 67
+[94mcomment("Craft 1 offshore pump, 2 boilers, and 4 steam engines")
+craft_item('offshore-pump', quantity=1)
+craft_item('boiler', quantity=2)
+craft_item('steam-engine', quantity=4)
+[92m1: 
+2: 
+3: Error: Could not craft a boiler. "global.actions.craft item = function(player i..."]:70: Successfully crafted 1x but failed to craft 1x boiler because missing ingredient iron ore
+Score: 67
+[94mcomment("Find nearest iron ore deposit and place an electric mining drill to extract it")
+iron_ore_position = nearest('iron-ore')
+move_to(iron_ore_position)
+place_entity('electric-mining-drill', direction=DOWN, position=(iron_ore_position[0]-2, iron_ore_position[1]))
+[92m1: 
+2: 
+3: 
+4: Error: Could not place electric-mining-drill.  Cannot place electric-mining-drill due to missing minable resource on the tile.
+Score: 67
+[94mcomment("Find another iron ore deposit and place an electric mining drill")
+iron_ore_position = nearest('iron-ore', exclude_position=iron_ore_position)
+move_to(iron_ore_position)
+place_entity('electric-mining-drill', direction=DOWN, position=(iron_ore_position[0]-2, iron_ore_position[1]))
+[92m1: 
+2: 
+3: 
+4: Error: Could not place electric-mining-drill.  Cannot place electric-mining-drill due to missing minable resource on the tile.
+Score: 67
+[94mcomment("Find the correct position on the iron ore deposit to place the electric mining drill")
+iron_ore_deposit = inspect_resources()
+iron_ore_position = (iron_ore_deposit['iron-ore'][0][0], iron_ore_deposit['iron-ore'][0][1])
+move_to(iron_ore_position)
+place_entity('electric-mining-drill', direction=DOWN, position=(iron_ore_position[0], iron_ore_position[1]))
+[92m1: 
+2: 
+3: Error: iron-ore
+Score: 67
+[94mcomment("Inspect iron ore deposit coordinates and adjust position to place electric mining drill")
+iron_ore_deposit = inspect_resources()
+iron_ore_position = iron_ore_deposit['iron-ore'][0]
+move_to(iron_ore_position)
+place_entity('electric-mining-drill', direction=DOWN, position=(iron_ore_position[0], iron_ore_position[1]))
+[92m1: 
+2: 
+3: Error: iron-ore
+Score: 67
+[94mcomment("Inspect entities and fix position to place the electric mining drill on the iron ore deposit")
+entities = inspect_entities(20)
+for entity in entities:
+    if entity['name'] == 'iron-ore':
+        iron_ore_position = (entity['position'][0], entity['position'][1])
+        break
+[92m1: 
+2: 
+3: Error: name
+Score: 67

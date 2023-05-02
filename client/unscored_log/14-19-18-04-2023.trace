@@ -1,0 +1,5 @@
+# First, let's inspect the resources and entities around us
+inspect_resources()
+inspect_entities(20)
+# It seems that we have coal, iron ore, stone, copper ore and uranium ore near us.
+# Let's craft a burner mining drill and place it on the nearest coal resource

@@ -1,0 +1,4 @@
+# Issue 1: Place a burner mining drill on the nearest iron ore resource
+iron_ore_position = nearest('iron-ore')
+place_entity('burner-mining-drill', direction=DOWN, position=(iron_ore_position[0], iron_ore_position[1]+2))
+# Issue 2: Craft and place a burner mining drill on the nearest iron ore resource

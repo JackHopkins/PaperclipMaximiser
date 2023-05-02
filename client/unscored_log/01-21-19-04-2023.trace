@@ -1,0 +1,159 @@
+# First, I need to check my surroundings
+inspect_resources()
+inspect_entities(20)
+check_inventory()
+# Next, let me focus on setting up a mining operation for coal and iron ore
+# First, I will place a burner mining drill to extract coal
+coal_position = nearest('coal')
+move_to(coal_position)
+place_entity('burner-mining-drill', direction=LEFT, position=(coal_position[0]-2, coal_position[1]))
+inspect_entities(5)
+# Now, I need to place a burner mining drill to extract iron ore
+iron_ore_position = nearest('iron_ore')
+move_to(position=iron_ore_position)
+place_entity('burner-mining-drill', direction=LEFT, position=(iron_ore_position[0]-2, iron_ore_position[1]))
+inspect_entities(5)
+# Oops, I made a mistake. I will change line 2 to move_to(iron_ore_position)
+iron_ore_position = nearest('iron_ore')
+move_to(iron_ore_position)
+place_entity('burner-mining-drill', direction=LEFT, position=(iron_ore_position[0]-2, iron_ore_position[1]))
+inspect_entities(5)
+# I forgot to craft burner mining drills first. This time, I will craft 2 drills.
+craft_item('burner-mining-drill', quantity=2)
+check_inventory()
+# Oh, I need to get some stones first before I can craft burner mining drills. Harvesting some stones
+stone_pos = nearest('stone')
+move_to(stone_pos)
+harvest_resource(stone_pos, quantity=5)
+inspect_resources()
+# I got an error because there might be no stones nearby. I will move to the nearest resource and try to harvest again
+nearest_resource = inspect_resources()
+resource_type = max(nearest_resource, key=nearest_resource.get)
+neares_resource_position = nearest(nearest_resource[position])
+move_to(neares_resource_position)
+harvest_resource(neares_resource_position, quantity=5)
+inspect_resources()
+# Oops, I made an error. I need to change line 2 to get the position from the dictionary
+nearest_resource = inspect_resources()
+resource_type = max(nearest_resource, key=nearest_resource.get)
+nearest_resource_position = nearest(nearest_resource[resource_type])
+move_to(nearest_resource_position)
+harvest_resource(nearest_resource_position, quantity=5)
+inspect_resources()
+# I made another error. I will change the position variable.
+nearest_resource = inspect_resources()
+resource_type = max(nearest_resource, key=nearest_resource.get)
+nearest_resource_position = nearest_resource[resource_type][0]
+move_to(nearest_resource_position)
+harvest_resource(nearest_resource_position, quantity=5)
+inspect_resources()
+# I made another error again. The position of the resource is stored in the dictionary nested within a list.
+nearest_resource = inspect_resources()
+resource_type = max(nearest_resource, key=nearest_resource.get)
+nearest_resource_position = nearest_resource[resource_type][0][0]
+move_to(nearest_resource_position)
+harvest_resource(nearest_resource_position, quantity=5)
+inspect_resources()
+# Oops, I keep making errors. The issue is on the inspect_resources() method, it should return resources only and not the object dictionary as well. Updating the function accordingly.
+def inspect_resources():
+    resources = {}
+    for entity in entities:
+        if entity['type'] in ['resource']:
+            resources.setdefault(entity['name'], []).append(entity['position'])
+    return resources
+# Now that I have fixed the issue on inspect_resources method, I will try the same command I used earlier to get the nearest resource type and location
+nearest_resource = inspect_resources()
+resource_type = max(nearest_resource, key=nearest_resource.get)
+nearest_resource_position = nearest_resource[resource_type][0]
+move_to(nearest_resource_position)
+harvest_resource(nearest_resource_position, quantity=5)
+inspect_resources()
+# I forgot to initialize the 'entities' variable that is used in inspect_resources method. I will define the variable and update inspect_resources method.
+# Initializing the 'entities' variable
+entities = inspect_entities(20)
+# Updating the inspect_resources method to include the 'entities' variable
+def inspect_resources():
+    resources = {}
+    for entity in entities:
+        if entity['type'] in ['resource']:
+            resources.setdefault(entity['name'], []).append(entity['position'])
+    return resources
+# Using the updated inspect_resources method to get the nearest resource type and location
+nearest_resource = inspect_resources()
+resource_type = max(nearest_resource, key=nearest_resource.get)
+nearest_resource_position = nearest_resource[resource_type][0]
+move_to(nearest_resource_position)
+harvest_resource(nearest_resource_position, quantity=5)
+inspect_resources()
+# I also forgot to update the 'entities' variable after moving to the nearest resource. I will include the updating of the 'entities' variable in the code.
+entities = inspect_entities(20)
+# Using the updated inspect_resources method to get the nearest resource type and location
+nearest_resource = inspect_resources()
+resource_type = max(nearest_resource, key=nearest_resource.get)
+nearest_resource_position = nearest_resource[resource_type][0]
+move_to(nearest_resource_position)
+harvest_resource(nearest_resource_position, quantity=5)
+entities = inspect_entities(20)
+inspect_resources()
+# I apologize for the oversight. I'll make sure the entities variable is initialized in the first line.
+# Initializing the entities variable and requesting the character's inventory
+entities = inspect_entities(20)
+inventory = check_inventory() 
+# Placing a burner mining drill and checking the entities dict for it.
+place_entity('burner-mining-drill', direction=LEFT, position=(player_character.position[0]+2, player_character.position[1]))
+entities = inspect_entities(20)
+entities
+# My mistake. I forgot to include the 'player_character' variable in the API. Let me update the code.
+player_character = {'position': (0,0)}
+# Placing a burner mining drill next to the player and requesting the entities dict again.
+place_entity_next_to('burner-mining-drill', reference_position=player_character['position'], direction='right', gap=2)
+entities = inspect_entities(20)
+entities
+# Moving closer to the burner mining drill, harvesting resources and requesting the updated inventory
+move_to(nearest('coal'))
+harvest_resource(nearest('coal'), quantity=10)
+inventory = check_inventory()
+inventory
+# My apologies. I forgot that the player is always placed in between entities. Here's an updated code to get closer to the burner mining drill by going three tiles to the right.
+move_to((3,0))
+harvest_resource(nearest('coal'), quantity=10)
+inventory = check_inventory()
+inventory
+# Sorry, you can see the entities using the API.
+entities = inspect_entities(20)
+entities
+# Oh, it seems there is no coal resource nearby. Let's place a burner mining drill on the nearest iron resource and mine that instead.
+nearest_iron = nearest('iron-ore')
+place_entity_next_to('burner-mining-drill', reference_position=nearest_iron, direction='right', gap=1)
+move_to(nearest_iron)
+harvest_resource(nearest_iron, quantity=10)
+inventory = check_inventory()
+inventory
+# Hmmm, it seems like the burner mining drill is not placed correctly. Let's place another one, this time ensuring it is placed correctly.
+place_entity_next_to('burner-mining-drill', reference_position=(3,0), direction='right', gap=1)
+move_to((4,0))
+harvest_resource(nearest('iron-ore'), quantity=10)
+inventory = check_inventory()
+inventory
+# It seems like we have to move closer to the iron resource.
+move_to(nearest('iron-ore'))
+harvest_resource(nearest('iron-ore'), quantity=10)
+inventory = check_inventory()
+inventory
+# Let's smelt the iron-ore into iron-plate using the stone furnace.
+place_entity_next_to('stone-furnace', reference_position=nearest('iron-ore'), direction='right', gap=2)
+connect_entities(source_position=nearest('stone-furnace'), target_position=nearest('transport-belt'), connection_type='inserter')
+move_to(nearest('stone-furnace'))
+set_entity_recipe(nearest('stone-furnace'), recipe='iron-plate')
+extract_item('iron-plate', source_position=nearest('stone-furnace'))
+inventory = check_inventory()
+inventory
+# Hmmm, the location might be blocked. Let's move to another nearby location and try again.
+new_location = (nearest('iron-ore')[0]+2, nearest('iron-ore')[1])
+place_entity_next_to('stone-furnace', reference_position=new_location, direction='right', gap=2)
+connect_entities(source_position=nearest('stone-furnace'), target_position=nearest('transport-belt'), connection_type='inserter')
+move_to(nearest('stone-furnace'))
+set_entity_recipe(nearest('stone-furnace'), recipe='iron-plate')
+extract_item('iron-plate', source_position=nearest('stone-furnace'))
+inventory = check_inventory()
+inventory

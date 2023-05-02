@@ -7,6 +7,7 @@ import backoff
 from openai.openai_object import OpenAIObject
 
 from factorio_instance import FactorioInstance
+from models.insufficient_score_exception import InsufficientScoreException
 from models.split_memory import SplitMemory
 from vocabulary import Vocabulary
 
@@ -58,16 +59,19 @@ class FactorioRunner:
                                          bounding_box=200,
                                          tcp_port=27016,
                                          inventory=inventory)
-        static_instance_members = [attr for attr in dir(self.instance)
-                                   if not callable(getattr(self.instance, attr))
-                                   and not attr.startswith("__")]
-        self.memory = SplitMemory(ignore_members=static_instance_members)
+        self.memory = self.set_memory()
         self.history = []
         self.program_generator = self._get_program_generator
         if not trace:
             pass
         else:
             self.trace = trace
+
+    def set_memory(self):
+        static_instance_members = [attr for attr in dir(self.instance)
+                                   if not callable(getattr(self.instance, attr))
+                                   and not attr.startswith("__")]
+        return SplitMemory(ignore_members=static_instance_members)
 
     def replay(self):
         with open(f"log/{self.trace}.trace", "r") as f:
@@ -76,7 +80,7 @@ class FactorioRunner:
                 print(line)
                 if line[0] != "#":
                     try:
-                        response = self.instance.eval(line.rstrip("\n;"))
+                        score, response = self.instance.eval(line.rstrip("\n;"))
                         print(response)
                     except Exception as e:
                         print(e)
@@ -167,7 +171,8 @@ class FactorioRunner:
         buffer = self._replace_comments(buffer)
         try:
             self.memory.log_command(buffer)
-            result = self.instance.eval(buffer.strip())
+            score, result = self.instance.eval(buffer.strip())
+            self.memory.log_score(score)
             self.memory.log_variables(self.instance)
             if result and isinstance(result, str):
                 if "Error" in result:
@@ -184,7 +189,9 @@ class FactorioRunner:
                         self.memory.log_error(result)
                 else:
                     self.memory.log_observation(result)
-
+        except InsufficientScoreException as e1:
+            self.instance.reset()
+            self.memory = self.set_memory()
         except Exception as e:
             try:
                 error, reason = e.args
@@ -195,6 +202,8 @@ class FactorioRunner:
 
         if alerts:
             self.memory.log_warnings(alerts)
+
+
 
     def flush_history(self):
         self.instance.sequential_exception_count = 0

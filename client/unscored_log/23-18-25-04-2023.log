@@ -1,0 +1,12 @@
+[94mcomment("Observe and describe the natural resources and landscape around me")
+resources = inspect_resources()
+[94mcomment("Locate coal, iron ore, stone, and water resources")
+coal = resources['coal'][0]
+iron_ore = resources['iron_ore'][0]
+stone = resources['stone'][0]
+water = resources['water'][0]
+[94mcomment("Move to the coal resource and place a burner-mining-drill")
+coal_position = (coal['min_coordinates'][0], coal['min_coordinates'][1])
+move_to(coal_position)
+place_entity('burner-mining-drill', direction=RIGHT, position=nearest_buildable('burner-mining-drill'))
+[91m3: Error: Could not place burner-mining-drill.  Cannot place burner-mining-drill due to missing minable resource on the tile.

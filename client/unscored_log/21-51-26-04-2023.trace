@@ -1,0 +1,6 @@
+comment("Start by observing and inspecting natural resources and entities around player_character")
+inspect_resources()
+inspect_entities(20)
+comment("Based on the observations, we can see that there is an ore deposit at position (-8, -5)")
+comment("We will assign this position to a variable named 'ore'")
+ore = (-8, -5)

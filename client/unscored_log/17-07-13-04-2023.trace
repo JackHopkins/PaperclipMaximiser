@@ -1,0 +1,19 @@
+# Lets start by checking my inventory.
+# There are a lot of trees scattered in different locations, I should move to the nearest one and start gathering resources. 
+move_to(nearest('tree'))
+harvest_resource(nearest('tree'), quantity=50) # Let's harvest 50 trees.
+check_inventory() # Checking inventory after harvesting 50 trees.
+# Oops! It appears there are no trees near me. Let's try moving to another location and checking again.
+move_to((22, 6)) # Moving to the location of copper-ore.
+move_to(nearest('tree'))
+harvest_resource(nearest('tree'), quantity=50) # Let's harvest 50 trees.
+# It appears there are no trees near the location of copper-ore. Let's try moving to another location.
+move_to((22, 26)) # Moving to the location of uranium-ore.
+move_to(nearest('tree'))
+harvest_resource(nearest('tree'), quantity=50) # Let's harvest 50 trees.
+check_inventory() # Checking inventory after harvesting 50 trees.
+# This is strange. It appears there are no trees near the location of uranium-ore as well. Let's try moving to location of coal and check again.
+move_to(nearest('coal'))
+move_to(nearest('tree'))
+harvest_resource(nearest('tree'), quantity=50) # Let's harvest 50 trees.
+check_inventory() # Checking inventory after harvesting 50 trees.

@@ -1,0 +1,3 @@
+comment("First, let's inspect our surroundings and resources")
+inspect_resources()
+inspect_entities()

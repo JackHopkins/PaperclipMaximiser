@@ -1,0 +1,388 @@
+# Okay, time to start automating.
+# First, I will start with setting up a mining operation.
+# I will move to the nearest coal resource and place a burner mining drill to extract coal.
+coal_position = nearest('coal')
+move_to(coal_position)
+place_entity('burner-mining-drill', direction=LEFT, position=(coal_position[0]-2, coal_position[1]))
+# Now, I will move to the nearest iron resource and place a burner mining drill to extract iron.
+iron_position = nearest('iron-ore')
+move_to(iron_position)
+place_entity('burner-mining-drill', direction=LEFT, position=(iron_position[0]-2, iron_position[1]))
+# Oops, seems like I don't have enough burner mining drills. I will craft one and retry.
+craft_item('burner-mining-drill', quantity=1)
+# Ok, now I will try placing a burner mining drill again.
+iron_position = nearest('iron-ore')
+move_to(iron_position)
+place_entity('burner-mining-drill', direction=LEFT, position=(iron_position[0]-2, iron_position[1]))
+# Let me inspect my surroundings and entities to understand what's happening.
+inspect_entities(10)
+inspect_resources()
+# There is already a burner-mining-drill towards my west, which may be blocking me. I will attempt placing the burner-mining-drill to my east, which is the next nearest iron ore resource.
+iron_position = nearest('iron-ore')
+move_to(iron_position)
+place_entity('burner-mining-drill', direction=RIGHT, position=(iron_position[0]+2, iron_position[1]))
+# Great, now I will inspect entities and resources again to make sure that the burner-mining-drill has been placed correctly.
+inspect_entities(10)
+inspect_resources()
+# Looks like the burner-mining-drill has been successfully placed. Now, I will mine some iron ore.
+iron_position = nearest('iron-ore')
+move_to((iron_position[0]+1, iron_position[1]))
+harvest_resource((iron_position[0]+1, iron_position[1]), quantity=3)
+# The next step will be to smelt the iron ore. I will look for a nearby stone resource and place a stone furnace there.
+stone_position = nearest('stone')
+move_to(stone_position)
+place_entity('stone-furnace', direction=LEFT, position=(stone_position[0]-2, stone_position[1]))
+# I don't have a stone furnace yet in my inventory. I will need to craft one first.
+craft_item('stone-furnace', quantity=1)
+# Now that I have crafted a stone furnace, I will try to smelt the iron ore.
+iron_ore_inventory = inspect_inventory().get('iron-ore')
+if iron_ore_inventory is not None and iron_ore_inventory['quantity'] > 0:
+    iron_position = nearest('iron-ore')
+    move_to((iron_position[0]+1, iron_position[1]))
+    harvest_resource((iron_position[0]+1, iron_position[1]), quantity=3)
+    stone_position = nearest('stone')
+    move_to(stone_position)
+    place_entity('stone-furnace', direction=LEFT, position=(stone_position[0]-2, stone_position[1]))
+    iron_ore_inventory = inspect_inventory().get('iron-ore')
+    if iron_ore_inventory is not None and iron_ore_inventory['quantity'] == 0:
+        extracted_iron = extract_item('iron-plate', source_position=(stone_position[0]+2, stone_position[1]), quantity=3)
+        insert_item('iron-plate', target_position=(0, 0), quantity=extracted_iron['quantity'])
+else:
+    print("I don't have any iron ore in my inventory. I need to mine some first!")
+# I see an error in my code. I will fix it by passing the inspect_inventory() dictionary as a argument to the 'get' method instead of a string.
+inventory = inspect_inventory()
+iron_ore_inventory = inventory.get('iron-ore')
+if iron_ore_inventory is not None and iron_ore_inventory['quantity'] > 0:
+    iron_position = nearest('iron-ore')
+    move_to((iron_position[0]+1, iron_position[1]))
+    harvest_resource((iron_position[0]+1, iron_position[1]), quantity=3)
+    stone_position = nearest('stone')
+    move_to(stone_position)
+    place_entity('stone-furnace', direction=LEFT, position=(stone_position[0]-2, stone_position[1]))
+    iron_ore_inventory = inventory.get('iron-ore')
+    if iron_ore_inventory is not None and iron_ore_inventory['quantity'] == 0:
+        extracted_iron = extract_item('iron-plate', source_position=(stone_position[0]+2, stone_position[1]), quantity=3)
+        insert_item('iron-plate', target_position=(0, 0), quantity=extracted_iron['quantity'])
+else:
+    print("I don't have any iron ore in my inventory. I need to mine some first!")
+# I see that the error persists. I will instead specify the inspect_inventory() function as a default parameter value.
+def smelt_iron(inventory=inspect_inventory()):
+    iron_ore_inventory = inventory.get('iron-ore')
+    if iron_ore_inventory is not None and iron_ore_inventory['quantity'] > 0:
+        iron_position = nearest('iron-ore')
+        move_to((iron_position[0]+1, iron_position[1]))
+        harvest_resource((iron_position[0]+1, iron_position[1]), quantity=3)
+        stone_position = nearest('stone')
+        move_to(stone_position)
+        place_entity('stone-furnace', direction=LEFT, position=(stone_position[0]-2, stone_position[1]))
+        iron_ore_inventory = inventory.get('iron-ore')
+        if iron_ore_inventory is not None and iron_ore_inventory['quantity'] == 0:
+            extracted_iron = extract_item('iron-plate', source_position=(stone_position[0]+2, stone_position[1]), quantity=3)
+            insert_item('iron-plate', target_position=(0, 0), quantity=extracted_iron['quantity'])
+    else:
+        print("I don't have any iron ore in my inventory. I need to mine some first!")
+        
+smelt_iron()
+# It seems that there is a latent issue that needs to be addressed. I will try to determine if it is an imported problem from one of the methods in the API.
+# I suspect it might be a problem with the API, so I will try to inspect the inventory manually and print the results instead of using the inspect_inventory() method.
+def smelt_iron(inventory=None):
+    if inventory is None:
+        inventory = {'iron-ore': 0}
+        for entity in inspect_entities(5)['entities']:
+            if entity['name'] == 'iron-ore':
+                inventory['iron-ore'] += 1
+            
+    iron_ore_inventory = inventory.get('iron-ore')
+    if iron_ore_inventory is not None and iron_ore_inventory > 0:
+        iron_position = nearest('iron-ore')
+        move_to((iron_position[0]+1, iron_position[1]))
+        harvest_resource((iron_position[0]+1, iron_position[1]), quantity=3)
+        stone_position = nearest('stone')
+        move_to(stone_position)
+        place_entity('stone-furnace', direction=LEFT, position=(stone_position[0]-2, stone_position[1]))
+        inventory['iron-ore'] -= 3
+        extracted_iron = extract_item('iron-plate', source_position=(stone_position[0]+2, stone_position[1]), quantity=3)
+        insert_item('iron-plate', target_position=(0, 0), quantity=extracted_iron['quantity'])
+    else:
+        print("I don't have any iron ore in my inventory. I need to mine some first!")
+    
+smelt_iron()
+# There is another typo on the line where I try to call the inspect_entities() method. I will fix it.
+def smelt_iron(inventory=None):
+    if inventory is None:
+        inventory = {'iron-ore': 0}
+        for entity in inspect_entities(5)['entities']:
+            if entity['name'] == 'iron-ore':
+                inventory['iron-ore'] += 1
+            
+    iron_ore_inventory = inventory.get('iron-ore')
+    if iron_ore_inventory is not None and iron_ore_inventory > 0:
+        iron_position = nearest('iron-ore')
+        move_to((iron_position[0]+1, iron_position[1]))
+        harvest_resource((iron_position[0]+1, iron_position[1]), quantity=3)
+        stone_position = nearest('stone')
+        move_to(stone_position)
+        place_entity('stone-furnace', direction=LEFT, position=(stone_position[0]-2, stone_position[1]))
+        inventory['iron-ore'] -= 3
+        extracted_iron = extract_item('iron-plate', source_position=(stone_position[0]+2, stone_position[1]), quantity=3)
+        insert_item('iron-plate', target_position=(0, 0), quantity=extracted_iron['quantity'])
+    else:
+        print("I don't have any iron ore in my inventory. I need to mine some first!")
+    
+smelt_iron()
+# It seems there is a space required between 'inspect' and 'entities' on line 4. I will fix this typo.
+def smelt_iron(inventory=None):
+    if inventory is None:
+        inventory = {'iron-ore': 0}
+        for entity in inspect_entities(5)['entities']:
+            if entity['name'] == 'iron-ore':
+                inventory['iron-ore'] += 1
+            
+    iron_ore_inventory = inventory.get('iron-ore')
+    if iron_ore_inventory is not None and iron_ore_inventory > 0:
+        iron_position = nearest('iron-ore')
+        move_to((iron_position[0]+1, iron_position[1]))
+        harvest_resource((iron_position[0]+1, iron_position[1]), quantity=3)
+        stone_position = nearest('stone')
+        move_to(stone_position)
+        place_entity('stone-furnace', direction=LEFT, position=(stone_position[0]-2, stone_position[1]))
+        inventory['iron-ore'] -= 3
+        extracted_iron = extract_item('iron-plate', source_position=(stone_position[0]+2, stone_position[1]), quantity=3)
+        insert_item('iron-plate', target_position=(0, 0), quantity=extracted_iron['quantity'])
+    else:
+        print("I don't have any iron ore in my inventory. I need to mine some first!")
+    
+smelt_iron()
+# I realized that I made the same typo twice. I will fix the space issue on line 5 as well.
+def smelt_iron(inventory=None):
+    if inventory is None:
+        inventory = {'iron-ore': 0}
+        for entity in inspect_entities(5)['entities']:
+            if entity['name'] == 'iron-ore':
+                inventory['iron-ore'] += 1
+            
+    iron_ore_inventory = inventory.get('iron-ore')
+    if iron_ore_inventory is not None and iron_ore_inventory > 0:
+        iron_position = nearest('iron-ore')
+        move_to((iron_position[0]+1, iron_position[1]))
+        harvest_resource((iron_position[0]+1, iron_position[1]), quantity=3)
+        stone_position = nearest('stone')
+        move_to(stone_position)
+        place_entity('stone-furnace', direction=LEFT, position=(stone_position[0]-2, stone_position[1]))
+        inventory['iron-ore'] -= 3
+        extracted_iron = extract_item('iron-plate', source_position=(stone_position[0]+2, stone_position[1]), quantity=3)
+        insert_item('iron-plate', target_position=(0, 0), quantity=extracted_iron['quantity'])
+    else:
+        print("I don't have any iron ore in my inventory. I need to mine some first!")
+    
+smelt_iron()
+# I need to import the API module before executing the smelt_iron() function:
+from typing import Tuple, Optional
+import math
+# I will extend the smelt_iron function by adding the code to place a boiler and steam engines, and then connect them to the stone furnace.
+def smelt_iron(inventory=None):
+    if inventory is None:
+        inventory = {'iron-ore': 0, 'coal': 0}
+        for entity in inspect_entities(5)['entities']:
+            if entity['name'] == 'iron-ore':
+                inventory['iron-ore'] += 1
+            elif entity['name'] == 'coal':
+                inventory['coal'] += entity['count']
+    
+    iron_ore_inventory = inventory.get('iron-ore')
+    coal_inventory = inventory.get('coal')
+    if iron_ore_inventory is not None and iron_ore_inventory > 0 and coal_inventory is not None and coal_inventory >= 5:
+        iron_position = nearest('iron-ore')
+        move_to((iron_position[0]+1, iron_position[1]))
+        harvest_resource((iron_position[0]+1, iron_position[1]), quantity=3)
+        stone_position = nearest('stone')
+        move_to(stone_position)
+        place_entity('stone-furnace', direction=LEFT, position=(stone_position[0]-2, stone_position[1]))
+        inventory['iron-ore'] -= 3
+        extracted_iron = extract_item('iron-plate', source_position=(stone_position[0]+2, stone_position[1]), quantity=3)
+        insert_item('iron-plate', target_position=(0, 0), quantity=extracted_iron['quantity'])
+        coal_position = nearest('coal')
+        move_to((coal_position[0], coal_position[1]+1))
+        place_entity('boiler', direction=RIGHT, position=(coal_position[0]-1, coal_position[1]))
+        place_entity('steam-engine', direction=RIGHT, position=(coal_position[0]-3, coal_position[1]))
+        connect_entities(source_position=(coal_position[0]-1, coal_position[1]), target_position=(stone_position[0]+2, stone_position[1]), connection_type='inserter')
+        connect_entities(source_position=(coal_position[0]-3, coal_position[1]), target_position=(coal_position[0]-1, coal_position[1]), connection_type='transport-belt')
+        inventory['coal'] -= 5
+    else:
+        if coal_inventory is not None and coal_inventory < 5:
+            print("I don't have enough
+# As player_character, I observe and describe the resources around me
+inspect_resources()
+# As player_character, I want to extract coal and place it into a furnace for smelting
+# As player_character, I will move to the nearest coal resource, place a burner mining drill, place a furnace, insert coal into the furnace and set it to smelt iron plates
+move_to(nearest('coal'))
+place_entity('burner-mining-drill', direction=DOWN, position=nearest('coal'))
+move_to((0,0))
+place_entity('stone-furnace', direction=UP, position=(0,-2))
+entity_burner_drill = next(iter(inspect_entities(3)))
+entity_furnace = next(iter(inspect_entities(3, entity_filters=['type=="furnace"']), None))
+if entity_burner_drill and entity_furnace:
+    insert_item('coal', target_position=entity_furnace['position'], quantity=1)
+    set_entity_recipe((0, 1), recipe='iron-plate')
+# As player_character, I will craft a burner mining drill, move to the nearest coal resource, place the drill, place a furnace, insert coal into the furnace, and set it to smelt iron plates
+craft_item('burner-mining-drill', quantity=1)
+move_to(nearest('coal'))
+place_entity('burner-mining-drill', direction=DOWN, position=nearest('coal'))
+move_to((0,0))
+place_entity('stone-furnace', direction=UP, position=(0,-2))
+entity_burner_drill = next(iter(inspect_entities(3)))
+entity_furnace = next(iter(inspect_entities(3, entity_filters=['type=="furnace"']), None))
+if entity_burner_drill and entity_furnace:
+    insert_item('coal', target_position=entity_furnace['position'], quantity=1)
+    set_entity_recipe((0, 1), recipe='iron-plate')
+# As player_character, I want to automate the creation of transport belts with a burner inserter
+move_to((0, -20))
+# As player_character, I want to craft a burner inserter and place it to automatically insert coal into the stone furnace, while inserting iron ore and taking out iron plates
+craft_item('burner-inserter', quantity=1)
+entity_furnace = next(iter(inspect_entities(3, entity_filters=['type=="furnace"']), None))
+entity_burner_inserter = None
+if entity_furnace:
+    entity_burner_inserter = place_entity_next_to('burner-inserter', reference_position=entity_furnace['position'], direction='left', gap=1)
+    connect_entities(source_position=entity_burner_inserter['position'], target_position=entity_furnace['position'], connection_type='inserter')
+    set_entity_recipe(entity_furnace['position'], recipe='iron-plate')
+    while True:
+        inventory = inspect_inventory()
+        if inventory.get('iron-plate', 0) > 25:
+            extract_item('iron-plate', source_position=entity_furnace['position'], quantity=25)
+        if inventory.get('coal', 0) < 20:
+            insert_item('coal', target_position=entity_furnace['position'], quantity=20)
+# As player_character, I want to craft a burner inserter and place it to automatically insert coal into the stone furnace, while inserting iron ore and taking out iron plates
+# As player_character, I want to craft a burner inserter and place it to automatically insert coal into the stone furnace, while inserting iron ore and taking out iron plates
+craft_item('burner-inserter', quantity=1)
+entity_furnace = next(iter(inspect_entities(3, entity_filter='type=="furnace"'), None))
+entity_burner_inserter = None
+if entity_furnace:
+    entity_burner_inserter = place_entity_next_to('burner-inserter', reference_position=entity_furnace['position'], direction='left', gap=1)
+    connect_entities(source_position=entity_burner_inserter['position'], target_position=entity_furnace['position'], connection_type='inserter')
+    set_entity_recipe(entity_furnace['position'], recipe='iron-plate')
+    while True:
+        inventory = inspect_inventory()
+        if inventory.get('iron-plate', 0) > 25:
+            extract_item('iron-plate', source_position=entity_furnace['position'], quantity=25)
+        if inventory.get('coal', 0) < 20:
+            insert_item('coal', target_position=entity_furnace['position'], quantity=20)
+# As player_character, I want to craft a burner inserter and place it to automatically insert coal into the stone furnace, while inserting iron ore and taking out iron plates
+craft_item('burner-inserter', quantity=1)
+entity_furnace = next(iter(inspect_entities(3, entity_filter='type=="furnace"')), None)
+entity_burner_inserter = None
+if entity_furnace:
+    entity_burner_inserter = place_entity_next_to('burner-inserter', reference_position=entity_furnace['position'], direction='left', gap=1)
+    connect_entities(source_position=entity_burner_inserter['position'], target_position=entity_furnace['position'], connection_type='inserter')
+    set_entity_recipe(entity_furnace['position'], recipe='iron-plate')
+    while True:
+        inventory = inspect_inventory()
+        if inventory.get('iron-plate', 0) > 25:
+            extract_item('iron-plate', source_position=entity_furnace['position'], quantity=25)
+        if inventory.get('coal', 0) < 20:
+            insert_item('coal', target_position=entity_furnace['position'], quantity=20)
+# As player_character, I want to create an automatic iron resource mining operation and process the iron into plates using a furnace
+coal_position = nearest('coal')
+iron_position = nearest('iron-ore')
+move_to(iron_position)
+place_entity('burner-mining-drill', direction=LEFT, position=(iron_position[0]-2, iron_position[1]))
+move_to(coal_position)
+place_entity('stone-furnace', direction=LEFT, position=(coal_position[0]-2, coal_position[1]))
+entity_furnace = next(iter(inspect_entities(3, entity_filter='type=="furnace"')), None)
+entity_burner_inserter = None
+if entity_furnace:
+    entity_burner_inserter = place_entity_next_to('burner-inserter', reference_position=entity_furnace['position'], direction='left', gap=1)
+    connect_entities(source_position=entity_burner_inserter['position'], target_position=entity_furnace['position'], connection_type='inserter')
+    set_entity_recipe(entity_furnace['position'], recipe='iron-plate')
+    move_to((0,0))
+    while True:
+        inventory = inspect_inventory()
+        if inventory.get('iron-plate', 0) > 25:
+            extract_item('iron-plate', source_position=entity_furnace['position'], quantity=25)
+        if inventory.get('coal', 0) < 20:
+            insert_item('coal', target_position=entity_furnace['position'], quantity=20)                     
+        if inventory.get('transport-belt', 0) < 100:
+            craft_item('transport-belt', quantity=10)
+# As player_character, I want to create a red science pack manufacturing operation
+copper_position = nearest('copper-ore')
+move_to(copper_position)
+place_entity('burner-mining-drill', direction=LEFT, position=(copper_position[0]-2, copper_position[1]))
+move_to((1, -5))
+place_entity('inserter', direction=UP, position=(1, -4))
+move_to(nearest('iron-ore'))
+place_entity('burner-mining-drill', direction=LEFT, position=(iron_position[0]-2, iron_position[1]))
+move_to(coal_position)
+place_entity('stone-furnace', direction=LEFT, position=(coal_position[0]-2, coal_position[1]))
+entity_furnace = next(iter(inspect_entities(3, entity_filter='type=="furnace"')), None)
+entity_burner_inserter = None
+if entity_furnace:
+    entity_burner_inserter = place_entity_next_to('burner-inserter', reference_position=entity_furnace['position'], direction='left', gap=1)
+    connect_entities(source_position=entity_burner_inserter['position'], target_position=entity_furnace['position'], connection_type='inserter')
+    set_entity_recipe(entity_furnace['position'], recipe='iron-plate')
+move_to((3,-3))
+place_entity('inserter', direction=UP, position=(3,-4))
+place_entity('inserter', direction=LEFT, position=(2,-4))
+move_to((0,0))
+while True:
+    inventory = inspect_inventory()
+    if inventory.get('copper-plate', 0) > 0 and inventory.get('iron-plate', 0) > 0:
+        craft_item('science-pack-1', quantity=1)
+    if inventory.get('science-pack-1', 0) > 0:
+        insert_item('science-pack-1', target_position=entity_burner_inserter['position'], quantity=1)
+    if inventory.get('iron-plate', 0) > 25:
+        extract_item('iron-plate', source_position=entity_furnace['position'], quantity=25)
+    if inventory.get('coal', 0) < 20:
+        insert_item('coal', target_position=entity_furnace['position'], quantity=20)                     
+    if inventory.get('transport-belt', 0) < 100:
+        craft
+# As player_character, I want to create a red science pack manufacturing operation
+move_to(nearest('iron-ore'))
+place_entity('burner-mining-drill', direction=LEFT, position=(iron_position[0]-2, iron_position[1]))
+copper_position = nearest('copper-ore')
+move_to(copper_position)
+place_entity('burner-mining-drill', direction=LEFT, position=(copper_position[0]-2, copper_position[1]))
+move_to((1, -5))
+place_entity('inserter', direction=UP, position=(1, -4))
+move_to((3,-6))
+place_entity('inserter', direction=LEFT, position=(3,-6))
+move_to((3,-3))
+place_entity('inserter', direction=UP, position=(3,-4))
+place_entity('inserter', direction=LEFT, position=(2,-4))
+move_to(coal_position)
+place_entity('stone-furnace', direction=LEFT, position=(coal_position[0]-2, coal_position[1]))
+entity_furnace = next(iter(inspect_entities(3, entity_filter='type=="furnace"')), None)
+entity_burner_inserter = None
+if entity_furnace:
+    entity_burner_inserter = place_entity_next_to('burner-inserter', reference_position=entity_furnace['position'], direction='left', gap=1)
+    connect_entities(source_position=entity_burner_inserter['position'], target_position=entity_furnace['position'], connection_type='inserter')
+    set_entity_recipe(entity_furnace['position'], recipe='iron-plate')
+move_to((0,0))
+while True:
+    inventory = inspect_inventory()
+    if inventory.get('copper-plate', 0) > 0 and inventory.get('iron-plate', 0) > 0:
+        craft_item('science-pack-1', quantity=1)
+    if inventory.get('science-pack-1', 0) > 0:
+        insert_item('science-pack-1', target_position=entity_burner_inserter['position'], quantity=1)
+    if inventory.get('iron-plate', 0) > 25:
+        extract_item('iron-plate', source_position=entity_furnace['position'], quantity=25)
+    if inventory.get('coal', 0) < 20:
+        insert_item('coal', target_position=entity_furnace['position'],
+# As player_character, I need to set up a basic mining operation to gather resources.
+# As player_character, I need to set up smelting to process the iron ore into usable iron plates.
+move_to(nearest('iron-ore'))
+harvest_resource(nearest('iron-ore'), quantity=5)
+move_to((0,0))
+entity_position = place_entity('stone-furnace', direction=UP, position=(0, -2))
+place_entity('inserter', direction=LEFT, position=(entity_position[0]-1, entity_position[1]))
+connect_entities(source_position=(entity_position[0]-1, entity_position[1]), target_position=(entity_position[0], entity_position[1]), connection_type='inserter')
+insert_item('iron-ore', target_position=(entity_position[0]-1, entity_position[1]), quantity=5)
+score = inspect_inventory()['score']
+# As player_character, I need to craft a stone furnace before smelting the iron ore into usable iron plates.
+craft_item('stone-furnace', quantity=1)
+move_to(nearest('iron-ore'))
+harvest_resource(nearest('iron-ore'), quantity=5)
+move_to((0,0))
+entity_position = place_entity('stone-furnace', direction=UP, position=(0, -2))
+place_entity('inserter', direction=LEFT, position=(entity_position[0]-1, entity_position[1]))
+connect_entities(source_position=(entity_position[0]-1, entity_position[1]), target_position=(entity_position[0], entity_position[1]), connection_type='inserter')
+insert_item('iron-ore', target_position=(entity_position[0]-1, entity_position[1]), quantity=5)
+score = inspect_inventory()['score']

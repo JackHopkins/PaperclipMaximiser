@@ -1,0 +1,51 @@
+[94mcomment("Inspect resources to find coal, iron, copper, and stone")
+resources = inspect_resources()
+[92m1: 
+2: 
+Score: 0
+[94mcomment("Find the nearest coal resource and move to it")
+coal_position = nearest("coal")
+move_to(coal_position)
+[92m1: 
+2: 
+3: 
+Score: 0
+[94mcomment("Place a burner-mining-drill on coal deposit")
+place_entity("burner-mining-drill", direction=LEFT, position=(coal_position[0] - 2, coal_position[1]))
+[92m1: 
+2: (-10, -5)
+Score: 0
+[94mcomment("Find the nearest stone resource and move to it")
+stone_position = nearest("stone")
+move_to(stone_position)
+[92m1: 
+2: 
+3: 
+Score: 0
+[94mcomment("Place a burner-mining-drill on stone deposit")
+place_entity("burner-mining-drill", direction=LEFT, position=(stone_position[0] - 2, stone_position[1]))
+[92m1: 
+2: Error: Could not place burner-mining-drill. "global.actions.place entity = function(player..."]:42: No burner mining drill in inventory.
+Score: 0
+[94mcomment("Harvest 5 stone from the stone deposit manually")
+harvest_resource(stone_position, quantity=5)
+[92m1: 
+2: 
+Score: 12
+[94mcomment("Craft a burner mining drill")
+craft_item("burner-mining-drill", quantity=1)
+[92m1: 
+2: 
+Score: 12
+[94mcomment("Place the crafted burner-mining-drill on stone deposit")
+place_entity("burner-mining-drill", direction=LEFT, position=(stone_position[0] - 2, stone_position[1]))
+[92m1: 
+2: (-11, 6)
+Score: 12
+[94mcomment("Find the nearest coal resource and move to it")
+coal_position = nearest("coal")
+move_to(coal_position)
+[92m1: 
+2: 
+3: 
+Score: 12

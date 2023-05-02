@@ -1,0 +1,97 @@
+[94mcomment("Check available natural resources")
+resources = inspect_resources()
+print(resources)
+[92mLine 1: 
+Line 2: 
+Line 3: 
+Score: 373
+[94mcomment("Find the nearest coal resource and move to it")
+coal_position = nearest('coal')
+move_to(coal_position)
+[92mLine 1: 
+Line 2: 
+Line 3: 
+Score: 373
+[94mcomment("Place a burner-mining-drill on the coal resource")
+place_entity('burner-mining-drill', direction=DOWN, position=(coal_position[0] - 2, coal_position[1]))
+[92mLine 1: 
+Line 2: (-10, -5)
+Score: 373
+[94mcomment("Find the nearest iron resource")
+iron_position = nearest('iron')
+move_to(iron_position)
+[92mLine 1: 
+Line 2: Error: No iron found on the map
+Score: 373
+[94mcomment("Find the nearest copper resource")
+copper_position = nearest('copper')
+move_to(copper_position)
+[92mLine 1: 
+Line 2: Error: No copper found on the map
+Score: 373
+[94mcomment("Find the nearest stone resource")
+stone_position = nearest('stone')
+move_to(stone_position)
+[92mLine 1: 
+Line 2: 
+Line 3: 
+Score: 373
+[94mcomment("Place a burner-mining-drill on the stone resource")
+place_entity('burner-mining-drill', direction=DOWN, position=(stone_position[0] - 2, stone_position[1]))
+[92mLine 1: 
+Line 2: Error: Could not place burner-mining-drill. "global.actions.place entity = function(player..."]:14: No burner mining drill in inventory.
+Score: 373
+[94mcomment("Check the inventory to see available items")
+inspect_inventory()
+[92mLine 1: 
+Line 2: {'iron-chest': 1, 'transport-belt': 50, 'stone-furnace': 1, 'assembling-machine-1': 1, 'coal': 50, 'iron-plate': 50, 'copper-plate': 50}
+Score: 373
+[94mcomment("Find the nearest coal resource")
+coal_position = nearest('coal')
+move_to(coal_position)
+[92mLine 1: 
+Line 2: 
+Line 3: 
+Score: 373
+[94mcomment("Place a burner-mining-drill on the coal resource")
+place_entity('burner-mining-drill', direction=RIGHT, position=(coal_position[0] + 2, coal_position[1]))
+[92mLine 1: 
+Line 2: Error: Could not place burner-mining-drill. "global.actions.place entity = function(player..."]:14: No burner mining drill in inventory.
+Score: 373
+[94mcomment("Craft a burner-mining-drill")
+craft_item('burner-mining-drill', quantity=1)
+[92mLine 1: 
+Line 2: 
+Score: 373
+[94mcomment("Place a burner-mining-drill on the coal resource")
+place_entity('burner-mining-drill', direction=RIGHT, position=(coal_position[0] + 2, coal_position[1]))
+[92mLine 1: 
+Line 2: (-7, -5)
+Score: 373
+[94mcomment("Add coal from inventory to the burner-mining-drill for fuel")
+insert_item('coal', target_position=(-7, -5), quantity=1)
+[92mLine 1: 
+Line 2: 
+Score: 370
+[94mcomment("Find the nearest stone resource to build stone furnaces")
+stone_position = nearest('stone')
+move_to(stone_position)
+[92mLine 1: 
+Line 2: 
+Line 3: 
+Score: 376
+[94mcomment("Place a burner-mining-drill on the stone resource")
+place_entity('burner-mining-drill', direction=RIGHT, position=(stone_position[0] + 2, stone_position[1]))
+[92mLine 1: 
+Line 2: Error: Could not place burner-mining-drill. "global.actions.place entity = function(player..."]:14: No burner mining drill in inventory.
+Score: 376
+[94mcomment("Craft a burner-mining-drill")
+craft_item('burner-mining-drill', quantity=1)
+[92mLine 1: 
+Line 2: Error: Could not craft a burner-mining-drill. "global.actions.craft item = function(player i..."]:72: Failed to craft 1x burner-mining-drill because missing ingredient stone
+Score: 376
+[94mcomment("Mine stone to craft the burner-mining-drill")
+harvest_resource(stone_position, quantity=5)
+[92mLine 1: 
+Line 2: Error: Could not harvest.. "global.actions.harvest resource = function(pl..."]:65: Could only harvest 0
+Score: 402

@@ -1,0 +1,56 @@
+[92mThere are 4.2k tree_01s scattered 23km northwest, 17km north-northwest, 16km north, 16km north-northeast, 21km northeast, 1km east-northeast, 3km west-northwest, 760 metres west, 32 metres east, 4km west-southwest, 720 metres east-southeast, 17km southeast, 17km southwest, 13km south-southwest, 13km south-southeast, and 11km south 
+- 100x coal 10 metres northwest (-17, -14) x (-8, -5)
+- 100x iron_ore 10 metres east-northeast (22, -14) x (31, -5)
+- 100x stone 10 metres southwest (-17, 6) x (-8, 15)
+- 100x copper_ore 10 metres east-southeast (22, 6) x (31, 15)
+- 100x uranium_ore 30 metres southeast (22, 26) x (31, 35)
+- There are 4.2k item_on_grounds scattered 15 metres northwest 
+[96m# Lets start by checking my inventory.
+[92m{'iron-chest': 1, 'transport-belt': 50, 'burner-mining-drill': 1, 'stone-furnace': 1, 'assembling-machine-1': 1, 'coal': 50, 'iron-plate': 50, 'copper-plate': 50}
+[96m# First, let's set up the coal and iron ore mining stations.
+[94mcoal_position = nearest('coal')
+iron_ore_position = nearest('iron_ore')
+place_entity('burner-mining-drill', direction=RIGHT, position=coal_position)
+place_entity('burner-mining-drill', direction=LEFT, position=iron_ore_position)
+[92mLine 1: True
+Line 2: Error: ('Could not place burner-mining-drill', 'No burner mining drill in inventory')
+[94m# I forgot that we only have one burner-mining-drill. Let's create another one.
+craft_item('burner-mining-drill', quantity=1)
+[92mLine 1: 1
+[94m# Now let's place the second burner-mining-drill at the iron_ore_position.
+place_entity('burner-mining-drill', direction=LEFT, position=iron_ore_position)
+[92mLine 1: True
+[94m# Now let's place a stone furnace next to the iron ore drill.
+furnace_position = (iron_ore_position[0]-1, iron_ore_position[1])
+place_entity('stone-furnace', position=furnace_position)
+[92mLine 1: Error: ('Could not place stone-furnace', 'No stone furnace in inventory')
+[94m# I need to craft a stone furnace before placing it.
+craft_item('stone-furnace', quantity=1)
+[92mLine 1: Error: ('Could not craft a stone-furnace', {'stone': 5})
+[94m# We don't have enough stone in our inventory, let's mine some stone.
+stone_position = nearest('stone')
+harvest_resource(stone_position, quantity=5)
+[92mLine 1: Error: ('Could not harvest.', 'Nothing_within_reach_to_harvest')
+[94m# Let's move closer to the stone resource and harvest it.
+move_to(stone_position)
+harvest_resource(stone_position, quantity=5)
+[92mLine 1: None
+Line 2: True
+[94m# Now that we have enough stone, let's craft the stone furnace.
+craft_item('stone-furnace', quantity=1)
+[92mLine 1: Error: ('Could not craft a stone-furnace', {'stone': 5})
+[94m# Sorry, I forgot to update the quantity. Let's try again with the correct number of stones.
+harvest_resource(stone_position, quantity=5)
+craft_item('stone-furnace', quantity=1)
+[92mLine 1: True
+Line 2: Error: ('Could not craft a stone-furnace', {'stone': 5})
+[94m# I apologize for the confusion. Let's harvest the correct amount of stone and then craft the furnace.
+harvest_resource(stone_position, quantity=10)
+craft_item('stone-furnace', quantity=1)
+[92mLine 1: True
+Line 2: Error: ('Could not craft a stone-furnace', {'stone': 5})
+[96m# I'm sorry for the confusion. Let's harvest the remaining stones and craft the furnace.
+[94mharvest_resource(stone_position, quantity=15)
+craft_item('stone-furnace', quantity=1)
+[92mLine 1: True
+Line 2: Error: ('Could not craft a stone-furnace', {'stone': 5})

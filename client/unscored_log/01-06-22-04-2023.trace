@@ -1,0 +1,137 @@
+# First, I need to create a mining operation for iron ore and coal and smelter setup to produce iron plates.
+# Inspect the resources and landscape around me
+inspect_resources()
+# Based on the inspection results, I'll identify the nearest coal and iron ore resources to begin my mining operation.
+coal_position = nearest('coal')
+iron_ore_position = nearest('iron_ore')
+# I'll move to the coal and iron ore resources and create the necessary mining drills and furnaces.
+move_to(coal_position)
+place_entity('burner-mining-drill', direction=LEFT, position=(coal_position[0]-2, coal_position[1]))
+move_to(iron_ore_position)
+place_entity('burner-mining-drill', direction=LEFT, position=(iron_ore_position[0]-2, iron_ore_position[1]))
+smelting_furnace_position = place_entity_next_to('stone-furnace', reference_position=iron_ore_position, direction='right', gap=1) 
+insertion_position = (smelting_furnace_position[0] + 1, smelting_furnace_position[1])
+place_entity_next_to('transport-belt', reference_position=smelting_furnace_position, direction='right', gap=1)
+connect_entities(source_position=nearest('burner-mining-drill'), target_position=smelting_furnace_position, connection_type='inserter') 
+craft_item('stone-furnace', quantity=1) 
+craft_item('burner-mining-drill', quantity=2) 
+craft_item('transport-belt', quantity=20) 
+craft_item('inserter', quantity=5)
+# I need to make sure that I have the necessary resources in my inventory to place the burner-mining drills.
+inspect_inventory()
+# I have the necessary resources in my inventory. I'll try to place the burner-mining drills again.
+move_to(coal_position)
+craft_item('burner-mining-drill', quantity=1)  # crafting 1 drill since we already have 1 in inventory
+place_entity('burner-mining-drill', direction=LEFT, position=(coal_position[0]-2, coal_position[1]))
+move_to(iron_ore_position)
+craft_item('burner-mining-drill', quantity=1)  # crafting 1 drill since we already have 2 in inventory
+place_entity('burner-mining-drill', direction=LEFT, position=(iron_ore_position[0]-2, iron_ore_position[1]))
+# I'll inspect the surroundings to identify what is blocking the placement of the burner-mining drills.
+inspect_entities(10)
+# There is already a burner-mining-drill placed at (-2, 0). I'll move to the next nearest coal resource and try again.
+coal_position = nearest('coal', exclude=[(i['position'][0], i['position'][1]) for i in inspect_entities(10)['entities']])
+move_to(coal_position)
+craft_item('burner-mining-drill', quantity=1)  # crafting 1 drill since we already have 2 in inventory
+place_entity('burner-mining-drill', direction=LEFT, position=(coal_position[0]-2, coal_position[1]))
+# Looks like we don't have enough resources to craft the burner-mining-drill. I'll craft the necessary items first.
+craft_item('stone-furnace', quantity=1) 
+craft_item('burner-mining-drill', quantity=5)  # crafting 5 drills since we need 3 more
+craft_item('transport-belt', quantity=50) 
+craft_item('inserter', quantity=10)
+# Now that we have enough resources, let's try placing the burner-mining-drills again.
+coal_position = nearest('coal', exclude=[(i['position'][0], i['position'][1]) for i in inspect_entities(10)['entities']])
+move_to(coal_position)
+place_entity('burner-mining-drill', direction=LEFT, position=(coal_position[0]-2, coal_position[1]))
+iron_ore_position = nearest('iron-ore', exclude=[(i['position'][0], i['position'][1]) for i in inspect_entities(10)['entities']])
+move_to(iron_ore_position)
+place_entity('burner-mining-drill', direction=LEFT, position=(iron_ore_position[0]-2, iron_ore_position[1]))
+# Let's inspect the surroundings again to see what is blocking the placement of the burner-mining-drills.
+inspect_entities(10)
+# Looks like we need to move a little further away from the already placed burner-mining-drill to avoid the collision.
+coal_position = nearest('coal', exclude=[(i['position'][0], i['position'][1]) for i in inspect_entities(10)['entities']])
+move_to(coal_position)
+place_entity('burner-mining-drill', direction=LEFT, position=(coal_position[0]-4, coal_position[1]))
+iron_ore_position = nearest('iron-ore', exclude=[(i['position'][0], i['position'][1]) for i in inspect_entities(10)['entities']])
+move_to(iron_ore_position)
+place_entity('burner-mining-drill', direction=LEFT, position=(iron_ore_position[0]-4, iron_ore_position[1]))
+# Sorry, I will skip to line 3 first.
+iron_ore_position = nearest('iron-ore', exclude=[(i['position'][0], i['position'][1]) for i in inspect_entities(10)['entities']])
+move_to(iron_ore_position)
+# Let's make sure we have the necessary items in our inventory before placing the burner-mining-drill.
+inspect_inventory()
+# We need more burner-mining-drills, let's craft one.
+craft_item('burner-mining-drill', quantity=1)
+# Oops, looks like we don't have enough stone. Let's go mine some.
+stone_position = nearest('stone')
+move_to(stone_position)
+harvest_resource(stone_position, quantity=50)
+# Now, let's craft the burner-mining-drill.
+craft_item('burner-mining-drill', quantity=1)
+# Now, let's place the burner-mining-drill to extract iron ore.
+iron_ore_position = nearest('iron-ore', exclude=[(i['position'][0], i['position'][1]) for i in inspect_entities(10)['entities']])
+place_entity('burner-mining-drill', direction=LEFT, position=(iron_ore_position[0]-2, iron_ore_position[1]))
+# Oh no! Looks like there was something in the way. Let's inspect the entities around us before placing the burner-mining-drill.
+inspect_entities(20)
+# It looks like there are some burner-mining-drills to the west of us. Let's move a bit to place the burner-mining-drill without overlapping.
+iron_ore_position = nearest('iron-ore', exclude=[(i['position'][0], i['position'][1]) for i in inspect_entities(10)['entities']])
+move_to((iron_ore_position[0]-4, iron_ore_position[1]))
+place_entity('burner-mining-drill', direction=LEFT, position=(iron_ore_position[0]-6, iron_ore_position[1]))
+# Let's inspect the entities again and see if there is any issue.
+inspect_entities(20)
+# Looks like we moved too far, let's move closer to the iron ore again.
+iron_ore_position = nearest('iron-ore', exclude=[(i['position'][0], i['position'][1]) for i in inspect_entities(10)['entities']])
+move_to((iron_ore_position[0]-3, iron_ore_position[1]))
+place_entity('burner-mining-drill', direction=LEFT, position=(iron_ore_position[0]-5, iron_ore_position[1]))
+# Let's inspect entities one more time.
+inspect_entities(20)
+# Ok, let's try a different approach now. Let's move to the iron ore deposit and place the burner-mining-drill exactly on it.
+iron_ore_position = nearest('iron-ore', exclude=[(i['position'][0], i['position'][1]) for i in inspect_entities(10)['entities']])
+move_to(iron_ore_position)
+place_entity('burner-mining-drill', direction=LEFT, position=iron_ore_position)
+# Great, we managed to install a burner mining drill on an iron ore deposit. Let's now install a furnace and a transport belt to automatically transport the iron plates from the furnace to the inventory.
+furnace_position = place_entity_next_to('stone-furnace', reference_position=iron_ore_position, direction=LEFT, gap=1)
+transport_belt_position = place_entity_next_to('transport-belt', reference_position=furnace_position, direction=LEFT, gap=1)
+connect_entities(source_position=iron_ore_position, target_position=furnace_position, connection_type='inserter')
+connect_entities(source_position=furnace_position, target_position=transport_belt_position, connection_type='transport_belt')
+# It looks like there is a typo in the last connect_entities command. Let's try again.
+connect_entities(source_position=iron_ore_position, target_position=furnace_position, connection_type='inserter')
+connect_entities(source_position=furnace_position, target_position=transport_belt_position, connection_type='transport-belt')
+# Since we have installed the furnace, let's start producing iron plates by placing coal inside the burner-mining-drill.
+inventory = inspect_inventory()
+if 'coal' in inventory and inventory['coal'] >= 1:
+    insert_item('coal', target_position=iron_ore_position, quantity=1)
+# It looks like we cannot insert coal into the burner mining drill because there is a small bug in the API. Let's use the harvest_resource command and pick up the produced iron instead.
+harvest_resource(iron_ore_position, quantity=5)
+move_to(furnace_position)
+insert_item('iron-ore', target_position=furnace_position, quantity=5)
+# Sorry about that, let's try first to move closer to the furnace before inserting the iron ore.
+harvest_resource(iron_ore_position, quantity=5)
+move_to(furnace_position, laying='transport-belt')
+insert_item('iron-ore', target_position=furnace_position, quantity=5)
+# It looks like there is an issue with the furnace position variable. Let's try to find the position again just in case.
+furnace_position = place_entity_next_to('stone-furnace', reference_position=iron_ore_position, direction=LEFT, gap=1)
+transport_belt_position = place_entity_next_to('transport-belt', reference_position=furnace_position, direction=LEFT, gap=1)
+connect_entities(source_position=iron_ore_position, target_position=furnace_position, connection_type='inserter')
+connect_entities(source_position=furnace_position, target_position=transport_belt_position, connection_type='transport-belt')
+harvest_resource(iron_ore_position, quantity=5)
+move_to(furnace_position, laying='transport-belt')
+insert_item('iron-ore', target_position=furnace_position, quantity=5)
+# I see, it looks like there may not be enough space to place the furnace. Let's try placing it in a different direction.
+furnace_position = place_entity_next_to('stone-furnace', reference_position=iron_ore_position, direction=UP, gap=1)
+transport_belt_position = place_entity_next_to('transport-belt', reference_position=furnace_position, direction=LEFT, gap=1)
+connect_entities(source_position=iron_ore_position, target_position=furnace_position, connection_type='inserter')
+connect_entities(source_position=furnace_position, target_position=transport_belt_position, connection_type='transport-belt')
+harvest_resource(iron_ore_position, quantity=5)
+move_to(furnace_position, laying='transport-belt')
+insert_item('iron-ore', target_position=furnace_position, quantity=5)
+# Sorry about that, there seems to be an issue with the connect_entities function. Let's try using the insert_items command to connect the fuel source with the furnace.
+furnace_position = place_entity_next_to('stone-furnace', reference_position=iron_ore_position, direction=UP, gap=1)
+transport_belt_position = place_entity_next_to('transport-belt', reference_position=furnace_position, direction=LEFT, gap=1)
+harvest_resource(iron_ore_position, quantity=5)
+move_to(furnace_position, laying='transport-belt')
+insert_item('iron-ore', target_position=furnace_position, quantity=5)
+inventory = inspect_inventory()
+if 'stone-furnace' in inventory and inventory['stone-furnace'] == 1:
+    entity_position = nearest_entity('stone-furnace')
+    insert_items('stone', source_position=entity_position, target_position=furnace_position, quantity=1)
+# It looks like there's still an issue with placing the furnace. Let's try a different method: placing it manually. 

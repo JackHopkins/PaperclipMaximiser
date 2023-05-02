@@ -53,6 +53,11 @@ class FactorioInstance:
         self.RIGHT = 2
         self.DOWN = 1
 
+    def reset(self, inventory):
+        self.script_dict = {**self.actions, **_load_init()}
+        self.initialise(**inventory)
+        self.initial_score = self.score()
+
     def connect_to_server(self, address, tcp_port):
         try:
             rcon_client = RCONClient(address, tcp_port, 'factorio')
@@ -141,8 +146,10 @@ class FactorioInstance:
                 sentences = ". ".join([str(part).replace("_", " ") for part in parts])
                 results[index] = f"Error: {sentences}"
                 break
-        print(f"Score: {self.score()}")
-        return '\n'.join([f"{i}: {str(r)}" for i, r in results.items()])
+
+
+        score = self.score()
+        return score, '\n'.join([f"{i}: {str(r)}" for i, r in results.items()])
 
     def eval(self, expr, timeout=15):
         "Evaluate several lines of input, returning the result of the last line with a timeout"

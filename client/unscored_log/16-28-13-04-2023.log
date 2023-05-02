@@ -1,0 +1,23 @@
+[92mThere are 4.2k tree_01s scattered 23km northwest, 17km north-northwest, 16km north, 16km north-northeast, 21km northeast, 1km east-northeast, 3km west-northwest, 760 metres west, 32 metres east, 4km west-southwest, 720 metres east-southeast, 17km southeast, 17km southwest, 13km south-southwest, 13km south-southeast, and 11km south 
+- 100x coal 10 metres northwest (-17, -14) x (-8, -5)
+- 100x iron_ore 10 metres east-northeast (22, -14) x (31, -5)
+- 100x stone 10 metres southwest (-17, 6) x (-8, 15)
+- 100x copper_ore 10 metres east-southeast (22, 6) x (31, 15)
+- 100x uranium_ore 30 metres southeast (22, 26) x (31, 35)
+[96m# Lets start by checking my inventory.
+[92m{'iron-chest': 1, 'transport-belt': 50, 'stone-furnace': 1, 'assembling-machine-1': 1, 'coal': 50, 'iron-plate': 50, 'copper-plate': 50}
+[96m# It seems we have some resources to start building our factory.
+[94m# First, let's place a few burner mining drills to extract the resources
+# We will place 10 burner mining drills on each resource and some transport belts to connect them to our inventory
+# Starting with coal
+coal_positions = [(-16, -13), (-15, -13), (-14, -13), (-13, -13), (-12, -13), (-17, -12), (-16, -12), (-15, -12), (-14, -12), (-13, -12)]
+for pos in coal_positions:
+    place_entity('burner-mining-drill', position=pos, direction=4)
+    move_to(pos, laying='transport-belt')
+[91mYou can't do that action. list index out of range
+[94m# Seems like I made a mistake with the positions. I will update the positions and try again.
+coal_positions = [(-16, -13), (-15, -13), (-14, -13), (-13, -13), (-12, -13), (-17, -12), (-16, -12), (-15, -12), (-14, -12), (-13, -12)]
+for pos in coal_positions:
+    place_entity('burner-mining-drill', position=pos, direction=4)
+    move_to(pos, laying='transport-belt')
+[91mYou can't do that action. list index out of range

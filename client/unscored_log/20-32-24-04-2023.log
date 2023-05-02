@@ -1,0 +1,16 @@
+[94mcomment("Inspect the natural resources and landscape")
+resources = inspect_resources()
+[92m1: 
+2: 
+Score: 0
+[94mcomment("Check for nearest resources")
+coal_position = nearest("coal")
+iron_position = nearest("iron-ore")
+copper_position = nearest("copper-ore")
+stone_position = nearest("stone")
+[92m1: 
+2: 
+3: 
+4: 
+5: 
+Score: 0

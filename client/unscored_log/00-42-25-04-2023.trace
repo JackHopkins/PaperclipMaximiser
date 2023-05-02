@@ -1,0 +1,87 @@
+comment("Inspect resources and landscape around")
+resources = inspect_resources()
+comment("Find the nearest coal deposit and move to its location")
+coal_position = nearest('coal')
+move_to(coal_position)
+comment("Place a burner-mining-drill on a buildable location near the coal deposit")
+drill_position = place_entity('burner-mining-drill', direction=RIGHT, position=nearest_buildable('burner-mining-drill'))
+comment("Inspect inventory to check for available coal")
+inventory = inspect_inventory()
+comment("Pick up coal from the ground if not available in the inventory")
+if 'coal' not in inventory or inventory['coal'] < 2:
+    pickup_entity('coal', coal_position)
+    inventory = inspect_inventory()
+comment("Insert 1 coal into the burner-mining-drill for fuel")
+insert_item('coal', target_position=drill_position, quantity=1)
+comment("Find the nearest iron ore deposit and move to its location")
+iron_ore_position = nearest('iron-ore')
+move_to(iron_ore_position)
+comment("Mine iron ore using the burner-mining-drill")
+harvest_resource(iron_ore_position, quantity=5)
+comment("Place a stone furnace near the iron ore deposit")
+furnace_position = place_entity('stone-furnace', direction=RIGHT, position=nearest_buildable('stone-furnace'))
+comment("Insert iron ore into the stone furnace for smelting")
+insert_item('iron-ore', target_position=furnace_position, quantity=5)
+comment("Extract iron plates from the stone furnace")
+extract_item('iron-plate', source_position=furnace_position, quantity=5)
+comment("Wait for the iron ore to smelt into iron plates before extracting")
+wait_for_smelting(furnace_position)
+comment("Extract iron plates from the stone furnace")
+extract_item('iron-plate', source_position=furnace_position, quantity=5)
+comment("I apologize for the confusion, there is no method for waiting for smelting to complete in this API. I'll use an alternate approach to proceed.")
+comment("Create a loop to keep checking the contents of the stone furnace for iron plates")
+iron_plates_available = False
+while not iron_plates_available:
+    comment("Inspect the contents of the stone furnace")
+    furnace_contents = inspect_entity_contents(furnace_position)
+    if 'iron-plate' in furnace_contents and furnace_contents['iron-plate'] >= 5:
+        iron_plates_available = True
+    else:
+        sleep(5)  comment("wait for 5 seconds before checking again")
+comment("I apologize for the mistake, here's the correct approach using sleep function and checking the contents of the stone furnace.")
+import time
+comment("Create a loop to keep checking the contents of the stone furnace for iron plates")
+iron_plates_available = False
+while not iron_plates_available:
+    comment("Inspect the contents of the stone furnace")
+    furnace_contents = inspect_entity_contents(furnace_position)
+    if 'iron-plate' in furnace_contents and furnace_contents['iron-plate'] >= 5:
+        iron_plates_available = True
+    else:
+        time.sleep(5)  comment("wait for 5 seconds before checking again")
+
+comment("Extract iron plates from the stone furnace")
+extract_item('iron-plate', source_position=furnace_position, quantity=5)
+comment("I apologize for the mistake, as I cannot use the sleep function in this environment. I will proceed with the next steps and assume the iron plates will be smelted.")
+comment("Find the nearest water body and move to its location")
+water_position = nearest('water')
+move_to(water_position)
+comment("Craft an offshore pump to extract water for the steam engines")
+craft_item('offshore-pump', quantity=1)
+comment("Install the offshore pump at the nearest buildable position close to the water")
+offshore_pump_position = place_entity('offshore-pump', direction=UP, position=nearest_buildable('offshore-pump'))
+comment("Craft a boiler and a steam engine for power generation")
+craft_item('boiler', quantity=1)
+craft_item('steam-engine', quantity=1)
+comment("Place the boiler next to the offshore pump")
+boiler_position = place_entity_next_to('boiler', reference_position=offshore_pump_position, direction=RIGHT, gap=1)
+comment("Place the steam engine next to the boiler")
+steam_engine_position = place_entity_next_to('steam-engine', reference_position=boiler_position, direction=RIGHT, gap=1)
+comment("Connect the offshore pump, boiler, and steam engine using pipes")
+connect_entities
+comment("Find the nearest water tile position suitable for placing the offshore pump")
+water_tile_position = nearest_water_tile('offshore-pump')
+move_to(water_tile_position)
+comment("Install the offshore pump at the water tile position")
+offshore_pump_position = place_entity('offshore-pump', direction=UP, position=water_tile_position)
+
+comment("Craft a boiler and a steam engine for power generation")
+craft_item('boiler', quantity=1)
+craft_item('steam-engine', quantity=1)
+
+comment("Place the boiler next to the offshore pump")
+boiler_position = place_entity_next_to('boiler', reference_position=offshore_pump_position, direction=RIGHT, gap=1)
+comment("Place the steam engine next to the boiler")
+steam_engine_position = place_entity_next_to('steam-engine', reference_position=boiler_position, direction=RIGHT, gap=1)
+
+comment("Connect the offshore pump, boiler, and steam engine using pipes")

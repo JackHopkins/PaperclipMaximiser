@@ -1,0 +1,8 @@
+comment("First, let's start by inspecting our surroundings")
+inspect_resources()
+inspect_entities(20)
+inspect_inventory()
+comment("Let's move to the ore deposit and place a mining drill on top of it")
+move_to(ore)
+place_entity('burner-mining-drill', direction=DOWN, exact=True, position=ore)
+inspect_entities(20)

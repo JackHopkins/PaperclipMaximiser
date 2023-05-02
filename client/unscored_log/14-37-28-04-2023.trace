@@ -1,0 +1,24 @@
+comment("Inspect surrounding resources to determine coal, iron, and copper positions")
+resources = inspect_resources()
+coal_position = resources['coal']
+iron_position = resources['iron']
+copper_position = resources['copper']
+
+
+
+comment("Inspect surrounding resources to determine coal, iron, and copper positions")
+resources = inspect_resources()
+coal_position = resources['coal']
+iron_position = resources['iron_ore']
+comment("Place a burner-mining-drill to mine coal")
+coal_mining_position = coal_position[0]['min_coordinates']
+move_to(coal_mining_position)
+coal_drill_position = place_entity('burner-mining-drill', direction=LEFT, exact=False, position=coal_mining_position)
+comment("Add coal to the burner-mining-drill for fuel")
+pickup_entity('coal', coal_mining_position)
+insert_item('coal', target_position=coal_drill_position, quantity=1)
+comment("Harvest coal from the coal mining position and add it to the burner-mining-drill for fuel")
+harvest_resource(coal_mining_position, quantity=1)
+insert_item('coal', target_position=coal_drill_position, quantity=1)
+comment("Inspect entities within a 20-meter radius to check for positioned burner-mining-drill")
+inspect_entities(20)

@@ -1,0 +1,70 @@
+[92mThere are 4.2k tree_01s scattered 23km northwest, 17km north-northwest, 16km north, 16km north-northeast, 21km northeast, 1km east-northeast, 3km west-northwest, 760 metres west, 32 metres east, 4km west-southwest, 720 metres east-southeast, 17km southeast, 17km southwest, 13km south-southwest, 13km south-southeast, and 11km south 
+- 100x coal 10 metres northwest (-17, -14) x (-8, -5)
+- 100x iron_ore 10 metres east-northeast (22, -14) x (31, -5)
+- 100x stone 10 metres southwest (-17, 6) x (-8, 15)
+- 100x copper_ore 10 metres east-southeast (22, 6) x (31, 15)
+- 100x uranium_ore 30 metres southeast (22, 26) x (31, 35)
+[96m# Lets start by checking my inventory.
+[92m{'iron-chest': 1, 'transport-belt': 50, 'burner-mining-drill': 1, 'stone-furnace': 1, 'assembling-machine-1': 1, 'coal': 50, 'iron-plate': 50, 'copper-plate': 50}
+[96m# Since I have some resources in my inventory, I will start building basic production factory
+# Let's start by placing a burner-mining-drill next to the coal.
+[94mcoal_position = nearest('coal')
+place_entity('burner-mining-drill', direction=2, position=coal_position)
+[92mTrue
+[94m# Now I will place another burner-mining-drill for iron_ore.
+iron_ore_position = nearest('iron_ore')
+place_entity('burner-mining-drill', direction=2, position=iron_ore_position)
+[91mCould not place burner-mining-drill. No burner mining drill in inventory
+[94m# I need to craft a burner-mining-drill first
+craft_item('burner-mining-drill', quantity=1)
+[92m1
+[94m# Now that I crafted a burner-mining-drill, I will place it next to the iron_ore.
+place_entity('burner-mining-drill', direction=2, position=iron_ore_position)
+[92mTrue
+[94m# I will place a stone-furnace next to the iron_ore burner-mining-drill to smelt the iron_ore into iron-plates.
+furnace_position = (iron_ore_position[0] - 1, iron_ore_position[1])
+place_entity('stone-furnace', direction=2, position=furnace_position)
+[91mCould not place stone-furnace. No stone furnace in inventory
+[94m# I need to craft a stone-furnace first
+craft_item('stone-furnace', quantity=1)
+[91mCould not craft a stone-furnace. {'stone': 5}
+[94m# I need to mine some stone to craft the stone-furnace.
+# Let's move to the stone resource and mine it.
+stone_position = nearest('stone')
+move_to(stone_position)
+harvest_resource(stone_position, quantity=5)
+[92mNone
+True
+[94m# Now that I have gathered enough stone, I will craft the stone-furnace.
+craft_item('stone-furnace', quantity=1)
+[92m1
+[94m# Now that I crafted a stone-furnace, I will place it next to the iron_ore burner-mining-drill.
+place_entity('stone-furnace', direction=2, position=furnace_position)
+[91mCould not place stone-furnace. Cant build there due to existing burner mining drill at 30,  11 and the size of the entity is 1
+[94m# I will place the stone-furnace one tile left from the iron_ore burner-mining-drill.
+furnace_position = (iron_ore_position[0] - 2, iron_ore_position[1])
+place_entity('stone-furnace', direction=2, position=furnace_position)
+[92mTrue
+[94m# Now, I will insert some coal into the burner-mining-drill for the iron_ore and the stone-furnace.
+insert_item('coal', target_position=iron_ore_position, quantity=5)
+insert_item('coal', target_position=furnace_position, quantity=5)
+[92mTrue
+True
+[94m# Next, we will place an assembling-machine-1 to automate production of simple items.
+# I will place it two tiles left from the stone-furnace.
+assembling_position = (furnace_position[0] - 2, furnace_position[1])
+place_entity('assembling-machine-1', direction=2, position=assembling_position)
+[92mTrue
+[94m# Now, I will set a recipe for the assembling-machine-1.
+# Let's make it produce transport-belts, since we have iron-plates in our inventory.
+set_entity_recipe(assembling_position, recipe='transport-belt')
+[91mCould not set recipe for transport-belt. No building found that could have its recipe set
+[94m# I forgot that the assembling-machine-1 cannot have recipes set directly. I'll craft an assembling-machine-2 instead
+# Pick up the assembling-machine-1
+pickup_entity(assembling_position)
+[91mCould not pickup.. Nothing to here to pick up
+[94m# I apologize for the mistake, it looks like I made an error with the API call. Let's try again.
+craft_item('assembling-machine-2', quantity=1)
+place_entity('assembling-machine-2', direction=2, position=assembling_position)
+set_entity_recipe(assembling_position, recipe='transport-belt')
+[91mCould not set recipe for transport-belt. No building found that could have its recipe set

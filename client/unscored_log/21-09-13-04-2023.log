@@ -1,0 +1,111 @@
+[92mThere are 4.2k tree_01s scattered 23km northwest, 17km north-northwest, 16km north, 16km north-northeast, 21km northeast, 1km east-northeast, 3km west-northwest, 760 metres west, 32 metres east, 4km west-southwest, 720 metres east-southeast, 17km southeast, 17km southwest, 13km south-southwest, 13km south-southeast, and 11km south 
+- 100x coal 10 metres northwest (-17, -14) x (-8, -5)
+- 100x iron_ore 10 metres east-northeast (22, -14) x (31, -5)
+- 100x stone 10 metres southwest (-17, 6) x (-8, 15)
+- 100x copper_ore 10 metres east-southeast (22, 6) x (31, 15)
+- 100x uranium_ore 30 metres southeast (22, 26) x (31, 35)
+[96m# Lets start by checking my inventory.
+[92m{'iron-chest': 1, 'transport-belt': 50, 'burner-mining-drill': 1, 'stone-furnace': 1, 'assembling-machine-1': 1, 'coal': 50, 'iron-plate': 50, 'copper-plate': 50}
+[96m# Great, I have enough items to start building the factory. Let's start with coal production.
+[94mcoal_position = nearest('coal')
+place_entity('burner-mining-drill', direction=RIGHT, position=coal_position)
+[92mTrue
+[94m# Now let's place a stone furnace next to the drill.
+furnace_position = (coal_position[0] + 1, coal_position[1])
+place_entity('stone-furnace', position=furnace_position)
+[91mCould not place stone-furnace. Cant build there due to existing burner mining drill at  8,  5 and the size of the entity is 1
+[94m# My apologies, let's move the stone furnace to the appropriate position.
+furnace_position = (coal_position[0] + 2, coal_position[1])
+place_entity('stone-furnace', position=furnace_position)
+[92mTrue
+[94m# Now, let's fuel the burner-mining-drill and stone-furnace.
+insert_item('coal', target_position=coal_position, quantity=5)
+insert_item('coal', target_position=furnace_position, quantity=5)
+[92mTrue
+True
+[94m# Great, now let's set up iron ore production.
+iron_ore_position = nearest('iron_ore')
+place_entity('burner-mining-drill', direction=LEFT, position=iron_ore_position)
+[91mCould not place burner-mining-drill. No burner mining drill in inventory
+[94m# I apologize for the mistake. Let's craft a new burner-mining-drill.
+craft_item('burner-mining-drill', quantity=1)
+# Now let's try placing it again.
+place_entity('burner-mining-drill', direction=LEFT, position=iron_ore_position)
+[91mCould not craft a burner-mining-drill. {'stone': 5}
+[94m# It seems I need stone to craft the burner-mining-drill. Let's mine some and then craft it.
+stone_position = nearest('stone')
+move_to(stone_position)
+harvest_resource(stone_position, quantity=5)
+craft_item('burner-mining-drill', quantity=1)
+[92mNone
+True
+1
+[94m# Now that we've crafted a new burner-mining-drill, let's set up the iron ore production.
+place_entity('burner-mining-drill', direction=LEFT, position=iron_ore_position)
+[92mTrue
+[94m# Let's place a stone furnace next to the iron ore burner-mining-drill.
+iron_furnace_position = (iron_ore_position[0] - 1, iron_ore_position[1])
+place_entity('stone-furnace', position=iron_furnace_position)
+[91mCould not place stone-furnace. No stone furnace in inventory
+[94m# My apologies again, let's craft a new stone-furnace.
+craft_item('stone-furnace', quantity=1)
+# Now let's try placing it again.
+place_entity('stone-furnace', position=iron_furnace_position)
+[91mCould not place stone-furnace. Cant build there due to existing burner mining drill at 30,  11 and the size of the entity is 1
+[94m# My bad, let's move the stone furnace to the appropriate position.
+iron_furnace_position = (iron_ore_position[0] - 2, iron_ore_position[1])
+place_entity('stone-furnace', position=iron_furnace_position)
+[92mTrue
+[94m# Now, let's fuel the iron ore burner-mining-drill and stone-furnace.
+insert_item('coal', target_position=iron_ore_position, quantity=5)
+insert_item('coal', target_position=iron_furnace_position, quantity=5)
+[92mTrue
+True
+[94m# Let's start with copper ore production.
+copper_ore_position = nearest('copper_ore')
+craft_item('burner-mining-drill', quantity=1)
+place_entity('burner-mining-drill', direction=LEFT, position=copper_ore_position)
+[92m1
+True
+[94m# Now let's place a stone furnace next to the copper ore burner-mining-drill.
+copper_furnace_position = (copper_ore_position[0] - 1, copper_ore_position[1])
+craft_item('stone-furnace', quantity=1)
+place_entity('stone-furnace', position=copper_furnace_position)
+[91mCould not place stone-furnace. Cant build there due to existing burner mining drill at 30, 0 and the size of the entity is 1
+[94m# Let's correct the stone furnace position for the copper ore production.
+copper_furnace_position = (copper_ore_position[0] - 2, copper_ore_position[1])
+place_entity('stone-furnace', position=copper_furnace_position)
+[92mTrue
+[94m# Now, let's fuel the copper ore burner-mining-drill and stone-furnace.
+insert_item('coal', target_position=copper_ore_position, quantity=5)
+insert_item('coal', target_position=copper_furnace_position, quantity=5)
+[92mTrue
+True
+[94m# Now, let's set up coal production.
+coal_position = nearest('coal')
+craft_item('burner-mining-drill', quantity=1)
+place_entity('burner-mining-drill', direction=LEFT, position=coal_position)
+[91mCould not place burner-mining-drill. Cant build there due to existing burner mining drill at 0,  11 and the size of the entity is 1
+[94m# I apologize for the mistake. Let's find an available position for the coal production.
+available_positions = [
+    (coal_position[0] - 1, coal_position[1]),
+    (coal_position[0] + 1, coal_position[1]),
+    (coal_position[0], coal_position[1] - 1),
+    (coal_position[0], coal_position[1] + 1)
+]
+[94m# Now let's place the burner-mining-drill at the first available position.
+for pos in available_positions:
+    if place_entity('burner-mining-drill', direction=LEFT, position=pos) == True:
+        coal_production_position = pos
+        break
+[94m# Let's fuel the coal burner-mining-drill.
+insert_item('coal', target_position=coal_production_position, quantity=5)
+[92mTrue
+[96m# Now that we have set up production for iron ore, copper ore, and coal, let's extract the resources.
+[94m# Extract iron plates from the stone furnace
+extract_item('iron-plate', source_position=iron_furnace_position, quantity=5)
+[91mCould not extract.. No item to extract
+[94m# Let's wait for the iron plates to be smelted and then extract them.
+wait_duration(20)
+extract_item('iron-plate', source_position=iron_furnace_position, quantity=5)
+[91mCould not extract.. No item to extract

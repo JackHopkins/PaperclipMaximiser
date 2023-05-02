@@ -56,16 +56,25 @@ def log_observation(message):
 test = \
 """
 ore = nearest("coal")
-#craft_item('stone-furnace', quantity=1)
-#craft_item('burner-mining-drill', quantity=1)
+entity_pos = place_entity('iron-chest', position=ore)
+
+one = place_entity_next_to('stone-furnace', reference_position=entity_pos, direction=UP, gap=5)
+two = place_entity_next_to('stone-furnace', reference_position=entity_pos, direction=RIGHT, gap=3)
+three = place_entity_next_to('stone-furnace', reference_position=entity_pos, direction=DOWN, gap=2)
+four = place_entity_next_to('stone-furnace', reference_position=entity_pos, direction=LEFT, gap=6)
+
+connect_entities(source_position=one, target_position=entity_pos)
+connect_entities(source_position=two, target_position=entity_pos)
+connect_entities(source_position=three, target_position=entity_pos)
+connect_entities(source_position=four, target_position=entity_pos)
+
+ore = nearest("stone")
 place_entity('burner-mining-drill', position=ore)
 
-place_entity_next_to('stone-furnace', reference_position=ore, direction=UP, gap=1)
+#place_entity_next_to('stone-furnace', reference_position=ore, direction=UP, gap=1)
 place_entity_next_to('stone-furnace', reference_position=ore, direction=RIGHT, gap=1)
 place_entity_next_to('stone-furnace', reference_position=ore, direction=DOWN, gap=1)
 place_entity_next_to('stone-furnace', reference_position=ore, direction=LEFT, gap=1)
-
-inspect_entities(5)
 """
 
 if __name__ == '__main__':
@@ -77,12 +86,12 @@ if __name__ == '__main__':
         'iron-chest': 1,
         'burner-mining-drill': 1,
         'assembling-machine-1': 1,
-        'stone-furnace': 4,
+        'stone-furnace': 8,
         'transport-belt': 50
     }
 
     factorio_runner = FactorioRunner("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",
-                                     #model="gpt-3.5-turbo",
+                                     model="gpt-3.5-turbo",
                                      inventory=inventory,
                                      buffer_size=16,
                                      beam=1
