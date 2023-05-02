@@ -119,9 +119,14 @@ global.actions.connect_entities = function(player_index, source_x, source_y, tar
                     source_inserter_position.y = source_inserter_position.y + direction_vector.y/2
                     can_build = player.surface.can_place_entity{name=connection_type, force=player.force, position=source_inserter_position, direction=direction}
             end
-            player.surface.create_entity{name = connection_type, position = source_inserter_position, force = player.force, direction = belt_direction}
+            local source_inserter = player.surface.create_entity{name = connection_type, position = source_inserter_position, force = player.force, direction = belt_direction}
+            local target_inserter = player.surface.create_entity{name = connection_type, position = target_inserter_position, force = player.force, direction = belt_direction}
 
-            player.surface.create_entity{name = connection_type, position = target_inserter_position, force = player.force, direction = belt_direction}
+            -- Set pickup and drop positions for terminal inserters
+            source_inserter.pickup_position = source_entity.position
+            source_inserter.drop_position = {x = source_inserter_position.x + direction_vector.x, y = source_inserter_position.y + direction_vector.y}
+            target_inserter.pickup_position = {x = target_inserter_position.x - direction_vector.x, y = target_inserter_position.y - direction_vector.y}
+            target_inserter.drop_position = target_position
 
             -- Create transport belts between terminal inserters
             local current_position = {
