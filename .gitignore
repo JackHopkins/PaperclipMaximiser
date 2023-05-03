@@ -7,3 +7,4 @@ cortex
 .env
 ~/PycharmProjects/PaperclipMaximiser/dev/
 /client/log/
+/client/unscored_log/

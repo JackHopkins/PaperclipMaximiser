@@ -55,6 +55,12 @@ def log_observation(message):
 
 test = \
 """
+
+ore = nearest("stone")
+five = place_entity('burner-mining-drill', position=ore)
+six = place_entity('stone-furnace', position=(ore[0]+8, ore[1]+8))
+connect_entities(source_position=five, target_position=six)
+
 ore = nearest("coal")
 entity_pos = place_entity('iron-chest', position=ore)
 
@@ -68,13 +74,11 @@ connect_entities(source_position=two, target_position=entity_pos)
 connect_entities(source_position=three, target_position=entity_pos)
 connect_entities(source_position=four, target_position=entity_pos)
 
-ore = nearest("stone")
-place_entity('burner-mining-drill', position=ore)
 
 #place_entity_next_to('stone-furnace', reference_position=ore, direction=UP, gap=1)
-place_entity_next_to('stone-furnace', reference_position=ore, direction=RIGHT, gap=1)
-place_entity_next_to('stone-furnace', reference_position=ore, direction=DOWN, gap=1)
-place_entity_next_to('stone-furnace', reference_position=ore, direction=LEFT, gap=1)
+#place_entity_next_to('stone-furnace', reference_position=ore, direction=RIGHT, gap=1)
+#place_entity_next_to('stone-furnace', reference_position=ore, direction=DOWN, gap=1)
+#place_entity_next_to('stone-furnace', reference_position=ore, direction=LEFT, gap=1)
 """
 
 if __name__ == '__main__':
