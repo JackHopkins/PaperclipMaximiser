@@ -1,9 +1,0 @@
-# Lets start by checking my inventory.
-# First, let's harvest the necessary resources.
-# Harvest 100 coal from (-17, -14) x (-8, -5)
-coal_position = (-17, -14)
-for i in range(10):
-    harvest_resource(coal_position, quantity=10)
-    move_to((coal_position[0]+1, coal_position[1]))
-# Let's move closer to the coal
-move_to((-22, -14))

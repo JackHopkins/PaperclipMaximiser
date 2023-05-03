@@ -1,2 +1,0 @@
-comment("Plan to extract iron ore near (-5, 10)")
-iron_ore_position = nearest('iron-ore', position=(-5, 10))

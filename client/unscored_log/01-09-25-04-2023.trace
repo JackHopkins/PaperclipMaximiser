@@ -1,7 +1,0 @@
-comment("First, check the natural resources around")
-resources = inspect_resources()
-comment("Find the nearest coal resources")
-coal_position = nearest('coal')
-comment("Move to the coal position")
-move_to(coal_position)
-coal_position

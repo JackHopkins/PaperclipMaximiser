@@ -1,7 +1,0 @@
-# Lets start by checking my inventory.
-# Let's set up a basic production line with materials available, starting with mining coal
-coal_position = nearest('coal')
-place_entity('burner-mining-drill', direction=DOWN, position=coal_position)
-# Mining iron ore
-iron_position = nearest('iron_ore')
-place_entity('burner-mining-drill', direction=DOWN, position=iron_position)

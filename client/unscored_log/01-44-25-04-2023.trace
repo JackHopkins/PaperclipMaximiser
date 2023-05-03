@@ -1,4 +1,0 @@
-comment("Inspect the natural resources and landscape around me")
-resources = inspect_resources()
-comment("Inspect the natural resources and landscape around me")
-resources = inspect_resources()

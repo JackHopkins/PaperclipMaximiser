@@ -1,4 +1,0 @@
-[94mcomment("Initialize game by inspecting resources and entities")
-inspect_resources()
-inspect_entities()
-[91mError: 'NoneType' object is not subscriptable

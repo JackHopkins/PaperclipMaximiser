@@ -1,8 +1,0 @@
-comment("First, let's examine our surroundings and available resources")
-inspect_resources()
-inspect_entities()
-comment("Next, let's move to the location of the iron ore we will be mining")
-move_to((-8, -5))
-comment("Now that we are at the location of the iron ore, let's place a burner mining drill and a stone furnace to begin processing it")
-place_entity('burner-mining-drill', direction=UP, position=(player_character.position[0]-1, player_character.position[1]))
-place_entity('stone-furnace', direction=UP, position=(player_character.position[0]-1, player_character.position[1]-2))

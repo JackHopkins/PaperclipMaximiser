@@ -1,4 +1,0 @@
-comment("My plan is to set up a basic mining operation by placing a burner-mining-drill near a coal deposit and a stone furnace near an iron-ore deposit. I will then connect the two using an inserter and set the recipe for the stone furnace to 'iron-plate'.")
-comment("Move to the ore deposit and place the burner mining drill")
-move_to(ore)
-burner_drill_pos = place_entity('burner-mining-drill', direction=DOWN, exact=False, position=ore)

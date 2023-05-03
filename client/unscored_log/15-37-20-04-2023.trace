@@ -1,5 +1,0 @@
-# First, I will check my inventory and surroundings to know where I stand
-check_inventory()
-inspect_resources()
-inspect_entities(20)
-# From the observations, it looks like I have enough coal to set up a basic mining operation. I will use a burner mining drill to extract coal

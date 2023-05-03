@@ -1,5 +1,0 @@
-# Command 1: Move to the nearest iron ore deposit
-iron_ore_position = nearest('iron-ore')
-move_to(iron_ore_position)
-# Command 2: Place a burner mining drill on the iron ore deposit
-place_entity('burner-mining-drill', direction=RIGHT, position=(iron_ore_position[0]+2, iron_ore_position[1]))

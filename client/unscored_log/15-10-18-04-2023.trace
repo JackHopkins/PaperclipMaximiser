@@ -1,3 +1,0 @@
-# Start by observing the resources and entities around you
-inspect_resources() 
-inspect_entities(20)

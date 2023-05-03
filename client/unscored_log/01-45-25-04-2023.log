@@ -1,7 +1,0 @@
-[94mcomment("Observe and describe the natural resources and landscape around me")
-resources = inspect_resources()
-print(resources)
-[91m1: Error: 'str' object is not a mapping
-[94mcomment("Inspect natural resources and landscape")
-resources = inspect_resources()
-print(resources)

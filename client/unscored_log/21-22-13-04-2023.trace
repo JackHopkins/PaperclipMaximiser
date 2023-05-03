@@ -1,9 +1,0 @@
-# Lets start by checking my inventory.
-# Let's set up coal mining with the burner-mining-drill facing right at the coal position
-coal_position = nearest('coal')
-place_entity('burner-mining-drill', direction=RIGHT, position=coal_position)
-insert_item('coal', target_position=coal_position, quantity=1)
-# Now we'll set up iron ore mining using another burner-mining-drill and fuel it with coal
-iron_ore_position = nearest('iron_ore')
-place_entity('burner-mining-drill', direction=RIGHT, position=iron_ore_position)
-insert_item('coal', target_position=iron_ore_position, quantity=1)

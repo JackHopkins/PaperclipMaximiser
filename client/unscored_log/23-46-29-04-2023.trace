@@ -1,3 +1,0 @@
-comment("First, let's inspect the resources and landscape around us")
-resources = inspect_resources()
-print("Resources:", resources)

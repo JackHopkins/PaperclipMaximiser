@@ -1,6 +1,0 @@
-# Lets start by checking my inventory.
-# First, let's set up drills for coal, iron ore, and copper ore
-coal_position = (-12, -10)
-iron_ore_position = (26, -10)
-copper_ore_position = (26, 10)
-# Lets start by checking my inventory.

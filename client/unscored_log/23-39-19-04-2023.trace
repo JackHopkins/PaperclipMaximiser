@@ -1,4 +1,0 @@
-# First, I will examine my surroundings to plan my next move
-inspect_resources()
-inspect_entities(20)
-check_inventory()

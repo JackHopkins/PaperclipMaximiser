@@ -1,6 +1,0 @@
-# First, I will move to the coal and place a burner drill and a stone furnace next to it. Then, I will move to the iron ore and place another burner drill and stone furnace setup. We will use these to smelt some basic resources. I will also place an iron chest nearby to store these resources.
-move_to(nearest('coal'));
-place_entity('burner-drill', direction=2, position=nearest('coal'));
-# Alright, we will attempt to use coordinates instead of 'nearest'.
-move_to((-17, -14));
-place_entity('burner-drill', direction=2, position=(-17, -14));

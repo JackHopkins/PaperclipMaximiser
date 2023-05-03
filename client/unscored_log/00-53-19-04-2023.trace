@@ -1,5 +1,0 @@
-# First, I want to check my surroundings and inspect resources
-resources = inspect_resources()
-# It looks like there are some trees nearby. I'll move to the nearest one and harvest it.
-move_to(nearest('tree'))
-harvest_resource(nearest('tree'), quantity=10)

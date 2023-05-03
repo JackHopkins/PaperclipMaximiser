@@ -61,6 +61,15 @@ five = place_entity('burner-mining-drill', position=ore)
 six = place_entity('stone-furnace', position=(ore[0]+8, ore[1]+8))
 connect_entities(source_position=five, target_position=six)
 
+seven = place_entity('stone-furnace', position=(ore[0]-8, ore[1]+8))
+#connect_entities(source_position=five, target_position=seven)
+
+eight = place_entity('stone-furnace', position=(ore[0]+8, ore[1]-8))
+#connect_entities(source_position=five, target_position=eight)
+
+nine = place_entity('stone-furnace', position=(ore[0]-8, ore[1]-8))
+#connect_entities(source_position=five, target_position=nine)
+
 ore = nearest("coal")
 entity_pos = place_entity('iron-chest', position=ore)
 

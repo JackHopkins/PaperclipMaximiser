@@ -1,7 +1,0 @@
-comment("Inspect the resources and landscape around")
-resources = inspect_resources()
-comment("Based on previous attempt, re-starting the process")
-comment("Inspect the resources and landscape around")
-resources = inspect_resources()
-comment("Finding the nearest coal resource for mining operations")
-coal_position = nearest('coal')

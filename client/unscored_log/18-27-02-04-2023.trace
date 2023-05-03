@@ -1,8 +1,0 @@
-# First, let's gather some resources.
-nature();
-goto(nearest('tree'));
-harvest((-2, 0), count=5);
-goto(nearest('iron_ore'));
-harvest((-2, 0), count=5);
-goto(nearest('copper_ore'));
-# harvest((-2, 

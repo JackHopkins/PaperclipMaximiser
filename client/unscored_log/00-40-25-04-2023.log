@@ -1,5 +1,0 @@
-[94mcomment("Inspect the resources around me")
-resources = inspect_resources()
-[94mcomment("Find the nearest coal and move to its location")
-coal_position = nearest('coal')
-move_to(coal_position)

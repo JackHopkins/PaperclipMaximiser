@@ -1,8 +1,0 @@
-# First, let's inspect the resources and surroundings
-inspect_resources()
-inspect_entities(20)
-# From inspecting the surroundings, we know there's coal nearby, so let's move towards it.
-coal_position = nearest('coal')
-move_to(coal_position)
-# Next, let's place our first burner mining drill to extract coal.
-place_entity('burner-mining-drill', direction=DOWN, position=(coal_position[0], coal_position[1] + 2))

@@ -1,5 +1,0 @@
-[94mcomment("Plan:")
-[94mcomment("Plan:")
-[94mcomment("The first step is to move to the ore deposit and lay transport belt as we go towards the smelting area.")
-[94mmove_to(ore, laying='transport-belt')
-[94mcomment("We'll now place a burner mining drill to extract the ore and a furnace to smelt it.")

@@ -1,5 +1,0 @@
-# Inspect the resources around me
-inspect_resources()
-# I will begin by placing a burner mining drill on the coal
-move_to(nearest('coal'))
-burner_mining_drill_position = place_entity('burner-mining-drill', direction=LEFT)

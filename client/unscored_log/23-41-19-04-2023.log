@@ -1,3 +1,0 @@
-[94m# First, I need to gather resources
-harvest_resource((-1, 2), quantity=10) # Gather 10 iron ore
-harvest_resource((-2, 2), quantity=10) # Gather 10 coal

@@ -1,9 +1,0 @@
-[94mcomment("First, let's observe our surroundings")
-inspect_resources()
-[92m1: {'water': [{'size': 900, 'min_coordinates': (-18, -50), 'max_coordinates': (31, -33)}], 'coal': [{'size': 100, 'min_coordinates': (-17, -14), 'max_coordinates': (-8, -5)}], 'iron_ore': [{'size': 100, 'min_coordinates': (22, -14), 'max_coordinates': (31, -5)}], 'stone': [{'size': 100, 'min_coordinates': (-17, 6), 'max_coordinates': (-8, 15)}], 'copper_ore': [{'size': 100, 'min_coordinates': (22, 6), 'max_coordinates': (31, 15)}], 'uranium_ore': [{'size': 100, 'min_coordinates': (22, 26), 'max_coordinates': (31, 35)}]}
-[94mcomment("Next, let's move to the ore deposit and place a burner-mining-drill.")
-move_to((-8, -5))
-place_entity('burner-mining-drill', position=(-8, -5), direction=DOWN, exact=True)
-[91mError line 2: Could not place burner-mining-drill at (-8, -5).  No burner mining drill in inventory.
-[94mcomment("Sorry about that, I forgot we need a miner drill in inventory. Let's craft one first.")
-craft_item('burner-mining-drill', quantity=1)

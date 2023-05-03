@@ -1,6 +1,0 @@
-[94mcomment("Find iron ore position")
-iron_ore_position = nearest('iron-ore')
-move_to(iron_ore_position)
-[94mcomment("Place a burner-mining-drill on iron ore")
-place_entity('burner-mining-drill', direction=LEFT, position=(iron_ore_position[0]-2, iron_ore_position[1]))
-[92mError: 1

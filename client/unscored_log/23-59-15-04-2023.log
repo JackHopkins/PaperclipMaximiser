@@ -1,3 +1,0 @@
-[94m# First, let's inspect our surroundings and resources
-inspect_resources()
-inspect_entities(20)

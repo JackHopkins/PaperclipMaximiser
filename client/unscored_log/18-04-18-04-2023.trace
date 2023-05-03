@@ -1,3 +1,0 @@
-# First, let's inspect our surroundings
-inspect_resources()
-inspect_entities(20)

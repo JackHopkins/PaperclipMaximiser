@@ -1,7 +1,0 @@
-comment("First, let's inspect our resources and surroundings")
-inspect_resources()
-inspect_entities(20)
-comment("Now, let's mine the ore located at (-8, -5) using a burner mining drill.")
-move_to((-8,-5))
-place_entity('burner-mining-drill', direction=DOWN, exact=True, position=ore)
-connect_entities(source_position=ore, target_position=nearest('stone-furnace'), connection_type='inserter')

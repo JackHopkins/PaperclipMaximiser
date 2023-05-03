@@ -1,3 +1,0 @@
-# Ok, let's start by placing a burner drill near the coal, iron_ore, stone, copper_ore, and uranium_ore. Then, we'll connect them with transport belts.
-move_to(nearest('coal'));
-place_entity('burner-drill', direction=2, position=nearest('coal'));

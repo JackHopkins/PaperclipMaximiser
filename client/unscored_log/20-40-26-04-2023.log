@@ -1,6 +1,0 @@
-[94mcomment("Plan:")
-[94mcomment("Plan:")
-[94mcomment("Plan:")
-[94mcomment("Let's move to the ore and extract it")
-move_to(ore)
-harvest_resource(ore, quantity=5)

@@ -1,3 +1,0 @@
-# Lets start by checking my inventory.
-# Great! Now, let's start by placing the burner drills to mine coal and iron
-place_entity('burner-mining-drill', direction=2, position=nearest('coal'));

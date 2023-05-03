@@ -1,2 +1,0 @@
-comment("Inspect available resources")
-resources = inspect_resources()

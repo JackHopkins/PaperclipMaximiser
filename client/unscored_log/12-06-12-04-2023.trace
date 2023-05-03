@@ -1,3 +1,0 @@
-# Lets start by checking my inventory.
-# Now we would want to start utilizing these resources and setting up a basic factory.
-place_entity('burner-drill', direction=2, position=nearest('coal'));

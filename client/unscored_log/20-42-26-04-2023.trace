@@ -1,5 +1,0 @@
-comment("Plan:")
-comment("Plan:")
-comment("The first step is to move to the ore deposit and lay transport belt as we go towards the smelting area.")
-move_to(ore, laying='transport-belt')
-comment("We'll now place a burner mining drill to extract the ore and a furnace to smelt it.")

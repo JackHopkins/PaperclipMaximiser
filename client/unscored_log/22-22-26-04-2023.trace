@@ -1,7 +1,0 @@
-comment("First, let's observe our surroundings")
-inspect_resources()
-comment("Next, let's move to the ore deposit and place a burner-mining-drill.")
-move_to((-8, -5))
-place_entity('burner-mining-drill', position=(-8, -5), direction=DOWN, exact=True)
-comment("Sorry about that, I forgot we need a miner drill in inventory. Let's craft one first.")
-craft_item('burner-mining-drill', quantity=1)

@@ -1,7 +1,0 @@
-# Lets start by checking my inventory.
-# Great, I have a few resources already. Next, let's look at the map around me using "observe_nature()"
-"The area around you is mostly clear, with trees occasionally dotted around. To the east, there is a small section of desert, and to the southeast, there is a large lake."
-# I'll now move towards the nearest burner_mining_drill and extract out some coal from it.
-if check_inventory()['burner-mining-drill'] != 0:
-    move_to(nearest('burner-mining-drill'))
-    extract_item('coal', source_position=nearest('burner-mining-drill'), quantity=10)

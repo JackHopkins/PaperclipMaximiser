@@ -1,7 +1,0 @@
-# First, I need to inspect my surroundings and take note of available resources
-inspect_resources()
-inspect_entities(20)
-# Based on my inspection, there seems to be a coal resource nearby. Let me head there and place a mining drill
-coal_position = nearest('coal')
-move_to(coal_position)
-place_entity('burner-mining-drill', direction=LEFT, position=(coal_position[0]-2, coal_position[1]))

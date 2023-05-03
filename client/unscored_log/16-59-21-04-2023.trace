@@ -1,4 +1,0 @@
-# First, let me check my surroundings
-inspect_resources()
-inspect_entities(20)
-check_inventory()

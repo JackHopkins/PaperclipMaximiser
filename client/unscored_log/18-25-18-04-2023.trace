@@ -1,3 +1,0 @@
-# Check inventory to see what resources I have
-resources = check_inventory()
-print(resources)

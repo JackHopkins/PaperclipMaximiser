@@ -1,5 +1,0 @@
-# Lets start by checking my inventory.
-# First, I will move to the nearest coal and place a burner drill.
-coal_position = nearest('coal')
-move_to(coal_position)
-place_entity('burner-drill', direction=2, position=coal_position)

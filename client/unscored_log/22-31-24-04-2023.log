@@ -1,4 +1,0 @@
-[94mcomment("Inspect available resources")
-resources = inspect_resources()
-[92m1: 
-2: 

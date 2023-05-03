@@ -1,6 +1,0 @@
-[94m# First, I will examine my surroundings to plan my next move
-inspect_resources()
-inspect_entities(20)
-check_inventory()
-[92mLine 1: Error: 'InspectResources' object has no attribute 'game state'
-Score: 0

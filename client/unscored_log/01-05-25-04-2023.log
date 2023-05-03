@@ -1,3 +1,0 @@
-[94mcomment("Find coal and iron ore locations")
-coal_position = nearest('coal')
-iron_position = nearest('iron-ore')

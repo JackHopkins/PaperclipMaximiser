@@ -1,6 +1,0 @@
-[94m# Plan: 
-[92mScore: 367
-[94m# Start by inspecting the resources around the player character
-inspect_resources()
-[92mLine 1: {'water': {'size': 900, 'direction': {'offset': 42, 'named_direction': 'north', 'min_coordinates': (-18, -50), 'max_coordinates': (31, -33)}}, 'coal': {'size': 100, 'direction': {'offset': 10, 'named_direction': 'northwest', 'min_coordinates': (-17, -14), 'max_coordinates': (-8, -5)}}, 'iron_ore': {'size': 100, 'direction': {'offset': 10, 'named_direction': 'east-northeast', 'min_coordinates': (22, -14), 'max_coordinates': (31, -5)}}, 'stone': {'size': 100, 'direction': {'offset': 10, 'named_direction': 'southwest', 'min_coordinates': (-17, 6), 'max_coordinates': (-8, 15)}}, 'copper_ore': {'size': 100, 'direction': {'offset': 10, 'named_direction': 'east-southeast', 'min_coordinates': (22, 6), 'max_coordinates': (31, 15)}}, 'uranium_ore': {'size': 100, 'direction': {'offset': 30, 'named_direction': 'southeast', 'min_coordinates': (22, 26), 'max_coordinates': (31, 35)}}}
-Score: 367

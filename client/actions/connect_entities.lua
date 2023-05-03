@@ -13,21 +13,6 @@ global.actions.connect_entities = function(player_index, source_x, source_y, tar
         error("Target entity not found.")
     end
 
-
-    local function get_direction(offset)
-        local direction = 0
-        if offset[1] > 0 then
-            direction = defines.direction.east
-        elseif offset[1] < 0 then
-            direction = defines.direction.west
-        elseif offset[2] > 0 then
-            direction = defines.direction.south
-        elseif offset[2] < 0 then
-            direction = defines.direction.north
-        end
-        return direction
-    end
-
     local is_vertical
     local function get_direction(source_position, target_position)
         if math.abs(source_position.y - target_position.y) > math.abs(source_position.x - target_position.x) then
@@ -82,56 +67,7 @@ global.actions.connect_entities = function(player_index, source_x, source_y, tar
         local dy = tgt.y - src.y
         return math.sqrt(dx * dx + dy * dy)
     end
-    local function calculate_direction_3(pos1, pos2)
-        local dx = pos2.x - pos1.x
-        local dy = pos2.y - pos1.y
 
-        if dx > 0 and dy > 0 then
-            return defines.direction.southeast
-        elseif dx > 0 and dy < 0 then
-            return defines.direction.northeast
-        elseif dx < 0 and dy > 0 then
-            return defines.direction.southwest
-        elseif dx < 0 and dy < 0 then
-            return defines.direction.northwest
-        elseif dx > 0 then
-            return defines.direction.east
-        elseif dx < 0 then
-            return defines.direction.west
-        elseif dy > 0 then
-            return defines.direction.south
-        elseif dy < 0 then
-            return defines.direction.north
-        end
-
-        return defines.direction.north
-    end
-
-    local function calculate_direction2(src, tgt)
-        local dx = tgt.x - src.x
-        local dy = tgt.y - src.y
-        local response
-        if math.abs(dy) > math.abs(dx) then
-            response = dy > 0 and defines.direction.south or defines.direction.north
-        else
-            response = dx < 0 and defines.direction.west or defines.direction.east
-        end
-        game.print(dump(src)..", "..dump(tgt)..', '..dump({x=dx, y=dy})..','..dump(response))
-        return response
-    end
-    local function get_direction_from_vector(offset)
-        local direction = 0
-        if offset.x > 0 then
-            direction = defines.direction.east
-        elseif offset.x < 0 then
-            direction = defines.direction.west
-        elseif offset.y > 0 then
-            direction = defines.direction.south
-        elseif offset.y < 0 then
-            direction = defines.direction.north
-        end
-        return direction
-    end
     local function opposite_direction(dir)
         game.print(dir)
         if dir == 2 then
@@ -176,13 +112,14 @@ global.actions.connect_entities = function(player_index, source_x, source_y, tar
         end
     end
 
-    function find_belt_placement_directions_jagged(source_position, target_position)
+    function find_belt_placement_directions_jagged(source_position, target_position, increments)
         local direction_vector = calculate_direction_vector(source_position, target_position)
         local distance = calculate_distance(target_position, source_position)
-        local steps = math.floor(distance)*3
+        local steps = math.floor(distance)*1.4*increments
 
         local directions = {}
-        local current_position = {x = source_position.x-direction_vector.x, y = source_position.y-direction_vector.y}
+        --local current_position = {x = source_position.x-direction_vector.x/increments, y = source_position.y-direction_vector.y/increments}
+        local current_position = {x = source_position.x- direction_vector.x/increments, y = source_position.y- direction_vector.y/increments}
 
         for i = 0, steps do
             local possible_directions = {
@@ -196,8 +133,8 @@ global.actions.connect_entities = function(player_index, source_x, source_y, tar
             local best_distance = math.huge
             for _, possible_direction in ipairs(possible_directions) do
                 local next_position = {
-                    x = current_position.x + possible_direction.vector.x/3,
-                    y = current_position.y + possible_direction.vector.y/3,
+                    x = current_position.x + possible_direction.vector.x/increments,
+                    y = current_position.y + possible_direction.vector.y/increments,
                 }
                 local next_distance = calculate_distance(target_position, next_position)
                 if next_distance <= best_distance then
@@ -208,34 +145,12 @@ global.actions.connect_entities = function(player_index, source_x, source_y, tar
 
             table.insert(directions, best_direction)
             local direction_vector = direction_to_vector(best_direction.direction)
-            current_position.x = current_position.x + direction_vector.x/3
-            current_position.y = current_position.y + direction_vector.y/3
+            current_position.x = current_position.x + direction_vector.x/increments
+            current_position.y = current_position.y + direction_vector.y/increments
         end
 
         return directions
     end
-    local function find_belt_placement_directions_straight(pos1, pos2)
-        local dx = pos2.x - pos1.x
-        local dy = pos2.y - pos1.y
-        local belt_sequence = {}
-
-        local dominant_direction = calculate_direction(pos1, pos2)
-        local secondary_direction = (dominant_direction == defines.direction.east or dominant_direction == defines.direction.west) and (dy > 0 and defines.direction.south or defines.direction.north) or (dx > 0 and defines.direction.east or defines.direction.west)
-
-        local dominant_distance = math.abs(dx) > math.abs(dy) and math.abs(dx) or math.abs(dy)
-        local secondary_distance = math.abs(dx) > math.abs(dy) and math.abs(dy) or math.abs(dx)
-
-        for i = 1, dominant_distance do
-            table.insert(belt_sequence, dominant_direction)
-        end
-
-        for i = 1, secondary_distance do
-            table.insert(belt_sequence, secondary_direction)
-        end
-
-        return belt_sequence
-    end
-
 
     local current_position = get_edge_position(source_entity.position, source_collision_box, direction)
     local distance = calculate_distance(source_position, target_position)
@@ -249,72 +164,88 @@ global.actions.connect_entities = function(player_index, source_x, source_y, tar
     elseif connector_prototype.type == "inserter" then
         if distance > 3 then
             local direction_vector = calculate_direction_vector(source_position, target_position)
-            local belt_direction = calculate_direction(source_position, target_position)
             local belt_name = 'transport-belt' -- Change to the desired transport belt type
 
-            -- Create terminal inserters
-            local source_inserter_position = {
-                x = source_position.x + direction_vector.x*connector_length,
-                y = source_position.y + direction_vector.y*connector_length,
-            }
-            local target_inserter_position = {
-                x = target_position.x - direction_vector.x*connector_length,
-                y = target_position.y - direction_vector.y*connector_length
-            }
-            -- Look for a place to build a source inserter
-            local can_build = player.surface.can_place_entity{name=connection_type, force=player.force, position=source_inserter_position, direction=direction}
-            while not can_build do
-                source_inserter_position.x = source_inserter_position.x + direction_vector.x/2
-                can_build = player.surface.can_place_entity{name=connection_type, force=player.force, position=source_inserter_position, direction=direction}
-                if can_build then
-                    break
-                end
-                source_inserter_position.y = source_inserter_position.y + direction_vector.y/2
-                can_build = player.surface.can_place_entity{name=connection_type, force=player.force, position=source_inserter_position, direction=direction}
+            local source_entity
+            local is_source_drill = false
+            if #source_entities > 0 then
+                source_entity = source_entities[1]
+                is_source_drill = source_entity.type == "mining-drill"
             end
-            local source_direction = calculate_direction(source_inserter_position, source_position)
 
-            local source_inserter = player.surface.create_entity{name = connection_type, position = source_inserter_position, force = player.force, direction = source_direction}
-            can_build = false
+            -- Create terminal inserters
+            local target_inserter_position = {
+                x = target_position.x,-- - direction_vector.x * connector_length,
+                y = target_position.y-- - direction_vector.y * connector_length
+            }
+            local can_build = false
             -- Look for a place to build a target inserter
             while not can_build do
-                target_inserter_position.x = target_inserter_position.x - direction_vector.x
+                target_inserter_position.x = target_inserter_position.x - direction_vector.x /4
                 can_build = player.surface.can_place_entity{name=connection_type, force=player.force, position=target_inserter_position, direction=direction}
                 if can_build then
                     break
                 end
-                target_inserter_position.y = target_inserter_position.y - direction_vector.y
+                target_inserter_position.y = target_inserter_position.y - direction_vector.y /4
                 can_build = player.surface.can_place_entity{name=connection_type, force=player.force, position=target_inserter_position, direction=direction}
             end
-            local target_direction = calculate_direction(target_inserter_position, target_position)
+            local target_direction = opposite_direction(calculate_direction(target_inserter_position, target_position))
             local target_inserter = player.surface.create_entity{name = connection_type, position = target_inserter_position, force = player.force, direction = target_direction}
 
-             -- Set pickup and drop positions for terminal inserters
-            source_inserter.pickup_position = source_entity.position
-            source_inserter.drop_position = {x = source_inserter_position.x + direction_vector.x, y = source_inserter_position.y + direction_vector.y}
-            target_inserter.pickup_position = {x = target_inserter_position.x - direction_vector.x, y = target_inserter_position.y - direction_vector.y}
-            target_inserter.drop_position = target_position
+            local belt_end_position = {x=target_inserter.position.x + (target_inserter.pickup_position.x-target_inserter.position.x)/2,
+                                         y=target_inserter.position.y + (target_inserter.pickup_position.y-target_inserter.position.y)/2}
 
-            -- Create transport belts between terminal inserters
-            local current_position = {
-                x = source_inserter_position.x - direction_vector.x/2,
-                y = source_inserter_position.y - direction_vector.y/2
-            }
-            local function round_position(pos)
-                return {x = math.floor(pos.x + 0.5), y = math.floor(pos.y + 0.5)}
+            -- Look for a place to build a source inserter
+            local can_build = false
+            local belt_start_position
+            if not is_source_drill then
+                local source_inserter_position = {
+                    x = source_position.x + direction_vector.x * connector_length,
+                    y = source_position.y + direction_vector.y * connector_length,
+                }
+
+                can_build = player.surface.can_place_entity{name=connection_type, force=player.force, position=source_inserter_position, direction=direction}
+                while not can_build do
+                    source_inserter_position.x = source_inserter_position.x + direction_vector.x/4
+                    can_build = player.surface.can_place_entity{name=connection_type, force=player.force, position=source_inserter_position, direction=direction}
+                    if can_build then
+                        break
+                    end
+                    source_inserter_position.y = source_inserter_position.y + direction_vector.y/4
+                    can_build = player.surface.can_place_entity{name=connection_type, force=player.force, position=source_inserter_position, direction=direction}
+                end
+                local source_direction = calculate_direction(source_inserter_position, source_position)
+
+                local source_inserter = player.surface.create_entity{name = connection_type, position = source_inserter_position, force = player.force, direction = source_direction}
+                can_build = false
+                belt_start_position = {x=source_inserter.position.x + (source_inserter.drop_position.x-source_inserter.position.x)/2,
+                                       y=source_inserter.position.y + (source_inserter.drop_position.y-source_inserter.position.y)/2}
+            else
+                -- Rotate the drill to the orientation that ensures the nearest drop_position to belt_end_position
+                local closest_direction, closest_distance
+                for _, direction in ipairs({defines.direction.north, defines.direction.east, defines.direction.south, defines.direction.west}) do
+                    source_entity.direction = direction
+                    local drop_position = source_entity.drop_position
+                    local distance = calculate_distance(drop_position, belt_end_position)
+                    if not closest_distance or distance < closest_distance then
+                        closest_distance = distance
+                        closest_direction = direction
+                    end
+                end
+                source_entity.direction = closest_direction
+                belt_start_position = source_entity.drop_position
             end
 
-            local belt_sequence = find_belt_placement_directions_jagged(source_inserter_position, target_inserter_position)
-            --local current_position = {x = source_inserter_position.x, y = source_inserter_position.y}
+            local increments = 4
+            local belt_sequence = find_belt_placement_directions_jagged(belt_start_position, belt_end_position, increments)
+            local current_position = {x = belt_start_position.x, y = belt_start_position.y}
 
             for i, belt_direction in ipairs(belt_sequence) do
-                game.print(dump(belt_direction))
                 local direction_vector = belt_direction.vector
 
-
                 local adjusted_position = {
-                    x = math.floor(current_position.x + 0.5),
-                    y = math.floor(current_position.y + 0.5),
+                    x = math.floor(current_position.x) + direction_vector.x/increments + 0.5,
+                    y = math.floor(current_position.y) + direction_vector.y/increments + 0.5,
                 }
 
                 local can_build = player.surface.can_place_entity{name=belt_name, force=player.force, position=adjusted_position, direction=belt_direction.direction}
@@ -322,31 +253,22 @@ global.actions.connect_entities = function(player_index, source_x, source_y, tar
                     player.surface.create_entity{name = belt_name, position = adjusted_position, force = player.force, direction = belt_direction.direction}
                 end
                 -- Move the current position in the direction of the belt
-                current_position.x = current_position.x + direction_vector.x/2
-                current_position.y = current_position.y + direction_vector.y/2
+                current_position.x = current_position.x + direction_vector.x/increments
+                current_position.y = current_position.y + direction_vector.y/increments
 
-                if calculate_distance(current_position, target_inserter_position) < 0.5 then
-                    break
+                local distance = calculate_distance(current_position, belt_end_position)
+                if distance < 0.1 then
+                    local next_position = {
+                        x=current_position.x + direction_vector.x,
+                        y=current_position.y + direction_vector.y
+                    }
+                    local can_build = player.surface.can_place_entity{name=belt_name, force=player.force, position=next_position, direction=belt_direction.direction}
+                    if can_build then
+                        player.surface.create_entity{name = belt_name, position = next_position, force = player.force, direction = belt_direction.direction}
+                        break
+                    end
+
                 end
-            end
-            while calculate_distance(current_position, target_inserter_position) > 0.5 do
-                break
-                local next_position = {
-                    x = current_position.x + direction_vector.x/2,
-                    y = current_position.y + direction_vector.y/2,
-                }
-
-                local adjusted_current_position = round_position(current_position)
-                local adjusted_next_position = round_position(next_position)
-
-                local belt_direction = calculate_direction(adjusted_current_position, adjusted_next_position)
-                local can_build = player.surface.can_place_entity{name=belt_name, force=player.force, position=adjusted_current_position, direction=belt_direction}
-
-                if can_build then
-                    --player.surface.create_entity{name = belt_name, position = adjusted_current_position, force = player.force, direction = belt_direction}
-                end
-
-                current_position = next_position
             end
             return 1
         else

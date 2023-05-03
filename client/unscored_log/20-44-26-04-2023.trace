@@ -1,4 +1,0 @@
-comment("Initially, let's observe the resources and entities")
-inspect_resources()
-inspect_entities(20)
-inspect_inventory()

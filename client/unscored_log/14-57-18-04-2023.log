@@ -1,3 +1,0 @@
-[94m# Simple mining operation
-coal_position = nearest('coal')
-iron_position = nearest('iron-ore')

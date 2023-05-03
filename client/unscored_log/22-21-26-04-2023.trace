@@ -1,7 +1,0 @@
-comment("First, I will inspect my surroundings and available resources.")
-inspect_resources()
-inspect_entities()
-comment("Next, I will move to the ore deposit.")
-move_to(ore)
-comment("Now that I'm at the ore deposit, I'll place a burner mining drill to extract the ore.")
-place_entity('burner-mining-drill', direction=DOWN, position=ore)
