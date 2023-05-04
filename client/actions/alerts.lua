@@ -217,8 +217,19 @@ end
 
 -- Define a function to check if the entity is a burner and has fuel
 local function has_fuel(entity)
-    if entity.burner and not entity.burner.currently_burning then
-        return false
+    if entity.burner then
+        if not entity.burner.currently_burning then
+            local fuel_inventory = entity.get_inventory(defines.inventory.fuel)
+            for item_name, item_count in pairs(fuel_inventory.get_contents()) do
+                local fuel_value = game.item_prototypes[item_name].fuel_value
+                if fuel_value and fuel_value > 0 then
+                    return true
+                end
+            end
+            return false
+        else
+            return true
+        end
     end
     return true
 end

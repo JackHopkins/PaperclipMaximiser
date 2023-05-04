@@ -54,8 +54,9 @@ class FactorioInstance:
         self.DOWN = 1
 
     def reset(self, inventory):
-        self.script_dict = {**self.actions, **_load_init()}
-        self.initialise(**inventory)
+        #self.script_dict = {**self.actions, **_load_init()}
+        #self.initialise(**inventory)
+        self._reset(**inventory)
         self.initial_score = self.score()
 
     def connect_to_server(self, address, tcp_port):
@@ -171,7 +172,6 @@ class FactorioInstance:
             except StopIteration:
                 self.observe()
 
-
     def _get_command(self, command, parameters=[], measured=True):
         prefix = "/c " if not measured else '/command '
         if command in self.script_dict:
@@ -191,6 +191,15 @@ class FactorioInstance:
 
     def comment(self, comment: str, *args):
         self.rcon_client.send_command(str(comment) + ", ".join(args))
+
+    def _reset(self, **kwargs):
+        self._send('clear_inventory', PLAYER)
+        self._send('reset_position', PLAYER, 0, 0)
+        self._send('regenerate_resources', PLAYER)
+        self._send('clear_entities', PLAYER)
+
+        for entity, count in kwargs.items():
+            self._send('give_item', PLAYER, entity, count)
 
     def initialise(self, **kwargs):
 

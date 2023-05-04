@@ -17,28 +17,31 @@ class MoveTo(Action):
         :param direction: Index between (0,3) inclusive.
         :return: Whether the movement was carried out.
         """
-        last_location = self.game_state.player_location
-        if laying:
-            response, execution_time = self.execute(PLAYER, x, y, laying, 1)
-        elif leading:
-            response, execution_time = self.execute(PLAYER, x, y, leading, 0)
-        else:
-            response, execution_time = self.execute(PLAYER, x, y, NONE, NONE)
+        try:
+            last_location = self.game_state.player_location
+            if laying:
+                response, execution_time = self.execute(PLAYER, x, y, laying, 1)
+            elif leading:
+                response, execution_time = self.execute(PLAYER, x, y, leading, 0)
+            else:
+                response, execution_time = self.execute(PLAYER, x, y, NONE, NONE)
 
-        if isinstance(response, int) and response == 0:
-            raise Exception("Could not move.")
+            if isinstance(response, int) and response == 0:
+                raise Exception("Could not move.")
 
-        if response == 'trailing' or response == 'leading':
-            raise Exception("Could not lay entity, perhaps a typo?")
+            if response == 'trailing' or response == 'leading':
+                raise Exception("Could not lay entity, perhaps a typo?")
 
-        if response:
-            self.game_state.player_location = (response['x'], response['y'])
-            movement_vector = (self.game_state.player_location[0] - last_location[0],
-                                    self.game_state.player_location[1] - last_location[1])
+            if response:
+                self.game_state.player_location = (response['x'], response['y'])
+                movement_vector = (self.game_state.player_location[0] - last_location[0],
+                                        self.game_state.player_location[1] - last_location[1])
 
-            self.last_observed_player_location = (self.game_state.last_observed_player_location[0] + movement_vector[0],
-                                                  self.game_state.last_observed_player_location[1] + movement_vector[1])
-        return response, execution_time
+                self.last_observed_player_location = (self.game_state.last_observed_player_location[0] + movement_vector[0],
+                                                      self.game_state.last_observed_player_location[1] + movement_vector[1])
+            return response, execution_time
+        except Exception as e:
+            raise Exception(f"Cannot move. {e}")
 
     def __call__(self,
                  absolute_position: Optional[Tuple[int, int]],

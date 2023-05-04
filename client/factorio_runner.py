@@ -196,7 +196,7 @@ class FactorioRunner:
             try:
                 error, reason = e.args
                 self.memory.log_error(f"Error line {error}: {str(reason).replace('_', ' ')}", line=int(error))
-            except Exception as e1:
+            except Exception as e2:
                 self.memory.log_error(f"You can't do that action. {str(e)}")
         alerts = self.instance.get_alerts()
 

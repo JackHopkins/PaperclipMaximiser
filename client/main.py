@@ -58,30 +58,30 @@ test = \
 
 ore = nearest("stone")
 five = place_entity('burner-mining-drill', position=ore)
-six = place_entity('stone-furnace', position=(ore[0]+8, ore[1]+8))
-connect_entities(source_position=five, target_position=six)
+six = place_entity_next_to('stone-furnace', reference_position=ore, direction=LEFT, gap=1)
+connect_entities(connection_type="burner-inserter", source_position=five, target_position=six)
 
-seven = place_entity('stone-furnace', position=(ore[0]-8, ore[1]+8))
+#seven = place_entity('stone-furnace', position=(ore[0]-8, ore[1]+8))
 #connect_entities(source_position=five, target_position=seven)
 
-eight = place_entity('stone-furnace', position=(ore[0]+8, ore[1]-8))
+#eight = place_entity('stone-furnace', position=(ore[0]+8, ore[1]-8))
 #connect_entities(source_position=five, target_position=eight)
 
-nine = place_entity('stone-furnace', position=(ore[0]-8, ore[1]-8))
+#nine = place_entity('stone-furnace', position=(ore[0]-8, ore[1]-8))
 #connect_entities(source_position=five, target_position=nine)
 
-ore = nearest("coal")
-entity_pos = place_entity('iron-chest', position=ore)
+#ore = nearest("coal")
+#entity_pos = place_entity('iron-chest', position=ore)
 
-one = place_entity_next_to('stone-furnace', reference_position=entity_pos, direction=UP, gap=5)
-two = place_entity_next_to('stone-furnace', reference_position=entity_pos, direction=RIGHT, gap=3)
-three = place_entity_next_to('stone-furnace', reference_position=entity_pos, direction=DOWN, gap=2)
-four = place_entity_next_to('stone-furnace', reference_position=entity_pos, direction=LEFT, gap=6)
+#one = place_entity_next_to('stone-furnace', reference_position=entity_pos, direction=UP, gap=5)
+#two = place_entity_next_to('stone-furnace', reference_position=entity_pos, direction=RIGHT, gap=3)
+#three = place_entity_next_to('stone-furnace', reference_position=entity_pos, direction=DOWN, gap=2)
+#four = place_entity_next_to('stone-furnace', reference_position=entity_pos, direction=LEFT, gap=6)
 
-connect_entities(source_position=one, target_position=entity_pos)
-connect_entities(source_position=two, target_position=entity_pos)
-connect_entities(source_position=three, target_position=entity_pos)
-connect_entities(source_position=four, target_position=entity_pos)
+#connect_entities(source_position=one, target_position=entity_pos)
+#connect_entities(source_position=two, target_position=entity_pos)
+#connect_entities(source_position=three, target_position=entity_pos)
+#connect_entities(source_position=four, target_position=entity_pos)
 
 
 #place_entity_next_to('stone-furnace', reference_position=ore, direction=UP, gap=1)
@@ -99,12 +99,14 @@ if __name__ == '__main__':
         'iron-chest': 1,
         'burner-mining-drill': 1,
         'assembling-machine-1': 1,
-        'stone-furnace': 8,
-        'transport-belt': 50
+        'stone-furnace': 1,
+        #'small-electric-pole': 10,
+        'transport-belt': 50,
+        #'pipe': 50
     }
 
     factorio_runner = FactorioRunner("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",
-                                     model="gpt-3.5-turbo",
+                                     #model="gpt-3.5-turbo",
                                      inventory=inventory,
                                      buffer_size=16,
                                      beam=1

@@ -72,10 +72,11 @@ To play, you must only use the methods from this python API with basic logical f
 
 Example:
 ```
-# Place a burner-mining-drill
-coal_position = nearest('coal')
-move_to(coal_position)
-place_entity('burner-mining-drill', direction=LEFT, exact=False, position=coal_position)
+# Place a burner-mining-drill and a furnace next to its drop point
+stone_position = nearest("stone")
+drill_position = place_entity('burner-mining-drill', position=stone_position, direction=UP)
+furnace_position = place_entity_next_to('stone-furnace', reference_position=ore, direction=UP, gap=0)
+
 # Check to ensure that burner-mining-drill has been placed 
 inspect_entities(5) 
 ```
@@ -100,6 +101,7 @@ class Memory(object):
         self.trace_file = "log/" + datetime.now().strftime("%H-%M-%d-%m-%Y") + ".trace"
         self.variables = {}
         self._score = []
+        self.current_score = 0
 
     def __iter__(self, *args, **kwargs) -> List[Slot]:
         """
@@ -135,8 +137,8 @@ class Memory(object):
     def log_score(self, score):
         self._score = self._score[-self.max_size:]
         self._score.append(score)
-
-        if self._score == self._score[-1] and len(self._score) == self.max_size:
+        self.current_score = self._score[-1] - self._score[0]
+        if self._score[0] == self._score[-1] and len(self._score) == self.max_size:
             raise InsufficientScoreException("Insufficient score. Resetting.")
         print("Score: ",score)
 
