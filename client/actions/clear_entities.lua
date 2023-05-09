@@ -7,7 +7,7 @@ global.actions.clear_entities = function(player_index)
         }
 
         for _, entity in ipairs(entities) do
-            if entity and entity.valid and entity.name ~= "player" then
+            if entity and entity.valid and entity.name ~= "character" and entity.type ~= "resource" then
                 entity.destroy()
             end
         end
@@ -32,6 +32,6 @@ global.actions.clear_entities = function(player_index)
 
     clear_area_of_player_placed_entities(player, area)
     reset_character_inventory(character)
-
+    player.force.reset()
     return 1
 end

@@ -1,4 +1,5 @@
 from bcolors import bcolors
+from models.event_type import EventType
 from models.memory import Memory
 
 
@@ -20,12 +21,12 @@ class SplitMemory(Memory):
         self.command_prompt = "Recent Commands: "
 
     def __next__(self):
-        variables = [(key, self.variables[key]) for key in list(dict.fromkeys(self.variables))[-self.max_observations:]]
-        var_string = '\n'.join([f"{key} = {val}" for key, val in variables])
-        variables_slot = [{"role": "user", "content": f"{self.variable_prompt}\n{var_string}"}] if variables else []
 
-        warning_string = "Warning: " + "\nWarning: ".join(self.warnings)
-        warnings_slot = [{"role": "user", "content": f"{self.warning_prompt}\n{warning_string}"}] if self.warnings else []
+        var_string = self.get_last_events(EventType.VARIABLE)
+        variables_slot = [{"role": "user", "content": f"{self.variable_prompt}\n{var_string}"}] if var_string else []
+
+        warning_string = self.get_last_events(EventType.WARNING)
+        warnings_slot = [{"role": "user", "content": f"{self.warning_prompt}\n{warning_string}"}] if warning_string else []
 
         messages = [{"role": "system", "content": self.brief}]
         if warnings_slot:
@@ -33,33 +34,11 @@ class SplitMemory(Memory):
         if variables_slot:
             messages += variables_slot
 
-        messages += [{"role": role, "content": command} for role, command in self.commands[-self.max_commands:]]
+        events = self.get_last_events([EventType.COMMAND, EventType.OBSERVATION, EventType.ERROR], number=self.max_commands)
+        for event in events:
+            messages += [{
+                "role": event.role,
+                "content": event.message
+            }]
+
         return messages
-
-    def log_warnings(self, alerts):
-        self.warnings = alerts
-
-    def log_observation(self, message):
-        output = f"{bcolors.OKGREEN}{message}"
-        self._log_to_file(output)
-        print(output)
-        self.observations.append(("assistant", message))
-
-    def log_command(self, message):
-        output = f"{bcolors.OKBLUE}{message}"
-        self._log_to_trace(message)
-        self._log_to_file(output)
-        print(output)
-        self.commands.append(("assistant", message))
-
-    def log_error(self, message, line=0):
-        output = f"{bcolors.FAIL}{message}"
-        self._log_to_file(output)
-        print(output)
-        role, last_command = self.commands[-1]
-        lines = last_command.split("\n")
-        last_command_lines = lines[:line+1]
-        rewritten_last_message = "\n".join(last_command_lines)
-        self.commands[-1] = role, rewritten_last_message
-
-        self.commands.append(("user", message))

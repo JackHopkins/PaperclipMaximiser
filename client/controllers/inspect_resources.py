@@ -81,8 +81,8 @@ class InspectResources:
                 direction = {
                     #"offset": abs(y_offset),
                     #"named_direction": named_dir,
-                    "min_coordinates": (x_min, y_min),
-                    "max_coordinates": (x_max, y_max)
+                    "top_left_position": (x_min, y_min),
+                    "bottom_right_position": (x_max, y_max)
                 }
 
                 if group_size < 50:

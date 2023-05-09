@@ -1,6 +1,7 @@
 from typing import Optional, Tuple
 
 from controllers._action import Action
+from controllers.observe_all import ObserveAll
 from factorio_instance import PLAYER, NONE
 from utilities.pathfinding import get_path
 
@@ -10,6 +11,7 @@ class MoveTo(Action):
     def __init__(self, connection, game_state):
         self.game_state = game_state
         super().__init__(connection, game_state)
+        self.observe = ObserveAll(connection, game_state)
 
     def _move(self, x: int, y: int, laying=None, leading=None) -> bool:
         """
@@ -53,12 +55,12 @@ class MoveTo(Action):
             if absolute_position is not None:
                 if not isinstance(absolute_position, Tuple):
                     raise Exception(
-                        f"You need to pass in a tuple like (x, y) for the absolute position. You passed in {type(absolute_position)}.")
+                        f"You need to pass in a tuple like (x, y) for the absolute position. You passed in the following: {str(absolute_position)}.")
                 start_x, start_y = self.game_state.player_location
                 relative_position = (absolute_position[0] - start_x, absolute_position[1] - start_y)
 
             if not isinstance(relative_position, Tuple):
-                raise Exception(f"You need to pass in a tuple like (x, y). You passed in {type(absolute_position)}.")
+                raise Exception(f"You need to pass in a tuple like (x, y). You passed in the following: {str(relative_position)}")
 
 
 
@@ -83,7 +85,7 @@ class MoveTo(Action):
             task_queue.extend(
                 [(lambda s: direction_from_step(s + (start_x, start_y), laying=laying, leading=leading))(s) for s in
                  path])
-            #task_queue.extend([(lambda: self.observe())()])
+            task_queue.extend([(lambda: self.observe())()])
 
             #self.tasks.append(iter(task_queue))
         except Exception as e:

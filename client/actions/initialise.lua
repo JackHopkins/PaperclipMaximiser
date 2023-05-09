@@ -535,19 +535,6 @@ function craft_entity(player, entity_name, count)
   return 1
 end
 
-function get_missing_ingredients2(player, recipe, count)
-  local missing_ingredients = {}
-  for _, ingredient in pairs(recipe.ingredients) do
-    local count_that_player_has = player.get_item_count(ingredient.name)
-    local needed = ingredient.amount * count
-    if count_that_player_has < needed then
-        local difference = needed - count_that_player_has
-        missing_ingredients[ingredient.name] = difference
-    end
-  end
-  return missing_ingredients
-end
-
 function get_missing_ingredients(player, recipe, count, checked_recipes)
   local missing_ingredients = {}
   checked_recipes = checked_recipes or {}
@@ -585,52 +572,6 @@ function get_missing_ingredients(player, recipe, count, checked_recipes)
     end
   end
   return missing_ingredients
-end
-
-
-function get_missing_ingredients2(player, recipe, count)
-  local missing_ingredients = {}
-  for _, ingredient in pairs(recipe.ingredients) do
-    if game.item_prototypes[ingredient.name] then
-      local count_that_player_has = player.get_item_count(ingredient.name)
-      local needed = ingredient.amount * count
-      if count_that_player_has < needed then
-          local difference = needed - count_that_player_has
-          missing_ingredients[ingredient.name] = difference
-      end
-    else
-      if game.fluid_prototypes[ingredient.name] then
-        abort("Crafting requires fluid ingredient " .. ingredient.name)
-      else
-        abort("Unknown ingredient " .. ingredient.name)
-      end
-    end
-  end
-  return missing_ingredients
-end
-
-
-
-function recursively_craft_missing_ingredients3(player, missing_ingredients)
-  local uncraftable_ingredients = {}
-  for ingredient_name, count in pairs(missing_ingredients) do
-    local is_fluid = game.fluid_prototypes[ingredient_name] ~= nil
-    if is_fluid then
-        uncraftable_ingredients[ingredient_name] = count
-    else
-      local success = craft_entity(player, ingredient_name, count)
-      if not success then
-        local recipe = player.force.recipes[ingredient_name]
-        if recipe then
-          local sub_missing_ingredients = get_missing_ingredients(player, recipe, count)
-          recursively_craft_missing_ingredients(player, sub_missing_ingredients)
-        else
-          uncraftable_ingredients[ingredient_name] = count
-        end
-      end
-    end
-  end
-  return uncraftable_ingredients
 end
 
 function recursively_craft_missing_ingredients(player, missing_ingredients)

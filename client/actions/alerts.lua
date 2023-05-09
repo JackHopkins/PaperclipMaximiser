@@ -255,7 +255,7 @@ local function has_output_space(entity)
         local drop_position = entity.drop_position
         local items_on_ground = entity.surface.find_entities_filtered{area = {{drop_position.x - 0.5, drop_position.y - 0.5}, {drop_position.x + 0.5, drop_position.y + 0.5}}, type = "item-entity"}
 
-        if #items_on_ground >= 1 or (resource and not output_inventory.is_empty() and output_inventory.can_insert(resource.prototype.mined_item) == false) then
+        if #items_on_ground >= 1 or (resource and output_inventory and not output_inventory.is_empty() and output_inventory and output_inventory.can_insert(resource.prototype.mined_item) == false) then
             return false
         end
     end

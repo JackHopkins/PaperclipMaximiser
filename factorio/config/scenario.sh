@@ -5,7 +5,7 @@ if [[ -z ${1:-} ]]; then
   echo "No argument supplied"
 fi
 
-SERVER_SCENARIO="$1"
+#SERVER_SCENARIO="$1"
 mkdir -p "$SAVES"
 mkdir -p "$CONFIG"
 mkdir -p "$MODS"
@@ -29,9 +29,9 @@ if [[ ! -f $CONFIG/map-settings.json ]]; then
   cp /opt/factorio/data/map-settings.example.json "$CONFIG/map-settings.json"
 fi
 
+# --start-server-load-scenario "$SERVER_SCENARIO" \
 exec /opt/factorio/bin/x64/factorio \
   --port "$PORT" \
-  --start-server-load-scenario "$SERVER_SCENARIO" \
   --map-gen-settings "$CONFIG/map-gen-settings.json" \
   --map-settings "$CONFIG/map-settings.json" \
   --server-settings "$CONFIG/server-settings.json" \

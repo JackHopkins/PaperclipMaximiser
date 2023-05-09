@@ -106,7 +106,7 @@ if __name__ == '__main__':
     }
 
     factorio_runner = FactorioRunner("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",
-                                     #model="gpt-3.5-turbo",
+                                     model="gpt-3.5-turbo",
                                      inventory=inventory,
                                      buffer_size=16,
                                      beam=1
@@ -116,6 +116,7 @@ if __name__ == '__main__':
     rcon = factorio_runner.instance.rcon_client
 
     try:
+        #factorio_runner.instance.eval("move_to((-5, -5))")
         factorio_runner.instance.eval(test)
         #pass
     except Exception as e:

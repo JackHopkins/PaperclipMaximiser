@@ -1,5 +1,14 @@
 global.actions.regenerate_resources = function(player_index)
     local player = game.players[player_index]
+    local surface = player.surface
+    for _, ore in pairs(surface.find_entities_filtered({type="resource"})) do
+        ore.amount = 10000
+    end
+    player.force.reset()
+end
+
+global.actions.regenerate_resources2 = function(player_index)
+    local player = game.players[player_index]
 
     local surface = player.surface
     for _, e in pairs(surface.find_entities_filtered{type="resource"}) do

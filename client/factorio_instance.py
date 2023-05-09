@@ -40,6 +40,7 @@ class FactorioInstance:
 
         self.script_dict = {**self.actions, **_load_init()}
         self.vocabulary = vocabulary
+        self.initial_inventory = inventory
         self.initialise(**inventory)
 
         self._load_actions(self.rcon_client, self.game_state)
@@ -53,11 +54,17 @@ class FactorioInstance:
         self.RIGHT = 2
         self.DOWN = 1
 
-    def reset(self, inventory):
+    def reset(self):
         #self.script_dict = {**self.actions, **_load_init()}
         #self.initialise(**inventory)
-        self._reset(**inventory)
-        self.initial_score = self.score()
+        self._reset(**self.initial_inventory)
+        try:
+            self.observe_all()
+        except Exception as e:
+            print(e)
+            pass
+        self.game_state.initial_score = 0
+        self.game_state.initial_score = self.score()
 
     def connect_to_server(self, address, tcp_port):
         try:
@@ -195,8 +202,10 @@ class FactorioInstance:
     def _reset(self, **kwargs):
         self._send('clear_inventory', PLAYER)
         self._send('reset_position', PLAYER, 0, 0)
-        self._send('regenerate_resources', PLAYER)
-        self._send('clear_entities', PLAYER)
+        #self._send('regenerate_resources', PLAYER)
+        self.clear_entities()
+        #self.regenerate_resources()
+        #self._send('clear_entities', PLAYER)
 
         for entity, count in kwargs.items():
             self._send('give_item', PLAYER, entity, count)

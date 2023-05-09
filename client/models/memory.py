@@ -1,9 +1,12 @@
 import json
 from datetime import datetime
-from typing import List
+from typing import List, Union
 
 from bcolors import bcolors
+from models.event import Event
+from models.event_type import EventType
 from models.insufficient_score_exception import InsufficientScoreException
+from models.role_type import RoleType
 from models.slot import Slot
 
 schema = \
@@ -93,7 +96,7 @@ class Memory(object):
 
     def __init__(self, size=10, max_history=16, ignore_members=[]):
         self._ignore_members = ignore_members
-        self.history = []
+        self.history: List[Event] = []
         self.max_size = max_history
         self.brief = brief
         self.size = size
@@ -114,40 +117,63 @@ class Memory(object):
     def log_variables(self, instance):
         members = [attr for attr in dir(instance) if not callable(getattr(instance, attr)) and not attr.startswith("__") and attr not in self._ignore_members]
 
+        variable_string = ""
         for member in members:
             self.variables[member] = instance.__dict__[member]
+            variable_string += f'\n{member} = {str(instance.__dict__[member])}'
+
+        self._log_history(variable_string.strip(), type=EventType.VARIABLE)
 
     def log_warnings(self, alerts):
         alert_string = "Warning: " + "\nWarning: ".join(alerts)
-        self._log_history(alert_string, "user", error=True)
+        self._log_history(alert_string, type=EventType.WARNING)
 
     def log_error(self, message, line=0):
         output = f"{bcolors.FAIL}{message}"
+
+        # If the previous command caused the error, truncate it to omit the code that wasn't run.
+        last_commands = self.get_last_events(EventType.COMMAND)
+        if last_commands:
+            last_command = last_commands[0]
+            lines = last_command.message.split("\n")
+            last_command_lines = lines[:line + 1]
+            rewritten_last_message = "\n".join(last_command_lines)
+            last_command.message = rewritten_last_message
+
         self._log_to_file(output)
         print(output)
-        self._log_history(message, "user", error=True)
+        self._log_history(message, type=EventType.ERROR)
 
     def log_command(self, message):
         output = f"{bcolors.OKBLUE}{message}"
         self._log_to_trace(message)
         self._log_to_file(output)
         print(output)
-        self._log_history(message, "assistant")
+        self._log_history(message, type=EventType.COMMAND)
 
     def log_score(self, score):
         self._score = self._score[-self.max_size:]
         self._score.append(score)
         self.current_score = self._score[-1] - self._score[0]
-        if self._score[0] == self._score[-1] and len(self._score) == self.max_size:
+        if self._score[0] == self._score[-1] and len(self._score) == self.max_size+1:
             raise InsufficientScoreException("Insufficient score. Resetting.")
         print("Score: ",score)
-
 
     def log_observation(self, message):
         output = f"{bcolors.OKGREEN}{message}"
         self._log_to_file(output)
         print(output)
-        self._log_history(message, "user")
+        self._log_history(message, type=EventType.OBSERVATION)
+
+    def get_last_events(self, types: Union[EventType, List[EventType]], number: int = 1):
+        if isinstance(types, int):
+            types = [types]
+        matching_events = [event for event in reversed(self.history) if event.type in types]
+        if not matching_events:
+            return []
+        subset = matching_events[:number]
+        subset.reverse()
+        return subset
 
     def _log_to_trace(self, message):
         with open(self.trace_file, "a") as f:
@@ -157,13 +183,24 @@ class Memory(object):
         with open(self.log_file, "a") as f:
             f.write(message + "\n")
 
-    def _log_history(self, message, role, error=False):
+    def _log_history(self, message, type:EventType = EventType.COMMAND):
         if isinstance(message, dict):
             message = json.dumps(message, indent = 4)
 
-        if self.history and self.history[-1]['role'] == role and not error:
-            self.history[-1]['content'] += f"\n{message}"
-        else:
-            self.history.append({
-                "role": role, "content": message
-            })
+        # The commands are what the agent makes, everything else is what the system makes.
+        if type == EventType.OBSERVATION \
+                or type == EventType.WARNING \
+                or type == EventType.ERROR \
+                or type == EventType.VARIABLE:
+            role = RoleType.USER
+        elif type == EventType.COMMAND:
+            role = RoleType.ASSISTANT
+
+        self.history.append(Event(role=role, message = message, type=type))
+
+        #if self.history and self.history[-1]['role'] == role and type != "error" and type != "warning":
+        #    self.history[-1]['content'] += f"\n{message}"
+        #else:
+        #    self.history.append({
+        #        "role": role, "content": message
+        #    })
