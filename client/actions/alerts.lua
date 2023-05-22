@@ -1,7 +1,7 @@
 global.alerts = {}
 
 -- Define a function to check if the transport belt is blocked
-local function is_transport_belt_blocked(entity)
+function is_transport_belt_blocked(entity)
     if entity.type == "transport-belt" then
         local line_1 = entity.get_transport_line(1)
         local line_2 = entity.get_transport_line(2)
@@ -40,183 +40,79 @@ local function is_transport_belt_blocked(entity)
     return false
 end
 
--- Define a function to check if the transport belt is blocked
-local function is_transport_belt_blocked_5(entity)
-    if entity.type == "transport-belt" then
-        local line_1 = entity.get_transport_line(1)
-        local line_2 = entity.get_transport_line(2)
+-- Define a function to check if an entity is full
+function is_full(entity)
+    -- Map inventory types to string names
+    local inventory_names = {
+        [defines.inventory.fuel] = "fuel source",
+        [defines.inventory.burnt_result] = "burnt result",
+        [defines.inventory.assembling_machine_input] = "assembling machine input",
+        [defines.inventory.assembling_machine_output] = "assembling machine output",
+        [defines.inventory.chest] = "chest",
+        [defines.inventory.furnace_source] = "furnace source",
+        [defines.inventory.furnace_result] = "furnace result",
+    }
 
-        local line_1_blocked = line_1 and not line_1.can_insert_at_back()
-        local line_2_blocked = line_2 and not line_2.can_insert_at_back()
+    local full_inventories = {}
 
-        if line_1_blocked or line_2_blocked then
-            local direction_vector = {
-                [0] = {x = 0, y = -1},  -- North
-                [2] = {x = 1, y = 0},   -- East
-                [4] = {x = 0, y = 1},   -- South
-                [6] = {x = -1, y = 0},  -- West
-            }
-
-            local dx = direction_vector[entity.direction].x
-            local dy = direction_vector[entity.direction].y
-            local next_position = {x = entity.position.x + dx, y = entity.position.y + dy}
-            local next_belts = entity.surface.find_entities_filtered {
-                area = {{next_position.x - 0.5, next_position.y - 0.5}, {next_position.x + 0.5, next_position.y + 0.5}},
-                type = "transport-belt"
-            }
-
-            if #next_belts == 0 then
-
-                local is_moving = false
-                for name, count in pairs(line_1.get_contents()) do
-                    if count > 0 then
-                        is_moving = true
-                        break
-                    end
-                end
-
-                if not is_moving then
-                    for name, count in pairs(line_2.get_contents()) do
-                        if count > 0 then
-                            is_moving = true
-                            break
-                        end
-                    end
-                end
-                game.print("Blocked belt: "..tostring(is_moving))
-                if not is_moving then
-                    return true
+    -- Iterate over all possible inventory types
+    for inventory_id, inventory_name in pairs(inventory_names) do
+        local inventory = entity.get_inventory(inventory_id)
+        -- Check if the entity has this type of inventory and if it's full
+        if inventory and #inventory > 0 then
+            for i = 1, #inventory do
+                -- Check if the slot is completely filled
+                local stack = inventory[i]
+                if not stack.valid_for_read or stack.count < stack.prototype.stack_size then  -- Slot is not completely filled
+                    goto continue
                 end
             end
-        end
-    end
-    return false
-end
--- Define a function to check if the transport belt is blocked
-local function is_transport_belt_blocked_4(entity)
-    if entity.type == "transport-belt" then
-        local line_1 = entity.get_transport_line(1)
-        local line_2 = entity.get_transport_line(2)
 
-        if line_1 and line_2 and not line_1.can_insert_at_back() and not line_2.can_insert_at_back() then
-            local direction_vector = {
-                [0] = {x = 0, y = -1},  -- North
-                [2] = {x = 1, y = 0},   -- East
-                [4] = {x = 0, y = 1},   -- South
-                [6] = {x = -1, y = 0},  -- West
-            }
-            game.print("Transport belt blocked")
-            local dx = direction_vector[entity.direction].x
-            local dy = direction_vector[entity.direction].y
-            local next_position = {x = entity.position.x + dx, y = entity.position.y + dy}
-            local next_belts = entity.surface.find_entities_filtered {
-                area = {{next_position.x - 0.5, next_position.y - 0.5}, {next_position.x + 0.5, next_position.y + 0.5}},
-                type = "transport-belt"
-            }
-
-            if #next_belts == 0 then
-                local is_moving = false
-                for name, count in pairs(line_1.get_contents()) do
-                    if count > 0 then
-                        is_moving = true
-                        break
-                    end
+            -- Determine a more specific message depending on the entity type
+            if entity.type == "furnace" then
+                if inventory_id == defines.inventory.fuel then
+                    inventory_name = "furnace fuel source"
+                elseif inventory_id == defines.inventory.furnace_source then
+                    inventory_name = "furnace source"
+                elseif inventory_id == defines.inventory.furnace_result then
+                    inventory_name = "furnace result"
                 end
-
-                if not is_moving then
-                    for name, count in pairs(line_2.get_contents()) do
-                        if count > 0 then
-                            is_moving = true
-                            break
-                        end
-                    end
+            elseif entity.type == "assembling-machine" then
+                if inventory_id == defines.inventory.assembling_machine_input then
+                    inventory_name = "assembler input"
+                elseif inventory_id == defines.inventory.assembling_machine_output then
+                    inventory_name = "assembler output"
                 end
-
-                if not is_moving then
-                    return true
+            elseif entity.type == "mining-drill" then
+                if inventory_id == defines.inventory.chest then
+                    inventory_name = "fuel source"
+                end
+            elseif entity.type == "chest" then
+                if inventory_id == defines.inventory.chest then
+                    inventory_name = "chest storage"
                 end
             end
+
+            table.insert(full_inventories, inventory_name .. " is full")  -- Add the name of the full inventory to the list
+
+            ::continue::
         end
     end
-    return false
+
+    return full_inventories
 end
 
--- Define a function to check if the transport belt is blocked
-local function is_transport_belt_blocked_3(entity)
-    if entity.type == "transport-belt" then
-        local belt_speed = entity.prototype.belt_speed
-        local line_1 = entity.get_transport_line(1)
-        local line_2 = entity.get_transport_line(2)
-
-        if line_1 and line_2 and not line_1.can_insert_at_back() and not line_2.can_insert_at_back() then
-            local direction_vector = {
-                [0] = {x = 0, y = -1},  -- North
-                [2] = {x = 1, y = 0},   -- East
-                [4] = {x = 0, y = 1},   -- South
-                [6] = {x = -1, y = 0},  -- West
-            }
-
-            local dx = direction_vector[entity.direction].x
-            local dy = direction_vector[entity.direction].y
-            local next_position = {x = entity.position.x + dx, y = entity.position.y + dy}
-            local next_belt = entity.surface.find_entities_filtered {
-                position = next_position,
-                type = "transport-belt",
-                limit = 1
-            }
-
-            if not next_belt[1] then
-                local is_moving = false
-                for _, item in ipairs(line_1.get_contents()) do
-                    if item > 0 then
-                        is_moving = true
-                        break
-                    end
-                end
-
-                if not is_moving then
-                    for _, item in ipairs(line_2.get_contents()) do
-                        if item > 0 then
-                            is_moving = true
-                            break
-                        end
-                    end
-                end
-
-                if not is_moving then
-                    return true
-                end
-            end
+function can_mine(entity)
+    if entity.type == "mining-drill" then
+        -- Check if there's no resource under the drill
+        if entity.mining_target == nil then
+           return false
         end
     end
-    return false
+    return true
 end
-
--- Define a function to check if the transport belt is blocked
-local function is_transport_belt_blocked2(entity)
-    if entity.type == "transport-belt" then
-        local belt_speed = entity.prototype.belt_speed
-        local line_1 = entity.get_transport_line(1)
-        local line_2 = entity.get_transport_line(2)
-
-        if line_1 and line_2 and not line_1.can_insert_at_back() and not line_2.can_insert_at_back() then
-            local next_belt = entity.surface.find_entities_filtered {
-                position = entity.position,
-                direction = entity.direction,
-                type = "transport-belt",
-                limit = 1
-            }
-
-            if not next_belt[1] then
-                return true
-            end
-        end
-    end
-    return false
-end
-
 -- Define a function to check if the entity is a burner and has fuel
-local function has_fuel(entity)
+function has_fuel(entity)
     if entity.burner then
         if not entity.burner.currently_burning then
             local fuel_inventory = entity.get_inventory(defines.inventory.fuel)
@@ -235,14 +131,14 @@ local function has_fuel(entity)
 end
 
 -- Define a function to check if the entity (furnace) has ingredients
-local function has_ingredients(entity)
+function has_ingredients(entity)
     if entity.type == "furnace" and entity.get_recipe() == nil then
         return false
     end
     return true
 end
 -- Define a function to check if the entity is a drill and has space to output
-local function has_output_space(entity)
+function has_output_space(entity)
     if entity.type == "mining-drill" and entity.mining_target then
         local output_inventory = entity.get_output_inventory()
         if output_inventory and output_inventory.is_full() then
@@ -263,7 +159,7 @@ local function has_output_space(entity)
 end
 
 -- Define a function to check if the entity requires electricity and has any
-local function has_electricity(entity)
+function has_electricity(entity)
     if entity.prototype.electric_energy_source_prototype then
         if entity.energy <= 0 then
             return false
@@ -273,7 +169,7 @@ local function has_electricity(entity)
 end
 
 -- Define a function to check if the entity (boiler) has necessary input liquid
-local function has_input_liquid(entity)
+function has_input_liquid(entity)
     if entity.type == "boiler" then
         local fluid_box = entity.fluidbox[1]
         if fluid_box == nil or fluid_box.amount <= 0 then
@@ -283,8 +179,70 @@ local function has_input_liquid(entity)
     return true
 end
 
+function is_inserter_waiting_for_source(entity)
+    if entity.type == "inserter" then
+        local pickup_target = entity.pickup_target
+        if pickup_target and pickup_target.valid then
+            local pickup_inventory = pickup_target.get_inventory(defines.inventory.chest)
+            if pickup_inventory and pickup_inventory.is_empty() then
+                return true
+            end
+        end
+    end
+    return false
+end
+
+
+function get_issues(entity)
+    local issues = {}
+
+    if not can_mine(entity) then
+        table.insert(issues, "\"nothing to mine\"")
+    end
+    if not has_fuel(entity) then
+        table.insert(issues, "\"out of fuel\"")
+    end
+    if not has_ingredients(entity) then
+        table.insert(issues, "\"no ingredients to smelt\"")
+    end
+    if is_inserter_waiting_for_source(entity) then
+        table.insert(issues, "\"inserter waiting for source items\"")
+    end
+
+    local full_inventories = is_full(entity)
+    for _, full_inventory in ipairs(full_inventories) do
+        table.insert(issues, "\""..full_inventory.."\"")
+    end
+
+    if not has_output_space(entity) then
+        if entity.drop_position ~= nil then
+            local rounded_x = round_to_half(entity.drop_position.x)
+            local rounded_y = round_to_half(entity.drop_position.y)
+
+            table.insert(issues, "\"waiting for space in destination as the output is full. Place a transport-belt, chest or furnace at (" .. rounded_x .. ", ".. rounded_y .. ") to unblock.\"")
+        else
+            table.insert(issues, "\"waiting for space in destination\"")
+        end
+    end
+    if not has_electricity(entity) then
+        table.insert(issues, "not_receiving_electricity")
+    end
+    local assembler_issue = lacks_assembler_resources(entity)
+    if assembler_issue then
+        table.insert(issues, assembler_issue)
+    end
+
+    if is_transport_belt_blocked(entity) then
+        table.insert(issues, "\"transport belt blocked. Place an inserter to drain entities from it.\"")
+    end
+
+    if not has_input_liquid(entity) then
+        table.insert(issues, "\"no input liquid\"")
+    end
+    return issues
+end
 -- Define a function to check if the entity is an assembler machine and lacks resources
-local function lacks_assembler_resources(entity)
+function lacks_assembler_resources(entity)
     if entity.type == "assembling-machine" then
         local recipe = entity.get_recipe()
         if recipe then
@@ -309,7 +267,7 @@ local function lacks_assembler_resources(entity)
 end
 
 -- Define a helper function to round a number to the nearest 0.5
-local function round_to_half(number)
+function round_to_half(number)
     return math.floor(number * 2 + 0.5) / 2
 end
 
@@ -321,39 +279,7 @@ local function on_tick(event)
         for _, surface in pairs(game.surfaces) do
             local entities = surface.find_entities_filtered({force = "player"})
             for _, entity in pairs(entities) do
-                local issues = {}
-
-                if not has_fuel(entity) then
-                    table.insert(issues, "\"out of fuel\"")
-                end
-                if not has_ingredients(entity) then
-                    table.insert(issues, "\"no ingredients to smelt\"")
-                end
-                if not has_output_space(entity) then
-                    if entity.drop_position ~= nil then
-                        local rounded_x = round_to_half(entity.drop_position.x)
-                        local rounded_y = round_to_half(entity.drop_position.y)
-
-                        table.insert(issues, "\"waiting for space in destination as the output is full. Place a transport-belt, chest or furnace at (" .. rounded_x .. ", ".. rounded_y .. ") to unblock.\"")
-                    else
-                        table.insert(issues, "\"waiting for space in destination\"")
-                    end
-                end
-                if not has_electricity(entity) then
-                    table.insert(issues, "not_receiving_electricity")
-                end
-                local assembler_issue = lacks_assembler_resources(entity)
-                if assembler_issue then
-                    table.insert(issues, assembler_issue)
-                end
-
-                if is_transport_belt_blocked(entity) then
-                    table.insert(issues, "transport_belt_blocked")
-                end
-
-                if not has_input_liquid(entity) then
-                    table.insert(issues, "\"no input liquid\"")
-                end
+                local issues = get_issues(entity)
 
                 if #issues > 0 then
                     local position = entity.position

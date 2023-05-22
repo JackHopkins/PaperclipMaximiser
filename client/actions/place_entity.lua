@@ -155,6 +155,7 @@ global.actions.place_entity = function(player_index, entity, direction, x, y, ex
         if have_built then
             player.remove_item{name=entity, count=1}
             game.print("Placed "..entity)
+            game.print(dump(entity))
             return {x= position.x, y = position.y}
         end
     end

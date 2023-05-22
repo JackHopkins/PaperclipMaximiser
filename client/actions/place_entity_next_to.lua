@@ -24,6 +24,7 @@ global.actions.place_entity_next_to = function(player_index, entity, ref_x, ref_
         local ref_height = ref_bb.right_bottom.y - ref_bb.left_top.y
         local ref_width = ref_bb.right_bottom.x - ref_bb.left_top.x
 
+        --- THIS HAS A BUG IN IT
         if direction == 1 then -- North
             dx = 0
             dy = -(ref_bb.right_bottom.y - ref_bb.left_top.y + entity_bb.right_bottom.y - entity_bb.left_top.y - 2 + gap)
@@ -37,6 +38,22 @@ global.actions.place_entity_next_to = function(player_index, entity, ref_x, ref_
             dx = -(ref_bb.right_bottom.x - ref_bb.left_top.x + entity_bb.right_bottom.x - entity_bb.left_top.x -2 + gap)
             dy = 0
         end
+        ---
+
+        if direction == 1 then -- North
+            dx = 0
+            dy = -(ref_height / 2 + entity_bb.right_bottom.y - entity_bb.left_top.y / 2 + gap)
+        elseif direction == 2 then -- South
+            dx = 0
+            dy = ref_height / 2 + entity_bb.right_bottom.y - entity_bb.left_top.y / 2 + gap
+        elseif direction == 3 then -- East
+            dx = ref_width / 2 + entity_bb.right_bottom.x - entity_bb.left_top.x / 2 + gap
+            dy = 0
+        else -- West
+            dx = -(ref_width / 2 + entity_bb.right_bottom.x - entity_bb.left_top.x / 2 + gap)
+            dy = 0
+        end
+
 
         target_position = {x = ref_x + dx, y = ref_y + dy}
     else
@@ -58,11 +75,17 @@ global.actions.place_entity_next_to = function(player_index, entity, ref_x, ref_
 
     clear_items(surface, target_area)
 
-    if surface.count_entities_filtered{area = target_area, type = entity} > 0 then
+    if surface.count_entities_filtered{area = target_area, name = entity} > 0 then
         error("There is an existing entity in the target position.")
     end
+    local can_build = player.surface.can_place_entity{name=entity, force=player.force, position=target_position, direction = direction}
+    if can_build then
+        local new_entity = surface.create_entity{name = entity, position = target_position, direction = direction, force = player.force}
+        game.print(dump(new_entity))
+    else
+        error("There is an existing entity in the target position.")
 
-    local new_entity = surface.create_entity{name = entity, position = target_position, force = player.force}
+    end
     return target_position
 end
 
@@ -169,8 +192,8 @@ global.actions.place_entity_next_to_2 = function(player_index, entity, ref_x, re
         height = height + existing_height
 
         -- Correct reference position to be the centroid of the existing entity
-        ref_position.x = existing_entity.position.x --+ existing_width / 2
-        ref_position.y = existing_entity.position.y --+ existing_height / 2
+        ref_position.x = existing_entity.position.x + existing_width / 2
+        ref_position.y = existing_entity.position.y + existing_height / 2
     end
 
     local target_position = {x = ref_position.x, y = ref_position.y}
@@ -199,6 +222,7 @@ global.actions.place_entity_next_to_2 = function(player_index, entity, ref_x, re
         local placed_entity = player.surface.create_entity{name=entity, force=player.force, position=target_position, direction=orientation}
         if placed_entity then
             player.remove_item{name=entity, count=1}
+            game.print(dump(entity))
             return {x=target_position.x, y=target_position.y}
 
         else

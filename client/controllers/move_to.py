@@ -34,7 +34,7 @@ class MoveTo(Action):
             if response == 'trailing' or response == 'leading':
                 raise Exception("Could not lay entity, perhaps a typo?")
 
-            if response:
+            if response and isinstance(response, dict):
                 self.game_state.player_location = (response['x'], response['y'])
                 movement_vector = (self.game_state.player_location[0] - last_location[0],
                                         self.game_state.player_location[1] - last_location[1])
@@ -46,18 +46,21 @@ class MoveTo(Action):
             raise Exception(f"Cannot move. {e}")
 
     def __call__(self,
-                 absolute_position: Optional[Tuple[int, int]],
-                 relative_position: Tuple[int, int] = (0, 0),
+                 position: Tuple[int, int] = (0, 0),
+                 #absolute_position: Optional[Tuple[int, int]],
+                 #relative_position: Tuple[int, int] = (0, 0),
                  laying=None,
                  leading=None,
                  **kwargs):
+        if laying != None:
+            pass
         try:
-            if absolute_position is not None:
-                if not isinstance(absolute_position, Tuple):
+            if position is not None:
+                if not isinstance(position, Tuple):
                     raise Exception(
-                        f"You need to pass in a tuple like (x, y) for the absolute position. You passed in the following: {str(absolute_position)}.")
+                        f"You need to pass in a tuple like (x, y) for the absolute position. You passed in the following: {str(position)}.")
                 start_x, start_y = self.game_state.player_location
-                relative_position = (absolute_position[0] - start_x, absolute_position[1] - start_y)
+                relative_position = (position[0] - start_x, position[1] - start_y)
 
             if not isinstance(relative_position, Tuple):
                 raise Exception(f"You need to pass in a tuple like (x, y). You passed in the following: {str(relative_position)}")

@@ -9,14 +9,14 @@ class PickupEntity(Action):
     def __init__(self, *args):
         super().__init__(*args)
 
-    def __call__(self, name: str, position: Tuple[int, int], relative=False) -> bool:
+    def __call__(self, entity: str, position: Tuple[int, int], relative=False) -> bool:
         x, y = position
 
         if relative:
             x += self.game_state.last_observed_player_location[0]
             y += self.game_state.last_observed_player_location[1]
 
-        response, elapsed = self.execute(PLAYER, x, y, name)
+        response, elapsed = self.execute(PLAYER, x, y, entity)
         if response != 1 and response != {}:
             raise Exception("Could not pickup, did you intend to harvest?", response)
         return True

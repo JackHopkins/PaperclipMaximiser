@@ -94,7 +94,8 @@ global.actions.inspect_entities = function(player_index, radius_)
             crafted_items = data.crafted_items,
             ingredients = data.ingredients,
             path_ends = data.path_ends,
-            warnings = data.warnings
+            warnings = data.warnings,
+            status = data.status
         }
 
         table.insert(result, entity_info)

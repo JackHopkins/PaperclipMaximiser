@@ -645,7 +645,8 @@ function inspect(player, radius)
                 direction = directions[entity.direction+1],
                 health = entity.health,
                 force = entity.force.name,
-                energy = entity.energy
+                energy = entity.energy,
+                status = entity.status
             }
 
 
@@ -656,90 +657,7 @@ function inspect(player, radius)
                 data.contents = inventory
             end
 
-            data.warnings = {}
-
-            if entity.burner and not entity.burner.currently_burning and entity.burner.remaining_burning_fuel <= 0 then
-                table.insert(data.warnings, "The_entity_is_out_of_fuel")
-            end
-
-            if entity.type == "mining-drill" then
-                local resource = entity.surface.find_entities_filtered{position = entity.position, type = "resource"}[1]
-                local output_inventory = entity.get_output_inventory()
-                local drop_position = entity.drop_position
-                local items_on_ground = surface.find_entities_filtered{area = {{drop_position.x - 0.5, drop_position.y - 0.5}, {drop_position.x + 0.5, drop_position.y + 0.5}}, type = "item-entity"}
-
-                if #items_on_ground >= 1 or (resource and not output_inventory.is_empty() and output_inventory.can_insert(resource.prototype.mined_item) == false) then
-                    table.insert(data.warnings, "The_mining_drill_is_waiting_for_space_in_destination")
-                end
-
-            end
-
-            -- Get entity productivity if it has a crafting progress attribute
-            if entity.type == "assembling-machine" or entity.type == "furnace" then
-                data.crafting_progress = entity.crafting_progress
-                data.productivity_bonus = entity.productivity_bonus
-
-                -- Get crafted items for assembling machines
-                if entity.type == "assembling-machine" then
-                    local output_inventory = entity.get_inventory(defines.inventory.assembling_machine_output).get_contents()
-                    local input_inventory = entity.get_inventory(defines.inventory.assembling_machine_input).get_contents()
-                    data.crafted_items = output_inventory
-                    data.ingredients = input_inventory
-
-                    if entity.is_crafting() then
-                        local recipe = entity.get_recipe()
-                        if recipe then
-                            for _, ingredient in pairs(recipe.ingredients) do
-                                local available = input_inventory[ingredient.name] or 0
-                                if available < ingredient.amount then
-                                    table.insert(data.warnings, ("Lack of ingredient: " .. ingredient.name):gsub(" ", "_"))
-                                end
-                            end
-                        end
-                    else
-                        if entity.energy == 0 then
-                            table.insert(data.warnings, "Lack_of_power")
-                        end
-                    end
-                end
-                rcon.print(entity.type)
-
-                -- Get crafted items for furnaces
-                if entity.type == "furnace" then
-                    local output_inventory = entity.get_inventory(defines.inventory.furnace_result).get_contents()
-                    local input_inventory = entity.get_inventory(defines.inventory.furnace_source).get_contents()
-                    data.crafted_items = output_inventory
-                    data.ingredients = input_inventory
-
-                    if entity.is_crafting() then
-                        local recipe = entity.get_recipe()
-                        if recipe then
-                            for _, ingredient in pairs(recipe.ingredients) do
-                                local available = input_inventory[ingredient.name] or 0
-                                if available < ingredient.amount then
-                                    table.insert(data.warnings, ("Lack of ingredient " .. ingredient.name):gsub(" ", "_"))
-                                end
-                            end
-                        end
-                    else
-                        if entity.energy == 0 then
-                            if entity.name ~= 'stone-furnace' and entity.name ~= 'steel-furnace' then
-                                table.insert(data.warnings, "Lack_of_power" )
-                            end
-                        end
-                        if next(input_inventory) == nil then
-                            table.insert(data.warnings, "Lack_of_input_material")
-                        end
-
-                        if entity.burner then
-                            local fuel_inventory = entity.burner.inventory.get_contents()
-                            if next(fuel_inventory) == nil then
-                                table.insert(data.warnings, "Lack_of_fuel")
-                            end
-                        end
-                    end
-                end
-            end
+            data.warnings = get_issues(entity)
 
             -- Get entity orientation if it has an orientation attribute
             if entity.type == "train-stop" or entity.type == "car" or entity.type == "locomotive" then

@@ -13,6 +13,34 @@ global.actions.connect_entities = function(player_index, source_x, source_y, tar
         error("Target entity not found.")
     end
 
+    local function is_adjacent(entity1, entity2)
+        local bb1 = entity1.prototype.collision_box
+        local bb2 = entity2.prototype.collision_box
+
+        local entity1_position = entity1.position
+        local entity2_position = entity2.position
+
+        local bb1_adjusted = {
+            left_top = {x = entity1_position.x + bb1.left_top.x, y = entity1_position.y + bb1.left_top.y},
+            right_bottom = {x = entity1_position.x + bb1.right_bottom.x, y = entity1_position.y + bb1.right_bottom.y}
+        }
+
+        local bb2_adjusted = {
+            left_top = {x = entity2_position.x + bb2.left_top.x, y = entity2_position.y + bb2.left_top.y},
+            right_bottom = {x = entity2_position.x + bb2.right_bottom.x, y = entity2_position.y + bb2.right_bottom.y}
+        }
+
+        -- Check if the bounding boxes are adjacent or overlap
+        if bb1_adjusted.right_bottom.x < bb2_adjusted.left_top.x - 1 or
+           bb2_adjusted.right_bottom.x < bb1_adjusted.left_top.x - 1 or
+           bb1_adjusted.right_bottom.y < bb2_adjusted.left_top.y - 1 or
+           bb2_adjusted.right_bottom.y < bb1_adjusted.left_top.y - 1 then
+            return false
+        end
+
+        return true
+    end
+
     local function get_direction(source_position, target_position)
         if math.abs(source_position.y - target_position.y) > math.abs(source_position.x - target_position.x) then
             if source_position.y > target_position.y then
@@ -28,6 +56,11 @@ global.actions.connect_entities = function(player_index, source_x, source_y, tar
             end
         end
         return direction
+    end
+
+    -- Check if the entities are adjacent
+    if is_adjacent(source_entities[1], target_entities[1]) then
+        error("Source and target entities are already adjacent and so cannot be connected.")
     end
 
 
@@ -377,7 +410,7 @@ global.actions.connect_entities = function(player_index, source_x, source_y, tar
         local placed_connector = player.surface.create_entity{
             name=connection_type,
             force=player.force,
-            position=final_connector_position - direction_vector.x,
+            position=final_connector_position,-- - direction_vector.x,
             direction=direction
         }
 

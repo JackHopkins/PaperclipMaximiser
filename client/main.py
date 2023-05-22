@@ -51,9 +51,15 @@ def log_command(message):
 def log_observation(message):
     log_history(message, "user")
 
-
-
 test = \
+"""
+coal_position = nearest("coal")
+coal_drill_pos = place_entity('electric-mining-drill', position=coal_position)
+boiler_pos = place_entity('steam-engine', position=nearest("stone"))
+furnace_pos = place_entity('stone-furnace', position=nearest("copper-ore"))
+"""
+
+test2 = \
 """
 
 ore = nearest("stone")
@@ -98,15 +104,20 @@ if __name__ == '__main__':
         'iron-plate': 50,
         'iron-chest': 1,
         'burner-mining-drill': 1,
+        'electric-mining-drill': 1,
         'assembling-machine-1': 1,
         'stone-furnace': 1,
         #'small-electric-pole': 10,
         'transport-belt': 50,
+        'boiler': 1,
+        'burner-inserter': 1,
+        'pipe': 1,
+        'steam-engine': 1,
         #'pipe': 50
     }
 
     factorio_runner = FactorioRunner("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",
-                                     model="gpt-3.5-turbo",
+                                     #model="gpt-3.5-turbo",
                                      inventory=inventory,
                                      buffer_size=16,
                                      beam=1
@@ -118,9 +129,12 @@ if __name__ == '__main__':
     try:
         #factorio_runner.instance.eval("move_to((-5, -5))")
         factorio_runner.instance.eval(test)
-        #pass
+        factorio_runner.instance.eval("boiler = get_entity(Prototype.SteamEngine, position=boiler_pos)")
+        factorio_runner.instance.eval("boiler = get_entity('stone-furnace', position=furnace_pos)")
+
+        pass
     except Exception as e:
         print(e)
 
-    for i in range(400):
+    for i in range(10000):
         next(factorio_runner)

@@ -44,7 +44,7 @@ class InspectEntities(Action):
                             entity_dict["end_position"] = end
                             entity_dict["quantity"] = len(entity["path_ends"])
 
-                    if "warnings" in entity:
+                    if "warnings" in entity and entity['warnings']:
                         entity_dict["warning"] = ". ".join(entity['warnings'].values()).replace("_", " ")
 
                     if "contents" in entity and entity['contents']:

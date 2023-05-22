@@ -3,7 +3,7 @@ import re
 import time
 from multiprocessing import freeze_support
 
-import backoff
+from backoff import on_exception, expo
 from openai.openai_object import OpenAIObject
 
 from factorio_instance import FactorioInstance
@@ -71,7 +71,7 @@ class FactorioRunner:
         static_instance_members = [attr for attr in dir(self.instance)
                                    if not callable(getattr(self.instance, attr))
                                    and not attr.startswith("__")]
-        return SplitMemory(ignore_members=static_instance_members)
+        return SplitMemory(ignore_members=static_instance_members, max_commands=self.buffer_size)
 
     def replay(self):
         with open(f"log/{self.trace}.trace", "r") as f:
@@ -85,8 +85,8 @@ class FactorioRunner:
                     except Exception as e:
                         print(e)
 
-    @backoff.on_exception(backoff.expo,
-                          (openai.error.RateLimitError, openai.error.APIError))
+    @on_exception(expo,
+                  (openai.error.RateLimitError, openai.error.APIError))
     def _get_program_generator(self):
 
         time.sleep(self.courtesy_delay)
@@ -149,16 +149,19 @@ class FactorioRunner:
                 self._execute_buffer(buffer)
                 self.buffer[index] = ""
             elif self.is_valid_python("# " + buffer):
-                #self.buffer[index] += ("\n# "+buffer)
-                self.buffer[index] = "\n"
+                self.buffer[index] = ("# "+buffer+"\n")
+                #self.buffer[index] = "\n"
             else:
                 # If sampling stops part way through a line, pop the line and interpret.
                 non_valid, valid = self.split_on_last_line(buffer)
                 if self.is_valid_python(valid):
                     self._execute_buffer(valid)
                 else:
-                    self.memory.log_command(buffer)
-                    self.memory.log_error("The provided code is not syntactically valid Python. Only write valid python.")
+                    try:
+                        self.memory.log_command(buffer)
+                        self.memory.log_error("The provided code is not syntactically valid Python. Only write valid python.")
+                    except InsufficientScoreException as e:
+                        self._reset()
 
                 self.buffer[index] = ""
 
@@ -172,7 +175,8 @@ class FactorioRunner:
         try:
             self.memory.log_command(buffer)
             score, result = self.instance.eval(buffer.strip())
-            self.memory.log_score(score)
+            if score != -1:
+                self.memory.log_score(score)
             self.memory.log_variables(self.instance)
             if result and isinstance(result, str):
                 if "Error" in result:
@@ -190,8 +194,7 @@ class FactorioRunner:
                 else:
                     self.memory.log_observation(result)
         except InsufficientScoreException as e1:
-            self.instance.reset()
-            self.memory = self.set_memory()
+            self._reset()
         except Exception as e:
             try:
                 error, reason = e.args
@@ -201,10 +204,11 @@ class FactorioRunner:
         alerts = self.instance.get_alerts()
 
         if alerts:
-            self.memory.log_warnings(alerts)
+            try:
+                self.memory.log_warnings(alerts)
+            except InsufficientScoreException as e1:
+                self._reset()
 
-
-
-    def flush_history(self):
-        self.instance.sequential_exception_count = 0
-        self.history = []
+    def _reset(self):
+        self.instance.reset()
+        self.memory = self.set_memory()

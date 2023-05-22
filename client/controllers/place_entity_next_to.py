@@ -9,14 +9,19 @@ class PlaceEntityNextTo(Action):
     def __init__(self, *args):
         super().__init__(*args)
 
-    def __call__(self, entity: str, reference_position: Tuple = (0,0), direction: int = 1, gap: int =1, relative=False):
+    def __call__(self, entity: str,
+                 reference_position: Tuple = (0, 0),
+                 placement_position: int = 1,
+                 spacing: int = 1,
+                 relative=False):
+
         x, y = reference_position
 
         if relative:
             x -= self.game_state.last_observed_player_location[0]
             y -= self.game_state.last_observed_player_location[1]
 
-        response, elapsed = self.execute(PLAYER, entity, x, y, direction+1, gap)
+        response, elapsed = self.execute(PLAYER, entity, x, y, placement_position+1, spacing)
         if not isinstance(response, dict) or response == {}:
             raise Exception(f"Could not place {entity} at {reference_position}.", response)
         return response['x'], response['y']

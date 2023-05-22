@@ -11,8 +11,11 @@ from slpp import slpp as lua
 
 from client.factorio_rcon_utils import _load_actions, _load_init, _lua2python
 from client.rcon.factorio_rcon import RCONClient
+from factorio_types import Prototype
 from models.game_state import GameState
 from vocabulary import Vocabulary
+
+from factorio_entities import *
 
 CHUNK_SIZE = 32
 MAX_SAMPLES = 5000
@@ -48,15 +51,23 @@ class FactorioInstance:
         self.tasks = []
 
         self.initial_score = self.score()
+        self.Prototype = Prototype
 
-        self.UP = 0
-        self.LEFT = 3
-        self.RIGHT = 2
-        self.DOWN = 1
+        self.UP, self.ABOVE, self.TOP = 0, 0, 0
+        self.LEFT, self.EAST = 3, 3
+        self.RIGHT, self.WEST = 2, 2
+        self.DOWN, self.BELOW, self.BOTTOM = 1, 1, 1
+
+        self._static_members = [attr for attr in dir(self)
+                                if not callable(getattr(self, attr)) and not attr.startswith("__")]
 
     def reset(self):
         #self.script_dict = {**self.actions, **_load_init()}
         #self.initialise(**inventory)
+        for attr in dir(self):
+            if not callable(getattr(self, attr)) and attr[0] != "_" and attr not in self._static_members:
+                self[attr] = None
+
         self._reset(**self.initial_inventory)
         try:
             self.observe_all()
@@ -65,6 +76,10 @@ class FactorioInstance:
             pass
         self.game_state.initial_score = 0
         self.game_state.initial_score = self.score()
+
+    def print(self, arg):
+        self.memory.log_observation(str(arg))
+        print(arg)
 
     def connect_to_server(self, address, tcp_port):
         try:
@@ -136,7 +151,7 @@ class FactorioInstance:
                 if isinstance(node, ast.Expr):
                     compiled = compile(ast.Expression(node.value), 'file', 'eval')
                     response = eval(compiled, {}, self)
-                    if response != True and response:
+                    if response is not True and response:
                         results[index] = response
                         self.sequential_exception_count = 0
                 else:
@@ -155,7 +170,6 @@ class FactorioInstance:
                 results[index] = f"Error: {sentences}"
                 break
 
-
         score = self.score()
         return score, '\n'.join([f"{i}: {str(r)}" for i, r in results.items()])
 
@@ -164,13 +178,13 @@ class FactorioInstance:
         try:
             with concurrent.futures.ThreadPoolExecutor(max_workers=1) as executor:
                 future = executor.submit(self._eval_with_timeout, expr)
-                result = future.result(timeout)
-                return result
+                s, result = future.result(timeout)
+                return s, result
         except concurrent.futures.TimeoutError:
-            return "Error: Evaluation timed out"
+            return -1, "Error: Evaluation timed out"
         except Exception as e:
             trace = e.__traceback__
-            return f"Error: {str(e)}"
+            return -1, f"Error: {str(e)}"
 
     def run_tasks(self):
         for task in self.tasks:
@@ -200,6 +214,7 @@ class FactorioInstance:
         self.rcon_client.send_command(str(comment) + ", ".join(args))
 
     def _reset(self, **kwargs):
+        self._send("/c global.alerts = {}")
         self._send('clear_inventory', PLAYER)
         self._send('reset_position', PLAYER, 0, 0)
         #self._send('regenerate_resources', PLAYER)
@@ -215,6 +230,7 @@ class FactorioInstance:
         self._send('initialise', PLAYER)
         self._send('alerts')
         self._send('util')
+        self._send('serialize')
         self._send('production_score')
         # self.factorio_client.send('new_world', PLAYER)
         self._send('clear_inventory', PLAYER)

@@ -34,10 +34,11 @@ global.actions.rotate_entity = function(player_index, direction, x, y)
 
     local valid_directions = {0, 2, 4, 6}
 
-    if not table_contains(valid_directions, direction) then
+    if not table_contains(valid_directions, direction*2) then
         error("Invalid direction provided. Please use 0 (north), 2 (east), 4 (south), or 6 (west).")
     end
     game.print("Rotated "..closest_entity.name.." to "..direction)
+    game.print(dump(closest_entity))
     closest_entity.direction = direction
 
     return 1

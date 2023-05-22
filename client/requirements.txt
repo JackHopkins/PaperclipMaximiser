@@ -6,3 +6,4 @@ imageio
 anyio
 pygame
 pyastar2d
+slpp
