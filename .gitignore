@@ -8,3 +8,9 @@ cortex
 ~/PycharmProjects/PaperclipMaximiser/dev/
 /client/log/
 /client/unscored_log/
+# all pycache folders
+__pycache__/
+# all pycache files
+*.pyc
+*/__pycache__/*.pyc
+client/__pycache__/*.pyc

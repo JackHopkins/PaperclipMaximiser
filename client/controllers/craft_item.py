@@ -1,5 +1,6 @@
 from controllers._action import Action
 from factorio_instance import PLAYER
+from factorio_types import Prototype
 
 
 class CraftItem(Action):
@@ -9,7 +10,7 @@ class CraftItem(Action):
         self.connection = connection
         self.game_state = game_state
 
-    def __call__(self, entity: str, quantity: int = 1) -> bool:
+    def __call__(self, entity: Prototype, quantity: int = 1) -> bool:
         """
         The agent places an entity e at local position (x, y) if the agent has
         enough resources. If the agent chooses to place an empty entity at (x, y), any entity at
@@ -21,10 +22,11 @@ class CraftItem(Action):
         :param direction: Cardinal direction to place entity
         :return: True if action carried out, False if no-op
         """
-        success, elapsed = self.execute(PLAYER, entity.replace("_", "-"), quantity)
+        name, _ = entity
+        success, elapsed = self.execute(PLAYER, name, quantity)
         if success != {} and success != 1:
             if success is None:
-                raise Exception(f"Could not craft a {entity}", "Ingredients cannot be crafted by hand.")
+                raise Exception(f"Could not craft a {name}", "Ingredients cannot be crafted by hand.")
             else:
-                raise Exception(f"Could not craft a {entity}", success)
+                raise Exception(f"Could not craft a {name}", success)
         return

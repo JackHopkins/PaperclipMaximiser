@@ -2,6 +2,7 @@ from typing import Optional, Tuple
 
 from controllers._action import Action
 from controllers.observe_all import ObserveAll
+from factorio_entities import Position
 from factorio_instance import PLAYER, NONE
 from utilities.pathfinding import get_path
 
@@ -46,26 +47,26 @@ class MoveTo(Action):
             raise Exception(f"Cannot move. {e}")
 
     def __call__(self,
-                 position: Tuple[int, int] = (0, 0),
+                 position: Position = Position(x=0, y=0),
                  #absolute_position: Optional[Tuple[int, int]],
                  #relative_position: Tuple[int, int] = (0, 0),
                  laying=None,
                  leading=None,
                  **kwargs):
+
         if laying != None:
             pass
+
         try:
             if position is not None:
-                if not isinstance(position, Tuple):
+                if not isinstance(position, Position):
                     raise Exception(
-                        f"You need to pass in a tuple like (x, y) for the absolute position. You passed in the following: {str(position)}.")
+                        f"You need to pass in a Position object. You passed in the following: {str(position)}.")
                 start_x, start_y = self.game_state.player_location
-                relative_position = (position[0] - start_x, position[1] - start_y)
+                relative_position = (position.x - start_x, position.y - start_y)
 
             if not isinstance(relative_position, Tuple):
                 raise Exception(f"You need to pass in a tuple like (x, y). You passed in the following: {str(relative_position)}")
-
-
 
             relative_end_x, relative_end_y = relative_position
             start_x, start_y = self.game_state.player_location

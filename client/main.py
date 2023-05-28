@@ -1,10 +1,12 @@
 # !/usr/bin/env python3
 from timeit import default_timer as timer
+
+from factorio_instance import FactorioInstance
 from factorio_runner import FactorioRunner
+from vocabulary import Vocabulary
 
 observe_local_times = []
 iterations = 100
-
 
 
 async def main():
@@ -26,10 +28,10 @@ async def main():
         f"Async: servers={servers} seconds_elapsed={end}, iterations_ps={(timer() - time) / iterations} command_throughput={1 / (((timer() - time) / iterations) / servers)}")
 
 
-
-history = [] #queue.Queue(maxsize=10)
+history = []  # queue.Queue(maxsize=10)
 global buffer
 buffer = ""
+
 
 def log_history(message, role):
     print(message)
@@ -37,7 +39,6 @@ def log_history(message, role):
     history.append({
         "role": role, "content": message
     })
-
 
 
 def log_error(message):
@@ -51,17 +52,17 @@ def log_command(message):
 def log_observation(message):
     log_history(message, "user")
 
+
 test = \
-"""
-coal_position = nearest("coal")
-coal_drill_pos = place_entity('electric-mining-drill', position=coal_position)
-boiler_pos = place_entity('steam-engine', position=nearest("stone"))
-furnace_pos = place_entity('stone-furnace', position=nearest("copper-ore"))
+    """
+#coal_position = nearest(Resource.Coal)
+coal_drill_pos = place_entity(Prototype.ElectricMiningDrill, position=nearest(Resource.Coal))
+boiler_pos = place_entity(Prototype.SteamEngine, position=nearest(Resource.Stone))
+#furnace_pos = place_entity(Prototype.StoneFurnace, position=nearest(Resource.CopperOre))
 """
 
 test2 = \
-"""
-
+    """
 ore = nearest("stone")
 five = place_entity('burner-mining-drill', position=ore)
 six = place_entity_next_to('stone-furnace', reference_position=ore, direction=LEFT, gap=1)
@@ -107,31 +108,34 @@ if __name__ == '__main__':
         'electric-mining-drill': 1,
         'assembling-machine-1': 1,
         'stone-furnace': 1,
-        #'small-electric-pole': 10,
+        # 'small-electric-pole': 10,
         'transport-belt': 50,
         'boiler': 1,
         'burner-inserter': 1,
         'pipe': 1,
         'steam-engine': 1,
-        #'pipe': 50
+        # 'pipe': 50
     }
-
+    instance = FactorioInstance(address='localhost',
+                                bounding_box=200,
+                                tcp_port=27016,
+                                inventory=inventory)
     factorio_runner = FactorioRunner("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",
-                                     #model="gpt-3.5-turbo",
-                                     inventory=inventory,
+                                     instance,
+                                     # model="gpt-3.5-turbo",
                                      buffer_size=16,
                                      beam=1
                                      )
-                                     #trace="15-17-01-04-2023")
+    # trace="15-17-01-04-2023")
 
     rcon = factorio_runner.instance.rcon_client
 
     try:
-        #factorio_runner.instance.eval("move_to((-5, -5))")
+        # factorio_runner.instance.eval("move_to((-5, -5))")
         factorio_runner.instance.eval(test)
         factorio_runner.instance.eval("boiler = get_entity(Prototype.SteamEngine, position=boiler_pos)")
-        factorio_runner.instance.eval("boiler = get_entity('stone-furnace', position=furnace_pos)")
-
+        # factorio_runner.instance.eval("boiler = get_entity('stone-furnace', position=furnace_pos)")
+        factorio_runner.instance.eval("print(boiler)")
         pass
     except Exception as e:
         print(e)

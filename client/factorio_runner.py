@@ -26,22 +26,13 @@ class FactorioRunner:
 
     def __init__(self,
                  api_key,
+                 instance,
                  model="gpt-4",
                  buffer_size=10,
                  beam=1,
                  courtesy_delay=0,
                  fast=True,
                  trace=False,
-                 inventory={
-                     'coal': 50,
-                     'copper-plate': 50,
-                     'iron-plate': 50,
-                     'iron-chest': 1,
-                     'burner-mining-drill': 1,
-                     'assembling-machine-1': 1,
-                     'stone-furnace': 1,
-                     'transport-belt': 50
-                 }
                  ):
 
         self.beam = beam
@@ -53,12 +44,7 @@ class FactorioRunner:
         self.courtesy_delay = courtesy_delay
 
         freeze_support()
-        vocabulary = Vocabulary()
-        self.instance = FactorioInstance(address='localhost',
-                                         vocabulary=vocabulary,
-                                         bounding_box=200,
-                                         tcp_port=27016,
-                                         inventory=inventory)
+        self.instance = instance
         self.memory = self.set_memory()
         self.history = []
         self.program_generator = self._get_program_generator

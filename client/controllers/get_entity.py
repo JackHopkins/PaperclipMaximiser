@@ -1,7 +1,7 @@
 from typing import Tuple
 
 from controllers._action import Action
-from factorio_entities import Position
+from factorio_entities import Position, Entity
 
 from factorio_instance import PLAYER
 from factorio_types import Prototype
@@ -14,14 +14,10 @@ class GetEntity(Action):
         self.connection = connection
         self.game_state = game_state
 
-    def __call__(self, entity: Prototype, position: Position, relative=False) -> dict:
-        if isinstance(position, tuple):
-            x, y = position
-        else:
-            x = position.x
-            y = position.y
-
+    def __call__(self, entity: Prototype, position: Position, relative=False) -> Entity:
+        x, y = self.get_position(position)
         name, metaclass = entity
+
         if relative:
             x += self.game_state.last_observed_player_location[0]
             y += self.game_state.last_observed_player_location[1]

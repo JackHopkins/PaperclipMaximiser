@@ -1,6 +1,7 @@
 from controllers._action import Action
 from typing import Tuple
 
+from factorio_entities import Position
 from factorio_instance import PLAYER
 
 
@@ -11,8 +12,8 @@ class RotateEntity(Action):
         self.connection = connection
         self.game_state = game_state
 
-    def __call__(self, position: Tuple[int, int], direction=1, relative: bool = False) -> bool:
-        x, y = position
+    def __call__(self, position: Position, direction=1, relative: bool = False) -> bool:
+        x, y = self.get_position(position)
 
         if not relative:
             x -= self.game_state.last_observed_player_location[0]

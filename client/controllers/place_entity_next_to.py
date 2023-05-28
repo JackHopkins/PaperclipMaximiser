@@ -1,6 +1,7 @@
 from controllers._action import Action
 from typing import Tuple
 
+from factorio_entities import Position
 from factorio_instance import PLAYER
 
 
@@ -10,7 +11,7 @@ class PlaceEntityNextTo(Action):
         super().__init__(*args)
 
     def __call__(self, entity: str,
-                 reference_position: Tuple = (0, 0),
+                 reference_position: Position = Position(x=0, y=0),
                  placement_position: int = 1,
                  spacing: int = 1,
                  relative=False):

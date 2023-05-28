@@ -1,6 +1,5 @@
-from typing import Tuple
-
 from controllers._action import Action
+from factorio_entities import Position
 from factorio_instance import PLAYER
 
 
@@ -11,8 +10,8 @@ class HarvestResource(Action):
         self.connection = connection
         self.game_state = game_state
 
-    def __call__(self, position: Tuple[int, int], quantity=1, relative: bool = False, **kwargs) -> bool:
-        x, y = position
+    def __call__(self, position: Position, quantity=1, relative: bool = False, **kwargs) -> bool:
+        x, y = self.get_position(position)
 
         if not relative:
             x -= self.game_state.last_observed_player_location[0]

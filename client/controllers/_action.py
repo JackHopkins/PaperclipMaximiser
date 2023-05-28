@@ -1,10 +1,12 @@
 import os
 import sys
 import time
-from typing import List, Tuple, Dict, Any
+from typing import List, Tuple, Dict, Any, Union
 
 from slpp import slpp as lua
 from timeit import default_timer as timer
+
+from factorio_entities import Position, Entity
 from factorio_rcon_utils import _lua2python, _load_action
 
 COMMAND = "/silent-command"
@@ -15,6 +17,18 @@ class Action:
         self.connection = connection
         self.name = self.camel_to_snake(self.__class__.__name__)
         self.load()
+
+    def get_position(self, position_or_entity: Union[Tuple, Position, Entity]):
+        if isinstance(position_or_entity, tuple):
+            x, y = position_or_entity
+        elif isinstance(position_or_entity, Entity):
+            x = position_or_entity.position.x
+            y = position_or_entity.position.y
+        else:
+            x = position_or_entity.x
+            y = position_or_entity.y
+
+        return x, y
 
     def camel_to_snake(self, camel_str):
         snake_str = ""

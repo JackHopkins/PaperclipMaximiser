@@ -20,11 +20,17 @@ def _load_scripts(scripts):
     return script_dict
 
 def _load_actions():
-    actions = list(chain.from_iterable(glob(os.path.join(x[0], '*.lua')) for x in os.walk('actions')))
+    # get local execution path
+    path = os.path.dirname(os.path.realpath(__file__))
+
+    actions = list(chain.from_iterable(glob(os.path.join(x[0], '*.lua')) for x in os.walk(f'{path}/actions')))
     return _load_scripts(actions)
 
 def _load_action(filename):
-    actions = list(chain.from_iterable(glob(os.path.join(x[0], '*.lua')) for x in os.walk('actions')))
+    # get local execution path
+    path = os.path.dirname(os.path.realpath(__file__))
+
+    actions = list(chain.from_iterable(glob(os.path.join(x[0], '*.lua')) for x in os.walk(f'{path}/actions')))
     for action in actions:
         if action.endswith(filename+".lua"):
             with open(action, 'r') as file:
@@ -34,7 +40,10 @@ def _load_action(filename):
     raise ValueError(f"No action found with the name {filename}")
 
 def _load_init():
-    init = list(chain.from_iterable(glob(os.path.join(x[0], '*.lua')) for x in os.walk('init')))
+    # get local execution path
+    path = os.path.dirname(os.path.realpath(__file__))
+
+    init = list(chain.from_iterable(glob(os.path.join(x[0], '*.lua')) for x in os.walk(f'{path}/init')))
     return _load_scripts(init)
 
 

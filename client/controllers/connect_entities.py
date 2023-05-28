@@ -22,11 +22,11 @@ class ConnectEntities(Action):
             target_y -= self.game_state.last_observed_player_location[1]
 
         response, elapsed = self.execute(PLAYER,
-                                       source_x,
-                                       source_y,
-                                       target_x,
-                                       target_y,
-                                       connection_type)
+                                         source_x,
+                                         source_y,
+                                         target_x,
+                                         target_y,
+                                         connection_type)
         if response != {} and response != 1:
             raise Exception(f"Could not connect {(source_x, source_y)} to {(target_x, target_y)}.", response)
         return True

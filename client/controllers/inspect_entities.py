@@ -1,5 +1,6 @@
 
 from controllers._action import Action
+from factorio_entities import Position
 from factorio_instance import PLAYER
 from models.zero_dict import ZeroDict
 
@@ -11,7 +12,10 @@ class InspectEntities(Action):
         self.connection = connection
         self.game_state = game_state
 
-    def __call__(self, radius=10, relative: bool = False):
+    def __call__(self,
+                 radius=10,
+                 position: Position = None,
+                 relative: bool = False):
         response, time_elapsed = self.execute(PLAYER, radius)
         entities = []
         try:

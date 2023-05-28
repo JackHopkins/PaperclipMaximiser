@@ -22,13 +22,23 @@ instructions = \
 8. The Y axis is inverted, so -1 goes UP.
 """
 
+
+"""
+with get_entity(Prototype.SteamEngine, Position(x=0, y=0)) as engine:
+    with get_entity(Prototype.Boiler, Position(x=0, y=0)) as boiler:
+        connect_entities(engine, boiler, Prototype.Pipe)
+
+
+
+
+"""
 schema = \
     """
 # Observe and describe the natural resources and landscape around you
 inspect_resources() -> Dict[Entity, List[Dict["size", "top_left_position", "bottom_right_position"]]
 
 # Inspect entities within a 20-meter radius around you
-inspect_entities(radius:int = 20) -> List[Dict["name", "position", "warning", "status"]]
+inspect_entities(radius:int = 20) -> List[Entity]
 
 # Examine the items currently in your inventory
 inspect_inventory() -> Dict[Entity, Int]

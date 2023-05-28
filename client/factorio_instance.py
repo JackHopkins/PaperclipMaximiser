@@ -11,7 +11,7 @@ from slpp import slpp as lua
 
 from client.factorio_rcon_utils import _load_actions, _load_init, _lua2python
 from client.rcon.factorio_rcon import RCONClient
-from factorio_types import Prototype
+from factorio_types import Prototype, Resource
 from models.game_state import GameState
 from vocabulary import Vocabulary
 
@@ -31,7 +31,7 @@ var = {}
 
 class FactorioInstance:
 
-    def __init__(self, address=None, vocabulary: Vocabulary = None, bounding_box=20, tcp_port=27015, inventory={}):
+    def __init__(self, address=None, vocabulary: Vocabulary = Vocabulary(), bounding_box=20, tcp_port=27015, inventory={}):
         self.tcp_port = tcp_port
         self.rcon_client, self.address = self.connect_to_server(address, tcp_port)
 
@@ -42,16 +42,15 @@ class FactorioInstance:
         self.actions = _load_actions()
 
         self.script_dict = {**self.actions, **_load_init()}
-        self.vocabulary = vocabulary
         self.initial_inventory = inventory
         self.initialise(**inventory)
-
         self._load_actions(self.rcon_client, self.game_state)
         self.observe_all()
         self.tasks = []
 
         self.initial_score = self.score()
         self.Prototype = Prototype
+        self.Resource = Resource
 
         self.UP, self.ABOVE, self.TOP = 0, 0, 0
         self.LEFT, self.EAST = 3, 3
@@ -60,6 +59,8 @@ class FactorioInstance:
 
         self._static_members = [attr for attr in dir(self)
                                 if not callable(getattr(self, attr)) and not attr.startswith("__")]
+
+
 
     def reset(self):
         #self.script_dict = {**self.actions, **_load_init()}
@@ -108,17 +109,20 @@ class FactorioInstance:
         # Define the directory containing the callable class files
         callable_classes_directory = "controllers"
 
+        # Get the local execution directory
+        local_directory = os.path.dirname(os.path.realpath(__file__))
+
         def snake_to_camel(snake_str):
             return "".join(word.capitalize() for word in snake_str.split("_"))
 
         # Loop through the files in the directory
-        for file in os.listdir(callable_classes_directory):
+        for file in os.listdir(os.path.join(local_directory, callable_classes_directory)):
             # Check if the file is a Python file and does not start with '_'
             if file.endswith(".py") and not file.startswith("_"):
                 # Load the module
                 module_name = Path(file).stem
                 module_spec = importlib.util.spec_from_file_location(module_name,
-                                                                     os.path.join(callable_classes_directory, file))
+                                                                     os.path.join(os.path.join(local_directory, callable_classes_directory), file))
                 module = importlib.util.module_from_spec(module_spec)
                 module_spec.loader.exec_module(module)
 
@@ -130,8 +134,8 @@ class FactorioInstance:
                 # Create an instance of the callable class
                 try:
                     callable_instance = callable_class(connection, game_state)
-                except Exception:
-                    raise Exception(f"Could not instantiate {class_name}")
+                except Exception as e:
+                    raise Exception(f"Could not instantiate {class_name}. {e}")
                 # Add the instance as a member method
                 setattr(self, module_name.lower(), callable_instance)
 

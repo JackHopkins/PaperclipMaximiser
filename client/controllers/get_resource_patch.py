@@ -1,17 +1,23 @@
-import math
+from typing import Tuple
 
 import numpy as np
 from scipy import ndimage
 
-from factorio_entities import ResourcePatch
+from controllers._action import Action
+from factorio_entities import Position, ResourcePatch
+
+from factorio_instance import PLAYER
+from factorio_types import Resource
 
 
-class InspectResources:
+class GetResourcePatch(Action):
 
     def __init__(self, connection, game_state):
+        super().__init__(connection, game_state)
+        self.connection = connection
         self.game_state = game_state
 
-    def __call__(self, position, relative=False) -> ResourcePatch:
+    def __call__(self, resource: Resource, position: Position, relative=False) -> ResourcePatch:
         def get_direction(y_offset, x_offset):
             angle = (np.arctan2(-y_offset, -x_offset) * 180 / np.pi) - 90
 
@@ -82,8 +88,8 @@ class InspectResources:
                 x_min = int(np.min(group_indices[1])) - (self.game_state.bounding_box // 2)
                 named_dir = get_direction(y_offset, x_offset)
                 direction = {
-                    #"offset": abs(y_offset),
-                    #"named_direction": named_dir,
+                    # "offset": abs(y_offset),
+                    # "named_direction": named_dir,
                     "top_left_position": (x_min, y_min),
                     "bottom_right_position": (x_max, y_max)
                 }
@@ -92,7 +98,7 @@ class InspectResources:
                     if item not in small_groups:
                         small_groups[item] = {"count": 0}
                     small_groups[item]["count"] += group_size
-                    small_groups[item][named_dir] = small_groups[item].get(named_dir,0) + abs(y_offset)
+                    small_groups[item][named_dir] = small_groups[item].get(named_dir, 0) + abs(y_offset)
                 else:
                     if item not in groups:
                         groups[item] = []
@@ -105,13 +111,13 @@ class InspectResources:
 
         for item, data in small_groups.items():
             count = data["count"]
-           # cardinals = [
-                #{"distance": (value if value < 1000 else math.floor(value / 1000)),
-                # "unit": "metres" if value < 1000 else "km"}
-              #  for key, value in data.items()
-           # ]
-           # if not cardinals:
-           #     continue
+            # cardinals = [
+            # {"distance": (value if value < 1000 else math.floor(value / 1000)),
+            # "unit": "metres" if value < 1000 else "km"}
+            #  for key, value in data.items()
+            # ]
+            # if not cardinals:
+            #     continue
 
             # if count > 1000:
             #    count_str = math.floor((float(count) / 100)) / 10
@@ -121,7 +127,7 @@ class InspectResources:
 
             group_description = {
                 "size": count,
-               # "directions": cardinals,
+                # "directions": cardinals,
                 "scattered": True
             }
             groups[item].append(group_description)

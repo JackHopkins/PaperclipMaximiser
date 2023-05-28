@@ -1,7 +1,9 @@
 from typing import Tuple
 
 from controllers._action import Action
+from factorio_entities import Entity
 from factorio_instance import PLAYER
+from factorio_types import Prototype
 
 
 class InsertItem(Action):
@@ -11,15 +13,17 @@ class InsertItem(Action):
         self.connection = connection
         self.game_state = game_state
 
-    def __call__(self, entity: str, target_position: Tuple[int, int] = (0, 0), quantity=5) -> int:
-        x, y = target_position
+    def __call__(self, entity: Prototype, target: Entity, quantity=5) -> int:
+        x, y = self.get_position(target.position)
+        name, _ = entity
 
         response, elapsed = self.execute(
                                        PLAYER,
-                                       entity.replace("_", "-"),
+                                       name,
                                        quantity,
                                        x,
                                        y)
+
         if response != {} and response != 1:
             raise Exception("Could not insert", response)
 

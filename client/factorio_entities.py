@@ -4,6 +4,30 @@ from typing import List, Optional
 from pydantic import BaseModel
 
 
+
+class Inventory:
+    def __init__(self, *args, **kwargs):
+        self.__dict__ = kwargs
+
+    def __getitem__(self, key):
+        name, _entity = key
+        return self.__dict__[name] if name in self.__dict__ else 0
+
+    def __setitem__(self, key, value):
+        self.__dict__[key] = value
+
+
+class BoundingBox(BaseModel):
+    left_top: Tuple[float, float]
+    right_bottom: Tuple[float, float]
+
+
+class ResourcePatch(BaseModel):
+    name: str
+    size: int
+    bounding_box: BoundingBox
+
+
 class Position(BaseModel):
     x: float
     y: float
