@@ -1,8 +1,9 @@
 from controllers._action import Action
 from typing import Tuple
 
-from factorio_entities import Position
+from factorio_entities import Position, Entity
 from factorio_instance import PLAYER
+from factorio_types import Prototype
 
 
 class PlaceEntityNextTo(Action):
@@ -10,19 +11,35 @@ class PlaceEntityNextTo(Action):
     def __init__(self, *args):
         super().__init__(*args)
 
-    def __call__(self, entity: str,
+    def __call__(self,
+                 entity: Prototype,
                  reference_position: Position = Position(x=0, y=0),
-                 placement_position: int = 1,
-                 spacing: int = 1,
-                 relative=False):
+                 direction_from: int = 1,
+                 spacing: int = 0,
+                 relative=False) -> Entity:
 
-        x, y = reference_position
+        name, metaclass = entity
+        x, y = reference_position.x, reference_position.y
 
         if relative:
             x -= self.game_state.last_observed_player_location[0]
             y -= self.game_state.last_observed_player_location[1]
 
-        response, elapsed = self.execute(PLAYER, entity, x, y, placement_position+1, spacing)
+        response, elapsed = self.execute(PLAYER, name, x, y, direction_from+1, spacing-0.5)
+
         if not isinstance(response, dict) or response == {}:
-            raise Exception(f"Could not place {entity} at {reference_position}.", response)
-        return response['x'], response['y']
+            raise Exception(f"Could not place {name} at {reference_position}.", response)
+
+        for key, value in response.items():
+            if isinstance(value, dict):
+                if 1 in value.keys():
+                    response[key] = []
+                    for sub_key, sub_value in value.items():
+                        response[key].append(sub_value)
+
+        try:
+            object = metaclass(**response)
+        except Exception as e:
+            raise Exception(f"Could not create {name} object from response: {response}", e)
+
+        return object

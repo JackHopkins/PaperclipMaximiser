@@ -419,8 +419,8 @@ local function get_pipe_positions(entity)
     end
 
     local pipe_positions = {
-        {x = x + 3*dy, y = y + 3*dx},
-        {x = x - 3*dy, y = y - 3*dx}
+        {x = x + 3*dx, y = y + 3*dy},
+        {x = x - 3*dx, y = y - 3*dy}
     }
 
     return pipe_positions
@@ -485,8 +485,35 @@ global.utils.serialize_entity = function(entity)
 
     -- Add input and output locations if the entity is a transport belt
     if entity.type == "transport-belt" then
-        serialized.input_position = entity.input_position
-        serialized.output_position = entity.output_position
+		game.print(dump(entity))
+		-- input_position is the position upstream of the belt
+		local direction = entity.direction
+		local x, y = entity.position.x, entity.position.y
+		if direction == defines.direction.north then
+			y = y - 1
+		elseif direction == defines.direction.south then
+			y = y + 1
+		elseif direction == defines.direction.east then
+			x = x + 1
+		elseif direction == defines.direction.west then
+			x = x - 1
+		end
+
+		serialized.input_position = {x = x, y = y}
+
+		-- output_position is the position downstream of the belt
+		local x, y = entity.position.x, entity.position.y
+		if direction == defines.direction.north then
+			y = y + 1
+		elseif direction == defines.direction.south then
+			y = y - 1
+		elseif direction == defines.direction.east then
+			x = x - 1
+		elseif direction == defines.direction.west then
+			x = x + 1
+		end
+
+		serialized.output_position = {x = x, y = y}
     end
 
     -- Add input and output locations if the entity is an inserter
@@ -525,7 +552,24 @@ global.utils.serialize_entity = function(entity)
             serialized.fuel = burner.currently_burning and burner.currently_burning.name or nil
             serialized.remaining_burning_fuel = burner.remaining_burning_fuel
         end
-        --game.print("Boiler fluidbox: " .. serpent.block(entity.fluidbox))
+
+		local direction = entity.direction
+		local x, y = entity.position.x, entity.position.y
+
+		if direction == defines.direction.north then
+			serialized.connection_points = {{x = x - 1, y = y}, {x = x + 1, y = y}}
+			serialized.steam_output_point = {x = x, y = y - 1}
+		elseif direction == defines.direction.south then
+			serialized.connection_points = {{x = x - 1, y = y}, {x = x + 1, y = y}}
+			serialized.steam_output_point = {x = x, y = y + 1}
+		elseif direction == defines.direction.east then
+			serialized.connection_points = {{x = x, y = y - 1}, {x = x, y = y + 1}}
+			serialized.steam_output_point = {x = x + 1, y = y}
+		elseif direction == defines.direction.west then
+			serialized.connection_points = {{x = x, y = y - 1}, {x = x, y = y + 1}}
+			serialized.steam_output_point = {x = x - 1, y = y}
+		end
+
         --serialized.fluid_input_point = entity.fluidbox.get_connections(1)[1].position
     end
 

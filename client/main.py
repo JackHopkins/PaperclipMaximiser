@@ -7,7 +7,8 @@ from vocabulary import Vocabulary
 
 observe_local_times = []
 iterations = 100
-
+from vocabulary import Vocabulary
+vocab = Vocabulary()
 
 async def main():
     servers = 4

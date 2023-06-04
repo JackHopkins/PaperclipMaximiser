@@ -94,21 +94,27 @@ class AssemblingMachine(Entity):
     recipe: Recipe
 
 
-class Boiler(Entity):
-    fluid_input_point: Position
-
-
-class Generator(Entity):
+class FluidHandler(Entity):
     connection_points: List[Position]
+
+
+class Boiler(FluidHandler):
+    steam_output_point: Position
+
+
+class Generator(FluidHandler):
+    pass
+
+
+class OffshorePump(FluidHandler):
+    fluid_box: List[dict]
 
 
 class Furnace(Entity, BurnerType):
     input_ingredients: List[Ingredient]
 
 
-class OffshorePump(Entity):
-    fluid_box: List[dict]
-    connection_points: List[Position]
+
 
 
 ###

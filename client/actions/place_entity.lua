@@ -88,7 +88,16 @@ global.actions.place_entity = function(player_index, entity, direction, x, y, ex
                 local have_built = player.surface.create_entity{name=entity, force="player", position=new_position, direction=get_entity_direction(entity, direction), player=player}
                 if have_built then
                     player.remove_item{name=entity, count=1}
-                    return {x = new_position.x, y = new_position.y}
+
+                    local placed_entity = player.surface.find_entity(entity, new_position)
+
+                    game.print("Placed "..entity.." at "..placed_entity.position.x..","..placed_entity.position.y)
+                    game.print(dump(entity))
+
+                    local serialized = global.utils.serialize_entity(placed_entity)
+                    local entity_json = game.table_to_json(serialized)-- game.table_to_json(entity)
+                    game.print(entity_json)
+                    return serialized
                 end
             else
                 error("Could not find a suitable position to place " .. entity .. " near the target location.")
@@ -154,9 +163,19 @@ global.actions.place_entity = function(player_index, entity, direction, x, y, ex
         local have_built = player.surface.create_entity{name=entity, force="player", position=position, direction=get_entity_direction(entity, direction), player=player}
         if have_built then
             player.remove_item{name=entity, count=1}
-            game.print("Placed "..entity)
+
+            --return {x= position.x, y = position.y}
+
+            local placed_entity = player.surface.find_entity(entity, position)
+
+            game.print("Placed "..entity.." at "..placed_entity.position.x..","..placed_entity.position.y)
             game.print(dump(entity))
-            return {x= position.x, y = position.y}
+
+            local serialized = global.utils.serialize_entity(placed_entity)
+            local entity_json = game.table_to_json(serialized)-- game.table_to_json(entity)
+            game.print(entity_json)
+            return serialized
+
         end
     end
 end

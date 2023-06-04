@@ -14,3 +14,4 @@ __pycache__/
 *.pyc
 */__pycache__/*.pyc
 client/__pycache__/*.pyc
+client/__pycache__/

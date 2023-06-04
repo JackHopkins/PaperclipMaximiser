@@ -1,4 +1,126 @@
 global.actions.place_entity_next_to = function(player_index, entity, ref_x, ref_y, direction, gap)
+    --- Places an entity next to a reference entity:
+    --- Find the reference entity at (ref_x, ref_y)
+    --- If there is a reference entity, find the edge of the entity in the `direction`, take a step of size `gap` before placing the entity.
+    --- If there is not a reference entity, take a step of size `gap` from the (ref_x, ref_y) position.
+    --- Before placing the entity, check to see if an entity exists at this new position (If so, raise an `error`)
+    --- If there is no error, place the entity and remove the item from the inventory.
+    --- Return the resultant entity by calling the `global.utils.serialize_entity(new_entity)` method.
+    ---
+    --- @param player_index number
+    --- @param entity string
+    --- @param ref_x number
+    --- @param ref_y number
+    --- @param direction defines.direction
+    --- @param gap number
+    --- @return boolean
+    ---
+    local player = game.players[player_index]
+    local ref_position = {x = ref_x, y = ref_y}
+    local direction_map = {defines.direction.north, defines.direction.south, defines.direction.west, defines.direction.east}
+    local entity_prototype = game.entity_prototypes[entity]
+    -- local ref_entity = player.surface.find_entity(entity, ref_position)
+    -- Find the reference entity at (ref_x, ref_y) with a bounding box of size (1, 1)
+    local ref_entities = player.surface.find_entities_filtered({
+        area = {
+            {ref_x, ref_y},
+            {ref_x + 1, ref_y + 1}
+        }
+    })
+    local ref_entity = nil
+    if #ref_entities > 0 then
+        ref_entity = ref_entities[1]
+    end
+
+    game.print("ref_entity: " .. serpent.line(ref_entity))
+    game.print("ref_position: " .. serpent.line(ref_position))
+    local new_position = {x = ref_x, y = ref_y}
+    local entity_size = {
+        x = entity_prototype.tile_width,
+        y = entity_prototype.tile_height
+    }
+
+    if ref_entity then
+        --new_position = ref_entity.position
+        local ref_bounding_box = ref_entity.prototype.collision_box
+        local ref_size = {
+            x = ref_bounding_box.right_bottom.x - ref_bounding_box.left_top.x,
+            y = ref_bounding_box.right_bottom.y - ref_bounding_box.left_top.y
+        }
+
+        -- self.UP, self.ABOVE, self.TOP = 1
+        -- self.RIGHT, self.EAST = 4
+        -- self.LEFT, self.WEST = 3
+        -- self.DOWN, self.BELOW, self.BOTTOM = 2
+
+        if direction == 1 then
+            new_position.y = new_position.y - ref_size.y - ( gap) -- entity_size.y
+        elseif direction == 2 then
+            new_position.y = new_position.y + ref_size.y + ( gap)
+        elseif direction == 4 then
+            new_position.x = new_position.x + ref_size.x + ( gap)
+        else -- direction == defines.direction.west
+            new_position.x = new_position.x - ref_size.x - ( gap)
+        end
+    else
+        if direction == 1 then
+            new_position.y = new_position.y - (1 + gap) -- entity_size.y
+        elseif direction == 2 then
+            new_position.y = new_position.y + (1 + gap)
+        elseif direction == 4 then
+            new_position.x = new_position.x + (1 + gap)
+        else -- direction == defines.direction.west
+            new_position.x = new_position.x - (1 + gap) - entity_size.x
+        end
+    end
+
+    -- Check if there's an entity at the new position
+    if player.surface.find_entity(entity, new_position) then
+        error("An entity already exists at the new position " .. serpent.line(new_position) .. ".")
+    end
+
+    -- Check to see if can create the entity at the new position
+    local can_build = player.surface.can_place_entity({
+        name = entity,
+        position = new_position,
+        direction = direction_map[direction],
+        force = player.force
+    })
+    if not can_build then
+        error("Cannot place entity at the position " .. serpent.line(new_position) .. " with direction " .. serpent.line(direction) .. "." )
+    end
+
+
+    -- Place the entity and remove the item from the inventory
+    local new_entity = player.surface.create_entity({
+        name = entity,
+        position = new_position,
+        force = player.force,
+        direction = direction_map[direction],
+    })
+
+    -- Remove the item from the player's inventory
+    local item_stack = {name = entity, count = 1}
+    if player.get_main_inventory().can_insert(item_stack) then
+        player.get_main_inventory().remove(item_stack)
+        -- Return the resultant entity
+        return global.utils.serialize_entity(new_entity)
+    else
+        error("Not enough items in inventory.")
+    end
+end
+
+
+global.actions.place_entity_next_to_8 = function(player_index, entity, ref_x, ref_y, direction, gap)
+    --- Places an entity next to a reference entity.
+    --- @param player_index number
+    --- @param entity string
+    --- @param ref_x number
+    --- @param ref_y number
+    --- @param direction defines.direction
+    --- @param gap number
+    --- @return boolean
+    ---
     local player = game.players[player_index]
     local ref_position = {x = ref_x, y = ref_y}
     local cardinals = {defines.direction.north, defines.direction.south, defines.direction.east, defines.direction.west}
@@ -13,7 +135,7 @@ global.actions.place_entity_next_to = function(player_index, entity, ref_x, ref_
 
     local surface = player.surface
     local ref_entities = player.surface.find_entities_filtered{area = {{ref_position.x - 0.5, ref_position.y - 0.5}, {ref_position.x + 0.5, ref_position.y + 0.5}}}
-   -- local ref_entities = player.surface.find_entities_filtered{name=entity, position=ref_position, radius=2}
+    -- local ref_entities = player.surface.find_entities_filtered{name=entity, position=ref_position, radius=2}
     local ref_entity = ref_entities[1]
     local target_position
 
@@ -23,39 +145,50 @@ global.actions.place_entity_next_to = function(player_index, entity, ref_x, ref_
         local dx, dy
         local ref_height = ref_bb.right_bottom.y - ref_bb.left_top.y
         local ref_width = ref_bb.right_bottom.x - ref_bb.left_top.x
+        game.print("ref_height: " .. ref_height)
+        game.print("ref_width: " .. ref_width)
+        game.print("ref_tile_width: " .. ref_entity.prototype.tile_width)
+        game.print("ref_tile_height: " .. ref_entity.prototype.tile_height)
 
         --- THIS HAS A BUG IN IT
         if direction == 1 then -- North
             dx = 0
-            dy = -(ref_bb.right_bottom.y - ref_bb.left_top.y + entity_bb.right_bottom.y - entity_bb.left_top.y - 2 + gap)
+            dy = -(ref_bb.right_bottom.y - ref_bb.left_top.y + entity_bb.right_bottom.y - entity_bb.left_top.y - ref_entity.prototype.tile_height/2 + gap)
         elseif direction == 2 then -- South
             dx = 0
-            dy = (ref_bb.right_bottom.y - ref_bb.left_top.y + entity_bb.right_bottom.y - entity_bb.left_top.y -2 + gap + (2-ref_height))
+            dy = (ref_bb.right_bottom.y - ref_bb.left_top.y + entity_bb.right_bottom.y - entity_bb.left_top.y - ref_entity.prototype.tile_height/2 + gap + (1-ref_height))
         elseif direction == 3 then -- East
-            dx = (ref_bb.right_bottom.x - ref_bb.left_top.x + entity_bb.right_bottom.x - entity_bb.left_top.x -2 + gap + (2-ref_width))
+            dx = (ref_bb.right_bottom.x - ref_bb.left_top.x + entity_bb.right_bottom.x - entity_bb.left_top.x -  ref_entity.prototype.tile_width/2 + gap + (1-ref_width))
             dy = 0
         else -- West
-            dx = -(ref_bb.right_bottom.x - ref_bb.left_top.x + entity_bb.right_bottom.x - entity_bb.left_top.x -2 + gap)
+            dx = -(ref_bb.right_bottom.x - ref_bb.left_top.x + entity_bb.right_bottom.x - entity_bb.left_top.x - ref_entity.prototype.tile_width/2 + gap)
             dy = 0
         end
         ---
 
-        if direction == 1 then -- North
-            dx = 0
-            dy = -(ref_height / 2 + entity_bb.right_bottom.y - entity_bb.left_top.y / 2 + gap)
-        elseif direction == 2 then -- South
-            dx = 0
-            dy = ref_height / 2 + entity_bb.right_bottom.y - entity_bb.left_top.y / 2 + gap
-        elseif direction == 3 then -- East
-            dx = ref_width / 2 + entity_bb.right_bottom.x - entity_bb.left_top.x / 2 + gap
-            dy = 0
-        else -- West
-            dx = -(ref_width / 2 + entity_bb.right_bottom.x - entity_bb.left_top.x / 2 + gap)
-            dy = 0
-        end
+    if direction == 1 then -- North
+        dx = 0
+        dy = -(ref_height / 2 + entity_bb.right_bottom.y - entity_bb.left_top.y / 2 + gap)
+    elseif direction == 2 then -- South
+        dx = 0
+        dy = ref_height / 2 + entity_bb.right_bottom.y - entity_bb.left_top.y / 2 + gap
+    elseif direction == 3 then -- East
+        dx = ref_width / 2 + entity_bb.right_bottom.x - entity_bb.left_top.x / 2 + gap
+        dy = 0
+    else -- West
+        dx = -(ref_width / 2 + entity_bb.right_bottom.x - entity_bb.left_top.x / 2 + gap)
+        dy = 0
+    end
 
 
         target_position = {x = ref_x + dx, y = ref_y + dy}
+
+        game.print("dx: " .. dx)
+        game.print("dy: " .. dy)
+        game.print("ref_x: " .. ref_x)
+        game.print("ref_y: " .. ref_y)
+        game.print("target_position.x: " .. target_position.x)
+        game.print("target_position.y: " .. target_position.y)
     else
 
         local direction_vector = {
@@ -81,16 +214,18 @@ global.actions.place_entity_next_to = function(player_index, entity, ref_x, ref_
     local can_build = player.surface.can_place_entity{name=entity, force=player.force, position=target_position, direction = direction}
     if can_build then
         local new_entity = surface.create_entity{name = entity, position = target_position, direction = direction, force = player.force}
-        game.print(dump(new_entity))
+        player.remove_item{name=entity, count=1}
+        local serialized = global.utils.serialize_entity(new_entity)
+        local entity_json = game.table_to_json(serialized)-- game.table_to_json(entity)
+        game.print(dump(entity_json))
+        return serialized
     else
         error("There is an existing entity in the target position.")
-
     end
-    return target_position
 end
 
 
-global.actions.place_entity_next_to_2 = function(player_index, entity, ref_x, ref_y, direction, gap)
+global.actions.place_entity_next_to_6 = function(player_index, entity, ref_x, ref_y, direction, gap)
     local function clear_items_inside_area(surface, area)
         local items = surface.find_entities_filtered{area = area, type = "item-entity"}
         for _, item in ipairs(items) do
@@ -172,7 +307,7 @@ global.actions.place_entity_next_to_2 = function(player_index, entity, ref_x, re
     error("Something went wrong")
 end
 
-global.actions.place_entity_next_to_2 = function(player_index, entity, ref_x, ref_y, direction, gap)
+global.actions.place_entity_next_to_7 = function(player_index, entity, ref_x, ref_y, direction, gap)
     local player = game.players[player_index]
     local ref_position = {x = ref_x, y = ref_y}
     local cardinals = {defines.direction.north, defines.direction.south, defines.direction.east, defines.direction.west}

@@ -1,7 +1,7 @@
 from controllers._action import Action
 from typing import Optional, Tuple
 
-from factorio_entities import Position
+from factorio_entities import Position, Entity
 from factorio_instance import PLAYER
 from factorio_types import Prototype
 
@@ -16,9 +16,9 @@ class PlaceEntity(Action):
                  direction=0,
                  position: Position = Position(x=0, y=0),
                  exact: bool = False,
-                 relative=False) -> Optional[Tuple]:
+                 relative=False) -> Entity:
         x, y = self.get_position(position)
-        name, _ = entity
+        name, metaclass = entity
 
         if direction > 3 or direction < 0:
             raise Exception("Directions are between 0-3")
@@ -44,5 +44,15 @@ class PlaceEntity(Action):
             message = response.split(":")[-1]
             raise Exception(f"Could not place {name} at ({x}, {y})", message.lstrip())
 
-        position = Position(x=response['x'], y=response['y'])
-        return position
+        for key, value in response.items():
+            if isinstance(value, dict):
+                if 1 in value.keys():
+                    response[key] = []
+                    for sub_key, sub_value in value.items():
+                        response[key].append(sub_value)
+
+        try:
+            object = metaclass(**response)
+        except Exception as e:
+            raise Exception(f"Could not create {name} object from response: {response}", e)
+        return object

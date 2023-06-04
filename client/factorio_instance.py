@@ -53,8 +53,8 @@ class FactorioInstance:
         self.Resource = Resource
 
         self.UP, self.ABOVE, self.TOP = 0, 0, 0
-        self.LEFT, self.EAST = 3, 3
-        self.RIGHT, self.WEST = 2, 2
+        self.RIGHT, self.EAST = 3, 3
+        self.LEFT, self.WEST = 2, 2
         self.DOWN, self.BELOW, self.BOTTOM = 1, 1, 1
 
         self._static_members = [attr for attr in dir(self)
