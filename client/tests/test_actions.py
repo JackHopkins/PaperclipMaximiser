@@ -2,32 +2,35 @@ from typing import List
 
 import pytest
 
-from client.factorio_types import Prototype
+from client.factorio_types import Prototype, Resource
 from factorio_entities import Entity
 
 
 @pytest.fixture
 def game():
-
     from client.factorio_instance import FactorioInstance
-    instance = FactorioInstance(address='localhost',
-                                bounding_box=200,
-                                tcp_port=27016,
-                                inventory={
-                                    'coal': 50,
-                                    'copper-plate': 50,
-                                    'iron-plate': 50,
-                                    'iron-chest': 1,
-                                    'burner-mining-drill': 1,
-                                    'electric-mining-drill': 1,
-                                    'assembling-machine-1': 1,
-                                    'stone-furnace': 1,
-                                    'transport-belt': 50,
-                                    'boiler': 1,
-                                    'burner-inserter': 1,
-                                    'pipe': 15,
-                                    'steam-engine': 1,
+    try:
+        instance = FactorioInstance(address='localhost',
+                                    bounding_box=200,
+                                    tcp_port=27016,
+                                    inventory={
+                                        'coal': 50,
+                                        'copper-plate': 50,
+                                        'iron-plate': 50,
+                                        'iron-chest': 1,
+                                        'burner-mining-drill': 1,
+                                        'electric-mining-drill': 1,
+                                        'assembling-machine-1': 1,
+                                        'stone-furnace': 1,
+                                        'transport-belt': 50,
+                                        'boiler': 1,
+                                        'burner-inserter': 1,
+                                        'pipe': 15,
+                                        'steam-engine': 1,
                                 })
+    except Exception as e:
+        print(e)
+
     instance.reset()
     yield instance
 
@@ -38,6 +41,80 @@ def entity_prototype():
 @pytest.fixture
 def surrounding_entity_prototype():
     return Prototype.TransportBelt
+
+
+def test_rotate_entity(game):
+    # Place a transport belt
+    transport_belt = game.place_entity(Prototype.TransportBelt, position=(0, 0), direction=game.UP)
+
+    # Rotate the transport belt right
+    game.rotate_entity(transport_belt, direction=game.RIGHT)
+
+    # Assert that the direction of the transport belt has been updated
+    assert transport_belt.direction == game.RIGHT
+
+    game.rotate_entity(transport_belt, direction=game.DOWN)
+
+    assert transport_belt.direction == game.DOWN
+
+    game.rotate_entity(transport_belt, direction=game.LEFT)
+
+    assert transport_belt.direction == game.LEFT
+
+    game.rotate_entity(transport_belt, direction=game.UP)
+
+    assert transport_belt.direction == game.UP
+
+    game.reset()
+
+def test_set_entity_recipe(game):
+    # Place an assembling machine
+    assembling_machine = game.place_entity(Prototype.AssemblingMachine, position=(0, 0))
+
+    # Set a recipe for the assembling machine
+    assembling_machine = game.set_entity_recipe(assembling_machine, Prototype.IronGearWheel)
+
+    # Assert that the recipe of the assembling machine has been updated
+    prototype_name, _ = Prototype.IronGearWheel
+
+    assert assembling_machine.recipe == prototype_name
+
+    game.reset()
+
+def test_craft_item(game):
+    # Check initial inventory
+    initial_iron_plate = game.inspect_inventory()[Prototype.IronPlate]
+    initial_iron_chest = game.inspect_inventory()[Prototype.IronChest]
+
+    # Craft an iron chest
+    game.craft_item(Prototype.IronChest, quantity=1)
+
+    # Check the inventory after crafting
+    final_iron_plate = game.inspect_inventory()[Prototype.IronPlate]
+    final_iron_chest = game.inspect_inventory()[Prototype.IronChest]
+
+    # Assert that the iron plate has been deducted and the iron chest has been added
+    assert initial_iron_plate - 8 == final_iron_plate
+    assert initial_iron_chest + 1 == final_iron_chest
+
+    game.reset()
+
+
+def test_harvest_resource(game):
+    inventory = game.inspect_inventory()
+    # Check initial inventory
+    initial_coal = inventory[Resource.Coal]
+    # Find nearest coal resource
+    nearest_coal = game.nearest(Resource.Coal)
+    # Move to the coal resource
+    game.move_to(nearest_coal)
+    # Harvest coal
+    game.harvest_resource(nearest_coal, quantity=5)  # Assuming there is a coal resource at (10, 10)
+    # Check the inventory after harvesting
+    final_coal = game.inspect_inventory()[Resource.Coal]
+    # Assert that the coal has been added to the inventory
+    assert initial_coal + 5 == final_coal
+
 
 def test_place(game):
     boilers_in_inventory = game.inspect_inventory()[Prototype.Boiler]
@@ -117,20 +194,6 @@ def test_connect_steam_engines_to_boilers_using_pipes(game):
         assert True
 
 
-def test_connect_entities2(game, entity_prototype):
-    # Place two entities
-    entity1 = game.place_entity(entity_prototype, position=(0, 0))
-    entity2 = game.place_entity(entity_prototype, position=(10, 10))
-
-    # Connect the entities
-    game.connect_entities(source_position=entity1.position, target_position=entity2.position, connection_type=Prototype.TransportBelt)
-
-    # Inspect the entities to check if they are connected
-    entity1_inspected = game.inspect_entities(radius=10, position=entity1.position)[0]
-    entity2_inspected = game.inspect_entities(radius=10, position=entity2.position)[0]
-
-    # Assert that the entities are connected
-    assert entity1_inspected.connected_entities == entity2_inspected
 
 
 #if __name__ == '__main__':

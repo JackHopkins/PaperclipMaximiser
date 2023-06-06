@@ -29,11 +29,11 @@ class Nearest(Action):
             self.game_state.last_observed_player_location = self.game_state.player_location
 
         if relative:
-            x = -math.floor(response['x']) + self.game_state.last_observed_player_location[0]
-            y = -math.floor(response['y']) + self.game_state.last_observed_player_location[1]
+            x = -response['x'] + self.game_state.last_observed_player_location[0]
+            y = -response['y'] + self.game_state.last_observed_player_location[1]
         else:
-            x = math.floor(response['x'])
-            y = math.floor(response['y'])
+            x = response['x']
+            y = response['y']
 
         position = Position(x=x, y=y)
 

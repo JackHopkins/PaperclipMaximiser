@@ -2,6 +2,7 @@ import enum
 
 from factorio_entities import *
 
+
 class PrototypeName(enum.Enum):
     AssemblingMachine = "assembling-machine-1"
     BurnerInserter = "burner-inserter"
@@ -25,11 +26,6 @@ class ResourceName(enum.Enum):
     CrudeOil = "crude-oil"
     UraniumOre = "uranium-ore"
 
-class ItemName(enum.Enum):
-    IronPlate = "iron-plate"
-    CopperPlate = "copper-plate"
-
-
 class Prototype:
     AssemblingMachine = "assembling-machine-1", AssemblingMachine
     BurnerInserter = "burner-inserter", BurnerInserter
@@ -42,6 +38,7 @@ class Prototype:
     SteamEngine = "steam-engine", Generator
     Pipe = "pipe", Entity
     IronChest = "iron-chest", Entity
+    IronGearWheel = "iron-gear-wheel", Entity
     IronPlate = "iron-plate", None
     SmallElectricPole = "small-electric-pole", Entity
 

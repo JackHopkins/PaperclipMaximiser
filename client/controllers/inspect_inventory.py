@@ -3,7 +3,7 @@ from typing import Tuple
 from controllers._action import Action
 from factorio_entities import Inventory
 from factorio_instance import PLAYER
-from factorio_types import Prototype, PrototypeName, ResourceName, ItemName
+from factorio_types import Prototype, PrototypeName, ResourceName
 from models.zero_dict import ZeroDict
 
 

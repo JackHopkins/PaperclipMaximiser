@@ -23,7 +23,12 @@ global.actions.set_entity_recipe = function(player_index, recipe_name, x, y)
         local recipe = player.force.recipes[recipe_name]
         if recipe and closest_building.get_recipe() ~= recipe then
             closest_building.set_recipe(recipe_name)
-            return 1
+
+            local serialized = global.utils.serialize_entity(closest_building)
+            local entity_json = game.table_to_json(serialized)-- game.table_to_json(entity)
+            game.print(entity_json)
+            return serialized
+
         else
             error("Recipe already set.")
         end

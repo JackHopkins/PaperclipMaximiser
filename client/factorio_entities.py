@@ -1,8 +1,7 @@
-from typing import Tuple
+from typing import Tuple, Any
 from typing import List, Optional
 
 from pydantic import BaseModel
-
 
 
 class Inventory:
@@ -66,6 +65,8 @@ class Entity(BaseModel):
     type: str
     dimensions: Dimensions
     tile_dimensions: TileDimensions
+    prototype: Any #Prototype
+    health: float
 
 
 class TransportBelt(Entity):
@@ -91,7 +92,7 @@ class BurnerMiningDrill(MiningDrill, BurnerType):
 
 
 class AssemblingMachine(Entity):
-    recipe: Recipe
+    recipe: Optional[Any] # Prototype
 
 
 class FluidHandler(Entity):

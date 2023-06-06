@@ -1,6 +1,6 @@
 import unittest
 
-from factorio_entities import AssemblingMachine, Position, FactorioEntityPrototype
+from factorio_entities import Position, BurnerMiningDrill, AssemblingMachine
 from factorio_types import Prototype
 
 
@@ -24,7 +24,7 @@ class TestActions(unittest.TestCase):
         get_entity = GetEntity(None, None)
 
         get_entity(Prototype.AssemblingMachine, position=Position(x=0, y=0))
-        burner_mining_drill = FactorioEntityPrototype.BurnerMiningDrill(**lua_response)
+        burner_mining_drill = BurnerMiningDrill(**lua_response)
 
         print(burner_mining_drill.json())
         print(burner_mining_drill.drop_position)

@@ -164,10 +164,17 @@ global.actions.place_entity = function(player_index, entity, direction, x, y, ex
         if have_built then
             player.remove_item{name=entity, count=1}
 
-            --return {x= position.x, y = position.y}
+            local entities = player.surface.find_entities_filtered{name=entity, area = {{position.x - 0.5, position.y - 0.5}, {position.x + 0.5, position.y + 0.5}}}
+            local placed_entity = nil
 
-            local placed_entity = player.surface.find_entity(entity, position)
-
+            for _, ent in ipairs(entities) do
+                game.print(ent.name)
+                game.print(entity)
+                if ent.name == entity then
+                    placed_entity = ent
+                    break
+                end
+            end
             game.print("Placed "..entity.." at "..placed_entity.position.x..","..placed_entity.position.y)
             game.print(dump(entity))
 

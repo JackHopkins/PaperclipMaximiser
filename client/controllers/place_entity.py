@@ -18,7 +18,7 @@ class PlaceEntity(Action):
                  exact: bool = False,
                  relative=False) -> Entity:
         x, y = self.get_position(position)
-        name, metaclass = entity
+        name, metaclass, *a = entity
 
         if direction > 3 or direction < 0:
             raise Exception("Directions are between 0-3")

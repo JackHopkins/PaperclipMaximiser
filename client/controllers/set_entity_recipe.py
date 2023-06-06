@@ -3,6 +3,7 @@ from typing import Tuple
 
 from factorio_entities import Recipe, Entity
 from factorio_instance import PLAYER
+from factorio_types import Prototype
 
 
 class SetEntityRecipe(Action):
@@ -12,15 +13,33 @@ class SetEntityRecipe(Action):
         self.connection = connection
         self.game_state = game_state
 
-    def __call__(self, entity: Entity, recipe: Recipe, relative=False, **kwargs) -> bool:
+    def __call__(self, entity: Entity, recipe: Prototype, relative=False, **kwargs) -> bool:
         x, y = entity.position.x, entity.position.y
+        name, constructor = recipe
 
         if not relative:
             x -= self.game_state.last_observed_player_location[0]
             y -= self.game_state.last_observed_player_location[1]
 
-        response, elapsed = self.execute(PLAYER, recipe.name, x, y)
+        response, elapsed = self.execute(PLAYER, name, x, y)
 
-        if response != 1:
-            raise Exception(f"Could not set recipe to {recipe}", response)
-        return True
+        if not isinstance(response, dict):
+            raise Exception(f"Could not set recipe to {name}", response)
+
+
+        #obj = get_attr(factorio_entities, entity.prototype) (**response)
+        for key, value in response.items():
+            value_class = entity.__getattribute__(key).__class__
+            # if value_class is a pydantic model, construct it
+            if hasattr(value_class, "construct"):
+                response[key] = value_class.construct(**value)
+            elif isinstance(value, dict):
+                if 1 in value.keys():
+                    response[key] = []
+                    for sub_key, sub_value in value.items():
+                        response[key].append(sub_value)
+
+        entity = entity.__class__.construct(**response)
+        entity.recipe = name
+
+        return entity
