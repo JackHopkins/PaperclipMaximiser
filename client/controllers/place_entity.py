@@ -44,15 +44,22 @@ class PlaceEntity(Action):
             message = response.split(":")[-1]
             raise Exception(f"Could not place {name} at ({x}, {y})", message.lstrip())
 
+        cleaned_response = {}
         for key, value in response.items():
             if isinstance(value, dict):
+                if not value:
+                    continue
                 if 1 in value.keys():
-                    response[key] = []
+                    cleaned_response[key] = []
                     for sub_key, sub_value in value.items():
-                        response[key].append(sub_value)
+                        cleaned_response[key].append(sub_value)
+                else:
+                    cleaned_response[key] = value
+            else:
+                cleaned_response[key] = value
 
         try:
-            object = metaclass(**response)
+            object = metaclass(**cleaned_response)
         except Exception as e:
-            raise Exception(f"Could not create {name} object from response: {response}", e)
+            raise Exception(f"Could not create {name} object from response: {cleaned_response}", e)
         return object

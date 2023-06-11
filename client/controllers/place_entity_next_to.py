@@ -12,7 +12,7 @@ class PlaceEntityNextTo(Action):
         super().__init__(*args)
 
     def __call__(self,
-                 entity: Prototype,
+                 entity: Entity,
                  reference_position: Position = Position(x=0, y=0),
                  direction_from: int = 1,
                  spacing: int = 0,

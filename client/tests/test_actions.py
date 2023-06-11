@@ -3,7 +3,7 @@ from typing import List
 import pytest
 
 from client.factorio_types import Prototype, Resource
-from factorio_entities import Entity
+from factorio_entities import Entity, Position
 
 
 @pytest.fixture
@@ -42,6 +42,89 @@ def entity_prototype():
 def surrounding_entity_prototype():
     return Prototype.TransportBelt
 
+def test_basic_connection_between_furnace_and_miner(game):
+    """
+    Place a furnace with a burner inserter pointing towards it.
+    Find the nearest coal and place a burner mining drill on it.
+    Connect the burner mining drill to the inserter using a transport belt.
+    :param game:
+    :return:
+    """
+
+    coal: Position = game.nearest(Resource.Coal)
+    furnace = game.place_entity(Prototype.StoneFurnace, position=(0, 0))
+    inserter = game.place_entity_next_to(Prototype.BurnerInserter,
+                                         reference_position=furnace.position,
+                                         direction_from=game.LEFT,
+                                         spacing=0.5)
+    miner = game.place_entity(Prototype.BurnerMiningDrill, position=coal)
+
+    try:
+        connection = game.connect_entities(miner, inserter, connection_type=Prototype.TransportBelt)
+    except Exception as e:
+        pass
+
+    assert len(connection) == 2
+
+    game.reset()
+
+def test_connect_steam_engines_to_boilers_using_pipes(game):
+    """
+    Place a boiler and a steam engine next to each other.
+    :param game:
+    :return:
+    """
+    boilers_in_inventory = game.inspect_inventory()[Prototype.Boiler]
+    steam_engines_in_inventory = game.inspect_inventory()[Prototype.SteamEngine]
+    pipes_in_inventory = game.inspect_inventory()[Prototype.Pipe]
+
+    # Define the offsets for the four cardinal directions
+    offsets = [(10, 0), (0, -10), (-10, 0)]  # Up, Right, Down, Left  (0, -10),
+
+    for offset in offsets:
+        boiler: Entity = game.place_entity(Prototype.Boiler, position=(0, 0))
+        steam_engine: Entity = game.place_entity(Prototype.SteamEngine, position=offset)
+
+        try:
+            connection: List[Entity] = game.connect_entities(boiler, steam_engine, connection_type=Prototype.Pipe)
+        except Exception as e:
+            print(e)
+            assert False
+        assert boilers_in_inventory - 1 == game.inspect_inventory()[Prototype.Boiler]
+        assert steam_engines_in_inventory - 1 == game.inspect_inventory()[Prototype.SteamEngine]
+
+        current_pipes_in_inventory = game.inspect_inventory()[Prototype.Pipe]
+        spent_pipes = (pipes_in_inventory - current_pipes_in_inventory)
+        assert spent_pipes == len(connection)
+
+        game.reset()  # Reset the game state after each iteration
+
+    boiler: Entity = game.place_entity(Prototype.Boiler, position=(0, 0))
+    steam_engine: Entity = game.place_entity(Prototype.SteamEngine, position=(0, 10))
+
+    try:
+        connection: List[Entity] = game.connect_entities(boiler, steam_engine, connection_type=Prototype.Pipe)
+        assert False
+    except Exception:
+        assert True
+
+def test_craft_item(game):
+    # Check initial inventory
+    initial_iron_plate = game.inspect_inventory()[Prototype.IronPlate]
+    initial_iron_chest = game.inspect_inventory()[Prototype.IronChest]
+
+    # Craft an iron chest
+    game.craft_item(Prototype.IronChest, quantity=1)
+
+    # Check the inventory after crafting
+    final_iron_plate = game.inspect_inventory()[Prototype.IronPlate]
+    final_iron_chest = game.inspect_inventory()[Prototype.IronChest]
+
+    # Assert that the iron plate has been deducted and the iron chest has been added
+    assert initial_iron_plate - 8 == final_iron_plate
+    assert initial_iron_chest + 1 == final_iron_chest
+
+    game.reset()
 
 def test_rotate_entity(game):
     # Place a transport belt
@@ -78,24 +161,6 @@ def test_set_entity_recipe(game):
     prototype_name, _ = Prototype.IronGearWheel
 
     assert assembling_machine.recipe == prototype_name
-
-    game.reset()
-
-def test_craft_item(game):
-    # Check initial inventory
-    initial_iron_plate = game.inspect_inventory()[Prototype.IronPlate]
-    initial_iron_chest = game.inspect_inventory()[Prototype.IronChest]
-
-    # Craft an iron chest
-    game.craft_item(Prototype.IronChest, quantity=1)
-
-    # Check the inventory after crafting
-    final_iron_plate = game.inspect_inventory()[Prototype.IronPlate]
-    final_iron_chest = game.inspect_inventory()[Prototype.IronChest]
-
-    # Assert that the iron plate has been deducted and the iron chest has been added
-    assert initial_iron_plate - 8 == final_iron_plate
-    assert initial_iron_chest + 1 == final_iron_chest
 
     game.reset()
 
@@ -160,41 +225,3 @@ def test_place_entity_next_to(game, entity_prototype, surrounding_entity_prototy
                 assert surrounding_entity.position.y + entity.tile_dimensions.tile_height == 0.5 - spacing
 
         game.reset()
-
-def test_connect_steam_engines_to_boilers_using_pipes(game):
-    boilers_in_inventory = game.inspect_inventory()[Prototype.Boiler]
-    steam_engines_in_inventory = game.inspect_inventory()[Prototype.SteamEngine]
-    pipes_in_inventory = game.inspect_inventory()[Prototype.Pipe]
-
-    # Define the offsets for the four cardinal directions
-    offsets = [(0, -10), (10, 0), (-10, 0)]  # Up, Right, Down, Left
-
-    for offset in offsets:
-        boiler: Entity = game.place_entity(Prototype.Boiler, position=(0, 0))
-        steam_engine: Entity = game.place_entity(Prototype.SteamEngine, position=offset)
-
-        connection: List[Entity] = game.connect_entities(boiler, steam_engine, connection_type=Prototype.Pipe)
-
-        assert boilers_in_inventory - 1 == game.inspect_inventory()[Prototype.Boiler]
-        assert steam_engines_in_inventory - 1 == game.inspect_inventory()[Prototype.SteamEngine]
-
-        current_pipes_in_inventory = game.inspect_inventory()[Prototype.Pipe]
-        spent_pipes = (pipes_in_inventory - current_pipes_in_inventory)
-        assert spent_pipes == len(connection)
-
-        game.reset()  # Reset the game state after each iteration
-
-    boiler: Entity = game.place_entity(Prototype.Boiler, position=(0, 0))
-    steam_engine: Entity = game.place_entity(Prototype.SteamEngine, position=(0, 10))
-
-    try:
-        connection: List[Entity] = game.connect_entities(boiler, steam_engine, connection_type=Prototype.Pipe)
-        assert False
-    except Exception:
-        assert True
-
-
-
-
-#if __name__ == '__main__':
-#    freeze_support()

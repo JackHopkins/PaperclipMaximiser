@@ -3,7 +3,7 @@ import math
 from controllers._action import Action
 from typing import Tuple, List
 
-from factorio_entities import Entity, Boiler, FluidHandler, Position, Generator
+from factorio_entities import Entity, Boiler, FluidHandler, Position, Generator, Inserter, MiningDrill
 from factorio_instance import PLAYER
 from factorio_types import Prototype
 
@@ -17,6 +17,7 @@ class ConnectEntities(Action):
                                       fluid_handler_source: FluidHandler,
                                       existing_connection_position: Position,
                                       existing_connection_entity: Entity):
+        #existing_connection_position = existing_connection_entity.position
         existing_offset_x = existing_connection_position.x - existing_connection_entity.position.x
         existing_offset_y = existing_connection_position.y - existing_connection_entity.position.y
 
@@ -42,6 +43,7 @@ class ConnectEntities(Action):
                     continue
                 if (existing_offset_y > 0 and possible_offset_y < 0) or (existing_offset_y < 0 and possible_offset_y > 0):
                     continue
+                #pass
 
             distance = abs(connection_point.x - existing_connection_position.x) + abs(
                 connection_point.y - existing_connection_position.y)
@@ -49,7 +51,7 @@ class ConnectEntities(Action):
                 nearest_distance = distance
                 nearest_connection_point = connection_point
 
-        return nearest_connection_point.x, nearest_connection_point.y
+        return nearest_connection_point
 
     def _get_nearest_connection_point2(self, fluid_handler_source: FluidHandler, fluid_handler_target: FluidHandler, position: Position):
         nearest_distance = 10000000
@@ -77,6 +79,10 @@ class ConnectEntities(Action):
         return nearest_connection_point.x, nearest_connection_point.y
 
 
+    def _round_position(self, position: Position):
+        return Position(x=math.floor(position.x), y=math.floor(position.y))
+        #return Position(x=math.floor(position.x*2)/2, y=math.floor(position.y*2)/2)
+        #return position
 
     def __call__(self,
                  source_entity: Entity,
@@ -86,35 +92,44 @@ class ConnectEntities(Action):
 
         if isinstance(source_entity, FluidHandler):
             if isinstance(source_entity, Boiler) and isinstance(target_entity, Generator):
-                source_x, source_y = source_entity.steam_output_point.x, source_entity.steam_output_point.y
+                #source_position = self._round_position(source_entity.steam_output_point)
+                source_position = source_entity.steam_output_point
             else:
-                source_x, source_y = self._get_nearest_connection_point(source_entity, target_entity.position, target_entity)
+                source_position = self._round_position(self._get_nearest_connection_point(source_entity, target_entity.position, target_entity))
+                #source_position = self._get_nearest_connection_point(source_entity, target_entity.position, target_entity)
+            if source_position.x < target_entity.position.x:
+                source_position.x -= 1
+        elif isinstance(source_entity, Inserter):
+            source_position = self._round_position(source_entity.drop_position)
+        elif isinstance(source_entity, MiningDrill):
+            source_position = self._round_position(source_entity.drop_position)
         else:
-            source_x, source_y = source_entity.position.x, source_entity.position.y
+            source_position = source_entity.position
 
         if isinstance(target_entity, FluidHandler):
             if isinstance(target_entity, Boiler) and isinstance(source_entity, Generator):
-                target_x, target_y = target_entity.steam_input_point.x, target_entity.steam_input_point.y
+                target_position = self._round_position(target_entity.steam_input_point)
             else:
-                target_x, target_y = self._get_nearest_connection_point(target_entity, Position(x=source_x, y=source_y), source_entity)
+                #target_position = self._round_position(self._get_nearest_connection_point(target_entity, source_position, source_entity))
+                target_position = self._get_nearest_connection_point(target_entity, source_position, source_entity)
+            if source_position.x < target_position.x:
+                target_position.x -= 1
+        elif isinstance(target_entity, Inserter):
+            target_position = self._round_position(target_entity.pickup_position)
+        elif isinstance(target_entity, MiningDrill):
+            target_position = self._round_position(target_entity.drop_position)
         else:
-            target_x, target_y = target_entity.position.x, target_entity.position.y
-
-        if relative:
-            source_x -= self.game_state.last_observed_player_location[0]
-            target_x -= self.game_state.last_observed_player_location[0]
-            source_y -= self.game_state.last_observed_player_location[1]
-            target_y -= self.game_state.last_observed_player_location[1]
+            target_position = target_entity.position
 
         response, elapsed = self.execute(PLAYER,
-                                         source_x - 0.5,
-                                         source_y - 0.5,
-                                         target_x - 0.5,
-                                         target_y - 0.5,
+                                         source_position.x,
+                                         source_position.y,
+                                         target_position.x,
+                                         target_position.y,
                                          connection_prototype)
         if not isinstance(response, dict):
             message = response.split(":")[-1]
-            raise Exception(f"Could not connect {connection_prototype} from {(source_x, source_y)} to {(target_x, target_y)}.", message.lstrip())
+            raise Exception(f"Could not connect {connection_prototype} from {(source_position)} to {(target_position)}.", message.lstrip())
 
         path = []
         for key, value in response.items():

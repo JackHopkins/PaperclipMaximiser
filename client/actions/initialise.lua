@@ -119,6 +119,40 @@ function create_beam_bounding_box (player, surface, direction, top_left, bottom_
     surface.create_entity{name='laser-beam', position=player.position, source_position=player.position, duration=beam_duration, target_position={x=player.position.x, y=player.position.y+0.1}, direction=direction, force='player', player=player}
 end
 
+function create_beam_point_with_direction (player, direction, position)
+    -- Calculate the end position of the beam based on the direction.
+    local end_position = {x=position.x, y=position.y}
+    if direction == defines.direction.north then
+        end_position.y = end_position.y - 0.5
+    elseif direction == defines.direction.south then
+        end_position.y = end_position.y + 0.5
+    elseif direction == defines.direction.west then
+        end_position.x = end_position.x - 0.5
+    elseif direction == defines.direction.east then
+        end_position.x = end_position.x + 0.5
+    end
+
+    -- Create the beam entity.
+    player.surface.create_entity{
+        name='laser-beam',
+        position=position,
+        source_position=position,
+        target_position=end_position,
+        duration=100000,
+        direction=direction,
+        force='player',
+        player=player
+    }
+end
+function create_beam_point (player, position)
+    -- Create beams in all four cardinal directions.
+    create_beam_point_with_direction(player, defines.direction.north, position)
+    create_beam_point_with_direction(player, defines.direction.south, position)
+    create_beam_point_with_direction(player, defines.direction.west, position)
+    create_beam_point_with_direction(player, defines.direction.east, position)
+end
+
+
 function observe_points_of_interest (surface, player, search_radius)
     local enemy = surface.find_nearest_enemy{position=player.position, max_distance=search_radius}
     if enemy ~= nil then

@@ -54,7 +54,7 @@ class Recipe(BaseModel):
 
 class BurnerType(BaseModel):
     fuel: Optional[str]
-    remaining_burning_fuel: float
+    remaining_burning_fuel: Optional[float] = 0
 
 
 class Entity(BaseModel):
@@ -112,7 +112,7 @@ class OffshorePump(FluidHandler):
 
 
 class Furnace(Entity, BurnerType):
-    input_ingredients: List[Ingredient]
+    input_ingredients: Optional[List[Ingredient]] = []
 
 
 
