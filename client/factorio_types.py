@@ -39,6 +39,7 @@ class Prototype:
     Pipe = "pipe", Entity
     IronChest = "iron-chest", Entity
     IronGearWheel = "iron-gear-wheel", Entity
+    Coal = "coal", None
     IronPlate = "iron-plate", None
     SmallElectricPole = "small-electric-pole", Entity
 

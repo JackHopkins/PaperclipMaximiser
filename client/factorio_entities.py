@@ -9,7 +9,10 @@ class Inventory:
         self.__dict__ = kwargs
 
     def __getitem__(self, key):
-        name, _entity = key
+        try:
+            name, _entity = key
+        except Exception as e:
+            pass
         return self.__dict__[name] if name in self.__dict__ else 0
 
     def __setitem__(self, key, value):

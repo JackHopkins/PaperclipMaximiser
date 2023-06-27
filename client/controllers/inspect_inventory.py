@@ -12,6 +12,6 @@ class InspectInventory(Action):
     def __init__(self, *args):
         super().__init__(*args)
 
-    def __call__(self) -> Inventory:
+    def __call__(self, entity=None) -> Inventory:
         response, execution_time = self.execute(PLAYER)
         return Inventory(**response)

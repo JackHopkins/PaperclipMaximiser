@@ -1,5 +1,7 @@
 import math
 
+import numpy
+
 from controllers._action import Action
 from typing import Tuple, List
 
@@ -90,6 +92,9 @@ class ConnectEntities(Action):
                  connection_type: Prototype = Prototype.Pipe, relative=False) -> List[Entity]:
         connection_prototype, metaclass = connection_type
 
+        x_sign = numpy.sign(source_entity.position.x - target_entity.position.x)
+        y_sign = numpy.sign(source_entity.position.y - target_entity.position.y)
+
         if isinstance(source_entity, FluidHandler):
             if isinstance(source_entity, Boiler) and isinstance(target_entity, Generator):
                 #source_position = self._round_position(source_entity.steam_output_point)
@@ -104,7 +109,7 @@ class ConnectEntities(Action):
         elif isinstance(source_entity, MiningDrill):
             source_position = self._round_position(source_entity.drop_position)
         else:
-            source_position = source_entity.position
+            source_position = Position(x=source_entity.position.x-x_sign, y=source_entity.position.y-y_sign)
 
         if isinstance(target_entity, FluidHandler):
             if isinstance(target_entity, Boiler) and isinstance(source_entity, Generator):
@@ -119,7 +124,8 @@ class ConnectEntities(Action):
         elif isinstance(target_entity, MiningDrill):
             target_position = self._round_position(target_entity.drop_position)
         else:
-            target_position = target_entity.position
+            #target_position = target_entity.position
+            target_position = Position(x=target_entity.position.x + x_sign, y=target_entity.position.y + y_sign)
 
         response, elapsed = self.execute(PLAYER,
                                          source_position.x,

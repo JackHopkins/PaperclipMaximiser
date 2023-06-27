@@ -24,14 +24,20 @@ local function place_at_position(player, connection_type, current_position, dire
     -- Place the connection entity
         local direction_to_next = {x = current_position.x + direction.x, y = current_position.y + direction.y}
         local dir = get_direction(current_position, direction_to_next)
-        game.print(dir)
+
         create_beam_point_with_direction(player, dir, current_position)
 
         -- Check for overlapping entities
         local entities = game.surfaces[1].find_entities_filtered{area={{current_position.x - 0.5, current_position.y - 0.5}, {current_position.x + 0.5, current_position.y + 0.5}}, force = "player"}
         if #entities > 0 then
-           -- error("Cannot place entity at position (" .. current_position.x .. ", " .. current_position.y .. ") due to overlapping "..entities[1].name..".")
+           for _, entity in pairs(entities) do
+               if entity.name ~= connection_type and entity.name ~= 'laser-beam' then
+                   error("Cannot place entity at position (" .. current_position.x .. ", " .. current_position.y .. ") due to overlapping "..entity.name..".")
+               end
+           end
         end
+
+
         --place_position = {x = math.floor(current_position.x), y = math.floor(current_position.y)}
         local placed_entity = game.surfaces[1].create_entity({name = connection_type, position = current_position, direction = dir, force = player.force})
 
@@ -46,14 +52,12 @@ end
 
 local function move_and_place(player, serialized_entities, connection_type, current_position, direction, distance, axis)
     for i = 1, distance do
-        game.print(i..' - '..distance)
-        --if current_position[axis] then
+
         local placed_entity = place_at_position(player, connection_type, current_position, direction)
         table.insert(serialized_entities, placed_entity)
 
         -- Move to the next position
         current_position[axis] = current_position[axis] + direction[axis]
-        --end
     end
 end
 
@@ -94,6 +98,7 @@ global.actions.connect_entities = function(player_index, source_x, source_y, tar
     local direction = {x = 0, y = 0}
     local x_distance = math.abs(target_x - source_x)
     local y_distance = math.abs(target_y - source_y)
+    game.print("Y dist: "..y_distance)
 
     if x_distance < y_distance then
         game.print(tostring(current_position.x)..' < '..target_x)
@@ -104,7 +109,13 @@ global.actions.connect_entities = function(player_index, source_x, source_y, tar
         game.print(tostring(current_position.y)..' < '..target_y)
         direction.y = current_position.y < target_y and 1 or -1
         direction.x = 0 -- Reset the x direction
+        y_distance = math.abs(target_y - current_position.y)
+        game.print("Y dist: "..y_distance)
+        --game.print(current_position.y + direction.y - target_y)
+        --if current_position.y + direction.y - target_y > 1 then
         move_and_place(player, serialized_entities, connection_type, current_position, direction, y_distance+1, 'y')
+        --end
+
     else
         game.print(tostring(current_position.y)..' < '..target_y)
         direction.y = current_position.y < target_y and 1 or -1
@@ -114,6 +125,7 @@ global.actions.connect_entities = function(player_index, source_x, source_y, tar
         game.print(tostring(current_position.x)..' < '..target_x)
         direction.x = current_position.x < target_x and 1 or -1
         direction.y = 0 -- Reset the y direction
+        x_distance = math.abs(target_x - current_position.x)
         move_and_place(player, serialized_entities, connection_type, current_position, direction, x_distance+1, 'x')
     end
 
