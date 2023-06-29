@@ -3,8 +3,6 @@ from typing import Tuple
 from controllers._action import Action
 from factorio_entities import Inventory
 from factorio_instance import PLAYER
-from factorio_types import Prototype, PrototypeName, ResourceName
-from models.zero_dict import ZeroDict
 
 
 class InspectInventory(Action):
@@ -13,5 +11,9 @@ class InspectInventory(Action):
         super().__init__(*args)
 
     def __call__(self, entity=None) -> Inventory:
-        response, execution_time = self.execute(PLAYER)
+        if entity:
+            x, y = self.get_position(entity.position)
+        else:
+            x, y = 0, 0
+        response, execution_time = self.execute(PLAYER, entity == None, x, y)
         return Inventory(**response)

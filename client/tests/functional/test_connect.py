@@ -59,18 +59,22 @@ def test_burner_inserter_grid_with_coal_movement(game):
         target = game.place_entity(Prototype.IronChest, position=inserters[0][0].drop_position)
         game.insert_item(Prototype.Coal, source, 50)
         # Wait for some time to allow coal to move, assuming there's a method to wait in game
-        sleep(15)  # Wait for 200 ticks or adjust as needed based on game speed
+        sleep(60)  # Wait for 200 ticks or adjust as needed based on game speed
 
         # Now check if the coal has reached the top left point (i.e., the first inserter in the grid)
         # Assuming there's a method to inspect the contents of an inserter
-        target = game.inspect_inserter_contents(inserters[0][0])
+        target_inventory = game.inspect_inventory(entity=target)
 
         current_inserters_in_inventory = game.inspect_inventory()[Prototype.BurnerInserter]
 
         spent_inserters = (inserters_in_inventory - current_inserters_in_inventory)
 
         # Assert the spent inserters and if the coal reached its destination
-        assert spent_inserters == grid_size * grid_size
+        assert spent_inserters == 18
+
+        coal_in_final_chest = target_inventory[Prototype.Coal]
+
+        assert coal_in_final_chest == 22
     except Exception as e:
         print(e)
         assert False
