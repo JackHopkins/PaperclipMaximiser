@@ -1,6 +1,7 @@
 import math
 
 import numpy
+import numpy as np
 
 from controllers._action import Action
 from typing import Tuple, List
@@ -16,6 +17,46 @@ class ConnectEntities(Action):
         super().__init__(*args)
 
     def _get_nearest_connection_point(self,
+                                      fluid_handler_source: FluidHandler,
+                                      existing_connection_position: Position,
+                                      existing_connection_entity: Entity):
+        existing_offset_x = existing_connection_position.x - existing_connection_entity.position.x
+        existing_offset_y = existing_connection_position.y - existing_connection_entity.position.y
+
+        # By default, select the first connection point
+        nearest_connection_point = fluid_handler_source.connection_points[0]
+        nearest_distance = 10000000  # Large value
+
+        for connection_point in fluid_handler_source.connection_points:
+            possible_offset_x = connection_point.x - fluid_handler_source.position.x
+            possible_offset_y = connection_point.y - fluid_handler_source.position.y
+
+            # Calculate directional components
+            dir_x = np.sign(possible_offset_x - existing_offset_x)
+            dir_y = np.sign(possible_offset_y - existing_offset_y)
+
+            # Check if points are facing each other
+            if dir_x == 0 and dir_y == 0:  # They are on top of each other, so just return this point
+                return connection_point
+            elif dir_x == 0 and possible_offset_y * dir_y < 0:  # They are vertically aligned and facing each other
+                continue
+            elif dir_y == 0 and possible_offset_x * dir_x < 0:  # They are horizontally aligned and facing each other
+                continue
+            elif possible_offset_x * dir_x < 0 and possible_offset_y * dir_y < 0:  # They are diagonally aligned and facing each other
+                continue
+
+            # Calculate distance
+            distance = abs(connection_point.x - existing_connection_position.x) + abs(
+                connection_point.y - existing_connection_position.y)
+
+            # Update if this distance is smaller
+            if distance < nearest_distance:
+                nearest_distance = distance
+                nearest_connection_point = connection_point
+
+        return nearest_connection_point
+
+    def _get_nearest_connection_point2(self,
                                       fluid_handler_source: FluidHandler,
                                       existing_connection_position: Position,
                                       existing_connection_entity: Entity):
@@ -98,12 +139,35 @@ class ConnectEntities(Action):
         if isinstance(source_entity, FluidHandler):
             if isinstance(source_entity, Boiler) and isinstance(target_entity, Generator):
                 #source_position = self._round_position(source_entity.steam_output_point)
-                source_position = source_entity.steam_output_point
+                x_diff_source_position_target_position = source_entity.position.x - source_entity.steam_output_point.x
+                y_diff_source_position_target_position = source_entity.position.y - source_entity.steam_output_point.y
+                top_source_position = Position(x=source_entity.position.x - source_entity.tile_dimensions.tile_width/2,
+                                                  y=source_entity.position.y - source_entity.tile_dimensions.tile_height/2)
+                bottom_source_position = Position(x=source_entity.position.x - source_entity.tile_dimensions.tile_width/2,
+                                                    y=source_entity.position.y + source_entity.tile_dimensions.tile_height/2)
+                left_source_position = Position(x=source_entity.position.x - source_entity.tile_dimensions.tile_width/2,
+                                                    y=source_entity.position.y - source_entity.tile_dimensions.tile_height/2)
+                right_source_position = Position(x=source_entity.position.x + source_entity.tile_dimensions.tile_width/2,
+                                                        y=source_entity.position.y - source_entity.tile_dimensions.tile_height/2)
+                # check if steam_output_point is on the top, bottom, left or right of the boiler, if so, add a 0.5 offset to the position in the direction of the generator
+                if x_diff_source_position_target_position == 0:
+                    if y_diff_source_position_target_position < 0:
+                        source_position = Position(x=source_entity.position.x, y=source_entity.position.y + 1.5)
+                    else:
+                        source_position = Position(x=source_entity.position.x, y=source_entity.position.y - 1.5)
+                elif y_diff_source_position_target_position == 0:
+                    if x_diff_source_position_target_position < 0:
+                        source_position = Position(x=source_entity.position.x + 1.5, y=source_entity.position.y)
+                    else:
+                        source_position = Position(x=source_entity.position.x - 1.5, y=source_entity.position.y)
+
+                #source_position = source_entity.steam_output_point
             else:
-                source_position = self._round_position(self._get_nearest_connection_point(source_entity, target_entity.position, target_entity))
+                # self._round_position(
+                source_position = self._get_nearest_connection_point(source_entity, target_entity.position, target_entity)
                 #source_position = self._get_nearest_connection_point(source_entity, target_entity.position, target_entity)
-            if source_position.x < target_entity.position.x:
-                source_position.x -= 1
+            #if source_position.x < target_entity.position.x:
+            #    source_position.x -= 1
         elif isinstance(source_entity, Inserter):
             source_position = self._round_position(source_entity.drop_position)
         elif isinstance(source_entity, MiningDrill):
@@ -113,19 +177,20 @@ class ConnectEntities(Action):
 
         if isinstance(target_entity, FluidHandler):
             if isinstance(target_entity, Boiler) and isinstance(source_entity, Generator):
-                target_position = self._round_position(target_entity.steam_input_point)
+                target_position = target_entity.steam_input_point#self._round_position(target_entity.steam_input_point)
             else:
                 #target_position = self._round_position(self._get_nearest_connection_point(target_entity, source_position, source_entity))
                 target_position = self._get_nearest_connection_point(target_entity, source_position, source_entity)
-            if source_position.x < target_position.x:
-                target_position.x -= 1
+            #if source_position.x < target_position.x:
+            #    target_position.x -= 1
         elif isinstance(target_entity, Inserter):
-            target_position = self._round_position(target_entity.pickup_position)
+            target_position = target_entity.pickup_position#self._round_position(target_entity.pickup_position)
         elif isinstance(target_entity, MiningDrill):
             target_position = self._round_position(target_entity.drop_position)
         else:
             #target_position = target_entity.position
             target_position = Position(x=target_entity.position.x + x_sign, y=target_entity.position.y + y_sign)
+
 
         response, elapsed = self.execute(PLAYER,
                                          source_position.x,

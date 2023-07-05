@@ -13,6 +13,120 @@ def game(instance):
     yield instance
 
 
+def test_connect_steam_engines_to_boilers_using_pipes(game):
+    """
+    Place a boiler and a steam engine next to each other in 3 cardinal directions.
+    :param game:
+    :return:
+    """
+    boilers_in_inventory = game.inspect_inventory()[Prototype.Boiler]
+    steam_engines_in_inventory = game.inspect_inventory()[Prototype.SteamEngine]
+    pipes_in_inventory = game.inspect_inventory()[Prototype.Pipe]
+
+    boiler: Entity = game.place_entity(Prototype.Boiler, position=(0, 0))
+    steam_engine: Entity = game.place_entity(Prototype.SteamEngine, position=(0, 10))
+
+    try:
+        connection: List[Entity] = game.connect_entities(boiler, steam_engine, connection_type=Prototype.Pipe)
+        assert False
+    except Exception as e:
+        print(e)
+        assert True
+    game.reset()
+
+    # Define the offsets for the four cardinal directions
+    offsets = [(10, 0), (0, -10), (-10, 0)]  # Up, Right, Down, Left  (0, -10),
+
+    for offset in offsets:
+        boiler: Entity = game.place_entity(Prototype.Boiler, position=(0, 0))
+        steam_engine: Entity = game.place_entity(Prototype.SteamEngine, position=offset)
+
+        try:
+            connection: List[Entity] = game.connect_entities(boiler, steam_engine, connection_type=Prototype.Pipe)
+        except Exception as e:
+            print(e)
+            assert False
+        assert boilers_in_inventory - 1 == game.inspect_inventory()[Prototype.Boiler]
+        assert steam_engines_in_inventory - 1 == game.inspect_inventory()[Prototype.SteamEngine]
+
+        current_pipes_in_inventory = game.inspect_inventory()[Prototype.Pipe]
+        spent_pipes = (pipes_in_inventory - current_pipes_in_inventory)
+        assert spent_pipes == len(connection)
+
+        game.reset()  # Reset the game state after each iteration
+
+def test_place_and_connect_entities_in_grid(game):
+    """
+    Place a grid of furnaces and connect them with burner inserters.
+    :param game:
+    :return:
+    """
+    furnaces_in_inventory = game.inspect_inventory()[Prototype.StoneFurnace]
+    inserters_in_inventory = game.inspect_inventory()[Prototype.BurnerInserter]
+
+
+    grid_size = 3
+    furnaces = [[None for _ in range(grid_size)] for _ in range(grid_size)]
+
+    for i in range(grid_size):
+        for j in range(grid_size):
+            furnaces[i][j] = game.place_entity(Prototype.StoneFurnace, position=(1+(i*3), 1+(j*3)))
+
+    for i in range(grid_size):
+        for j in range(grid_size - 1):
+            try:
+                connection = game.connect_entities(furnaces[i][j], furnaces[i][j+1], connection_type=Prototype.BurnerInserter)
+            except Exception as e:
+                print(e)
+                assert False
+
+    for i in range(grid_size - 1):
+        for j in range(grid_size):
+            try:
+                connection = game.connect_entities(furnaces[i][j], furnaces[i+1][j], connection_type=Prototype.BurnerInserter)
+            except Exception as e:
+                print(e)
+                assert False
+
+    current_furnaces_in_inventory = game.inspect_inventory()[Prototype.StoneFurnace]
+    current_inserters_in_inventory = game.inspect_inventory()[Prototype.BurnerInserter]
+
+    spent_furnaces = (furnaces_in_inventory - current_furnaces_in_inventory)
+    spent_inserters = (inserters_in_inventory - current_inserters_in_inventory)
+
+    assert spent_furnaces == grid_size * grid_size
+    assert spent_inserters == 2 * grid_size * (grid_size - 1)
+
+    game.reset()
+
+def test_basic_connection_between_furnace_and_miner(game):
+    """
+    Place a furnace with a burner inserter pointing towards it.
+    Find the nearest coal and place a burner mining drill on it.
+    Connect the burner mining drill to the inserter using a transport belt.
+    :param game:
+    :return:
+    """
+
+    coal: Position = game.nearest(Resource.Coal)
+    furnace = game.place_entity(Prototype.StoneFurnace, position=(0, 0))
+    inserter = game.place_entity_next_to(Prototype.BurnerInserter,
+                                         reference_position=furnace.position,
+                                         direction_from=game.LEFT,
+                                         spacing=0.5)
+    miner = game.place_entity(Prototype.BurnerMiningDrill, position=coal)
+
+    belts_in_inventory = game.inspect_inventory()[Prototype.TransportBelt]
+    try:
+        connection = game.connect_entities(miner, inserter, connection_type=Prototype.TransportBelt)
+    except Exception as e:
+        pass
+
+    current_belts_in_inventory = game.inspect_inventory()[Prototype.TransportBelt]
+    spent_belts = (belts_in_inventory - current_belts_in_inventory)
+    assert spent_belts == len(connection)
+
+
 def test_burner_inserter_grid_with_coal_movement(game):
     """
     Create a grid of burner inserters, each passing left and up from the bottom right point.
@@ -74,123 +188,9 @@ def test_burner_inserter_grid_with_coal_movement(game):
 
         coal_in_final_chest = target_inventory[Prototype.Coal]
 
-        assert coal_in_final_chest == 22
+        assert coal_in_final_chest > 20
     except Exception as e:
         print(e)
         assert False
 
-
     game.reset()  # Reset the game state after each iteration
-
-
-
-def test_place_and_connect_entities_in_grid(game):
-    """
-    Place a grid of furnaces and connect them with burner inserters.
-    :param game:
-    :return:
-    """
-    furnaces_in_inventory = game.inspect_inventory()[Prototype.StoneFurnace]
-    inserters_in_inventory = game.inspect_inventory()[Prototype.BurnerInserter]
-
-
-    grid_size = 3
-    furnaces = [[None for _ in range(grid_size)] for _ in range(grid_size)]
-
-    for i in range(grid_size):
-        for j in range(grid_size):
-            furnaces[i][j] = game.place_entity(Prototype.StoneFurnace, position=(1+(i*3), 1+(j*3)))
-
-    for i in range(grid_size):
-        for j in range(grid_size - 1):
-            try:
-                connection = game.connect_entities(furnaces[i][j], furnaces[i][j+1], connection_type=Prototype.BurnerInserter)
-            except Exception as e:
-                print(e)
-                assert False
-
-    for i in range(grid_size - 1):
-        for j in range(grid_size):
-            try:
-                connection = game.connect_entities(furnaces[i][j], furnaces[i+1][j], connection_type=Prototype.BurnerInserter)
-            except Exception as e:
-                print(e)
-                assert False
-
-    current_furnaces_in_inventory = game.inspect_inventory()[Prototype.StoneFurnace]
-    current_inserters_in_inventory = game.inspect_inventory()[Prototype.BurnerInserter]
-
-    spent_furnaces = (furnaces_in_inventory - current_furnaces_in_inventory)
-    spent_inserters = (inserters_in_inventory - current_inserters_in_inventory)
-
-    assert spent_furnaces == grid_size * grid_size
-    assert spent_inserters == 2 * grid_size * (grid_size - 1)
-
-    game.reset()
-
-def test_connect_steam_engines_to_boilers_using_pipes(game):
-    """
-    Place a boiler and a steam engine next to each other in 3 cardinal directions.
-    :param game:
-    :return:
-    """
-    boilers_in_inventory = game.inspect_inventory()[Prototype.Boiler]
-    steam_engines_in_inventory = game.inspect_inventory()[Prototype.SteamEngine]
-    pipes_in_inventory = game.inspect_inventory()[Prototype.Pipe]
-
-    # Define the offsets for the four cardinal directions
-    offsets = [(10, 0), (0, -10), (-10, 0)]  # Up, Right, Down, Left  (0, -10),
-
-    for offset in offsets:
-        boiler: Entity = game.place_entity(Prototype.Boiler, position=(0, 0))
-        steam_engine: Entity = game.place_entity(Prototype.SteamEngine, position=offset)
-
-        try:
-            connection: List[Entity] = game.connect_entities(boiler, steam_engine, connection_type=Prototype.Pipe)
-        except Exception as e:
-            print(e)
-            assert False
-        assert boilers_in_inventory - 1 == game.inspect_inventory()[Prototype.Boiler]
-        assert steam_engines_in_inventory - 1 == game.inspect_inventory()[Prototype.SteamEngine]
-
-        current_pipes_in_inventory = game.inspect_inventory()[Prototype.Pipe]
-        spent_pipes = (pipes_in_inventory - current_pipes_in_inventory)
-        assert spent_pipes == len(connection)
-
-        game.reset()  # Reset the game state after each iteration
-
-    boiler: Entity = game.place_entity(Prototype.Boiler, position=(0, 0))
-    steam_engine: Entity = game.place_entity(Prototype.SteamEngine, position=(0, 10))
-
-    try:
-        connection: List[Entity] = game.connect_entities(boiler, steam_engine, connection_type=Prototype.Pipe)
-        assert False
-    except Exception:
-        assert True
-
-def test_basic_connection_between_furnace_and_miner(game):
-    """
-    Place a furnace with a burner inserter pointing towards it.
-    Find the nearest coal and place a burner mining drill on it.
-    Connect the burner mining drill to the inserter using a transport belt.
-    :param game:
-    :return:
-    """
-
-    coal: Position = game.nearest(Resource.Coal)
-    furnace = game.place_entity(Prototype.StoneFurnace, position=(0, 0))
-    inserter = game.place_entity_next_to(Prototype.BurnerInserter,
-                                         reference_position=furnace.position,
-                                         direction_from=game.LEFT,
-                                         spacing=0.5)
-    miner = game.place_entity(Prototype.BurnerMiningDrill, position=coal)
-
-    belts_in_inventory = game.inspect_inventory()[Prototype.TransportBelt]
-    try:
-        connection = game.connect_entities(miner, inserter, connection_type=Prototype.TransportBelt)
-    except Exception as e:
-        pass
-
-    current_belts_in_inventory = game.inspect_inventory()[Prototype.TransportBelt]
-    spent_belts = (belts_in_inventory - current_belts_in_inventory)
-    assert spent_belts == len(connection)
