@@ -13,7 +13,7 @@ def instance():
                                         'copper-plate': 50,
                                         'iron-plate': 50,
                                         'iron-chest': 2,
-                                        'burner-mining-drill': 1,
+                                        'burner-mining-drill': 3,
                                         'electric-mining-drill': 1,
                                         'assembling-machine-1': 1,
                                         'stone-furnace': 9,
