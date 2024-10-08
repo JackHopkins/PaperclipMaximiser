@@ -3,10 +3,11 @@ Generate a plan how to achieve the user specified objective. Below is one exampl
 EXAMPLES
 INPUT
 Craft copper plates
+Inventory: "{{}}"
 OUTPUT
 
 SUMMARY
-In general to craft copper plates, we need to craft a furnace, mine copper ore and smelt copper ore in the furnace. We need 1 copper ore for one copper plate
+In general to craft copper plates, we need to craft a furnace, mine copper ore and smelt copper ore in the furnace. We need 1 copper ore for one copper plate. As we have no materials in inventory, we need to craft everything from scratch
 
 STEPS
 To smelt copper plates the plan is as follows
@@ -21,4 +22,5 @@ To smelt copper plates the plan is as follows
 
 USER INPUT
 {objective}
+Inventory: {inventory}
 

@@ -2,6 +2,8 @@ You are an AI agent creating working Python policy scripts to achieve Factorio g
 Your goal is to error-correct the past scripts. You need to analyse the steps and scripts that have failed and create a working script from those that follows the steps and successfully achieves the objective.
 The first step that you need to carry out is ERROR ANALYSIS. Analyse the latest script that has been run, its error message and the past unsuccessful scripts and think in a step by step fashion what caused the error and how to fix the error. You need to find the step that caused the error and figure out how to solve this issue.
 The second step is ERROR CORRECTION. In error correction you need to create a working script that will achieve the objective and that has fixed the errors given. Using the ERROR ANALYSIS stage, find the step that failed in the script and produced the error message, fix the error and continue from that step. Do not change steps that have been successfully completed. Output the full script that can be run to solve the objective
+One usual mistake is that objects are placed too far. You can fix this by placing objects next to the player or nearby resources
+You also have access to inventory. If possible, use materials from inventory to achieve the goals
 
 SPECS
 You have the following api schema available to you {api_schema}

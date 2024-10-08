@@ -1,0 +1,14 @@
+{
+  "instruction": "Craft 1 wooden chest from scratch",
+  "objective": "Craft 1 wooden chest from scratch",
+  "steps": "SUMMARY:\nTo craft 1 wooden chest from scratch, we need to gather raw materials, craft intermediate components, and finally assemble the wooden chest. The main steps involve harvesting wood, crafting wooden planks, and then crafting the wooden chest itself. Here's a breakdown of the required components and actions:\n\n1. Raw materials:\n   - 4 Wood (to craft 2 Wooden Planks)\n\n2. Intermediate crafting:\n   - 2 Wooden Planks (each requires 2 Wood)\n\n3. Final crafting:\n   - 1 Wooden Chest (requires 2 Wooden Planks)\n\nSTEPS:\n\n1. Harvest Wood:\n   - Move to the nearest tree using `move_to(nearest(Resource.Wood))`\n   - Harvest 4 wood using `harvest_resource(nearest(Resource.Wood), 4)`\n\n2. Craft Wooden Planks:\n   - Craft 2 Wooden Planks using `craft_item(Prototype.WoodenPlank, 2)`\n     (This will automatically use 4 Wood from your inventory)\n\n3. Craft Wooden Chest:\n   - Craft 1 Wooden Chest using `craft_item(Prototype.WoodenChest, 1)`\n     (This will automatically use 2 Wooden Planks from your inventory)\n\n4. Verify crafting:\n   - Check your inventory to confirm you have 1 Wooden Chest using `inspect_inventory()`\n\nThis plan ensures that we gather all necessary raw materials, craft the required intermediate components, and finally craft the wooden chest. The process is straightforward and doesn't require any complex machinery or additional resources beyond wood.",
+  "corrections": [
+    {
+      "snippet": "from factorio_instance import *\n\n# 1. Harvest Wood\nnearest_tree = nearest(Resource.Wood)\nmove_to(nearest_tree)\nharvest_resource(nearest_tree, quantity=4)\n\n# Assert that we have harvested enough wood\nwood_in_inventory = inspect_inventory()[Resource.Wood]\nassert wood_in_inventory >= 4, f\"Failed to harvest enough wood. Current amount: {wood_in_inventory}\"\n\n# 2. Craft Wooden Chest directly from Wood\ncraft_item(Prototype.WoodenChest, quantity=1)\n\n# 3. Verify crafting\ninventory = inspect_inventory()\nwooden_chests_in_inventory = inventory[Prototype.WoodenChest]\n\n# Assert that we have crafted the wooden chest\nassert wooden_chests_in_inventory >= 1, f\"Failed to craft a wooden chest. Current amount: {wooden_chests_in_inventory}\"\n\n# Final check to ensure we have exactly 1 wooden chest (in case we had any before)\nprint(f\"Wooden chests in inventory: {wooden_chests_in_inventory}\")\n\n# Check remaining wood\nremaining_wood = inventory[Resource.Wood]\nprint(f\"Remaining wood in inventory: {remaining_wood}\")\n",
+      "error": "2: {'y': -46.5, 'x': -2.5}\n3: 4\n6: Error at lines 14-14: WoodenPlank"
+    }
+  ],
+  "token_count": 19577,
+  "cost": 0.0077091,
+  "snippet_passed": true
+}

@@ -10,3 +10,5 @@ IMPORTANT
 Make sure it is a script and not a function. it must be a script that can be directly run and not a function definition
 Also add assert tests during the script to check that intermediate steps are done right. For instance if something is harvested, crafted or extracted, you can inspect the inventory to check the outcome. Asserts should also have informative error messages if the assert fails
 When smelting, it is important to wait until the smelting is completed. Use extracts and asserts to check when the smelting is completed. If you extract less than you put in, you need to wait for longer
+When placing objects, place them close to the player or nearby resources as placing them too far is not allowed and will error out the game
+You also have access to inventory. If possible, use materials from inventory to achieve the goals

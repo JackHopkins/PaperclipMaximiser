@@ -1,0 +1,14 @@
+Craft 1 electric-mining-drill from scratch
+Craft 1 stone furnace from scratch
+Craft 1 transport belt from scratch
+Craft 1 offshore pump from scratch
+Craft 1 boiler from scratch
+Craft 1 steam engine from scratch
+Craft 1 pipe from scratch
+Craft 1 iron chest from scratch
+Craft 1 wooden chest from scratch
+Craft 1 iron gear wheel from scratch
+Craft 1 iron plate from scratch
+Craft 1 copper plate from scratch
+Craft 1 copper cable from scratch
+Craft 1 electronic circuit from scratch

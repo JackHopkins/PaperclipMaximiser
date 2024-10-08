@@ -1,1 +1,6 @@
-craft 10 automated science packs
+Craft 1 electric-mining-drill with randomised inventory
+Craft 1 offshore pump with randomised inventory
+Craft 1 boiler with randomised inventory
+Craft 1 steam engine with randomised inventory
+Craft 1 electronic circuit with randomised inventory
+Craft 2 steel plates with randomised inventory
