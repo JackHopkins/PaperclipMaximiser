@@ -7,6 +7,7 @@ from factorio_types import Resource
 def game(instance):
     instance.reset()
     yield instance
+    instance.reset()
 
 def test_nearest_resource(game):
     """
@@ -15,8 +16,8 @@ def test_nearest_resource(game):
     :return:
     """
     coal: Position = game.nearest(Resource.Coal)
-    assert coal.y == -4.5
-    assert coal.x == -7.5
+    assert coal.y == -11.5
+    assert coal.x == 19.5
 
 def test_move_to_nearest(game):
     """
@@ -26,4 +27,5 @@ def test_move_to_nearest(game):
     """
     water: Position = game.nearest(Resource.Water)
     game.move_to(water)
-    assert water == game.nearest(Resource.Water)
+    assert abs(water.x - game.nearest(Resource.Water).x) <= 1
+

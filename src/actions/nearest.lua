@@ -1,5 +1,5 @@
 global.actions.nearest = function(player_index, resource)
-    local player = game.players[player_index]
+    local player = game.get_player(player_index)
 
     local function normalize_resource_name(resource)
         if resource == "copper" then
@@ -22,7 +22,7 @@ global.actions.nearest = function(player_index, resource)
         local closest = nil
         local entities
 
-        if resource == "tree" then
+        if resource == "wood" then
             entities = surface.find_entities_filtered{
                 area = {{position.x - 500, position.y - 500}, {position.x + 500, position.y + 500}},
                 type = "tree"

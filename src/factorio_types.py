@@ -1,5 +1,4 @@
 import enum
-
 from factorio_entities import *
 
 
@@ -16,6 +15,8 @@ class PrototypeName(enum.Enum):
     Pipe = "pipe"
     SmallElectricPole = "small-electric-pole"
     IronChest = "iron-chest"
+    ElectronicCircuit = "electronic-circuit"
+    Lab = "lab"
 
 class ResourceName(enum.Enum):
     Coal = "coal"
@@ -44,12 +45,15 @@ class Prototype(enum.Enum):
     IronGearWheel = "iron-gear-wheel", Entity
     Coal = "coal", None
     IronPlate = "iron-plate", None
+    SteelPlate = "steel-plate", None
     CopperPlate = "copper-plate", None
     SmallElectricPole = "small-electric-pole", Entity
     IronOre = "iron-ore", None
     CopperOre = "copper-ore", None
     Stone = "stone", None
     CopperCable = "copper-cable", None
+    ElectronicCircuit = "electronic-circuit", None
+    Lab = "lab", Entity
 
 
 class Resource:
@@ -60,4 +64,4 @@ class Resource:
     Water = "water", ResourcePatch
     CrudeOil = "crude-oil", ResourcePatch
     UraniumOre = "uranium-ore", ResourcePatch
-    Wood = "tree-01", ResourcePatch
+    Wood = "wood", ResourcePatch

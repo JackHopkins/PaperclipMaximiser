@@ -17,7 +17,6 @@ class ObserveAll(Action):
         super().__init__(connection, game_state)
         mu, sigma = 0, CHUNK_SIZE * 20
         self.minimap_normal = np.random.normal(mu, sigma, MAX_SAMPLES)
-        self.game_state = game_state
         self.chunk_cursor = 0
 
     def __call__(self, trace=False, **kwargs) -> dict:
@@ -51,6 +50,11 @@ class ObserveAll(Action):
                                               trace,
                                               omit
                                               )
+
+        if isinstance(response, str):
+            # check that response endswith "attempt to index field 'actions' (a nil value)"
+            if response.endswith("attempt to index field 'actions' (a nil value)"):
+                raise Exception("No actions available")
 
         if response['local_environment']:
             pass
@@ -144,7 +148,8 @@ class ObserveAll(Action):
         start = timer()
         one_hot_x = zeros(256)
         one_hot_y = zeros(256)
-
+        if not local_counts:
+            local_counts = {}
         for key, value in local_counts.items():
             lua_key = key.replace('_', '-')
             index = self.game_state.vocabulary._update_vocabulary(lua_key)
