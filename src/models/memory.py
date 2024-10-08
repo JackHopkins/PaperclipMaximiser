@@ -205,9 +205,14 @@ class Memory(object):
         self.history: List[Event] = []
         self.max_size = max_history
         self.brief = brief
+
+        # Write the brief to a file called `current_brief.txt`
+        with open('./current_brief.txt', 'w') as f:
+            f.write(brief)
+
         self.size = size
-        self.log_file = "log/" + datetime.now().strftime("%H-%M-%d-%m-%Y") + ".log"
-        self.trace_file = "log/" + datetime.now().strftime("%H-%M-%d-%m-%Y") + ".trace"
+        self.log_file = "../log/" + datetime.now().strftime("%H-%M-%d-%m-%Y") + ".log"
+        self.trace_file = "../log/" + datetime.now().strftime("%H-%M-%d-%m-%Y") + ".trace"
         self.variables = {}
         self._score = []
         self.current_score = 0
@@ -276,7 +281,11 @@ class Memory(object):
             rewritten_last_message = "\n".join(last_command_lines)
             last_command.message = rewritten_last_message
 
-        self._log_to_file(output)
+        try:
+            self._log_to_file(output)
+        except Exception as e:
+            print(e)
+
         print(output)
         self._log_history(message, type=EventType.ERROR)
 
@@ -384,7 +393,7 @@ class Memory(object):
             self.run['final/warnings'] = len(self.get_last_events(filters=[EventType.WARNING]))
             self.run['final/variables'] = len(self.get_last_events(filters=[EventType.VARIABLE]))
 
-            #self.history = []
+            self.history = []
             raise InsufficientScoreException("Insufficient score. Resetting.")
 
     def log_observation(self, message):
@@ -425,8 +434,11 @@ class Memory(object):
             f.write(message + "\n")
 
     def _log_to_file(self, message):
-        with open(self.log_file, "a") as f:
-            f.write(message + "\n")
+        try:
+            with open(self.log_file, "a") as f:
+                f.write(message + "\n")
+        except Exception as e:
+            print(e)
 
     def _log_history(self, message, type: EventType = EventType.COMMAND, unique=False):
         if isinstance(message, dict):

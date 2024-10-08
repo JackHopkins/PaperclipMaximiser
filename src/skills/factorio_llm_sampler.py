@@ -6,6 +6,7 @@ import ast
 import json
 import os
 import textwrap
+from itertools import cycle
 from typing import List, Dict, Any
 from dotenv import load_dotenv
 
@@ -15,17 +16,7 @@ from utilities.controller_loader import load_schema, load_definitions
 
 load_dotenv()
 
-
 def is_valid_python(code_string: str) -> bool:
-    """
-    Check if a string is syntactically valid Python code.
-
-    Args:
-    code_string (str): The string containing Python code to validate.
-
-    Returns:
-    bool: True if the code is syntactically valid, False otherwise.
-    """
     try:
         ast.parse(code_string)
         return True
@@ -46,12 +37,13 @@ class FactorioLLMSampler:
         execution_path = os.path.dirname(os.path.realpath(__file__))
         folder_path = f'{execution_path}/../controllers'
         schema = load_schema(folder_path)
-        entity_definitions = load_definitions(f'{execution_path}/../factorio_types.py')
+        type_definitions = load_definitions(f'{execution_path}/../factorio_types.py')
+        entity_definitions = load_definitions(f'{execution_path}/../factorio_entities.py')
         brief = f"""
-            You have access to the following Game API for use in your Python code:
+You have access to the following Game API for use in your Python code:
 
-            Types:
-            {entity_definitions}
+Entities:
+{entity_definitions}
 
             Methods:
             ```
@@ -70,18 +62,19 @@ class FactorioLLMSampler:
                 model=self.model,
                 messages=messages,
                 max_tokens=max_tokens,
+                **kwargs
             )
 
-            # Update token count
-            self.token_count += response.usage.input_tokens + response.usage.output_tokens
-            self.cost += response.usage.input_tokens * 0.0000003 + response.usage.output_tokens * 0.0000015
+            try:
+                self.token_count += response.usage.input_tokens + response.usage.output_tokens
+                self.cost += response.usage.input_tokens * 0.0000003 + response.usage.output_tokens * 0.0000015
+            except:
+                self.token_count += response.usage.total_tokens
+                self.cost += response.usage.prompt_tokens * 0.0000003 + response.usage.completion_tokens * 0.0000015
 
-            # Handle different response structures
             if hasattr(response, 'choices'):
-                # OpenAI and DeepSeek API
                 return response.choices[0].message.content
             elif hasattr(response, 'content'):
-                # Anthropic API
                 return response.content[0].text
             else:
                 raise ValueError("Unexpected response structure")
@@ -89,17 +82,27 @@ class FactorioLLMSampler:
             print(f"API call failed: {e}")
             raise
 
-    def load_existing_state(self, function_name: str) -> Dict[str, Any]:
-        folder_path = f"../skills/_{function_name}"
+    def load_existing_state(self, snippet_name: str) -> Dict[str, Any]:
+        folder_path = f"../skills/_{snippet_name}"
         if os.path.exists(folder_path):
             with open(f"{folder_path}/details.json", "r") as f:
                 details = json.load(f)
-
             self.token_count = details.get("token_count", 0)
             self.cost = details.get("cost", 0)
-
             return details
         return None
+
+    def load_objectives(self, file_path: str) -> List[str]:
+        with open(file_path, 'r') as f:
+            return [line.strip() for line in f if line.strip()]
+
+    def remove_objective(self, file_path: str, objective: str):
+        with open(file_path, 'r') as f:
+            objectives = f.readlines()
+        with open(file_path, 'w') as f:
+            for obj in objectives:
+                if obj.strip() != objective:
+                    f.write(obj)
 
     def generate_objective(self) -> str:
         system_prompt = "You are an AI assistant creating beginner objectives for a Factorio game curriculum. Generate a single, clear objective for the next task in the game."
@@ -162,19 +165,17 @@ class FactorioLLMSampler:
         try:
             program = response.replace('```python', '```')
             program = program.split('```')[1]
-            #program = program.replace(" game.", " ")
-
             return program
         except:
             return response
 
-    def generate_function_name(self, objective: str) -> str:
-        system_prompt = f"You are an AI assistant creating Python function names for Factorio game objectives."
-        user_message = (f"Provide me with the name for a function to achieve the objective: '{objective}'. "
-                        f"Only write between ``` blocks."
+    def generate_snippet_name(self, objective: str) -> str:
+        system_prompt = f"You are an AI assistant creating Python snippet names for Factorio game objectives."
+        user_message = (f"Provide a name for a snippet to achieve the objective: '{objective}'. "
+                        f"Only write between ``` blocks. "
                         f"e.g '```place_furnace_next_to_coal```'")
-        response = self._call_api(system_prompt, user_message)
-        parsed = response.split('```')[1].replace(' ', '_').lower()
+        response = self._call_api(system_prompt, user_message, temperature=0)
+        parsed = response.split('```')[1].replace(' ', '_').lower().strip()
         return parsed
 
     def correct_policy_function(self, objective: str, steps, last_executed_policy: str,
@@ -189,7 +190,7 @@ class FactorioLLMSampler:
 
 
         history_str = "\n\n".join([
-            f"Attempt {i + 1}:\nPolicy:\n```python\n{attempt['policy']}\n```\nError: {attempt['error']}"
+            f"Attempt {i + 1}:\nSnippet:\n```python\n{attempt['snippet']}\n```\nError: {attempt['error']}"
             for i, attempt in enumerate(correction_history)
         ]) if correction_history else "No history of attempts yet."
 
@@ -235,27 +236,10 @@ class FactorioLLMSampler:
             test = '\n# Get the current inventory\ninventory = inspect_inventory()\n\n# Check if there\'s at least one burner mining drill in the inventory\nnumber_of_burner_mining_drills = inventory.get(Prototype.BurnerMiningDrill, 0)\n\n# Assert that we have at least one burner mining drill\nassert number_of_burner_mining_drills >= 1, f"Failed to craft a burner mining drill. Current count in inventory: {number_of_burner_mining_drills}"\n\n# If we want to be more specific and check for exactly one burner mining drill:\nassert number_of_burner_mining_drills == 1, f"Expected exactly 1 burner mining drill, but found {number_of_burner_mining_drills} in the inventory"\n\nprint("Success: One burner mining drill has been crafted!")\n'
             yield {
                 "objective": objective,
-                "verification": test,
-                "policy": policy,
+                "snippet": snippet,
                 "steps": steps,
             }
 
-def extract_steps_from_policy_function(policy: str) -> str:
-    """
-    Extract the plan steps from a policy function.
-
-    Args:
-    policy_string (str): The policy function code.
-
-    Returns:
-    str: The plan steps extracted from the policy function.
-    """
-    policy_string = "\n".join(policy.split("\n")[1:])
-    # remove the first \tab character from each line
-    policy_string = textwrap.dedent(policy_string)
-    #policy_string = policy_string.replace(" game.", " ")
-
-    return policy_string
 if __name__ == "__main__":
     #main()
 
@@ -264,15 +248,26 @@ if __name__ == "__main__":
 
     inventory = {
         'iron-plate': 50,
+        'coal': 50,
+        'copper-plate': 50,
+        'iron-chest': 2,
+        'burner-mining-drill': 3,
+        'electric-mining-drill': 1,
+        'assembling-machine-1': 1,
+        'stone-furnace': 9,
+        'transport-belt': 50,
+        'boiler': 1,
+        'burner-inserter': 32,
+        'pipe': 15,
+        'steam-engine': 1,
+        'small-electric-pole': 10
     }
     instance = FactorioInstance(address='localhost',
                                 bounding_box=200,
                                 tcp_port=27015,
                                 fast=True,
-                                inventory={})
-    instance.reset()
-    from factorio_entities import Position
-    instance.move_to(Position(x=0, y=0))
+                                #cache_scripts=False,
+                                inventory=inventory)
     #test_string = '\nfrom factorio_instance import *\n\ndef craft_transport_belts(self, num_belts: int = 2) -> bool:\n    # Step 1: Gather resources\n    self.harvest_resource(nearest(Resource.IronOre))\nself.craft_transport_belts(2)'
     #test_string = '\nfrom factorio_instance import *\n\n# Find the nearest iron patch\niron_patch = get_resource_patch(Resource.IronOre, nearest(Resource.IronOre))\n# Move to the center of the iron patch\nmove_to(iron_patch.bounding_box.left_top)\n# Step 3: Gather resources\nharvest_resource(nearest(Resource.IronOre))'
     test_string = """
@@ -339,145 +334,104 @@ assert number_of_copper_plates == 6, f"Expected 6 copper plates, got {number_of_
 #from factorio_instance import *\n\n# 1. Mine stone\nstone_position = nearest(Resource.Stone)\nmove_to(stone_position)\nharvest_resource(stone_position, quantity=5)\n\n# 2. Craft a stone furnace\ncraft_item(Prototype.StoneFurnace, quantity=1)\n\n# 3. Mine iron ore\niron_ore_position = nearest(Resource.IronOre)\nmove_to(iron_ore_position)\nharvest_resource(iron_ore_position, quantity=9)\n\n# 4. Mine coal\ncoal_position = nearest(Resource.Coal)\nmove_to(coal_position)\nharvest_resource(coal_position, quantity=10)\n\n# 5. Smelt iron plates\nfurnace = place_entity_next_to(Prototype.StoneFurnace, iron_ore_position, Direction.UP, spacing=1)\ninsert_item(Prototype.Coal, furnace, quantity=5)\ninsert_item(Prototype.IronOre, furnace, quantity=9)\n\n# Wait for smelting to complete\nsleep(15)\n\n# Extract iron plates\nextract_item(Prototype.IronPlate, furnace.position, quantity=9)\n\n# 6. Craft iron gear wheels\ncraft_item(Prototype.IronGearWheel, quantity=3)\n\n# 7. Craft the burner mining drill\ncraft_item(Prototype.BurnerMiningDrill, quantity=1)\n\n# 8. Confirm the burner mining drill is in the inventory\ninventory = inspect_inventory()\nif Prototype.BurnerMiningDrill in inventory and inventory[Prototype.BurnerMiningDrill] >= 1:\n    print("Successfully crafted one burner mining drill!")\nelse:\n    raise Exception("Failed to craft burner mining drill")\n
 #"""
     #score, goal, result = instance.eval_with_error(test_string, timeout=60)
-    for curriculum_item in sampler.stream_curriculum(2):
+    # Load objectives from file
+    objectives_file = "objectives.txt"
+    if os.path.exists(objectives_file):
+        objectives = sampler.load_objectives(objectives_file)
+    else:
+        print(f"Objectives file '{objectives_file}' not found. Please create it and add objectives.")
+        exit(1)
 
-        #function_name = curriculum_item['function_name']
-        #existing_state = sampler.load_existing_state(function_name)
-#
-        #if existing_state:
-        #    print(f"Resuming work on existing objective: {existing_state['objective']}")
-        #    curriculum_item = existing_state
-        #    correction_history = existing_state.get("corrections", [])
-        #    # load the policy string from the policy.py file
-        #    with open(f"../skills/_{function_name}/policy.py", "r") as f:
-        #        curriculum_item['policy'] = f.read()
-        #    with open(f"../skills/_{function_name}/test_policy.py", "r") as f:
-        #        curriculum_item['verification'] = f.read()
-#
-        #    #policy_string = existing_state.get("policy", "")
-        #    #policy_string = extract_steps_from_policy_function(curriculum_item['policy'])
-        #else:
-#
-        #    #policy_string = extract_steps_from_policy_function(curriculum_item['policy'])
-#
-        #    correction_history = []
+    while objectives:
+        for objective in objectives.copy():
+            curriculum_item = next(sampler.stream_curriculum([objective]))
+            snippet_name = curriculum_item['snippet_name']
+            existing_state = sampler.load_existing_state(snippet_name)
 
-        print(f"Objective: {curriculum_item['objective']}")
-        #print("Function name: " + function_name)
-        print("Plan:")
-        print(curriculum_item["steps"])
-        print("Verification function:")
-        print(curriculum_item['verification'])
-        print("Policy function:")
-        print(curriculum_item['policy'])
-        print("\n" + "=" * 50 + "\n")
-        correction_history = []
-        if not is_valid_python(curriculum_item['verification']):
-            continue
-        if not is_valid_python(curriculum_item['policy']):
-            continue
+            if existing_state:
+                print(f"Resuming work on existing objective: {existing_state['objective']}")
+                curriculum_item = existing_state
+                correction_history = existing_state.get("corrections", [])
+                with open(f"../skills/_{snippet_name}/snippet.py", "r") as f:
+                    curriculum_item['snippet'] = f.read()
+            else:
+                correction_history = []
 
-        policy_string = curriculum_item['policy']
-        test_string = curriculum_item['verification']
+            print(f"Objective: {curriculum_item['objective']}")
+            print("Snippet name: " + snippet_name)
+            print("Plan:")
+            print(curriculum_item["steps"])
+            print("Snippet:")
+            print(curriculum_item['snippet'])
+            print("\n" + "=" * 50 + "\n")
 
-        #policy_string = "from factorio_instance import *\nfrom controllers import *\n" + policy_string
-        #test_string = "from factorio_instance import *\nfrom controllers import *\n" + test_string
+            if not is_valid_python(curriculum_item['snippet']):
+                continue
 
-        max_attempts = 16
-        policy_passed = False
+            snippet = curriculum_item['snippet']
 
-        for attempt in range(max_attempts):
-            instance._reset(**instance.initial_inventory if isinstance(instance.initial_inventory,
-                                                               dict) else instance.initial_inventory.__dict__)
+            max_attempts = 4
+            snippet_passed = False
 
-            try:
+            for attempt in range(max_attempts):
+                instance._reset(**instance.initial_inventory if isinstance(instance.initial_inventory, dict) else instance.initial_inventory.__dict__)
 
-                score, goal, result = instance.eval_with_error(policy_string.strip(), timeout=300)
+                try:
+                    score, goal, result = instance.eval_with_error(snippet, timeout=20)
 
-                # if 'error is in result, then the policy failed
-                if 'error' in result.lower():
-                    raise Exception(result)
+                    if 'error' in result.lower() or 'assertion' in result.lower():
+                        raise Exception(result)
 
-            except Exception as e:
-                if attempt < max_attempts - 1:
-                    print(f"Policy function `{curriculum_item['objective']}` failed on attempt {attempt + 1}. `{str(result)}` Attempting to correct...")
-                    corrected_policy = sampler.correct_policy_function(
-                        objective = curriculum_item['objective'],
-                        steps = curriculum_item['steps'],
-                        last_executed_policy = policy_string,
-                        error_message = str(result),
-                        correction_history = correction_history
-                    )
-                    correction_history.append({"policy": policy_string, "error": str(e)})
-                    corrected_policy = corrected_policy.split("```")[1].lstrip('python\n')
-                    policy_string = textwrap.dedent("\n".join(corrected_policy.split("\n")[1:]))
-                    #policy_string = policy_string.replace("game.", "")
-                    #policy_string = "from factorio_instance import *\n" + policy_string
-                    #policy_string = "from factorio_instance import *\nfrom controllers import *\n" + policy_string
+                    snippet_passed = True
+                    break
+                except Exception as e:
+                    correction_history.append({"snippet": snippet, "error": str(e)})
+                    if attempt < max_attempts - 1:
+                        print(f"Snippet failed on attempt {attempt + 1}. `{str(result)}` Attempting to correct...")
+                        corrected_snippet = sampler.correct_policy_snippet(
+                            curriculum_item['objective'],
+                            snippet,
+                            str(result),
+                            correction_history
+                        )
+                        corrected_snippet = corrected_snippet.split("```")[1].lstrip('python\n')
+                        snippet = textwrap.dedent(corrected_snippet)
+                    else:
+                        print(f"Snippet failed after {max_attempts} attempts. Moving to next objective.")
 
-                else:
-                    print(f"Policy function failed after {max_attempts} attempts. Moving to next objective.")
+            # Save results and update files
+            folder_name = snippet_name if snippet_passed else f"_{snippet_name}"
+            folder_path = f"../skills/{folder_name.strip()}"
+            os.makedirs(folder_path, exist_ok=True)
 
-        # dothe same as above but add the outcome test
-        correction_history_with_outcome = []
-        final_policy_with_outcome_tests = policy_string.strip() + '\n\n' + test_string.strip() # add the test to the policy
-        for attempt in range(max_attempts):
-            instance._reset(**instance.initial_inventory if isinstance(instance.initial_inventory,
-                                                               dict) else instance.initial_inventory.__dict__)
-            try:
-                score, goal, result = instance.eval_with_error(final_policy_with_outcome_tests, timeout=300)
-                if 'error' in result.lower():
-                    raise Exception(result)
-                policy_passed = True
-                break
-            except Exception as e:
-                if attempt < max_attempts - 1:
-                    print(
-                        f"Verification code failed on attempt {attempt + 1}. `{str(result)}` Attempting to correct...")
-                    corrected_policy = sampler.correct_policy_function(
-                        objective = curriculum_item['objective'],
-                        steps = curriculum_item['steps'],
-                        last_executed_policy = final_policy_with_outcome_tests,
-                        error_message = str(result),
-                        correction_history = correction_history_with_outcome
-                    )
-                    correction_history_with_outcome.append({"policy": final_policy_with_outcome_tests, "error": str(e)})
-                    corrected_policy = corrected_policy.split("```")[1].lstrip('python\n')
-                    final_policy_with_outcome_tests = textwrap.dedent("\n".join(corrected_policy.split("\n")[1:]))
+            with open(f"{folder_path}/snippet.py", "w") as f:
+                f.write(curriculum_item['snippet'])
 
+            details = {
+                "instruction": objective,
+                "objective": curriculum_item['objective'],
+                "steps": curriculum_item['steps'],
+                "corrections": correction_history,
+                "token_count": sampler.token_count,
+                "cost": sampler.cost,
+                "snippet_passed": snippet_passed
+            }
+            with open(f"{folder_path}/details.json", "w") as f:
+                json.dump(details, f, indent=2)
 
-        # Dont know how to save the things yet, this will require some thought
-        # Determine the folder name based on whether the policy passed
-        folder_name = function_name if policy_passed else f"_{function_name}"
-        folder_path = f"../skills/{folder_name}"
+            if snippet_passed:
+                print(f"Successfully wrote snippet file for objective: {curriculum_item['objective']}")
+                # Remove the completed objective from objectives.txt
+                sampler.remove_objective(objectives_file, objective)
+            else:
+                print(f"Failed to generate a working snippet for objective: {curriculum_item['objective']}")
 
-        # Create a directory in the skill folder for the objective
-        os.makedirs(folder_path, exist_ok=True)
+            sampler.token_count = 0
+            sampler.cost = 0
 
-        # Save the verification and policy functions
-        with open(f"{folder_path}/test_policy.py", "w") as f:
-            f.write("from factorio_instance import *\n" + curriculum_item['verification'])
-
-        with open(f"{folder_path}/policy.py", "w") as f:
-            f.write("from factorio_instance import *\n" + curriculum_item['policy'])
-
-        # Write details.json file
-        details = {
-            "objective": curriculum_item['objective'],
-            "steps": curriculum_item['steps'],
-            "corrections": correction_history,
-            "token_count": sampler.token_count,
-            "cost": sampler.cost,
-            "policy_passed": policy_passed
-        }
-        with open(f"{folder_path}/details.json", "w") as f:
-            json.dump(details, f, indent=2)
-
-        if policy_passed:
-            print(f"Successfully wrote policy and test files for objective: {curriculum_item['objective']}")
+        if objectives:
+            print("Completed a full cycle. Starting over with remaining objectives.")
         else:
-            print(f"Failed to generate a working policy for objective: {curriculum_item['objective']}")
+            print("All objectives have been completed. Exiting the program.")
 
-        # Reset token count and cost for the next curriculum item
-        sampler.token_count = 0
-        sampler.cost = 0
+    print("All objectives have been completed. The program will now exit.")

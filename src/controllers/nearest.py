@@ -11,8 +11,6 @@ class Nearest(Action):
 
     def __init__(self, connection, game_state):
         super().__init__(connection, game_state)
-        self.connection = connection
-        self.game_state = game_state
 
     def __call__(self, type: Union[Prototype, Resource],
                  #relative: bool = False,
@@ -53,6 +51,6 @@ class Nearest(Action):
 
             return position
         except TypeError as e:
-            raise Exception(f"Could not find nearest {type[0]}")
+            raise Exception(f"Could not find nearest {type[0]} on the surface")
         except Exception as e:
             raise Exception(f"Could not find nearest {type[0]}", e)

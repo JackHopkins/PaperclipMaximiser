@@ -12,7 +12,6 @@ from factorio_types import Prototype
 class MoveTo(Action):
 
     def __init__(self, connection, game_state):
-        self.game_state = game_state
         super().__init__(connection, game_state)
         self.observe = ObserveAll(connection, game_state)
         self.request_path = RequestPath(connection, game_state)
@@ -33,7 +32,8 @@ class MoveTo(Action):
         nposition = Position(x=x, y=y)
         print(f"Moving to {x}, {y}")
         path_handle = self.request_path(start=Position(x=self.game_state.player_location[0],
-                                                       y=self.game_state.player_location[1]), finish=nposition)
+                                                       y=self.game_state.player_location[1]), finish=nposition,
+                                        allow_paths_through_own_entities=True)
         try:
             if laying is not None:
                 entity_name = laying.value[0]
@@ -53,7 +53,7 @@ class MoveTo(Action):
             if response and isinstance(response, dict):
                 self.game_state.player_location = (response['x'], response['y'])
 
-            return response, execution_time
+            return response#, execution_time
         except Exception as e:
             raise Exception(f"Cannot move. {e}")
     #

@@ -3,45 +3,49 @@ import time
 import pytest
 
 from factorio_entities import BurnerMiningDrill
-from factorio_instance import FactorioInstance
+from factorio_instance import FactorioInstance, Direction
 from factorio_types import Prototype, Resource
 
 
 @pytest.fixture()
 def game(instance):
+    instance.initial_inventory = {'stone-furnace': 1, 'burner-mining-drill': 1, 'transport-belt': 100, 'small-electric-pole': 50,
+                                  'boiler': 1, 'steam-engine': 1, 'offshore-pump': 4, 'pipe': 100, 'burner-inserter': 50 }
     instance.reset()
     yield instance
 
 
 def test_steam_engines(game: FactorioInstance):
     try:
-        game.craft_item(Prototype.OffshorePump)
+        #game.craft_item(Prototype.OffshorePump)
         game.move_to(game.nearest(Resource.Water))
         offshore_pump = game.place_entity(Prototype.OffshorePump,
                                           position=game.nearest(Resource.Water))
         boiler = game.place_entity_next_to(Prototype.Boiler,
                                            reference_position=offshore_pump.position,
-                                           direction_from=game.DOWN,
+                                           direction=offshore_pump.direction,
                                            spacing=5)
         water_pipes = game.connect_entities(boiler, offshore_pump, connection_type=Prototype.Pipe)
 
         steam_engine = game.place_entity_next_to(Prototype.SteamEngine,
                                                  reference_position=boiler.position,
-                                                 direction_from=game.DOWN,
+                                                 direction=boiler.direction,
                                                  spacing=5)
         steam_pipes = game.connect_entities(boiler, steam_engine, connection_type=Prototype.Pipe)
 
         coal_inserter = game.place_entity_next_to(Prototype.BurnerInserter,
                                                   reference_position=boiler.position,
-                                                  direction_from=game.UP,
+                                                  direction=Direction.RIGHT,
                                                   spacing=1)
+        coal_inserter = game.rotate_entity(coal_inserter, Direction.LEFT)
         game.move_to(game.nearest(Resource.Coal))
 
         burner_mining_drill = game.place_entity(Prototype.BurnerMiningDrill, position=game.nearest(Resource.Coal))
         burner_inserter = game.place_entity_next_to(Prototype.BurnerInserter,
                                                     reference_position=burner_mining_drill.position,
-                                                    direction_from=game.DOWN,
-                                                    spacing=1)
+                                                    direction=Direction.DOWN,
+                                                    spacing=0)
+        burner_inserter = game.rotate_entity(burner_inserter, Direction.UP)
         assert burner_inserter
 
         belts = game.connect_entities(burner_mining_drill, burner_inserter, connection_type=Prototype.TransportBelt)
@@ -54,7 +58,7 @@ def test_steam_engines(game: FactorioInstance):
 
         assembler = game.place_entity_next_to(Prototype.AssemblingMachine1,
                                               reference_position=steam_engine.position,
-                                              direction_from=game.LEFT,
+                                              direction=Direction.LEFT,
                                               spacing=5)
 
         steam_engine_to_assembler_poles = game.connect_entities(assembler, steam_engine, connection_type=Prototype.SmallElectricPole)
@@ -63,6 +67,7 @@ def test_steam_engines(game: FactorioInstance):
 
     except Exception as e:
         print(e)
+        assert False, str(e)
 
 
 def test_iron_smelting(game: FactorioInstance):

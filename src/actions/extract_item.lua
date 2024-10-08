@@ -1,5 +1,5 @@
 global.actions.extract_item = function(player_index, extract_item, count, x, y)
-    local player = game.players[player_index]
+    local player = game.get_player(player_index)
     local position = {x=x, y=y}
     local surface = player.surface
 
@@ -25,7 +25,7 @@ global.actions.extract_item = function(player_index, extract_item, count, x, y)
         error("Could not find a nearby entity to extract from.")
     end
 
-    -- If we can find an entity to extract from at the player's x, y position
+    -- If we can find an entity to extract from near the player's x, y position
     local closest_entity_count = closest_entity.get_item_count(extract_item)
 
     if closest_entity_count == 0 then

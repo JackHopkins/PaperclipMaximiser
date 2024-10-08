@@ -18,10 +18,13 @@ class Reward(Action):
         else:
             goal = ""
 
+        if isinstance(response, str):
+           raise Exception(f"Could not get player score", response)
+
         return response['player'], goal
 
 
 if __name__ == "__main__":
-    score = Score("connection", 0)
+    score = Reward("connection", 0)
     score.load()
     pass

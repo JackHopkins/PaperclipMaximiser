@@ -10,7 +10,7 @@ from factorio_types import Prototype, Resource
 
 @pytest.fixture()
 def game(instance):
-    instance.initial_inventory = {'stone-furnace': 1, 'boiler': 1, 'steam-engine': 1, 'offshore-pump': 1}
+    instance.initial_inventory = {'stone-furnace': 1, 'boiler': 1, 'steam-engine': 1, 'offshore-pump': 1, 'pipe': 100, 'iron-plate': 50, 'copper-plate': 20, 'coal': 50}
     #instance.rcon_client.send_command('game.reset_game_state()')
     #instance.rcon_client.send_command('game.reload_script()')
     instance.reset()
@@ -26,23 +26,50 @@ def test_create_offshore_pump_to_steam_engine(game):
     steam_engines_in_inventory = game.inspect_inventory()[Prototype.SteamEngine]
     pipes_in_inventory = game.inspect_inventory()[Prototype.Pipe]
 
+    DIR = Direction.UP
     # move to the nearest water source
     water_location = game.nearest(Resource.Water)
     game.move_to(water_location)
 
     offshore_pump = game.place_entity(Prototype.OffshorePump,
                                       position=water_location,
-                                      direction=Direction.RIGHT)
+                                      direction=DIR)
+    assert offshore_pump.direction.value == DIR.value
+    # Get offshore pump direction
+    direction = offshore_pump.direction
+
+    # pump connection point
+    pump_connection_point = offshore_pump.connection_points[0]
 
     # place the boiler next to the offshore pump
     boiler = game.place_entity_next_to(Prototype.Boiler,
                                        reference_position=offshore_pump.position,
-                                       direction=Direction.RIGHT,
+                                       direction=direction,
                                        spacing=2)
+    assert boiler.direction.value == direction.value
+
+    # rotate the boiler to face the offshore pump
+    boiler = game.rotate_entity(boiler, Direction.next_clockwise(direction))
+
+    # insert coal into the boiler
+    game.insert_item(Prototype.Coal, boiler, quantity=5)
+
+    # connect the boiler and offshore pump with a pipe
+    offshore_pump_to_boiler_pipes = game.connect_entities(offshore_pump, boiler, connection_type=Prototype.Pipe)
 
     game.move_to(Position(x=0, y=10))
-    steam_engine: Entity = game.place_entity(Prototype.SteamEngine, position=Position(x=0, y=10))
+    steam_engine: Entity = game.place_entity_next_to(Prototype.SteamEngine,
+                                                     reference_position=boiler.position,
+                                                     direction=DIR,
+                                                     spacing=2)
 
+    # connect the boiler and steam engine with a pipe
+    boiler_to_steam_engine_pipes = game.connect_entities(boiler, steam_engine, connection_type=Prototype.Pipe)
+
+    inspected_steam_engine = game.inspect_entities(position=steam_engine.position, radius=1).get_entity(Prototype.SteamEngine)
+    assert inspected_steam_engine.warning == 'not receiving electricity'
+
+    assert steam_engine.direction.value == DIR.value
 
 
 def test_build_iron_gear_factory(game):
@@ -177,7 +204,7 @@ def test_build_iron_gear_factory(game):
 
     # place the assembly machine
     assembly_machine = game.place_entity_next_to(Prototype.AssemblingMachine1,
-                                                 reference_position=burner_inserter.drop_position,
+                                                 reference_position=burner_inserter.position,
                                                  direction=Direction.UP,
                                                  spacing=0)
     # set the recipe for the assembly machine to produce iron gears
@@ -191,7 +218,8 @@ def test_build_iron_gear_factory(game):
     # place the offshore pump at nearest water source
     game.move_to(game.nearest(Resource.Water))
     offshore_pump = game.place_entity(Prototype.OffshorePump,
-                                      position=game.nearest(Resource.Water))
+                                      position=game.nearest(Resource.Water),
+                                      direction=Direction.LEFT)
 
     # craft a boiler
     recipe = game.get_prototype_recipe(Prototype.Boiler)
@@ -201,8 +229,9 @@ def test_build_iron_gear_factory(game):
     # place the boiler next to the offshore pump
     boiler = game.place_entity_next_to(Prototype.Boiler,
                                        reference_position=offshore_pump.position,
-                                       direction=Direction.RIGHT,
+                                       direction=Direction.LEFT,
                                        spacing=2)
+
 
     # craft a steam engine
     recipe = game.get_prototype_recipe(Prototype.SteamEngine)
@@ -212,7 +241,7 @@ def test_build_iron_gear_factory(game):
     # place the steam engine next to the boiler
     steam_engine = game.place_entity_next_to(Prototype.SteamEngine,
                                              reference_position=boiler.position,
-                                             direction=Direction.RIGHT,
+                                             direction=Direction.LEFT,
                                              spacing=2)
 
     # connect the steam engine and assembly machine with power poles
@@ -230,5 +259,18 @@ def test_build_iron_gear_factory(game):
     # place connect the steam engine and assembly machine with power poles
     game.connect_entities(steam_engine, assembly_machine, connection_type=Prototype.SmallElectricPole)
 
-    #game.place_entity(Prototype.OffshorePump, position=water_patch.bounding_box.left_top)
+    # place connective pipes between the boiler and steam engine
+    game.connect_entities(boiler, steam_engine, connection_type=Prototype.Pipe)
 
+    # place connective pipes between the boiler and offshore pump
+    game.connect_entities(boiler, offshore_pump, connection_type=Prototype.Pipe)
+
+    game.insert_item(Prototype.Coal, boiler, quantity=15)
+    game.insert_item(Prototype.Coal, burner_inserter, quantity=15)
+    game.insert_item(Prototype.Coal, stone_furnace, quantity=15)
+
+    game.sleep(5)
+
+    inventory = game.inspect_inventory(entity=assembly_machine)
+
+    assert inventory.get(Prototype.IronGearWheel) >= 0

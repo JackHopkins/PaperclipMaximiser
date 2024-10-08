@@ -1,9 +1,15 @@
 
-global.actions.inspect_entities = function(player_index, radius_, position_x, position_y)
-    local player = game.players[player_index]
-    local position = {x = tonumber(position_x), y = tonumber(position_y)} or player.position
+global.actions.inspect_entities = function(player_index, radius, position_x, position_y)
+    local player = game.get_player(player_index)
+    local position
 
-    local radius = tonumber(radius_) or 5
+    if position_x and position_y then
+        position = {x = tonumber(position_x), y = tonumber(position_y)}
+    else
+        position = player.position
+    end
+
+    radius = tonumber(radius) or 5
     function find_connected_entities(entity)
         local entities_to_search = {
             {entity = entity, dx = 0, dy = -1, dir = defines.direction.north},
@@ -79,13 +85,17 @@ global.actions.inspect_entities = function(player_index, radius_, position_x, po
         if data.warnings.output_warning then
             table.insert(warnings, data.warnings.output_warning:gsub(" ", "_"))
         end
+        if data.warnings.input_warning then
+            table.insert(warnings, data.warnings.input_warning:gsub(" ", "_"))
+        end
 
         local position = {x=data.position.x, y=data.position.y}
 
+        game.print(data.name .. ": " .. data.direction .. " - ".. global.utils.get_entity_direction(data.name:gsub("_", "-"), data.direction))
         local entity_info = {
             name = data.name:gsub("-", "_"),
             position = position,
-            direction = data.direction,
+            direction = global.utils.get_entity_direction(data.name:gsub("_", "-"), data.direction),
             health = data.health,
             force = data.force,
             energy = data.energy,
@@ -102,6 +112,9 @@ global.actions.inspect_entities = function(player_index, radius_, position_x, po
         if data.crafted_items then
             entity_info.crafted_items = data.crafted_items
         end
+
+        --local serialized = global.utils.serialize_entity(data)
+        --table.insert(result, serialized)
 
         table.insert(result, entity_info)
     end

@@ -14,7 +14,7 @@ class PlaceEntityNextTo(Action):
     def __call__(self,
                  entity: Prototype,
                  reference_position: Position = Position(x=0, y=0),
-                 direction: Direction = 1,
+                 direction: Direction = Direction.RIGHT,
                  spacing: int = 0,
                  ) -> Entity:
         """
@@ -32,12 +32,11 @@ class PlaceEntityNextTo(Action):
             #x, y = math.floor(reference_position.x*2)/2, math.floor(reference_position.y*2)/2
             x, y = reference_position.x, reference_position.y
 
-            if isinstance(direction, Direction):
-                n_dir = direction.value
-            else:
-                n_dir = direction
+            factorio_direction = Direction.to_factorio_direction(direction)
 
-            response, elapsed = self.execute(PLAYER, name, x, y, n_dir, spacing)#-0.5)
+            response, elapsed = self.execute(PLAYER, name, x, y, factorio_direction, spacing)
+
+            #response, elapsed = self.execute(PLAYER, name, x, y, n_dir, spacing)#-0.5)
 
             if not isinstance(response, dict) or response == {}:
                 raise Exception(f"Could not place {name} at {reference_position}.", response)

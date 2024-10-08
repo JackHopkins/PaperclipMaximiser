@@ -1,6 +1,6 @@
 global.actions.inspect_inventory = function(player_index, is_character_inventory, x, y)
     local position = {x=x, y=y}
-    local player = game.players[player_index]
+    local player = game.get_player(player_index)
     local surface = player.surface
     local function get_player_inventory_items(player)
         local inventory = player.get_main_inventory()
@@ -43,11 +43,22 @@ global.actions.inspect_inventory = function(player_index, is_character_inventory
             return source
         end
 
+        -- If the closest entity is an assembling machine, return the inventory of the furnace
+        if closest_entity.type == "assembling-machine" then
+            local source = closest_entity.get_inventory(defines.inventory.assembling_machine_input).get_contents()
+            local output = closest_entity.get_inventory(defines.inventory.assembling_machine_output).get_contents()
+            -- Merge the two tables
+            for k, v in pairs(output) do
+                source[k] = (source[k] or 0) + v
+            end
+            return source
+        end
+
         return closest_entity.get_inventory(defines.inventory.chest).get_contents()
     end
 
 
-    local player = game.players[player_index]
+    local player = game.get_player(player_index)
     if not player then
         error("Player not found")
     end

@@ -8,8 +8,6 @@ class RotateEntity(Action):
 
     def __init__(self, connection, game_state):
         super().__init__(connection, game_state)
-        self.connection = connection
-        self.game_state = game_state
 
     def __call__(self, entity: Entity, direction: Direction = Direction.UP) -> bool:
         """
@@ -32,7 +30,9 @@ class RotateEntity(Action):
             # get metaclass from pydantic model
             metaclass = entity.__class__
 
-            response, elapsed = self.execute(PLAYER, x, y, direction.value)
+            factorio_direction = Direction.to_factorio_direction(direction)
+
+            response, elapsed = self.execute(PLAYER, x, y, factorio_direction)
 
             if not response:
                 raise Exception("Could not rotate.", response)
@@ -56,6 +56,16 @@ class RotateEntity(Action):
 
         if 'prototype' not in response.keys():
             response['prototype'] = entity
+
+        # Ensure the position is properly aligned to the grid
+        if 'position' in response:
+            response['position'] = {
+                'x': round(response['position']['x'] * 2) / 2,
+                'y': round(response['position']['y'] * 2) / 2
+            }
+
+        if 'direction' in response.keys():
+            response['direction'] = response['direction']
 
         try:
             object = metaclass(**response)

@@ -10,8 +10,6 @@ class SetEntityRecipe(Action):
 
     def __init__(self, connection, game_state):
         super().__init__(connection, game_state)
-        self.connection = connection
-        self.game_state = game_state
 
     def __call__(self, entity: Entity, prototype: Prototype,
                 # **kwargs
@@ -24,7 +22,11 @@ class SetEntityRecipe(Action):
         """
 
         x, y = entity.position.x, entity.position.y
-        name, _ = prototype.value
+        try:
+
+            name, _ = prototype.value
+        except AttributeError as e:
+            raise ValueError(f"Invalid entity type: {prototype}")
 
         #if not relative:
         #    x -= self.game_state.last_observed_player_location[0]

@@ -10,9 +10,22 @@ from factorio_types import Prototype, Resource
 def game(instance):
     instance.reset()
     yield instance
-
+    instance.reset()
 
 def test_move_to(game):
+    """
+    Move to the nearest coal patch
+    Move to the nearest iron patch
+    :param game:
+    :return:
+    """
+    resources = [Resource.Coal, Resource.IronOre, Resource.CopperOre, Resource.Stone]
+
+    for i in range(10):
+        for resource in resources:
+            game.move_to(game.nearest(resource))
+
+def test_move_to_laying_leading(game):
     """
     Move to the nearest coal patch
     Move to the nearest iron patch
@@ -22,7 +35,7 @@ def test_move_to(game):
     size = 5
 
     # north
-    game.move_to(Position(x=0, y=-size*3), leading=Prototype.TransportBelt)
+    game.move_to(Position(x=0, y=-size*3), laying=Prototype.TransportBelt)
     # northeast
     game.move_to(Position(x=size, y=-size*2), leading=Prototype.TransportBelt)
     # east

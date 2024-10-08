@@ -1,5 +1,5 @@
 global.actions.insert_item = function(player_index, insert_item, count, x, y)
-    local player = game.players[player_index]
+    local player = game.get_player(player_index)
 
     local position = {x=x, y=y}
     local surface = player.surface
@@ -19,11 +19,14 @@ global.actions.insert_item = function(player_index, insert_item, count, x, y)
 
     -- Find the closest building
     for _, building in ipairs(buildings) do
-        if building.get_inventory(defines.inventory.chest) ~= nil and building.name ~= 'character' then
-            local distance = ((position.x - building.position.x) ^ 2 + (position.y - building.position.y) ^ 2) ^ 0.5
-            if distance < closest_distance then
-                closest_distance = distance
-                closest_entity = building
+        if building.name ~= 'character' then
+            if building.get_inventory(defines.inventory.chest) ~= nil or
+                    building.get_inventory(defines.inventory.furnace_source) ~= nil then
+                local distance = ((position.x - building.position.x) ^ 2 + (position.y - building.position.y) ^ 2) ^ 0.5
+                if distance < closest_distance then
+                    closest_distance = distance
+                    closest_entity = building
+                end
             end
         end
     end
