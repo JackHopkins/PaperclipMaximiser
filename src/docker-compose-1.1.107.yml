@@ -2,6 +2,7 @@ version: '3.8'
 
 services:
   factorio:
+    build: ../factorio
     image: 'factorio:1.1.107'
     volumes:
       - type: bind

@@ -86,6 +86,7 @@ class TileDimensions(BaseModel):
 class Ingredient(BaseModel):
     name: str
     count: int
+    ingredients: Optional[List['Ingredient']] = None
 
 
 class Recipe(BaseModel):

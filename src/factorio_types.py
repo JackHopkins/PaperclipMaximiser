@@ -26,13 +26,18 @@ class ResourceName(enum.Enum):
     CrudeOil = "crude-oil"
     UraniumOre = "uranium-ore"
 
+    @classmethod
+    def get_list_of_names(cls):
+        output_list = [x.value for x in cls]
+        return output_list
+
 
 class Prototype(enum.Enum):
     AssemblingMachine1 = "assembling-machine-1", AssemblingMachine1
     BurnerInserter = "burner-inserter", BurnerInserter
-    BurnerMiningDrill = "burner-mining-drill", BurnerMiningDrill
+    BurnerMiningDrill = "burner-mining-drill", BurnerMiningDrill # Crafting requires 3 iron gear wheels, 3 iron plates, 1 stone furnace
     ElectricMiningDrill = "electric-mining-drill", MiningDrill
-    StoneFurnace = "stone-furnace", Furnace
+    StoneFurnace = "stone-furnace", Furnace # Crafting requires 5 stone
     TransportBelt = "transport-belt", TransportBelt
     OffshorePump = "offshore-pump", OffshorePump
     Boiler = "boiler", Boiler
@@ -41,15 +46,23 @@ class Prototype(enum.Enum):
     Pipe = "pipe", Entity
     IronChest = "iron-chest", Entity
     WoodenChest = "wooden-chest", Entity
-    IronGearWheel = "iron-gear-wheel", Entity
+    IronGearWheel = "iron-gear-wheel", Entity # Crafting requires 2 iron plate
     Coal = "coal", None
-    IronPlate = "iron-plate", None
-    CopperPlate = "copper-plate", None
+    IronPlate = "iron-plate", None # Crafting requires smelting 1 iron ore using a stone furnace
+    CopperPlate = "copper-plate", None # Crafting requires smelting 1 copper ore using a stone furnace
     SmallElectricPole = "small-electric-pole", Entity
     IronOre = "iron-ore", None
     CopperOre = "copper-ore", None
     Stone = "stone", None
     CopperCable = "copper-cable", None
+
+    @classmethod
+    def from_string(cls, value):
+        for member in cls:
+            if member.value[0] == value:
+                return member
+        raise ValueError(f"{value} is not a valid Prototype")
+        
 
 
 class Resource:
