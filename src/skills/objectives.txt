@@ -1,1 +1,8 @@
-place a self-fueling belt of 5 burner mining drills on coal with transport belts and inserters
+Build a small automated firearm magazine production line using assembling machines and a steam power unit
+Create a small electric network by connecting 3 steam engines to 2 electric mining drills
+Set up an automated stone brick production line using burner mining drills and stone furnaces
+Craft 30 transport belts and use them to create a simple ore transportation system
+Build a defensive line of 5 gun turrets and manually supply them with ammunition
+Build a radar and power it to start revealing the surrounding area
+Create a simple iron gear wheel production line using an assembling machine and inserters
+Create an automated inserter production facility
