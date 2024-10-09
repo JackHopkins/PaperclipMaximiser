@@ -54,6 +54,8 @@ class Prototype(enum.Enum):
     CopperCable = "copper-cable", None
     ElectronicCircuit = "electronic-circuit", None
     Lab = "lab", Entity
+    AutomationSciencePack = "automation-science-pack", None
+    Accumulator = "accumulator", Accumulator
 
 
 class Resource:

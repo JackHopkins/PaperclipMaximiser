@@ -18,6 +18,7 @@ def game(instance):
     }
     instance.reset()
     yield instance
+    instance.reset()
 
 
 def test_auto_fueling_iron_smelting_factory(game):
@@ -42,7 +43,11 @@ def test_auto_fueling_iron_smelting_factory(game):
 
     # Place an inserter to fuel the iron drill from the coal belt
     inserter_position = Position(x=iron_drill.position.x + iron_drill.tile_dimensions.tile_width/2, y=iron_drill.position.y-1)
-    iron_drill_fuel_inserter = game.place_entity(Prototype.BurnerInserter, position=inserter_position, direction=Direction.LEFT, exact=True)
+    iron_drill_fuel_inserter = game.place_entity_next_to(Prototype.BurnerInserter,
+                                                           reference_position=iron_drill.position,
+                                                           direction=Direction.RIGHT,
+                                                           spacing=0)
+    iron_drill_fuel_inserter = game.rotate_entity(iron_drill_fuel_inserter, Direction.LEFT)
 
     coal_belt = game.connect_entities(source=coal_drill, target=iron_drill_fuel_inserter, connection_type=Prototype.TransportBelt)
 
@@ -56,7 +61,7 @@ def test_auto_fueling_iron_smelting_factory(game):
     furnace_fuel_inserter_position = Position(x=iron_furnace.position.x + 1, y=iron_furnace.position.y)
     furnace_fuel_inserter = game.place_entity(Prototype.BurnerInserter, position=furnace_fuel_inserter_position, direction=Direction.LEFT)
 
-    coal_belt_to_furnace = game.connect_entities(coal_belt[-1], furnace_fuel_inserter.pickup_position, connection_type=Prototype.TransportBelt)
+    coal_belt_to_furnace = game.connect_entities(iron_drill_fuel_inserter.pickup_position, furnace_fuel_inserter.pickup_position, connection_type=Prototype.TransportBelt)
     coal_belt.extend(coal_belt_to_furnace)
 
     furnace_to_chest_inserter = game.place_entity_next_to(Prototype.BurnerInserter,
