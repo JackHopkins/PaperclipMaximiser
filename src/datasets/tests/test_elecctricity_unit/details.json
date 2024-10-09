@@ -1,0 +1,5 @@
+{
+  "instruction": "Place a boiler and a steam engine next to each other in 3 cardinal directions.",
+  "objective": "Place a boiler and a steam engine next to each other in 3 cardinal directions.",
+  "intencoty": {"stone-furnace": 1, "boiler": 1, "steam-engine": 1, "offshore-pump": 1, "pipe": 100, "iron-plate": 50, "copper-plate": 20, "coal": 50}
+}

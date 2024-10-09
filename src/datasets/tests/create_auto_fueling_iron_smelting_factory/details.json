@@ -1,0 +1,4 @@
+{
+  "instruction": "Build an auto-fueling iron smelting factory:\n- Mines coal and iron ore.\n- Uses transport belts to deliver coal to fuel the iron miner and furnace.\n- Smelts iron ore into iron plates.\n- Stores iron plates in an iron chest.",
+  "objective": "Build an auto-fueling iron smelting factory:\n- Mines coal and iron ore.\n- Uses transport belts to deliver coal to fuel the iron miner and furnace.\n- Smelts iron ore into iron plates.\n- Stores iron plates in an iron chest."
+}

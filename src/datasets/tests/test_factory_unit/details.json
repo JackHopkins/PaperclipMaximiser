@@ -1,0 +1,6 @@
+{
+  "instruction": "Build a factory that has a connected steam engine and assemtling machine",
+  "objective": "Build a factory that has a connected steam engine and assemtling machine",
+  "intencoty": {"stone-furnace": 1, "burner-mining-drill": 1, "transport-belt": 100, "small-electric-pole": 50,
+  "boiler": 1, "steam-engine": 1, "offshore-pump": 4, "pipe": 100, "burner-inserter": 50 }
+}

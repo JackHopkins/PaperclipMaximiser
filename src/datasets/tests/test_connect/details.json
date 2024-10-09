@@ -1,0 +1,11 @@
+{
+  "instruction": "Connect a offshore pump to a boiler",
+  "objective": "Connect a offshore pump to a boiler",
+  "additional_inv": {"stone-furnace": 10,
+  "burner-inserter": 50,
+  "offshore-pump": 4,
+  "pipe": 100,
+  "small-electric-pole": 50,
+  "transport-belt": 100,
+  "assembling-machine-1": 10}
+}

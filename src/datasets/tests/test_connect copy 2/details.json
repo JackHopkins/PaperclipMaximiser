@@ -1,0 +1,11 @@
+{
+  "instruction": "Place a furnace with a burner inserter pointing towards it.",
+  "objective": "Place a furnace with a burner inserter pointing towards it.",
+  "additional_inv": {"stone-furnace": 10,
+  "burner-inserter": 50,
+  "offshore-pump": 4,
+  "pipe": 100,
+  "small-electric-pole": 50,
+  "transport-belt": 100,
+  "assembling-machine-1": 10}
+}

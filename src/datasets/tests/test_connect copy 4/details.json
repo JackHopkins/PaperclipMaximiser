@@ -1,0 +1,11 @@
+{
+  "instruction": "Build a row of 5 stone furnaces fueled by a burner mining drill",
+  "objective": "Build a row of 5 stone furnaces fueled by a burner mining drill",
+  "additional_inv": {"stone-furnace": 10,
+  "burner-inserter": 50,
+  "offshore-pump": 4,
+  "pipe": 100,
+  "small-electric-pole": 50,
+  "transport-belt": 100,
+  "assembling-machine-1": 10}
+}

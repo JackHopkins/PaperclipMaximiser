@@ -1,0 +1,11 @@
+{
+  "instruction": "Place a steam engine and an assembling machine next to each other. Connect them with electricity poles.",
+  "objective": "Place a steam engine and an assembling machine next to each other. Connect them with electricity poles.",
+  "additional_inv": {"stone-furnace": 10,
+  "burner-inserter": 50,
+  "offshore-pump": 4,
+  "pipe": 100,
+  "small-electric-pole": 50,
+  "transport-belt": 100,
+  "assembling-machine-1": 10}
+}

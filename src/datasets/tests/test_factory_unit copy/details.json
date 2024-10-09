@@ -1,0 +1,6 @@
+{
+  "instruction": "Create an auto driller for coal. Create a miner for iron ore and a nearby furnace. Connect the miner to the furnace.",
+  "objective": "Create an auto driller for coal. Create a miner for iron ore and a nearby furnace. Connect the miner to the furnace.",
+  "intencoty": {"stone-furnace": 1, "burner-mining-drill": 1, "transport-belt": 100, "small-electric-pole": 50,
+  "boiler": 1, "steam-engine": 1, "offshore-pump": 4, "pipe": 100, "burner-inserter": 50 }
+}
