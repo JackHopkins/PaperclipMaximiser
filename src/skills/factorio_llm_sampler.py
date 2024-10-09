@@ -325,7 +325,7 @@ print(f"Successfully crafted {steel_plates} steel plates")
 
             snippet = curriculum_item['snippet']
 
-            max_attempts = 4
+            max_attempts = 6
             snippet_passed = False
 
             for attempt in range(max_attempts):
@@ -342,7 +342,7 @@ print(f"Successfully crafted {steel_plates} steel plates")
                 except Exception as e:
                     print(e)
                     if attempt < max_attempts - 1:
-                        print(f"Snippet failed on attempt {attempt + 1}. `{str(result)}` Attempting to correct...")
+                        print(f"{snippet_name} - Snippet failed on attempt {attempt + 1}. `{str(result)}` Attempting to correct...")
                         corrected_snippet = sampler.correct_policy_snippet(
                             curriculum_item['snippet_name'],
                             curriculum_item["steps"],
@@ -355,7 +355,7 @@ print(f"Successfully crafted {steel_plates} steel plates")
                         snippet = textwrap.dedent(corrected_snippet)
                         correction_history.append({"snippet": snippet, "error": str(e)})
                     else:
-                        print(f"Snippet failed after {max_attempts} attempts. Moving to next objective.")
+                        print(f"{snippet_name} - Snippet failed after {max_attempts} attempts. Moving to next objective.")
 
             # Save results and update files
             folder_name = snippet_name if snippet_passed else f"_{snippet_name}"

@@ -146,6 +146,10 @@ class InspectionResults(BaseModel):
                 return entity
         return None
 
+    def get_entities(self, prototype: 'Prototype') -> List[EntityInfo]:
+        name = prototype.value[0]
+        return [entity for entity in self.entities if entity.name == name]
+
 
 class BoundingBox(BaseModel):
     left_top: Position
@@ -234,6 +238,14 @@ class BurnerInserter(Inserter, BurnerType):
 class BurnerMiningDrill(MiningDrill, BurnerType):
     pass
 
+class Ammo(BaseModel):
+    name: str
+    magazine_size: Optional[int] = 0
+    reload_time: Optional[float] = 0
+
+class GunTurret(Entity):
+    # inventory: Inventory
+    ammo_inventory: Inventory
 
 class AssemblingMachine1(Entity):
     recipe: Optional[Recipe] = None  # Prototype

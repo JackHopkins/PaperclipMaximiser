@@ -17,6 +17,7 @@ class PrototypeName(enum.Enum):
     IronChest = "iron-chest"
     ElectronicCircuit = "electronic-circuit"
     Lab = "lab"
+    GunTurret = "gun-turret"
 
 class ResourceName(enum.Enum):
     Coal = "coal"
@@ -61,6 +62,10 @@ class Prototype(enum.Enum):
     Lab = "lab", Entity # Crafting requires 10 electronic circuits, 10 iron gear wheels, 4 transport belts
     AutomationSciencePack = "automation-science-pack", None
     Accumulator = "accumulator", Accumulator
+    GunTurret = "gun-turret", GunTurret
+    FirearmMagazine = "firearm-magazine", Ammo
+    StoneBrick = "stone-brick", None
+    Radar = "radar", Entity
 
     @classmethod
     def from_string(cls, value):
