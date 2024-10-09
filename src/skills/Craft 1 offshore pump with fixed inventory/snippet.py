@@ -23,15 +23,4 @@ assert inventory_after_pipe[Prototype.IronPlate] >= 15, f"Unexpected iron plate 
 craft_item(Prototype.OffshorePump, 1)
 final_inventory = inspect_inventory()
 assert final_inventory[Prototype.OffshorePump] >= 1, f"Failed to craft 1 offshore pump. Current inventory: {final_inventory[Prototype.OffshorePump]}"
-
-# 4. Verify the crafting
-print("Final inventory:")
-print(final_inventory)
-
-# Final assertions
-assert final_inventory[Prototype.OffshorePump] >= 1, "Offshore pump not found in inventory"
-assert final_inventory[Prototype.IronPlate] >= 13, f"Unexpected iron plate count. Expected at least 13, got {final_inventory[Prototype.IronPlate]}"
-assert final_inventory[Prototype.IronGearWheel] >= 0, f"Unexpected iron gear wheel count. Expected at least 0, got {final_inventory[Prototype.IronGearWheel]}"
-assert final_inventory[Prototype.Pipe] >= 0, f"Unexpected pipe count. Expected at least 0, got {final_inventory[Prototype.Pipe]}"
-
 print("Successfully crafted 1 offshore pump!")

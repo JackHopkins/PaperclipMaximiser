@@ -1,7 +1,9 @@
 
-# Find the nearest coal patch
+# Find the nearest coal patch and move to it
 coal_position = nearest(Resource.Coal)
 assert coal_position, "No coal resource found nearby"
+moved = move_to(coal_position)
+assert moved, f"Failed to move to coal position at {coal_position}"
 
 # Craft burner mining drill and wooden chest if not in inventory
 inventory = inspect_inventory()
@@ -12,10 +14,6 @@ if inventory.get(Prototype.BurnerMiningDrill) == 0:
 if inventory.get(Prototype.WoodenChest) == 0:
     crafted = craft_item(Prototype.WoodenChest)
     assert crafted == 1, f"Failed to craft Wooden Chest. Crafted: {crafted}"
-
-# Move to the coal position
-moved = move_to(coal_position)
-assert moved, f"Failed to move to coal position at {coal_position}"
 
 # Place the burner mining drill
 drill = place_entity(Prototype.BurnerMiningDrill, Direction.UP, coal_position)
@@ -39,5 +37,4 @@ assert drill_entity.status == EntityStatus.WORKING, f"Burner Mining Drill is not
 chest_entity = entities.get_entity(Prototype.WoodenChest)
 assert chest_entity, "Wooden Chest not found in inspection results"
 assert chest_entity.position.is_close(drop_position), f"Chest position {chest_entity.position} does not match drop position {drop_position}"
-
 print("Successfully placed burner mining drill mining coal with a chest at its drop position")

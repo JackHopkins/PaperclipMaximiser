@@ -9,10 +9,7 @@ assert initial_inventory[Prototype.StoneFurnace] >= 3, f"Not enough stone furnac
 
 # Craft the boiler
 craft_item(Prototype.Boiler, 1)
-
 # Verify the boiler crafting
 final_inventory = inspect_inventory()
 assert final_inventory[Prototype.Boiler] >= 1, f"Failed to craft boiler. Expected at least 1, got {final_inventory[Prototype.Boiler]}"
-
 print("Successfully crafted 1 boiler!")
-print("Final inventory:", final_inventory)

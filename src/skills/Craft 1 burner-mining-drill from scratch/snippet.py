@@ -34,8 +34,6 @@ insert_item(Prototype.IronOre, furnace, 20)
 
 # Wait for smelting to complete
 sleep(20)  # Increased sleep time
-
-# Extract iron plates with a more robust approach
 max_attempts = 5
 for _ in range(max_attempts):
     extract_item(Prototype.IronPlate, furnace.position, 10)
@@ -57,5 +55,4 @@ assert gear_wheel_count == 3, f"Failed to craft enough iron gear wheels. Expecte
 craft_item(Prototype.BurnerMiningDrill, 1)
 drill_count = inspect_inventory()[Prototype.BurnerMiningDrill]
 assert drill_count == 1, f"Failed to craft burner-mining-drill. Expected 1, but got {drill_count}"
-
 print("Burner-mining-drill crafted successfully!")

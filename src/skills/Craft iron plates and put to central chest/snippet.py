@@ -59,10 +59,10 @@ assert inserter_with_coal.fuel_inventory.get(Prototype.Coal, 0) > 0, "Failed to 
 belts = connect_entities(furnace_inserter, chest_inserter, connection_type=Prototype.TransportBelt)
 assert belts, "Failed to connect entities with transport belts"
 
-# sleep for 30 seconds
+# sleep for 15 seconds to allow the iron plates to be produced
 sleep(15)
-
 # check if the chest has iron plates
 chest_inventory = inspect_inventory(chest)
 iron_plates = chest_inventory.get(Prototype.IronPlate, 0)
-assert iron_plates > 0, f"No iron plates produced after 30 seconds. Check fuel levels and connections."
+assert iron_plates > 0, f"No iron plates produced after 15 seconds. Check fuel levels and connections."
+print(f"Successfully created a factory for iron plates")

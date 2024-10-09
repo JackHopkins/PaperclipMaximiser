@@ -48,10 +48,10 @@ assert inserter_with_coal.fuel_inventory.get(Prototype.Coal, 0) > 0, "Failed to 
 belts = connect_entities(drill_inserter, chest_inserter, connection_type=Prototype.TransportBelt)
 assert belts, "Failed to connect entities with transport belts"
 
-# sleep for 30 seconds
+# sleep for 15 seconds to allow the drill to mine coal
 sleep(15)
-
 # check if the chest has coal
 chest_inventory = inspect_inventory(chest)
 coal = chest_inventory.get(Prototype.Coal, 0)
 assert coal > 0, f"No coal produced after 30 seconds. Check fuel levels and connections."
+print(f"Successfully created an automated coal mine to a chest")

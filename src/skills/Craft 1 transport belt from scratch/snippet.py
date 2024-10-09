@@ -37,9 +37,15 @@ insert_item(Prototype.IronOre, furnace, quantity=3)
 
 # Wait for smelting to complete
 sleep(10)
+max_attempts = 5
+for _ in range(max_attempts):
+    extract_item(Prototype.IronPlate, furnace.position, 3)
+    plates_extracted = inspect_inventory()[Prototype.IronPlate]
+    if plates_extracted >= 3:
+        break
+    sleep(10)  # Wait a bit more if not all resources are ready
 
-# 7. Collect iron plates
-extract_item(Prototype.IronPlate, furnace.position, quantity=3)
+# 7. Check iron plates
 iron_plate_count = inspect_inventory()[Prototype.IronPlate]
 assert iron_plate_count >= 3, f"Failed to smelt enough iron plates. Current count: {iron_plate_count}"
 
@@ -52,5 +58,4 @@ assert gear_wheel_count >= 1, f"Failed to craft iron gear wheel. Current count: 
 craft_item(Prototype.TransportBelt, quantity=1)
 transport_belt_count = inspect_inventory()[Prototype.TransportBelt]
 assert transport_belt_count >= 1, f"Failed to craft transport belt. Current count: {transport_belt_count}"
-
 print("Successfully crafted 1 transport belt from scratch!")

@@ -11,6 +11,4 @@ assert inventory[Prototype.StoneFurnace] >= 3, f"Not enough stone furnaces in in
 craft_item(Prototype.ElectronicCircuit, 1)
 circuit_count = inspect_inventory()[Prototype.ElectronicCircuit]
 assert circuit_count >= 1, f"Failed to craft 1 circuit. Current count: {circuit_count}"
-
-
 print("Successfully crafted 1 electronic circuit from scratch!")

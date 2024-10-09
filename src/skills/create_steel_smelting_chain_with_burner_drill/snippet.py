@@ -12,7 +12,6 @@ print(f"Burner mining drill placed at {burner_drill.position}")
 furnace1 = place_entity_next_to(Prototype.StoneFurnace, burner_drill.position, Direction.RIGHT, spacing=0)
 assert furnace1, "Failed to place first stone furnace"
 print(f"First stone furnace placed at {furnace1.position}")
-
 furnace2 = place_entity_next_to(Prototype.StoneFurnace, furnace1.position, Direction.RIGHT, spacing=1)
 assert furnace2, "Failed to place second stone furnace"
 print(f"Second stone furnace placed at {furnace2.position}")
@@ -43,5 +42,4 @@ sleep(60)
 furnace_inventory = inspect_inventory(furnace2)
 steel = furnace_inventory.get(Prototype.SteelPlate, 0)
 assert steel > 0, f"No steel produced after 60 seconds. Check fuel levels and connections."
-
 print("Steel smelting chain setup complete and verified")

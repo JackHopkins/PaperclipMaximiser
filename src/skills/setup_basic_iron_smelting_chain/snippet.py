@@ -1,10 +1,10 @@
-# Place iron ore patch
+# Get iron ore patch and move to it
 iron_ore_patch = get_resource_patch(Resource.IronOre, nearest(Resource.IronOre))
 assert iron_ore_patch, "No iron ore patch found"
 print(f"Iron ore patch found at {iron_ore_patch.bounding_box.center}")
+move_to(iron_ore_patch.bounding_box.center)
 
 # Place burner mining drill on iron ore patch
-move_to(iron_ore_patch.bounding_box.center)
 drill = place_entity(Prototype.BurnerMiningDrill, direction=Direction.RIGHT,
                           position=iron_ore_patch.bounding_box.center)
 assert drill, "Failed to place burner mining drill"
@@ -45,7 +45,6 @@ print(f"Chest placed at {chest.position}")
 
 # Verify setup
 sleep(60)  # Wait for the system to produce some iron plates
-
 chest_inventory = inspect_inventory(chest)
 iron_plates = chest_inventory.get(Prototype.IronPlate, 0)
 assert iron_plates > 0, f"No iron plates produced after 60 seconds. Check fuel levels and connections."

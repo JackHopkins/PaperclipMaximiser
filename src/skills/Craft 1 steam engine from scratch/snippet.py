@@ -1,7 +1,5 @@
 from factorio_instance import *
 
-from factorio_instance import *
-
 # Step 1: Mine raw resources
 # Mine enough iron ore for the plates, pipes and gear wheels
 iron_position = nearest(Resource.IronOre)
@@ -23,7 +21,6 @@ move_to(coal_position)
 harvest_resource(coal_position, 20)
 coal_count = inspect_inventory()[Resource.Coal]
 assert coal_count >= 20, f"Failed to mine enough coal. Expected 20, but got {coal_count}"
-
 
 # Step 2: Craft first stone furnace
 craft_item(Prototype.StoneFurnace, 1)
@@ -65,5 +62,4 @@ assert pipe_count >= 5, f"Failed to craft 5 pipes. Current count: {pipe_count}"
 craft_item(Prototype.SteamEngine, 1)
 inventory = inspect_inventory()
 assert inventory[Prototype.SteamEngine] >= 1, f"Failed to craft steam engine. Inventory: {inventory[Prototype.SteamEngine]}"
-
 print("Successfully crafted 1 steam engine!")

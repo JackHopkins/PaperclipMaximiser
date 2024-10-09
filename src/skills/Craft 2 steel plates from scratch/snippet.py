@@ -37,8 +37,6 @@ insert_item(Prototype.IronOre, furnace, 10)
 
 # Wait for smelting to complete
 sleep(10)  # Increased sleep time
-
-# Extract iron plates with a more robust approach
 max_attempts = 5
 for _ in range(max_attempts):
     extract_item(Prototype.IronPlate, furnace.position, 10)
@@ -56,8 +54,6 @@ insert_item(Prototype.IronPlate, furnace, 10)
 
 # Wait for smelting to complete
 sleep(10)
-
-# Extract steel plates with a more robust approach
 max_attempts = 5
 for _ in range(max_attempts):
     extract_item(Prototype.SteelPlate, furnace.position, 2)
@@ -69,5 +65,4 @@ for _ in range(max_attempts):
 # Final check
 final_steel_count = inspect_inventory()[Prototype.SteelPlate]
 assert final_steel_count >= 2, f"Failed to craft 2 steel plates. Current amount: {final_steel_count}"
-
 print(f"Successfully crafted {final_steel_count} steel plates!")

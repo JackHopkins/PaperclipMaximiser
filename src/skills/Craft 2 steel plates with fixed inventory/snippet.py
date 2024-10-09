@@ -28,5 +28,4 @@ for _ in range(max_attempts):
 # 4. Confirm the steel plates in inventory
 steel_plates = inspect_inventory()[Prototype.SteelPlate]
 assert steel_plates >= 2, f"Failed to craft 2 steel plates. Only found {steel_plates} in inventory"
-
 print(f"Successfully crafted {steel_plates} steel plates")

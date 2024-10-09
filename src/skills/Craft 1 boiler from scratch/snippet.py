@@ -5,7 +5,6 @@ from factorio_instance import *
 stone_position = nearest(Resource.Stone)
 move_to(stone_position)
 harvest_resource(stone_position, 10)
-
 # Check if we have enough stone
 stone_count = inspect_inventory()[Resource.Stone]
 assert stone_count >= 10, f"Not enough stone. Expected 10, but got {stone_count}"
@@ -14,7 +13,6 @@ assert stone_count >= 10, f"Not enough stone. Expected 10, but got {stone_count}
 iron_position = nearest(Resource.IronOre)
 move_to(iron_position)
 harvest_resource(iron_position, 10)
-
 # Check if we have enough iron ore
 iron_ore_count = inspect_inventory()[Resource.IronOre]
 assert iron_ore_count >= 10, f"Not enough iron ore. Expected 10, but got {iron_ore_count}"
@@ -23,14 +21,12 @@ assert iron_ore_count >= 10, f"Not enough iron ore. Expected 10, but got {iron_o
 coal_position = nearest(Resource.Coal)
 move_to(coal_position)
 harvest_resource(coal_position, 10)
-
 # Check if we have enough coal
 coal_count = inspect_inventory()[Resource.Coal]
 assert coal_count >= 10, f"Not enough coal. Expected 10, but got {coal_count}"
 
 # 2. Craft the stone furnaces
 craft_item(Prototype.StoneFurnace, 2)
-
 # Check if we have crafted 2 stone furnaces
 furnace_count = inspect_inventory()[Prototype.StoneFurnace]
 assert furnace_count >= 2, f"Not enough stone furnaces. Expected 2, but got {furnace_count}"
@@ -46,8 +42,6 @@ insert_item(Prototype.IronOre, furnace, 10)
 
 # Wait for smelting to complete
 sleep(20)  # Increased sleep time
-
-# Extract iron plates with a more robust approach
 max_attempts = 5
 for _ in range(max_attempts):
     extract_item(Prototype.IronPlate, furnace.position, 10)
@@ -62,16 +56,13 @@ assert iron_plate_count >= 10, f"Not enough iron plates. Expected 10, but got {i
 
 # 5. Craft pipes
 craft_item(Prototype.Pipe, 10)
-
 # Check if we have crafted 10 pipes
 pipe_count = inspect_inventory()[Prototype.Pipe]
 assert pipe_count >= 10, f"Not enough pipes. Expected 10, but got {pipe_count}"
 
 # 6. Craft boiler
 craft_item(Prototype.Boiler, 1)
-
 # Final check: Do we have 1 boiler?
 boiler_count = inspect_inventory()[Prototype.Boiler]
 assert boiler_count >= 1, f"Failed to craft boiler. Expected 1, but got {boiler_count}"
-
 print("Successfully crafted 1 boiler from scratch!")

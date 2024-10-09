@@ -33,10 +33,8 @@ print(f"Pipes connected from boiler to steam engine: {len(pipes_to_engine)} pipe
 # Verify connections
 inspection_results = inspect_entities(offshore_pump.position, radius=10)
 entities = inspection_results.entities
-
 assert any(e.name == "offshore-pump" for e in entities), "Offshore pump not found in inspection results"
 assert any(e.name == "boiler" for e in entities), "Boiler not found in inspection results"
 assert any(e.name == "steam-engine" for e in entities), "Steam engine not found in inspection results"
 assert len([e for e in entities if e.name == "pipe"]) >= 2, "Not enough pipes found in inspection results"
-
 print("Offshore pump, boiler, and steam engine successfully placed and connected with pipes")

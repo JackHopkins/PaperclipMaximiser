@@ -1,12 +1,12 @@
 from factorio_instance import *
 
 # Step 1: Mine raw resources
-# Mine enough iron ore for the circuits
+# Mine enough iron ore for the plates, circuits, pipes and gear wheels
 iron_position = nearest(Resource.IronOre)
 move_to(iron_position)
-harvest_resource(iron_position, 1)
+harvest_resource(iron_position, 5)
 iron_ore_count = inspect_inventory()[Resource.IronOre]
-assert iron_ore_count >= 1, f"Failed to mine enough iron ore. Expected 1, but got {iron_ore_count}"
+assert iron_ore_count >= 5, f"Failed to mine enough iron ore. Expected 5, but got {iron_ore_count}"
 
 # Mine enough stone for 1 furnace
 stone_position = nearest(Resource.Stone)
@@ -37,31 +37,27 @@ assert furnace_count == 1, f"Failed to craft stone furnace. Expected 1, but got 
 # Step 3: Smelt iron plates
 furnace = place_entity_next_to(Prototype.StoneFurnace, reference_position = copper_position, direction = Direction.UP, spacing = 1)
 insert_item(Prototype.Coal, furnace, 5)
-insert_item(Prototype.IronOre, furnace, 1)
+insert_item(Prototype.IronOre, furnace, 5)
 
 # Wait for smelting to complete
-sleep(20)  # Increased sleep time
-
-# Extract iron plates with a more robust approach
+sleep(10)  # Increased sleep time
 max_attempts = 5
 for _ in range(max_attempts):
-    extract_item(Prototype.IronPlate, furnace.position, 1)
+    extract_item(Prototype.IronPlate, furnace.position, 5)
     iron_plates_extracted = inspect_inventory()[Prototype.IronPlate]
-    if iron_plates_extracted >= 1:
+    if iron_plates_extracted >= 5:
         break
     sleep(10)  # Wait a bit more if not all plates are ready
 
-# Check if we have 1 iron plates
+# Check if we have 5 iron plates
 iron_in_inventory = inspect_inventory()[Prototype.IronPlate]
-assert iron_in_inventory >= 1, f"Failed to smelt enough iron plates. Expected 1, but got {iron_in_inventory}"
+assert iron_in_inventory >= 5, f"Failed to smelt enough iron plates. Expected 5, but got {iron_in_inventory}"
 
 # Step 4: Smelt copper plates
 insert_item(Prototype.CopperOre, furnace, 5)
 
 # Wait for smelting to complete
-sleep(20)  # Increased sleep time
-
-# Extract copper plates with a more robust approach
+sleep(10)  # Increased sleep time
 max_attempts = 5
 for _ in range(max_attempts):
     extract_item(Prototype.CopperPlate, furnace.position, 5)
@@ -72,12 +68,25 @@ for _ in range(max_attempts):
 
 # Check if we have 5 copper plates
 copper_in_inventory = inspect_inventory()[Prototype.CopperPlate]
-assert copper_in_inventory >= 5, f"Failed to smelt enough copper plates. Expected 10, but got {copper_in_inventory}"
+assert copper_in_inventory >= 5, f"Failed to smelt enough copper plates. Expected 5, but got {copper_in_inventory}"
 
-# 5. Craft 1 electronic circuits
-craft_item(Prototype.ElectronicCircuit, 1)
+# 5. Craft 1 iron gear wheels
+craft_item(Prototype.IronGearWheel, 1)  
+iron_gear_count = inspect_inventory()[Prototype.IronGearWheel]  
+assert iron_gear_count >= 1, f"Failed to craft 1 iron gears. Current count: {iron_gear_count}"
+
+# 6. Craft 2 electronic circuits
+craft_item(Prototype.ElectronicCircuit, 2)
 circuit_count = inspect_inventory()[Prototype.ElectronicCircuit]
-assert circuit_count >= 1, f"Failed to craft 1 circuit. Current count: {circuit_count}"
+assert circuit_count >= 2, f"Failed to craft 2 circuits. Current count: {circuit_count}"
 
+# 7. Craft Pipe
+craft_item(Prototype.Pipe, 1)
+pipe_in_inventory = inspect_inventory()[Prototype.Pipe]
+assert pipe_in_inventory >= 1, f"Pipe not crafted. Expected 1, got {pipe_in_inventory}"
 
-print("Successfully crafted 1 electronic circuit from scratch!")
+# 8. Craft Offshore Pump
+craft_item(Prototype.OffshorePump, 1)
+offshore_pump_in_inventory = inspect_inventory()[Prototype.OffshorePump]
+assert offshore_pump_in_inventory >= 1, f"Offshore pump not crafted. Expected 1, got {offshore_pump_in_inventory}"
+print("Successfully crafted 1 offshore pump from scratch!")

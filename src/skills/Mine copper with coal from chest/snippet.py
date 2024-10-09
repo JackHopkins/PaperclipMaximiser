@@ -49,12 +49,12 @@ belts = connect_entities(drill_inserter, chest_inserter, connection_type=Prototy
 assert belts, "Failed to connect entities with transport belts"
 
 # sleep for 30 seconds
-#sleep(15)
+sleep(15)
 
 # check if the chest has coal
-#chest_inventory = inspect_inventory(chest)
-#coal = chest_inventory.get(Prototype.Coal, 0)
-#assert coal > 0, f"No coal produced after 30 seconds. Check fuel levels and connections."
+chest_inventory = inspect_inventory(chest)
+coal = chest_inventory.get(Prototype.Coal, 0)
+assert coal > 0, f"No coal produced after 30 seconds. Check fuel levels and connections."
 
 # place another inserter next to the chest
 chest_inserter2 = place_entity_next_to(Prototype.BurnerInserter, reference_position=chest.position, direction=Direction.LEFT)
@@ -64,7 +64,6 @@ print(f"Second Inserter placed at {chest_inserter2.position}")
 # add coal to the inserter
 inserter_with_coal = insert_item(Prototype.Coal, chest_inserter2, quantity=5)
 assert inserter_with_coal.fuel_inventory.get(Prototype.Coal, 0) > 0, "Failed to fuel inserter"
-
 
 # Place a drill to copper ore patch
 copper_ore_patch = get_resource_patch(Resource.CopperOre, nearest(Resource.CopperOre))
@@ -94,3 +93,4 @@ assert inserter_with_coal.fuel_inventory.get(Prototype.Coal, 0) > 0, "Failed to 
 # connect drill_inserter to chest_inserter with transport belts
 belts = connect_entities(chest_inserter2, copper_drill_inserter, connection_type=Prototype.TransportBelt)
 assert belts, "Failed to connect entities with transport belts"
+print(f"Successfully created an factory that gets coal from a chest and mines copper ore")

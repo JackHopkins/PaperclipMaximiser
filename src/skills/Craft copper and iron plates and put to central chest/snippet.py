@@ -100,9 +100,8 @@ assert belts, "Failed to connect entities with transport belts"
 belts = connect_entities(iron_furnace_inserter, chest_inserter, connection_type=Prototype.TransportBelt)
 assert belts, "Failed to connect entities with transport belts"
 
-# sleep for 30 seconds
+# sleep for 15 seconds to wait for the plates to be produced
 sleep(15)
-
 # check if the chest has copper plates
 chest_inventory = inspect_inventory(chest)
 copper_plates = chest_inventory.get(Prototype.CopperPlate, 0)
@@ -110,4 +109,5 @@ assert copper_plates > 0, f"No copper plates produced after 30 seconds. Check fu
 
 # check if the chest has iron plates
 iron_plates = chest_inventory.get(Prototype.IronPlate, 0)
-assert iron_plates > 0, f"No iron plates produced after 30 seconds. Check fuel levels and connections."
+assert iron_plates > 0, f"No iron plates produced after 15 seconds. Check fuel levels and connections."
+print(f"Successfully created a factory for copper and iron plates")

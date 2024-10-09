@@ -12,7 +12,6 @@ iron_position = nearest(Resource.IronOre)
 move_to(iron_position)
 harvest_resource(iron_position, 20)
 iron_count = inspect_inventory()[Resource.IronOre] 
-
 # Check if we have 10 iron ores
 assert iron_count >= 20, f"Failed to mine enough iron ores. Expected 20, but got {iron_count}"
 
@@ -23,8 +22,6 @@ insert_item(Prototype.IronOre, furnace, 20)
 
 # Wait for smelting to complete
 sleep(10)  # Increased sleep time
-
-# Extract iron plates with a more robust approach
 max_attempts = 5
 for _ in range(max_attempts):
     extract_item(Prototype.IronPlate, furnace.position, 20)
@@ -51,5 +48,4 @@ assert pipe_count >= 5, f"Failed to craft 5 pipes. Current count: {pipe_count}"
 craft_item(Prototype.SteamEngine, 1)
 inventory = inspect_inventory()
 assert inventory[Prototype.SteamEngine] >= 1, f"Failed to craft steam engine. Inventory: {inventory[Prototype.SteamEngine]}"
-
 print("Successfully crafted 1 steam engine!")
