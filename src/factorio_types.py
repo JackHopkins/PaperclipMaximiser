@@ -59,6 +59,8 @@ class Prototype(enum.Enum):
     CopperCable = "copper-cable", None # Crafting 2 copper cables requires 1 copper plate
     ElectronicCircuit = "electronic-circuit", None # Crafting requires 3 copper cables, 1 iron plate
     Lab = "lab", Entity # Crafting requires 10 electronic circuits, 10 iron gear wheels, 4 transport belts
+    AutomationSciencePack = "automation-science-pack", None
+    Accumulator = "accumulator", Accumulator
 
     @classmethod
     def from_string(cls, value):
@@ -66,8 +68,6 @@ class Prototype(enum.Enum):
             if member.value[0] == value:
                 return member
         raise ValueError(f"{value} is not a valid Prototype")
-        
-
 
 class Resource:
     Coal = "coal", ResourcePatch
