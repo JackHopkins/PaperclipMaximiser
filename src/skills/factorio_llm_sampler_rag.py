@@ -1,3 +1,4 @@
+
 import ast
 import json
 import os
@@ -5,11 +6,12 @@ import textwrap
 from itertools import cycle
 from typing import List, Dict, Any
 from dotenv import load_dotenv
-
+import re
 from factorio_instance import FactorioInstance
 from llm_factory import LLMFactory
 from utilities.controller_loader import load_schema, load_definitions
 import numpy as np
+import io
 load_dotenv()
 
 def is_valid_python(code_string: str) -> bool:
@@ -171,7 +173,7 @@ Entities:
         
     def correct_policy_snippet(self, objective: str, last_executed_policy: str,
                                 error_message: str, correction_history: List[Dict[str, str]],
-                                inventory: Dict[str, int]) -> str:
+                                inventory: Dict[str, int], game_logs : list) -> str:
         specific_prompt_path = f"{self.prompt_path}/prompts_for_rag"
         # read in user_message.md and system_message.md
         with open(f"{specific_prompt_path}/user_message_correct.md", "r") as f:
@@ -185,13 +187,14 @@ Entities:
             f"Attempt {i + 1}:\nSnippet:\n```python\n{attempt['snippet']}\n```\nError: {attempt['error']}"
             for i, attempt in enumerate(correction_history)
         ]) if correction_history else "No history of attempts yet."
-
+        game_log_string = "\n".join(game_logs)
         user_message = user_message.format(
             objective=objective,
             last_executed_policy=last_executed_policy,
             error_message=error_message,
             error_history=history_str,
-            inventory=str(inventory))
+            inventory=str(inventory),
+            game_log = game_log_string)
         return self._call_api(system_prompt, user_message)
 
 
@@ -229,6 +232,10 @@ Entities:
                 #"test": test,
             }
 
+def save_gold_skills_into_db():
+    pass
+
+
 if __name__ == "__main__":
     #main()
 
@@ -259,7 +266,7 @@ if __name__ == "__main__":
     #    'copper-plate': 20,
     #    'stone-furnace': 3,
     #}
-    #inventory = {}
+    inventory = {}
     instance = FactorioInstance(address='localhost',
                                 bounding_box=200,
                                 tcp_port=27015,
@@ -321,21 +328,25 @@ print(f"Successfully crafted {steel_plates} steel plates")
             #            'copper-plate': np.random.randint(5, 30),
             #            'stone-furnace': np.random.randint(1, 10),
             #        }
-            curriculum_item = next(sampler.stream_curriculum([objective], inventory))
-            
+
             instance = FactorioInstance(address='localhost',
                                 bounding_box=200,
                                 tcp_port=27015,
                                 fast=True,
                                 #cache_scripts=False,
                                 inventory=inventory)
-            
+            curriculum_item = next(sampler.stream_curriculum([objective], inventory))
             snippet_name = curriculum_item['snippet_name']
             final_snippet = "from factorio_instance import *\n\n"
             for snippet in curriculum_item['snippets'][::-1]:
-                final_snippet += snippet + "\n###FUNC SEP\n"
-            #final_snippet = 'from factorio_instance import *\n\n\ndef connect_drill_to_chest(chest: Entity, drill: Entity) -> None:\n    """\n    Objective: Connect a drill to a chest with an inserter and transport belts\n    Mining setup: We have a drill and a chest entity on the map\n    Inventory: We have inserter and transport belts in our inventory\n    :param chest: The chest entity where the output of the drill needs to go\n    :param drill: The drill entity that produces output for the chest\n    :return: None\n    """\n    # [PLANNING]\n    # 1. Place an inserter next to the chest\n    # 2. Rotate the inserter to face the chest\n    # 3. Fuel the inserter if it\'s a burner inserter\n    # 4. Connect the drill\'s output to the inserter\'s input using transport belts\n    # 5. Verify the connection\n    # [END OF PLANNING]\n\n    # Step 1: Place an inserter next to the chest\n    inserter = place_entity_next_to(Prototype.BurnerInserter, chest.position, direction=Direction.UP, spacing=0)\n    assert inserter, "Failed to place inserter next to chest"\n\n    # Step 2: Rotate the inserter to face the chest\n    inserter = rotate_entity(inserter, Direction.DOWN)\n    assert inserter.direction.value == Direction.DOWN.value, "Failed to rotate inserter correctly"\n\n    # Step 3: Fuel the inserter if it\'s a burner inserter\n    if isinstance(inserter, BurnerInserter):\n        insert_item(Prototype.Coal, inserter, quantity=5)\n        assert inserter.fuel_inventory.get(Prototype.Coal, 0) > 0, "Failed to fuel inserter"\n\n    # Step 4: Connect the drill\'s output to the inserter\'s input using transport belts\n    belts = connect_entities(drill.drop_position, inserter.pickup_position, Prototype.TransportBelt)\n    assert belts, "Failed to place transport belts between drill and inserter"\n\n    # Step 5: Verify the connection\n    inspection = inspect_entities(drill.position, radius=20)\n    assert any(e.name == "transport-belt" for e in inspection.entities), "Transport belt not found in the setup"\n    assert any(e.name == "burner-inserter" for e in inspection.entities), "Inserter not found in the setup"\n\n    print("Successfully connected drill to chest with inserter and transport belts")\n\n###FUNC DIFF\n\ndef gather_resources_for_iron_mine():\n    """\n    Objective: Gather the necessary resources to craft a burner mining drill, wooden chest, and transport belts\n    Mining setup: No entities on the map\n    Inventory: Empty inventory\n    :return: None (resources will be in the inventory)\n    """\n    # [PLANNING]\n    # 1. Calculate the required resources\n    # 2. Mine iron ore\n    # 3. Mine stone\n    # 4. Mine coal\n    # 5. Craft stone furnace\n    # 6. Smelt iron plates\n    # 7. Craft iron gear wheels\n    # 8. Chop wood for wooden chest\n    # [END OF PLANNING]\n\n    # Calculate required resources\n    iron_ore_needed = 15  # 9 for burner drill, 6 for transport belts\n    stone_needed = 5  # For stone furnace\n    coal_needed = 10  # For smelting and fuel\n    wood_needed = 1  # For wooden chest\n\n    # Mine iron ore\n    iron_position = nearest(Resource.IronOre)\n    move_to(iron_position)\n    iron_mined = harvest_resource(iron_position, iron_ore_needed)\n    assert iron_mined >= iron_ore_needed, f"Failed to mine enough iron ore. Got {iron_mined}, needed {iron_ore_needed}"\n\n    # Mine stone\n    stone_position = nearest(Resource.Stone)\n    move_to(stone_position)\n    stone_mined = harvest_resource(stone_position, stone_needed)\n    assert stone_mined >= stone_needed, f"Failed to mine enough stone. Got {stone_mined}, needed {stone_needed}"\n\n    # Mine coal\n    coal_position = nearest(Resource.Coal)\n    move_to(coal_position)\n    coal_mined = harvest_resource(coal_position, coal_needed)\n    assert coal_mined >= coal_needed, f"Failed to mine enough coal. Got {coal_mined}, needed {coal_needed}"\n\n    # Craft stone furnace\n    craft_item(Prototype.StoneFurnace, 1)\n    furnace_count = inspect_inventory()[Prototype.StoneFurnace]\n    assert furnace_count == 1, f"Failed to craft stone furnace. Got {furnace_count}"\n\n    # Place the stone furnace\n    furnace = place_entity(Prototype.StoneFurnace, Direction.UP, Position(x=0, y=0))\n    assert furnace, "Failed to place stone furnace"\n\n    # Smelt iron plates\n    insert_item(Prototype.Coal, furnace, 5)\n    insert_item(Prototype.IronOre, furnace, iron_ore_needed)\n    \n    # Wait for smelting to complete\n    sleep(15)\n    \n    iron_plates = extract_item(Prototype.IronPlate, furnace.position, iron_ore_needed)\n    assert iron_plates, f"Failed to smelt iron plates. Got {iron_plates}"\n\n    # Craft iron gear wheels\n    craft_item(Prototype.IronGearWheel, 3)\n    gear_count = inspect_inventory()[Prototype.IronGearWheel]\n    assert gear_count >= 3, f"Failed to craft enough iron gear wheels. Got {gear_count}, needed 3"\n\n    # Chop wood for wooden chest\n    tree_position = nearest(Resource.Tree)\n    move_to(tree_position)\n    wood_chopped = harvest_resource(tree_position, wood_needed)\n    assert wood_chopped >= wood_needed, f"Failed to chop enough wood. Got {wood_chopped}, needed {wood_needed}"\n\n    # Final inventory check\n    inventory = inspect_inventory()\n    assert inventory[Prototype.IronPlate] >= 9, f"Not enough iron plates. Got {inventory[Prototype.IronPlate]}, needed 9"\n    assert inventory[Prototype.IronGearWheel] >= 3, f"Not enough iron gear wheels. Got {inventory[Prototype.IronGearWheel]}, needed 3"\n    assert inventory[Prototype.Stone] >= 5, f"Not enough stone. Got {inventory[Prototype.Stone]}, needed 5"\n    assert inventory[Prototype.Coal] >= 5, f"Not enough coal. Got {inventory[Prototype.Coal]}, needed 5"\n    assert inventory[Prototype.Wood] >= 1, f"Not enough wood. Got {inventory[Prototype.Wood]}, needed 1"\n\n    print("Successfully gathered all resources for iron mine setup!")\n\n###FUNC DIFF\n\ndef create_iron_mine():\n    """\n    Objective: Create an automated iron mine that mines iron ore with a burner mining drill to a chest further away and down from it.\n    Mining setup: There are no entities on the map\n    Inventory: We start with an empty inventory\n    """\n    # [PLANNING]\n    # 1. First, we need to gather resources to craft the necessary items\n    # 2. Craft a burner mining drill, a wooden chest, and transport belts\n    # 3. Find an iron ore patch and place the mining drill\n    # 4. Place the chest further away and down from the mining drill\n    # 5. Connect the mining drill to the chest using transport belts and an inserter\n    # 6. Check if the setup is working by verifying iron ore in the chest\n    # [END OF PLANNING]\n\n    # Step 1: Gather resources\n    # [SYNTHESISED]\n    # Name: gather_resources_for_iron_mine\n    # Objective: Gather the necessary resources to craft a burner mining drill, wooden chest, and transport belts\n    # Mining setup: No entities on the map\n    # Inventory: Empty inventory\n    # :return: None (resources will be in the inventory)\n    # [END OF SYNTHESISED]\n    gather_resources_for_iron_mine()\n\n    # Step 2: Craft necessary items\n    craft_item(Prototype.BurnerMiningDrill, 1)\n    craft_item(Prototype.WoodenChest, 1)\n    craft_item(Prototype.TransportBelt, 10)  # Crafting extra belts to ensure we have enough\n    craft_item(Prototype.BurnerInserter, 1)\n\n    # Step 3: Find iron ore patch and place mining drill\n    iron_position = nearest(Resource.IronOre)\n    move_to(iron_position)\n    iron_patch = get_resource_patch(Resource.IronOre, iron_position, radius=10)\n    assert iron_patch, "No iron patch found within radius"\n\n    miner = place_entity(Prototype.BurnerMiningDrill, Direction.DOWN, iron_patch.bounding_box.center)\n    assert miner, "Failed to place burner mining drill"\n\n    # Fuel the mining drill\n    insert_item(Prototype.Coal, miner, quantity=5)\n\n    # Step 4: Place chest further away and down from the mining drill\n    chest_pos = Position(x=miner.position.x, y=miner.position.y + 7)\n    move_to(chest_pos)\n    chest = place_entity(Prototype.WoodenChest, Direction.UP, chest_pos)\n    assert chest, f"Failed to place chest at {chest_pos}"\n\n    # Step 5: Connect mining drill to chest\n    # [SYNTHESISED]\n    # Name: connect_drill_to_chest\n    # Objective: Connect a drill to a chest with an inserter and transport belts\n    # Mining setup: We have a drill and a chest entity on the map\n    # Inventory: We have inserter and transport belts in our inventory\n    # :param chest: The chest entity where the output of the drill needs to go\n    # :param drill: The drill entity that produces output for the chest\n    # :return: None\n    # [END OF SYNTHESISED]\n    connect_drill_to_chest(chest=chest, drill=miner)\n\n    # Step 6: Check if the setup is working\n    sleep(30)  # Wait for some time to allow the system to produce iron ore\n    chest_inventory = inspect_inventory(chest)\n    iron_ore_in_chest = chest_inventory.get(Prototype.IronOre, 0)\n    assert iron_ore_in_chest > 0, "No iron ore was produced"\n    print(f"Successfully created an automated iron mine. {iron_ore_in_chest} iron ore in the chest.")\n\n\n###FUNC DIFF\ncreate_iron_mine()'
+                final_snippet += snippet + "\n\n###FUNC SEP\n\n"
             final_snippet += f"{snippet_name}()"
+            # START OF TESTING
+            #final_snippet = 'from factorio_instance import *\n\n\ndef connect_drill_to_chest(drill: Entity, chest: Entity):\n    """\n    Objective: Connect the drill to the chest using transport belts and a burner inserter\n    Mining setup: Drill and chest are placed on the map\n    Inventory: We have transport belts and a burner inserter\n    :param drill: The burner mining drill entity\n    :param chest: The wooden chest entity\n    :return: None\n    """\n    # [PLANNING]\n    # 1. Place a burner inserter next to the chest\n    # 2. Rotate the inserter to face the chest\n    # 3. Fuel the inserter with coal\n    # 4. Connect the drill to the inserter using transport belts\n    # 5. Verify the connection\n    # [END OF PLANNING]\n\n    print(f"Starting to connect drill at {drill.position} to chest at {chest.position}")\n    print(f"Current inventory: {inspect_inventory()}")\n\n    # Step 1: Place a burner inserter next to the chest\n    inserter = place_entity_next_to(Prototype.BurnerInserter, chest.position, direction=Direction.UP, spacing=0)\n    assert inserter, "Failed to place burner inserter"\n    print(f"Placed burner inserter at {inserter.position}")\n\n    # Step 2: Rotate the inserter to face the chest\n    inserter = rotate_entity(inserter, Direction.DOWN)\n    print(f"Rotated burner inserter to face the chest")\n\n    # Step 3: Fuel the inserter with coal\n    coal_count = inspect_inventory()[Prototype.Coal]\n    assert coal_count > 0, "No coal in inventory to fuel the inserter"\n    insert_item(Prototype.Coal, inserter, quantity=min(5, coal_count))\n    print(f"Fueled burner inserter with coal")\n\n    # Step 4: Connect the drill to the inserter using transport belts\n    belts = connect_entities(drill.drop_position, inserter.pickup_position, Prototype.TransportBelt)\n    assert belts, "Failed to place transport belts"\n    print(f"Connected drill to inserter with {len(belts)} transport belts")\n\n    # Step 5: Verify the connection\n    inspection = inspect_entities(drill.position, radius=20)\n    \n    # Check if the drill is present\n    assert any(e.name == drill.name for e in inspection.entities), "Drill not found in inspection"\n    \n    # Check if the chest is present\n    assert any(e.name == chest.name for e in inspection.entities), "Chest not found in inspection"\n    \n    # Check if the inserter is present\n    assert any(e.name == inserter.name for e in inspection.entities), "Inserter not found in inspection"\n    \n    # Check if transport belts are present\n    assert any(e.name == Prototype.TransportBelt.value[0] for e in inspection.entities), "Transport belts not found in inspection"\n\n    print("Successfully connected drill to chest using transport belts and a burner inserter")\n    print(f"Final inventory: {inspect_inventory()}")\n\n\n\n###FUNC SEP\n\n\ndef gather_resources():\n    """\n    Objective: Gather iron ore, wood, stone, and coal\n    Mining setup: No entities on the map\n    Inventory: Empty inventory\n    :return: None (resources will be in the inventory)\n    """\n    # [PLANNING]\n    # 1. Find and mine iron ore\n    # 2. Find and harvest wood\n    # 3. Find and mine stone\n    # 4. Find and mine coal\n    # 5. Verify that we have gathered all required resources\n    # [END OF PLANNING]\n\n    # 1. Find and mine iron ore\n    iron_position = nearest(Resource.IronOre)\n    assert iron_position, "No iron ore found nearby"\n    move_to(iron_position)\n    print(f"Moving to iron ore patch at {iron_position}")\n    \n    iron_mined = harvest_resource(iron_position, quantity=20)\n    assert iron_mined == 20, f"Failed to mine enough iron ore. Expected 20, but got {iron_mined}"\n    print(f"Mined {iron_mined} iron ore")\n\n    # 2. Find and harvest wood\n    wood_position = nearest(Resource.Wood)\n    assert wood_position, "No wood found nearby"\n    move_to(wood_position)\n    print(f"Moving to wood patch at {wood_position}")\n    \n    wood_harvested = harvest_resource(wood_position, quantity=20)\n    assert wood_harvested == 20, f"Failed to harvest enough wood. Expected 20, but got {wood_harvested}"\n    print(f"Harvested {wood_harvested} wood")\n\n    # 3. Find and mine stone\n    stone_position = nearest(Resource.Stone)\n    assert stone_position, "No stone found nearby"\n    move_to(stone_position)\n    print(f"Moving to stone patch at {stone_position}")\n    \n    stone_mined = harvest_resource(stone_position, quantity=20)\n    assert stone_mined == 20, f"Failed to mine enough stone. Expected 20, but got {stone_mined}"\n    print(f"Mined {stone_mined} stone")\n\n    # 4. Find and mine coal\n    coal_position = nearest(Resource.Coal)\n    assert coal_position, "No coal found nearby"\n    move_to(coal_position)\n    print(f"Moving to coal patch at {coal_position}")\n    \n    coal_mined = harvest_resource(coal_position, quantity=20)\n    assert coal_mined == 20, f"Failed to mine enough coal. Expected 20, but got {coal_mined}"\n    print(f"Mined {coal_mined} coal")\n\n    # 5. Verify that we have gathered all required resources\n    inventory = inspect_inventory()\n    print(f"Current inventory: {inventory}")\n\n    assert inventory[Resource.IronOre] >= 20, f"Not enough iron ore in inventory. Expected at least 20, but got {inventory[Resource.IronOre]}"\n    assert inventory[Resource.Wood] >= 20, f"Not enough wood in inventory. Expected at least 20, but got {inventory[Resource.Wood]}"\n    assert inventory[Resource.Stone] >= 20, f"Not enough stone in inventory. Expected at least 20, but got {inventory[Resource.Stone]}"\n    assert inventory[Resource.Coal] >= 20, f"Not enough coal in inventory. Expected at least 20, but got {inventory[Resource.Coal]}"\n\n    print("Successfully gathered all required resources!")\n\n\n###FUNC SEP\n\n\ndef create_iron_mine():\n    """\n    Objective: Create an automated iron mine that mines iron ore to a chest further away and left from it.\n    Mining setup: There are no entities on the map\n    Inventory: We start with an empty inventory\n    """\n    # [PLANNING]\n    # 1. Gather necessary resources (iron, wood, stone, coal)\n    # 2. Craft required items (burner mining drill, wooden chest, transport belts, burner inserter)\n    # 3. Find an iron ore patch\n    # 4. Place the burner mining drill on the iron ore patch\n    # 5. Place the wooden chest further away and to the left of the drill\n    # 6. Connect the drill to the chest using transport belts and a burner inserter\n    # 7. Fuel the mining drill and inserter\n    # 8. Wait for the system to produce iron ore\n    # 9. Check if the chest contains iron ore\n    # [END OF PLANNING]\n\n    # Step 1: Gather resources\n    print("Gathering resources...")\n    """[SYNTHESISED]\n    Name: gather_resources\n    Objective: Gather iron ore, wood, stone, and coal\n    Mining setup: No entities on the map\n    Inventory: Empty inventory\n    :return: None (resources will be in the inventory)\n    [END OF SYNTHESISED]"""\n    gather_resources()\n    \n    print(f"Current inventory after gathering resources: {inspect_inventory()}")\n\n    # Step 2: Craft required items\n    print("Crafting required items...")\n    craft_item(Prototype.BurnerMiningDrill, 1)\n    craft_item(Prototype.WoodenChest, 1)\n    craft_item(Prototype.TransportBelt, 10)\n    craft_item(Prototype.BurnerInserter, 1)\n    \n    print(f"Current inventory after crafting: {inspect_inventory()}")\n\n    # Step 3: Find an iron ore patch\n    iron_position = nearest(Resource.IronOre)\n    print(f"Found iron ore patch at {iron_position}")\n    move_to(iron_position)\n\n    # Step 4: Place the burner mining drill\n    drill = place_entity(Prototype.BurnerMiningDrill, Direction.DOWN, iron_position)\n    assert drill, "Failed to place burner mining drill"\n    print(f"Placed mining drill at {drill.position}")\n\n    # Step 5: Place the wooden chest\n    chest_position = Position(x=drill.position.x - 5, y=drill.position.y + 5)  # Further away and to the left\n    move_to(chest_position)\n    chest = place_entity(Prototype.WoodenChest, Direction.UP, chest_position)\n    assert chest, "Failed to place wooden chest"\n    print(f"Placed wooden chest at {chest.position}")\n\n    # Step 6: Connect the drill to the chest\n    print("Connecting drill to chest...")\n    """[SYNTHESISED]\n    Name: connect_drill_to_chest\n    Objective: Connect the drill to the chest using transport belts and a burner inserter\n    Mining setup: Drill and chest are placed on the map\n    Inventory: We have transport belts and a burner inserter\n    :param drill: The burner mining drill entity\n    :param chest: The wooden chest entity\n    :return: None\n    [END OF SYNTHESISED]"""\n    connect_drill_to_chest(drill=drill, chest=chest)\n\n    # Step 7: Fuel the mining drill and inserter\n    print("Fueling mining drill and inserter...")\n    insert_item(Prototype.Coal, drill, quantity=5)\n    \n    # Find the inserter (it should be next to the chest)\n    entities_near_chest = inspect_entities(chest.position, radius=2).entities\n    inserter = next((e for e in entities_near_chest if e.name == Prototype.BurnerInserter.value[0]), None)\n    assert inserter, "Failed to find the burner inserter"\n    insert_item(Prototype.Coal, inserter, quantity=5)\n\n    # Step 8: Wait for the system to produce iron ore\n    print("Waiting for iron ore production...")\n    sleep(30)  # Wait for 30 seconds\n\n    # Step 9: Check if the chest contains iron ore\n    chest_inventory = inspect_inventory(chest)\n    iron_ore_in_chest = chest_inventory.get(Prototype.IronOre, 0)\n    assert iron_ore_in_chest > 0, f"No iron ore was produced. Chest inventory: {chest_inventory}"\n    print(f"Success! The chest contains {iron_ore_in_chest} iron ore.")\n\n    print("Automated iron mine created successfully!")\n\n\n###FUNC SEP\n\ncreate_iron_mine()'
+            #curriculum_item = {}
+            #snippet_name = "test"
+            #curriculum_item["objective"] = "Name: ###create_iron_mine###. Objective: We need create an automated iron mine that mines iron ore with a burner mining drill to a chest further away and down from it. The final setup should be checked by looking if the chest has iron ore in it. Mining setup: There are no entities on the map"
+            # END OF TESTING
             print(f"Objective: {curriculum_item['objective']}")
             print("Snippet name: " + snippet_name)
             print("\n" + "=" * 50 + "\n")
@@ -352,42 +363,91 @@ print(f"Successfully crafted {steel_plates} steel plates")
                 instance._reset(**instance.initial_inventory if isinstance(instance.initial_inventory, dict) else instance.initial_inventory.__dict__)
 
                 try:
+                    # Create a StringIO object to capture the output
+                    captured_output = io.StringIO()
+                    # Save the current stdout so we can revert back later
+                    sys_stdout = sys.stdout
+                    # Redirect stdout to the StringIO object
+                    sys.stdout = captured_output
                     score, goal, result = instance.eval_with_error(snippet, timeout=240)
-
+                    
                     if 'error' in result.lower() or 'assertion' in result.lower():
                         raise Exception(result)
 
                     snippet_passed = True
                     break
                 except Exception as e:
+                    # Get all output from the StringIO object
+                    captured_output.seek(0)  # Go to the start of StringIO to read from beginning
+                    output_list = captured_output.read().splitlines()
+                    # Revert sys.stdout to its original state
+                    sys.stdout = sys_stdout
                     print(e)
+                    print(output_list)
+                    # get the message of e
+                    message = str(e)
+                    # get everything between Get the part that follows the regex Error at lines x:
+                    match = re.search(r'Error at lines (\d+)-', message)
+                    match = False
+                    if match:
+                        try:
+                            line_number = int(match.group(1))
+                            print(f'The first line number where the error occurred is: {line_number}')
+                            subfunction_correction= True
+                        except:
+                            print('Line number not found in the message.')
+                            subfunction_correction = False
+                    else:
+                        print('Line number not found in the message.')
+                        subfunction_correction = False
                     if attempt < max_attempts - 1:
-                        print(f"{snippet_name} - Snippet failed on attempt {attempt + 1}. `{str(e)}` Attempting to correct...")
-                        corrected_snippet = sampler.correct_policy_snippet(
-                            objective = curriculum_item['objective'],
-                            last_executed_policy  = snippet,
-                            error_message = str(e),
-                            correction_history=correction_history,
-                            inventory = inventory
-                        )
-                        corrected_snippet = corrected_snippet.split("```")[1].lstrip('python\n')
-                        snippet = textwrap.dedent(corrected_snippet)
-                        #correction_history.append({"snippet": snippet, "error": str(e)})
+                        if  subfunction_correction:
+                            # split the snippet into functions using the FUNC SEP tag
+                            functions = snippet.split("###FUNC SEP")
+                            line_span = 0
+                            for func_idx, function in enumerate(functions):
+                                if line_span <= line_number:
+                                    line_span += function.count("\n")
+                                else:
+                                    break
+                            # get the function that caused the error
+                            function = functions[func_idx - 1]
+                            pass
+                        else:
+                            print(f"{snippet_name} - Snippet failed on attempt {attempt + 1}. `{str(e)}` Attempting to correct...")
+                            corrected_snippet = sampler.correct_policy_snippet(
+                                objective = curriculum_item['objective'],
+                                last_executed_policy  = snippet,
+                                error_message = str(e),
+                                correction_history=correction_history,
+                                inventory = inventory,
+                                game_logs = output_list
+                            )
+                            corrected_snippet = corrected_snippet.split("```")[1].lstrip('python\n')
+                            snippet = textwrap.dedent(corrected_snippet)
+                            #correction_history.append({"snippet": snippet, "error": str(e)})
                     else:
                         print(f"{snippet_name} - Snippet failed after {max_attempts} attempts. Moving to next objective.")
 
             # Save results and update files
             folder_name = snippet_name if snippet_passed else f"_{snippet_name}"
-            folder_path = f"skills/{folder_name.strip()}"
+            folder_path = f"skills/rag_skills/{folder_name.strip()}"
             os.makedirs(folder_path, exist_ok=True)
 
-            with open(f"{folder_path}/snippet.py", "w") as f:
+            with open(f"{folder_path}/full_snippet.py", "w") as f:
                 f.write(snippet)
 
+            # split the snippet into functions using the FUNC SEP tag
+            functions = snippet.split("###FUNC SEP")[:-1]
+            for func_idx, function in enumerate(functions):
+                function = function.replace("###FUNC SEP", "").replace("from factorio_instance import *").strip()
+                with open(f"{folder_path}/subsnippet_{func_idx}.py", "w") as f:
+                    f.write(function)
+
             details = {
-                "name": snippet_passed,
+                "name": snippet_name,
                 "objective": curriculum_item['objective'],
-                "corrections": correction_history,
+                #"corrections": correction_history,
                 "token_count": sampler.token_count,
                 "cost": sampler.cost,
                 "snippet_passed": snippet_passed,

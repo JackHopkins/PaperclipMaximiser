@@ -1,0 +1,4 @@
+{
+  "objective": "# [SUBFUNCTION]\n# Name: connect_a_drills_output_to_a_existing_chest\n# Objective: We need to connect a drill to a chest with an inserter at the given direction\n# Mining setup: We have a drill and a chest entity on the map \nInventory: We have the inserter and transport belts in our inventory\n# :param chest: The chest entity where the output of the drill needs to go\n# :param drill: The drill entity that produces output for the chest\n# :param direction: The direction where the inserter should be placed\n# :return inserter: The inserter entity that inserts items into the chest\n# [END OF SUBFUNCTION]",
+  "name": "connect_a_drills_output_to_a_existing_chest"
+}

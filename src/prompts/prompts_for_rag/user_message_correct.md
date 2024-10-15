@@ -26,3 +26,6 @@ LATEST SCRIPT RUN
 
 ERROR MESSAGE
 {error_message}
+
+GAME_LOG
+{game_log}
