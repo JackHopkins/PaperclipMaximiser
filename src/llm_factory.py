@@ -103,9 +103,11 @@ class LLMFactory:
                                                   stream=False)
         else:
             client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
-            return client.chat.completions.create(*args, n=self.beam,
-                                                  **kwargs,
-                                                  temperature=0.9,
+            assert "messages" in kwargs, "messages are required for OpenAI API"
+            return client.chat.completions.create(model = self.model,
+                                                  max_tokens = kwargs.get('max_tokens', 2048),
+                                                  temperature=kwargs.get('temperature', 0.7),
+                                                  messages=kwargs.get('messages', None),
                                                   #stop=["\n\n"],#, "\n#"],
                                                   presence_penalty=1,
                                                   frequency_penalty=0.6,
