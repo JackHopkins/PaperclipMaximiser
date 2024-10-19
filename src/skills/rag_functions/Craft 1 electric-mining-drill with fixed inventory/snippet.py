@@ -1,13 +1,14 @@
 from factorio_instance import *
-def craft_electric_mining_drill():
+def smelt_iron_with_existing_furnace():
     """
     Objective: We need to craft one electric mining drill
     Mining setup: There are no entities on the map
-    Inventory: We have no items in our inventory
+    Inventory: We have 29 iron plates, 20 copper plates, 20 coal and 2 stone furnaces in the inventory which we can use
     """
     # [PLANNING] 
     # We have got 20 iron plates, 20 copper plates, 20 coal and 2 stone furnaces in the inventory which we can use
     # We need to mine additional resources for the mining drill, specifically more iron ore for more iron plates
+    # We will harvest more iron than needed to make sure we have enough, we will harvest 10 iron ore to be exact 
     # Then we need to craft the required iron gear wheels and electronic circuits for the drill 
     # [END OF PLANNING]
 
@@ -27,20 +28,21 @@ def craft_electric_mining_drill():
     print(f"Current inventory: {inspect_inventory()}")
 
     # Step 2: Smelt iron plates using furnace in the inventory
-    # Place the stone furnacec close to your current location, i.e iron_position
-    furnace = place_entity_next_to(Prototype.StoneFurnace, reference_position = iron_position, direction = Direction.UP, spacing = 1)
+    # Place the stone furnace close to your current location, i.e iron_position
+    # VERY IMPORTANT: FIRST MOVE TO THE POSITION WE PLACE IT TO AS WE CAN'T PLACE IT FROM A FAR DISTANCE
+    move_to(iron_position)
+    furnace = place_entity(entity = Prototype.StoneFurnace, position =  iron_position, direction = Direction.UP)
     # [SUBFUNCTION]
     # Name: smelt_iron_with_a_furnace
-    # Objective: We need to smelt iron ores into plates with a furnace
+    # Objective: We need to smelt iron ores into plates with a furnace. We need to use a input furnace variable
     # Mining setup: We have a furnace on the map that we can use to smelt iron ores
     # Inventory: We have enough iron and coal in the inventory to smelt the iron plates
     # :param input_coal: The number of coal to insert into the furnace
     # :param input_iron_ore: The number of iron ore to insert into the furnace
     # :param furnace: The furnace entity to use for smelting
-    # :param output_iron_plate: The number of iron plates to extract from the furnace
     # :return: None as the iron plates will be in inventory
     # [END OF SUBFUNCTION]
-    smelt_iron_with_a_furnace(input_coal=10, input_iron_ore=30, furnace=furnace, output_iron_plate=30)
+    smelt_iron_with_a_furnace(input_coal=10, input_iron_ore=30, furnace=furnace)
     print("Smelted 30 iron plates!")
     print(f"Current inventory: {inspect_inventory()}")
 

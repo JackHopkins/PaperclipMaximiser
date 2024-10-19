@@ -1,0 +1,14 @@
+{
+  "name": "craft_20_firearm_magazines",
+  "objective": "Craft 20 firearm magazines. The final success should be checked by looking if 20 firearm magazines are in inventory",
+  "corrections": [],
+  "token_count": 23741,
+  "cost": 0.0098139,
+  "snippet_passed": false,
+  "inventory": {},
+  "plans": [
+    "",
+    ""
+  ],
+  "mining_setup": "There are no entities on the map"
+}

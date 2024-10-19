@@ -1,1 +1,1 @@
-Name: ###create_iron_mine###. Objective: We need create an automated iron mine that mines iron ore to a chest further away and left from it. The final setup should be checked by looking if the chest has iron ore in it. Mining setup: There are no entities on the map
+Name: ###craft_electric_mining_drill###. Objective: We need to craft one electric mining drill. The final setup should be checked by looking if a electric mining drill is in inventory. Mining setup: There are no entities on the map

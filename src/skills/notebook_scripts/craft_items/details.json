@@ -1,0 +1,4 @@
+{
+  "step": "Craft the entities. We need to craft the burner mining drill and the burner inserter. Output check: We need to check if after this step we have the all of the above in our inventory",
+  "inventory": {"stone": 5, "iron-plate": 15}
+}

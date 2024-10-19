@@ -1,0 +1,15 @@
+{
+  "name": "craft_offshore_pump",
+  "objective": "Craft one OffshorePump. The final success should be checked by looking if a OffshorePump is in inventory",
+  "corrections": [],
+  "token_count": 23966,
+  "cost": 0.0103518,
+  "snippet_passed": false,
+  "inventory": {
+  },
+  "plans": [
+    "",
+    ""
+  ],
+  "mining_setup": "There are no entities on the map"
+}

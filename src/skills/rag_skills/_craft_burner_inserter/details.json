@@ -1,0 +1,14 @@
+{
+  "name": "craft_burner_inserter",
+  "objective": "Craft one BurnerInserter. The final success should be checked by looking if a BurnerInserter is in inventory",
+  "corrections": [],
+  "token_count": 24461,
+  "cost": 0.0102279,
+  "snippet_passed": false,
+  "inventory": {},
+  "plans": [
+    "",
+    ""
+  ],
+  "mining_setup": "There are no entities on the map"
+}

@@ -65,7 +65,7 @@ def create_an_automated_copper_ore_mine():
 
     # Place a chest a bit further away from the drill to ensure no collision
     # we place it down from the drill as the drill is facing down
-    # We also first move to the chest position to ensure we can place the chest
+    # VERY IMPORTANT: FIRST MOVE TO THE POSITION WE PLACE IT TO AS WE CAN'T PLACE IT FROM A FAR DISTANCE
     chest_pos = Position(x=miner.position.x, y=miner.position.y - 7)
     move_to(chest_pos)
     chest = place_entity(Prototype.WoodenChest, Direction.UP, chest_pos)

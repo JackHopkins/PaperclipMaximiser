@@ -1,0 +1,15 @@
+{
+  "name": "smelt_10_copper_plates",
+  "objective": "Smelt 10 copper plates. The final success should be checked by looking if the copper plates are in inventory",
+  "corrections": [],
+  "token_count": 34600,
+  "cost": 0.0141936,
+  "snippet_passed": false,
+  "inventory": {},
+  "plans": [
+    "",
+    "",
+    ""
+  ],
+  "mining_setup": "There are no entities on the map"
+}

@@ -1,0 +1,10 @@
+{
+  "name": "craft_one_burner_mining_drill",
+  "objective": "We need to craft one burner mining drill. The final setup should be looked to see if there's a burner mining drill in the inventory.",
+  "mining_setup": "There are no entities on the map",
+  "corrections": [],
+  "token_count": 21815,
+  "cost": 0.010010100000000001,
+  "snippet_passed": true,
+  "inventory": {}
+}

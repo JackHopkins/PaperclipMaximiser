@@ -1,0 +1,10 @@
+{
+  "name": "craft_one_steam_engine",
+  "objective": "We need to craft one steam engine. The final setup should be looked to see if there's a steam engine in the inventory",
+  "mining_setup": "There are no entities on the map",
+  "corrections": [],
+  "token_count": 29873,
+  "cost": 0.012779099999999998,
+  "snippet_passed": true,
+  "inventory": {}
+}

@@ -8,6 +8,7 @@ def craft_one_burner_mining_drill_from_scratch():
     # [PLANNING] 
     # We need to Mine raw resources and craft everything as we don't have any resources in the inventory
     # We need enough iron ore for the plates and gear wheels, stone for the furnaces, and coal for the furnaces
+    # We will harvest more of everything to make sure we have enough, we will harvest 20 iron ore, 15 stone, and 10 coal 
     # We also need to smelt iron plates
     # we need 2 furnaces, 1 for smelting iron plates and one for crafting the burner-mining-drill 
     # [END OF PLANNING]
@@ -20,6 +21,7 @@ def craft_one_burner_mining_drill_from_scratch():
     print(f"Inventory at starting: {inspect_inventory()}")
 
     # Mine enough iron ore for the plates and gear wheels
+    # harvest more than needed to be sure
     iron_position = nearest(Resource.IronOre)
     move_to(iron_position)
     print(f"Moved to iron patch at {iron_position}")
@@ -31,9 +33,10 @@ def craft_one_burner_mining_drill_from_scratch():
     print(f"Curent inventory: {inspect_inventory()}")
 
     # Mine enough stone for 2 furnaces
+    # harvest more than needed to be sure
     stone_position = nearest(Resource.Stone)
     move_to(stone_position)
-    harvest_resource(stone_position, 10)
+    harvest_resource(stone_position, 15)
     # Check if we have enough stone
     stone_count = inspect_inventory()[Resource.Stone]
     assert stone_count >= 10, f"Failed to mine enough stone. Expected 10, but got {stone_count}"
@@ -42,9 +45,10 @@ def craft_one_burner_mining_drill_from_scratch():
 
 
     # Mine enough coal for the furnaces
+    # harvest more than needed to be sure
     coal_position = nearest(Resource.Coal)
     move_to(coal_position)
-    harvest_resource(coal_position, 5)
+    harvest_resource(coal_position, 10)
     # Check if we have enough coal
     coal_count = inspect_inventory()[Resource.Coal]
     assert coal_count >= 5, f"Failed to mine enough coal. Expected 5, but got {coal_count}"
@@ -60,20 +64,22 @@ def craft_one_burner_mining_drill_from_scratch():
     print(f"Curent inventory: {inspect_inventory()}")
 
     # Step 3: Smelt iron plates
-    # Place the stone furnacec close to your current location, i.e coal_position
-    furnace = place_entity_next_to(Prototype.StoneFurnace, reference_position = coal_position, direction = Direction.UP, spacing = 1)
+    # Place the stone furnacec close to the coal position
+    # VERY IMPORTANT: FIRST MOVE TO THE POSITION WE PLACE IT TO AS WE CAN'T PLACE IT FROM A FAR DISTANCE
+    move_to(coal_position)
+    # place the furnace
+    furnace = place_entity(entity = Prototype.StoneFurnace, position =  coal_position, direction = Direction.UP)
     # [SUBFUNCTION]
     # Name: smelt_iron_with_a_furnace
-    # Objective: We need to smelt iron ores into plates with a furnace
+    # Objective: We need to smelt iron ores into plates with a furnace. We need to use a input furnace variable
     # Mining setup: We have a furnace on the map that we can use to smelt iron ores
     # Inventory: We have enough iron and coal in the inventory to smelt the iron plates
     # :param input_coal: The number of coal to insert into the furnace
     # :param input_iron_ore: The number of iron ore to insert into the furnace
     # :param furnace: The furnace entity to use for smelting
-    # :param output_iron_plate: The number of iron plates to extract from the furnace
     # :return: None as the iron plates will be in inventory
     # [END OF SUBFUNCTION]
-    smelt_iron_with_a_furnace(input_coal=5, input_iron_ore=20, furnace=furnace, output_iron_plate=10)
+    smelt_iron_with_a_furnace(input_coal=10, input_iron_ore=20, furnace=furnace)
     # Check if we have 10 iron plates
     iron_in_inventory = inspect_inventory()[Prototype.IronPlate]
     assert iron_in_inventory >= 10, f"Failed to smelt enough iron plates. Expected 10, but got {iron_in_inventory}"

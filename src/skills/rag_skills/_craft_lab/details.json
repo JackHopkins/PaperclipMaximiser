@@ -1,0 +1,16 @@
+{
+  "name": "craft_lab",
+  "objective": "Craft one Lab. The final success should be checked by looking if a Lab is in inventory",
+  "corrections": [],
+  "token_count": 37043,
+  "cost": 0.015615299999999999,
+  "snippet_passed": false,
+  "inventory": {
+  },
+  "plans": [
+    "",
+    "",
+    ""
+  ],
+  "mining_setup": "There are no entities on the map"
+}

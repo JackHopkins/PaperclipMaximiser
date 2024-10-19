@@ -1,0 +1,15 @@
+{
+  "name": "craft_10_small_electric_poles",
+  "objective": "Craft 10 small electric poles. The final success should be checked by looking if 10 small electric poles are in inventory",
+  "corrections": [],
+  "token_count": 34505,
+  "cost": 0.0142275,
+  "snippet_passed": false,
+  "inventory": {},
+  "plans": [
+    "",
+    "",
+    ""
+  ],
+  "mining_setup": "There are no entities on the map"
+}

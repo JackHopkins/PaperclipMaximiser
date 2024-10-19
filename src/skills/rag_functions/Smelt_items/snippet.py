@@ -1,5 +1,5 @@
 from factorio_instance import *
-def smelt_iron_with_a_furnace(input_coal: int, input_iron_ore: int, furnace: Entity, output_iron_plate: int):
+def smelt_iron_with_a_furnace(input_coal: int, input_iron_ore: int, furnace: Entity):
     """
     Objective: We need to smelt iron ores into plates with a furnace
     Mining setup: We have a furnace on the map that we can use to smelt iron ores
@@ -7,7 +7,6 @@ def smelt_iron_with_a_furnace(input_coal: int, input_iron_ore: int, furnace: Ent
     :param input_coal (int): The number of coal to insert into the furnace
     :param input_iron_ore (int): The number of iron ore to insert into the furnace
     :param furnace (Prototype.StoneFurnace): The furnace entity to use for smelting
-    :param output_iron_plate (int): The number of iron plates to extract from the furnace
     :return: None as the iron plates will be in inventory
     """
     # [PLANNING] 
@@ -31,19 +30,31 @@ def smelt_iron_with_a_furnace(input_coal: int, input_iron_ore: int, furnace: Ent
     insert_item(Prototype.IronOre, furnace, input_iron_ore)
     print(f"Inserted {input_coal} coal and {input_iron_ore} iron ore into the furnace")
     print(f"Inventory after inserting: {inspect_inventory}")
-                                        
+
+    # Get the initial number of iron plates in the inventory
+    # This is used to check how many plates we have after smelting
+    # This is important to know if we have smelted enough plates
+    initial_iron_plates = inspect_inventory()[Prototype.IronPlate]
+
     # Wait for smelting to complete
-    sleep(20)
+    sleep(input_iron_ore * 0.7)
     max_attempts = 5
     for _ in range(max_attempts):
-        extract_item(Prototype.IronPlate, furnace.position, 10)
-        iron_plates_extracted = inspect_inventory()[Prototype.IronPlate]
-        if iron_plates_extracted >= 10:
+        # IMPORTANT: Always try to extract the exact number of items you need
+        # It is OK to extract more than the furnace has
+        extract_item(Prototype.IronPlate, furnace.position, input_iron_ore)
+        # IMPORTANT: To check the extraction, you need to check the amount of iron plates in the inventory
+        # After every extraction, check how many plates you have in your inventory
+        iron_plates_in_inventory = inspect_inventory()[Prototype.IronPlate]
+        # take away the initial plates from the current plates to get the number of plates smelted
+        iron_plates_extracted = iron_plates_in_inventory - initial_iron_plates
+        # If you have enough plates, break out of the loop
+        if iron_plates_extracted >= input_iron_ore:
             break
         sleep(10)  # Wait a bit more if not all plates are ready
 
     print(f"Extracted {iron_plates_extracted} iron plates from the furnace")
     print(f"Inventory after extracting: {inspect_inventory()}")
-    # Check if we have output_iron_plate iron plates
+    # Check if we have more than input_iron_ore iron plates
     iron_in_inventory = inspect_inventory()[Prototype.IronPlate]
-    assert iron_in_inventory >= output_iron_plate, f"Failed to smelt enough iron plates. Expected {output_iron_plate}, but got {iron_in_inventory}"
+    assert iron_in_inventory >= input_iron_ore, f"Failed to smelt enough iron plates. Expected {input_iron_ore}, but got {iron_in_inventory}"

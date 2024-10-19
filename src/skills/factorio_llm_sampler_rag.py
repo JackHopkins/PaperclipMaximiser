@@ -1,3 +1,6 @@
+import sys
+sys.path.append(r"C:\Users\martb\Documents\paperpclip_max\PaperclipMaximiser\src")
+sys.path.append(r"C:\Users\martb\Documents\paperpclip_max\PaperclipMaximiser")
 
 import ast
 import json
@@ -14,6 +17,7 @@ import numpy as np
 import io
 load_dotenv()
 
+from skills_db import SkillsDB
 def is_valid_python(code_string: str) -> bool:
     try:
         ast.parse(code_string)
@@ -31,6 +35,7 @@ class FactorioLLMSampler:
         self.cost = 0
         self.prompt_path = prompt_path
         self.examples_path = examples_path
+        self.skills_db = SkillsDB()
 
     def _get_base_api_schema_prompt(self):
         execution_path = os.path.dirname(os.path.realpath(__file__))
@@ -52,7 +57,7 @@ Entities:
 
     def _call_api(self, system_prompt: str, user_message: str, **kwargs) -> str:
         max_tokens = kwargs.get('max_tokens', 4096)
-        temperature = kwargs.get('temperature', 0.7)
+        temperature = kwargs.get('temperature', 0.3)
         messages = [
             {"role": "system", "content": system_prompt},
             {"role": "user", "content": user_message}
@@ -134,6 +139,74 @@ Entities:
         except:
             return response
 
+    def generate_policy_function_retrieval(self, objective: str, 
+                                           inventory: Dict[str, int], 
+                                           mining_setup: str,
+                                           func_name = None) -> str:
+        specific_prompt_path = f"{self.prompt_path}/prompts_for_rag"
+
+
+        user_input = f"Objective: {objective}\n"
+        if mining_setup is not None:
+            user_input += f"Mining setup: {mining_setup}\n"
+        if inventory is not None:
+            user_input += f"Inventory: {inventory}\n"
+        if func_name is not None:
+            user_input = f"Function name: {func_name}\n" + user_input
+
+        # read in the user_mesasge_planning.md and system_message_planning.md
+        with open(f"{specific_prompt_path}/user_message_planning.md", "r") as f:
+            user_message_planning = f.read()
+        with open(f"{specific_prompt_path}/system_message_planning.md", "r") as f:
+            system_prompt_planning = f.read()
+
+        planning_examples_folder = r"prompts\prompts_for_rag\planning_examples\rag_functions"
+        # get all folders in examples_path
+        examples = os.listdir(planning_examples_folder)
+        examples_string = ""
+        for example in examples:
+            # read in the input.md
+            with open(f"{planning_examples_folder}/{example}/input.md", "r") as f:
+                example_input = f.read()
+            examples_string += "USER INPUT\n" + example_input + "\n"
+            # read in the plan.md
+            with open(f"{planning_examples_folder}/{example}/plan.md", "r") as f:
+                example_plan = f.read()
+            examples_string += "PLAN\n[PLANNING]" + example_plan + "[PLANNING]\n\n"
+
+        user_message_planning = user_message_planning.format(user_input=user_input, examples=examples_string)
+        #plan = self._call_api(system_prompt_planning, user_message_planning)
+        ## get everything between the [PLANNING] tags
+        #plan = plan[plan.index("[PLANNING]") + len("[PLANNING]"):plan.index("[PLANNING]", plan.index("[PLANNING]") + 1)]
+        plan = ""
+        # red in recipes.md
+        with open(f"{specific_prompt_path}/recipes.md", "r") as f:
+            recipes = f.read()
+        # read in user_message.md and system_message.md
+        with open(f"{specific_prompt_path}/user_message.md", "r") as f:
+            user_message = f.read()
+        with open(f"{specific_prompt_path}/system_message_policy.md", "r") as f:
+            system_prompt = f.read()
+        if "Objective:" in objective:
+            # remove everything before "Objective:"
+            objective_for_rag = objective[objective.index("Objective:"):]
+        else:
+            objective_for_rag = f"Objective: {objective}. Mining setup: {mining_setup}"
+        # get the examples
+        # get all folders in examples_path
+        examples = self.skills_db.find_similar_functions(objective_for_rag, n=3)
+        examples_string = ""
+        for example in examples:
+            examples_string += "EXAMPLE SKILL" +  example['implementation'].replace("from factorio_instance import *", "") + "\n\n"
+        system_prompt = system_prompt.format(entity_definitions=self.entities, schema = self.schema)
+        user_message = user_message.format(user_input=user_input, examples=examples_string, recipes=recipes)
+        response = self._call_api(system_prompt, user_message)
+        try:
+            program = response.replace('```python', '```')
+            program = program.split('```')[1]
+            return program, plan
+        except:
+            return response, plan
 
     def generate_policy_function(self, objective: str, inventory: Dict[str, int]) -> str:
         specific_prompt_path = f"{self.prompt_path}/prompts_for_rag"
@@ -198,15 +271,19 @@ Entities:
         return self._call_api(system_prompt, user_message)
 
 
-    def stream_curriculum(self, objectives: List[str], inventory: Dict[str, int]):          
+    def stream_curriculum(self, objectives: List[str], inventory: Dict[str, int], mining_setup):          
          for objective in objectives:
             # get the snippet name between 2 ### signs
-            name = objective.split("###")[1].strip()
-            objective.replace("###", "")
-            policy = self.generate_policy_function(objective, inventory = inventory)
+            name = objective["name"]
+            objective_str = objective["objective"]
+            #policy = self.generate_policy_function(objective, inventory = inventory)
+            policy, plan = self.generate_policy_function_retrieval(objective_str, inventory = inventory, 
+                                                                   mining_setup = mining_setup,
+                                                                   func_name = name)
             #policy = '\ndef craft_offshore_pump():\n    """\n    Objective: We need to craft one offshore pump from scratch as we have no items in our inventory.\n    Mining setup: Currently there are no entities on the map\n    Inventory: We have no items in our inventory\n    """\n    # [PLANNING] To craft an offshore pump, we need:\n    # 1. 2 iron gear wheels (each requires 2 iron plates)\n    # 2. 1 electronic circuit (requires 1 iron plate and 3 copper cables)\n    # 3. 1 pipe (requires 1 iron plate)\n    # In total, we need:\n    # - 6 iron plates (2 for gear wheels, 1 for electronic circuit, 1 for pipe, 2 for the pump itself)\n    # - 3 copper plates (for the electronic circuit)\n    # We also need to mine coal for smelting.\n    # Steps:\n    # 1. Mine iron ore, copper ore, and coal\n    # 2. Craft stone furnaces\n    # 3. Smelt iron and copper plates\n    # 4. Craft iron gear wheels\n    # 5. Craft copper cable\n    # 6. Craft electronic circuit\n    # 7. Craft pipe\n    # 8. Finally, craft the offshore pump\n    # [END OF PLANNING]\n\n    # Step 1: Mine resources\n    iron_position = nearest(Resource.IronOre)\n    move_to(iron_position)\n    harvest_resource(iron_position, 12)  # We need 6 plates, so mine 12 ore to be safe\n    \n    copper_position = nearest(Resource.CopperOre)\n    move_to(copper_position)\n    harvest_resource(copper_position, 6)  # We need 3 plates, so mine 6 ore to be safe\n    \n    coal_position = nearest(Resource.Coal)\n    move_to(coal_position)\n    harvest_resource(coal_position, 10)  # Mine some extra for smelting\n    \n    stone_position = nearest(Resource.Stone)\n    move_to(stone_position)\n    harvest_resource(stone_position, 10)  # For crafting furnaces\n\n    # Step 2: Craft stone furnaces\n    craft_item(Prototype.StoneFurnace, 2)\n    furnace_count = inspect_inventory()[Prototype.StoneFurnace]\n    assert furnace_count >= 2, f"Failed to craft stone furnaces. Expected 2, but got {furnace_count}"\n\n    # Step 3: Smelt iron and copper plates\n    iron_furnace = place_entity(Prototype.StoneFurnace, position=Position(x=0, y=0))\n    copper_furnace = place_entity(Prototype.StoneFurnace, position=Position(x=2, y=0))\n\n    # [SUBFUNCTION]\n    # Name: smelt_ore_with_furnace\n    # Objective: We need to smelt ore into plates with a furnace\n    # Mining setup: We have a furnace on the map that we can use to smelt ores\n    # Inventory: We have enough ore and coal in the inventory to smelt the plates\n    # :param input_coal: The number of coal to insert into the furnace\n    # :param input_ore: The number of ore to insert into the furnace\n    # :param furnace: The furnace entity to use for smelting\n    # :param ore_type: The type of ore to smelt (IronOre or CopperOre)\n    # :param output_plate: The number of plates to extract from the furnace\n    # :return: None as the plates will be in inventory\n    # [END OF SUBFUNCTION]\n    smelt_ore_with_furnace(input_coal=5, input_ore=12, furnace=iron_furnace, ore_type=Prototype.IronOre, output_plate=6)\n    smelt_ore_with_furnace(input_coal=5, input_ore=6, furnace=copper_furnace, ore_type=Prototype.CopperOre, output_plate=3)\n\n    # Step 4: Craft iron gear wheels\n    craft_item(Prototype.IronGearWheel, 2)\n    gear_count = inspect_inventory()[Prototype.IronGearWheel]\n    assert gear_count >= 2, f"Failed to craft iron gear wheels. Expected 2, but got {gear_count}"\n\n    # Step 5: Craft copper cable\n    craft_item(Prototype.CopperCable, 3)\n    cable_count = inspect_inventory()[Prototype.CopperCable]\n    assert cable_count >= 3, f"Failed to craft copper cable. Expected 3, but got {cable_count}"\n\n    # Step 6: Craft electronic circuit\n    craft_item(Prototype.ElectronicCircuit, 1)\n    circuit_count = inspect_inventory()[Prototype.ElectronicCircuit]\n    assert circuit_count >= 1, f"Failed to craft electronic circuit. Expected 1, but got {circuit_count}"\n\n    # Step 7: Craft pipe\n    craft_item(Prototype.Pipe, 1)\n    pipe_count = inspect_inventory()[Prototype.Pipe]\n    assert pipe_count >= 1, f"Failed to craft pipe. Expected 1, but got {pipe_count}"\n\n    # Step 8: Craft offshore pump\n    craft_item(Prototype.OffshorePump, 1)\n    pump_count = inspect_inventory()[Prototype.OffshorePump]\n    assert pump_count >= 1, f"Failed to craft offshore pump. Expected 1, but got {pump_count}"\n\n    print("Successfully crafted one offshore pump!")\n'
             functions_to_process = [policy]
             completed_functions = []
+            plans = [plan]
             while functions_to_process:
                 function = functions_to_process.pop(0)
                 while "[SUBFUNCTION]" in function:
@@ -214,33 +291,95 @@ Entities:
                     subfunction_start = function.index("[SUBFUNCTION]")
                     subfunction_end = function.index("[END OF SUBFUNCTION]")
                     subfunction_description = function[subfunction_start:subfunction_end]
-                    generated_subfunction = self.generate_policy_function(subfunction_description,
-                                                                           inventory = None)
+                    #generated_subfunction = self.generate_policy_function(subfunction_description,
+                    #                                                       inventory = None)
+                    generated_subfunction, plan = self.generate_policy_function_retrieval(subfunction_description, 
+                                                                                          inventory = None,
+                                                                                          mining_setup=None)
                     #generated_subfunction = '\ndef smelt_ore_with_furnace(input_coal: int, input_ore: int, furnace: Entity, ore_type: Prototype, output_plate: int):\n    """\n    Objective: We need to smelt ore into plates with a furnace\n    Mining setup: We have a furnace on the map that we can use to smelt ores\n    Inventory: We have enough ore and coal in the inventory to smelt the plates\n    :param input_coal: The number of coal to insert into the furnace\n    :param input_ore: The number of ore to insert into the furnace\n    :param furnace: The furnace entity to use for smelting\n    :param ore_type: The type of ore to smelt (IronOre or CopperOre)\n    :param output_plate: The number of plates to extract from the furnace\n    :return: None as the plates will be in inventory\n    """\n    # [PLANNING]\n    # 1. Check if we have enough ore and coal in the inventory\n    # 2. Insert coal and ore into the furnace\n    # 3. Wait for smelting to complete\n    # 4. Extract the plates from the furnace\n    # 5. Verify that we have the expected number of plates in our inventory\n    # [END OF PLANNING]\n\n    # Step 1: Check inventory\n    inventory = inspect_inventory()\n    assert inventory.get(ore_type, 0) >= input_ore, f"Not enough {ore_type.name} in inventory. Required: {input_ore}, Available: {inventory.get(ore_type, 0)}"\n    assert inventory.get(Prototype.Coal, 0) >= input_coal, f"Not enough coal in inventory. Required: {input_coal}, Available: {inventory.get(Prototype.Coal, 0)}"\n\n    # Step 2: Insert coal and ore into the furnace\n    insert_item(Prototype.Coal, furnace, input_coal)\n    insert_item(ore_type, furnace, input_ore)\n\n    # Step 3: Wait for smelting to complete\n    # Assuming it takes about 3.5 seconds to smelt one ore\n    smelting_time = 3.5 * input_ore\n    sleep(int(smelting_time) + 1)  # Add 1 second as buffer\n\n    # Step 4: Extract the plates from the furnace\n    plate_type = Prototype.IronPlate if ore_type == Prototype.IronOre else Prototype.CopperPlate\n    extract_item(plate_type, furnace.position, output_plate)\n\n    # Step 5: Verify the number of plates in our inventory\n    final_inventory = inspect_inventory()\n    plates_in_inventory = final_inventory.get(plate_type, 0)\n    assert plates_in_inventory >= output_plate, f"Failed to smelt enough plates. Expected at least {output_plate}, but got {plates_in_inventory}"\n\n    print(f"Successfully smelted {output_plate} {plate_type.name}.")\n'
                     # replacec the first [SUBFUNCTION] tag with [SYNTHESISED]
                     function = function.replace('[SUBFUNCTION]', '"""[SYNTHESISED]', 1)
                     function = function.replace('[END OF SUBFUNCTION]', '[END OF SYNTHESISED]"""', 1)
                     functions_to_process.append(generated_subfunction)
+                    plans.append(plan)
                 completed_functions.append(function)
 
 
             yield {
                 "snippet_name": name,
                 "snippets": completed_functions,
-                "objective": f"{objective}. Inventory: {inventory}",
-                "inventory": inventory
+                "objective": objective_str,
+                "mining_setup": mining_setup,
+                "inventory": inventory,
+                "plans": plans
                 #"test": test,
             }
 
 def save_gold_skills_into_db():
-    pass
+    db = SkillsDB()
+    db.delete_all_skills()
+    skills = db.get_all_skills()
+    names = [skill['name'] for skill in skills]
+    examples_folder = r"skills/rag_functions"
+    # get all folders in examples_path
+    examples = os.listdir(examples_folder)
+    for example in examples:
+        if example.startswith("exclude"):
+            continue
+        # read in details
+        folder_path = f"{examples_folder}/{example}"
+        with open(f"{folder_path}/details.json", "r") as f:
+            details = json.load(f)
+        # read in the snippet
+        with open(f"{folder_path}/snippet.py", "r") as f:
+            snippet = f.read()
+        
+        name = details["name"]
+        if name in names:
+            continue
+        implementation = snippet
+        # get the signature thats between first and second """
+        signature = re.search(r'"""(.*?)"""', snippet, re.DOTALL).group(1)
+        signature = signature.strip()
+        description = signature
+        dependencies = []
+        implementation_model = "gold_standard"
+        db.save_function(name = name, 
+                    description = description, 
+                    implementation = implementation, 
+                    dependencies = dependencies, 
+                    implementation_model = implementation_model,
+                    signature = signature)
+
+def evaluate_a_skill(folder_path):
+    # readinthe full_snippet.py
+    with open(f"{folder_path}/full_snippet.py", "r") as f:
+        full_snippet = f.read()
+    
+    # read in the details.json
+    with open(f"{folder_path}/details.json", "r") as f:
+        details = json.load(f)
+
+    inventory = details["inventory"]
+    instance = FactorioInstance(address='localhost',
+                                bounding_box=200,
+                                tcp_port=27015,
+                                fast=True,
+                                #cache_scripts=False,
+                                inventory=inventory)
+
+    # evaluate the skill
+    score, goal, result = instance.eval_with_error(full_snippet, timeout=240)
+    print(result)
 
 
 if __name__ == "__main__":
+    folder_path = r"skills\rag_skills\_create_electric_coal_mine"
+    evaluate_a_skill(folder_path)
     #main()
+    #save_gold_skills_into_db()
 
-
-    sampler = FactorioLLMSampler()
+    sampler = FactorioLLMSampler(model = "gpt-4o")
 
     inventory = {
         'iron-plate': 50,
@@ -260,13 +399,14 @@ if __name__ == "__main__":
         "wooden-chest": 1,
     }
 
-    #inventory = {
-    #    'iron-plate': 20,
-    #    'coal': 20,
-    #    'copper-plate': 20,
-    #    'stone-furnace': 3,
-    #}
-    inventory = {}
+    inventory = {
+        'iron-plate': 20,
+        'coal': 20,
+        'copper-plate': 20,
+        'stone-furnace': 3,
+        'iron-ore':10
+    }
+    #inventory = {}
     instance = FactorioInstance(address='localhost',
                                 bounding_box=200,
                                 tcp_port=27015,
@@ -279,63 +419,65 @@ if __name__ == "__main__":
 from factorio_instance import *
 
 # Check initial inventory
-initial_inventory = inspect_inventory()
-assert initial_inventory[Prototype.IronPlate] >= 10, f"Not enough iron plates in inventory. Expected at least 10, but found {initial_inventory[Prototype.IronPlate]}"
-assert initial_inventory[Prototype.Coal] >= 20, f"Not enough coal in inventory. Expected at least 20, but found {initial_inventory[Prototype.Coal]}"
-assert initial_inventory[Prototype.StoneFurnace] >= 3, f"Not enough stone furnaces in inventory. Expected at least 3, but found {initial_inventory[Prototype.StoneFurnace]}"
+
+iron_position = nearest(Resource.Stone)
+move_to(iron_position)
+print(f"Moved to iron patch at {iron_position}")
+harvest_resource(iron_position, 20)
+
+craft_item(Prototype.StoneFurnace, 3)
 
 # 1. Place a stone furnace
-stone_furnace = place_entity(Prototype.StoneFurnace, Direction.UP, Position(x=0, y=0))
+stone_furnace = place_entity(Prototype.StoneFurnace, Direction.UP, iron_position)
 assert stone_furnace is not None, "Failed to place stone furnace"
 
-# 2. Smelt steel plates using resources from inventory
 insert_item(Prototype.Coal, stone_furnace, 5)
-insert_item(Prototype.IronPlate, stone_furnace, 10)
+insert_item(Prototype.IronOre, stone_furnace, 5)
+sleep(2)
 
-# 3. Wait for the smelting process
-sleep(10)
-# Extract steel plates
-max_attempts = 5
-for _ in range(max_attempts):
-    extract_item(Prototype.SteelPlate, stone_furnace.position, 10)
-    steel_plates_extracted = inspect_inventory()[Prototype.SteelPlate]
-    if steel_plates_extracted >= 2:
-        break
-    sleep(10)  # Wait a bit more if not all plates are ready
-
-# 4. Confirm the steel plates in inventory
-steel_plates = inspect_inventory()[Prototype.SteelPlate]
-assert steel_plates >= 2, f"Failed to craft 2 steel plates. Only found {steel_plates} in inventory"
-
-print(f"Successfully crafted {steel_plates} steel plates")
-
-
+furnaces = inspect_entities().get_entities(Prototype.StoneFurnace)
+print(furnaces)
+furnace = furnaces[0]
+insert_item(Prototype.Coal, furnace, 5)
 """
 
     #score, goal, result = instance.eval_with_error(test_string, timeout=60)
     # Load objectives from file
-    objectives_file = "skills\objectives_rag.txt"
-    if os.path.exists(objectives_file):
-        objectives = sampler.load_objectives(objectives_file)
-    else:
-        print(f"Objectives file '{objectives_file}' not found. Please create it and add objectives.")
-        exit(1)
+    #objectives_file = "skills\objectives_rag.txt"
+    #if os.path.exists(objectives_file):
+    #    objectives = sampler.load_objectives(objectives_file)
+    #else:
+    #    print(f"Objectives file '{objectives_file}' not found. Please create it and add objectives.")
+    #    exit(1)
 
+
+    
+    objectives_folder = "skills\objectives\Group_5_create_automatic_burner_mines"
+    #read in details.json
+    with open(f"{objectives_folder}/details.json", "r") as f:
+        details = json.load(f)
+    
+    # read in starting_snippet.py if it exists
+    try:
+        with open(f"{objectives_folder}/starting_snippet.py", "r") as f:
+            starting_snippet = f.read()
+    except:
+        starting_snippet = ""
+    
+    mining_setup = details["mining_setup"]
+    objectives = details["objectives"]
+
+    inventory = {
+        'iron-plate': np.random.randint(0, 20),
+        'coal': np.random.randint(0, 10),
+        'copper-plate': np.random.randint(0, 20),
+        'stone-furnace': np.random.randint(0, 2),
+        'iron-ore':np.random.randint(0, 10),
+        "coppper-ore":np.random.randint(0, 10),
+    }
     for obj_idx, objective in enumerate(objectives):
-            #inventory = {
-            #            'iron-plate': np.random.randint(5, 30),
-            #            'coal': np.random.randint(5, 30),
-            #            'copper-plate': np.random.randint(5, 30),
-            #            'stone-furnace': np.random.randint(1, 10),
-            #        }
 
-            instance = FactorioInstance(address='localhost',
-                                bounding_box=200,
-                                tcp_port=27015,
-                                fast=True,
-                                #cache_scripts=False,
-                                inventory=inventory)
-            curriculum_item = next(sampler.stream_curriculum([objective], inventory))
+            curriculum_item = next(sampler.stream_curriculum([objective], objective["inventory"], mining_setup))
             snippet_name = curriculum_item['snippet_name']
             final_snippet = "from factorio_instance import *\n\n"
             for snippet in curriculum_item['snippets'][::-1]:
@@ -356,11 +498,15 @@ print(f"Successfully crafted {steel_plates} steel plates")
 
             snippet = final_snippet
 
-            max_attempts = 6
+            max_attempts = 1
             snippet_passed = False
 
             for attempt in range(max_attempts):
-                instance._reset(**instance.initial_inventory if isinstance(instance.initial_inventory, dict) else instance.initial_inventory.__dict__)
+                instance.reset()
+                instance.initial_inventory = objective["inventory"]        
+                instance.reset()
+                # run starting snippet
+                score, goal, result = instance.eval_with_error(starting_snippet, timeout=60)
 
                 try:
                     # Create a StringIO object to capture the output
@@ -419,39 +565,50 @@ print(f"Successfully crafted {steel_plates} steel plates")
                                 objective = curriculum_item['objective'],
                                 last_executed_policy  = snippet,
                                 error_message = str(e),
-                                correction_history=correction_history,
+                                correction_history=[],
                                 inventory = inventory,
                                 game_logs = output_list
                             )
                             corrected_snippet = corrected_snippet.split("```")[1].lstrip('python\n')
                             snippet = textwrap.dedent(corrected_snippet)
-                            #correction_history.append({"snippet": snippet, "error": str(e)})
+                            correction_history.append({"snippet": snippet, "error": str(e)})
                     else:
                         print(f"{snippet_name} - Snippet failed after {max_attempts} attempts. Moving to next objective.")
-
+            sys.stdout = sys_stdout
             # Save results and update files
             folder_name = snippet_name if snippet_passed else f"_{snippet_name}"
             folder_path = f"skills/rag_skills/{folder_name.strip()}"
+            # check if the folder existss
+            if os.path.exists(folder_path):
+                # start adding numbers to the folder name
+                i = 1
+                new_folder_path = f"{folder_path}_{i}"
+                while os.path.exists(new_folder_path):
+                    i += 1
+                    new_folder_path = f"{folder_path}_{i}"
+                folder_path = new_folder_path
+            
             os.makedirs(folder_path, exist_ok=True)
-
             with open(f"{folder_path}/full_snippet.py", "w") as f:
                 f.write(snippet)
 
             # split the snippet into functions using the FUNC SEP tag
             functions = snippet.split("###FUNC SEP")[:-1]
             for func_idx, function in enumerate(functions):
-                function = function.replace("###FUNC SEP", "").replace("from factorio_instance import *").strip()
+                function = function.replace("###FUNC SEP", "").replace("from factorio_instance import *", "").strip()
                 with open(f"{folder_path}/subsnippet_{func_idx}.py", "w") as f:
                     f.write(function)
 
             details = {
                 "name": snippet_name,
                 "objective": curriculum_item['objective'],
-                #"corrections": correction_history,
+                "corrections": correction_history,
                 "token_count": sampler.token_count,
                 "cost": sampler.cost,
                 "snippet_passed": snippet_passed,
-                "inventory": inventory
+                "inventory": objective["inventory"],
+                "plans": curriculum_item['plans'],
+                "mining_setup": curriculum_item['mining_setup']
             }
             with open(f"{folder_path}/details.json", "w") as f:
                 json.dump(details, f, indent=2)

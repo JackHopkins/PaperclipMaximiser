@@ -1,0 +1,15 @@
+{
+  "name": "craft_steam_engine",
+  "objective": "Craft one SteamEngine. The final success should be checked by looking if a SteamEngine is in inventory",
+  "corrections": [],
+  "token_count": 35471,
+  "cost": 0.014528099999999999,
+  "snippet_passed": false,
+  "inventory": {},
+  "plans": [
+    "",
+    "",
+    ""
+  ],
+  "mining_setup": "There are no entities on the map"
+}

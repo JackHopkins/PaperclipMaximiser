@@ -1,0 +1,30 @@
+{
+  "name": "create_iron_plate_mine",
+  "objective": "Create an automated iron plate mine that mines iron ore, smelts it to iron plates and puts them in a chest further away and up from it. The final setup should be checked by looking if the chest has any iron plates in it",
+  "corrections": [],
+  "token_count": 24410,
+  "cost": 0.010258199999999999,
+  "snippet_passed": false,
+  "inventory": {
+    "iron-plate": 50,
+    "coal": 100,
+    "copper-plate": 50,
+    "iron-chest": 2,
+    "burner-mining-drill": 3,
+    "electric-mining-drill": 1,
+    "assembling-machine-1": 1,
+    "stone-furnace": 9,
+    "transport-belt": 500,
+    "boiler": 1,
+    "burner-inserter": 32,
+    "pipe": 15,
+    "steam-engine": 1,
+    "small-electric-pole": 10,
+    "wooden-chest": 1
+},
+  "plans": [
+    "",
+    ""
+  ],
+  "mining_setup": "There are no entities on the map"
+}

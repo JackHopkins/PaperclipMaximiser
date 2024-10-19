@@ -1,0 +1,14 @@
+{
+  "name": "craft_radar",
+  "objective": "Craft one Radar. The final success should be checked by looking if a Radar is in inventory",
+  "corrections": [],
+  "token_count": 24595,
+  "cost": 0.0104841,
+  "snippet_passed": false,
+  "inventory": {},
+  "plans": [
+    "",
+    ""
+  ],
+  "mining_setup": "There are no entities on the map"
+}

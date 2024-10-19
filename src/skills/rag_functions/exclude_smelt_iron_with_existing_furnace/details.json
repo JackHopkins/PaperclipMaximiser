@@ -1,0 +1,10 @@
+{
+  "objective":  "Name: smelt_iron_plates_with_furnace",
+  "inventory": {
+    "iron-plate": 20,
+    "coal": 20,
+    "copper-plate": 20,
+    "stone-furnace": 3
+  },
+  "name": "smelt_iron_plates_with_furnace"
+}

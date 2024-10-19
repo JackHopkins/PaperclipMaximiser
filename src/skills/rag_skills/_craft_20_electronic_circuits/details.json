@@ -1,0 +1,20 @@
+{
+  "name": "craft_20_electronic_circuits",
+  "objective": "Craft 20 electronic circuits. The final success should be checked by looking if 10 electronic circuits are in inventory",
+  "corrections": [],
+  "token_count": 23600,
+  "cost": 0.010166399999999999,
+  "snippet_passed": false,
+  "inventory": {
+    "iron-plate": 20,
+    "coal": 20,
+    "copper-plate": 20,
+    "stone-furnace": 3,
+    "iron-ore": 10
+  },
+  "plans": [
+    "",
+    ""
+  ],
+  "mining_setup": "There are no entities on the map"
+}

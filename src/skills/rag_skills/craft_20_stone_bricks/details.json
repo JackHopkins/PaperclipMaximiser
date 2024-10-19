@@ -1,0 +1,14 @@
+{
+  "name": "craft_20_stone_bricks",
+  "objective": "Craft 20 stone bricks. The final success should be checked by looking if 20 stone bricks are in inventory",
+  "corrections": [],
+  "token_count": 22900,
+  "cost": 0.009815999999999998,
+  "snippet_passed": true,
+  "inventory": {},
+  "plans": [
+    "",
+    ""
+  ],
+  "mining_setup": "There are no entities on the map"
+}

@@ -1,0 +1,13 @@
+{
+  "name": "craft_3_stone_furnace",
+  "objective": "Craft 3 stone furnaces. The final success should be checked by looking if 3 stone furnaces are in inventory",
+  "corrections": [],
+  "token_count": 11226,
+  "cost": 0.004262999999999999,
+  "snippet_passed": true,
+  "inventory": {},
+  "plans": [
+    ""
+  ],
+  "mining_setup": "There are no entities on the map"
+}

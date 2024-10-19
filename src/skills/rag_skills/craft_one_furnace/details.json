@@ -1,0 +1,9 @@
+{
+  "name": "craft_one_furnace",
+  "objective": "We need to craft one stone furnace. The final setup should be looked to see if there's a stone furnace in the inventory",
+  "mining_setup": "There are no entities on the map",
+  "token_count": 11619,
+  "cost": 0.0042321,
+  "snippet_passed": true,
+  "inventory": {}
+}

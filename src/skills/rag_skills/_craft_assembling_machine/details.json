@@ -1,0 +1,15 @@
+{
+  "name": "craft_assembling_machine",
+  "objective": "Craft one AssemblingMachine. The final success should be checked by looking if a AssemblingMachine is in inventory",
+  "corrections": [],
+  "token_count": 36167,
+  "cost": 0.014975699999999998,
+  "snippet_passed": false,
+  "inventory": {},
+  "plans": [
+    "",
+    "",
+    ""
+  ],
+  "mining_setup": "There are no entities on the map"
+}

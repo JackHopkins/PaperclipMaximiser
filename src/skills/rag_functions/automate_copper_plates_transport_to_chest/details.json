@@ -1,0 +1,9 @@
+{
+  "objective": "Name: create_an_automated_copper_plate_mine\nObjective: Create an automated copper plate transportation system from a mining drill to a chest further away. The final setup should be checked by looking if the chest has copper plates in their inventory. Mining setup: There are no entities on the map",
+  "inventory": {"iron-plate": 50, "coal": 100, "copper-plate": 50, 
+  "burner-mining-drill": 3, "electric-mining-drill": 1, 
+  "assembling-machine-1": 1, "stone-furnace": 9, "transport-belt": 500, 
+  "boiler": 1, "burner-inserter": 32, "pipe": 15, "steam-engine": 1, 
+  "small-electric-pole": 10},
+  "name": "create_an_automated_copper_plate_mine"
+}

@@ -1,0 +1,6 @@
+{
+  "objective": "We need to craft one burner mining drill. The final setup should be checked by looking if a burner mining drill is in inventory",
+  "inventory": {},
+  "name": "craft_one_burner_mining_drill_from_scratch",
+  "mining_setup": "There are no entities on the map"
+}

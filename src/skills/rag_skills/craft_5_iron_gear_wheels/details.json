@@ -1,0 +1,14 @@
+{
+  "name": "craft_5_iron_gear_wheels",
+  "objective": "Craft 5 iron gear wheels. The final success should be checked by looking if 5 gear wheels are in inventory",
+  "corrections": [],
+  "token_count": 23459,
+  "cost": 0.0101241,
+  "snippet_passed": true,
+  "inventory": {},
+  "plans": [
+    "",
+    ""
+  ],
+  "mining_setup": "There are no entities on the map"
+}

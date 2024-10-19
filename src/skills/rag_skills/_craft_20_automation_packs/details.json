@@ -1,0 +1,15 @@
+{
+  "name": "craft_20_automation_packs",
+  "objective": "Craft 20 automation science packs. The final success should be checked by looking if 20 automation science packs are in inventory",
+  "corrections": [],
+  "token_count": 35016,
+  "cost": 0.014544000000000001,
+  "snippet_passed": false,
+  "inventory": {},
+  "plans": [
+    "",
+    "",
+    ""
+  ],
+  "mining_setup": "There are no entities on the map"
+}

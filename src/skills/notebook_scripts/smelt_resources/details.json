@@ -1,0 +1,4 @@
+{
+  "step": "Smelt plates. We need to smelt the plates using a stone furnace. Output check: We need to check if after this step we have the required plates in our inventory",
+  "inventory": {"stone": 10, "iron-ore": 15, "coal": 5}
+}

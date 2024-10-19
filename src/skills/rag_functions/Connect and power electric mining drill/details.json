@@ -1,0 +1,10 @@
+{
+  "objective":  "Name: place_and_power_electric_mining_drill_on_copper\nObjective: Craft 1 electric-mining-drill. In the end you need to check if the electric-mining-drill was crafted successfully. Mining setup: There are no entities on the map",
+  "inventory": {
+    "iron-plate": 20,
+    "coal": 20,
+    "copper-plate": 20,
+    "stone-furnace": 3
+  },
+  "name": "place_and_power_electric_mining_drill_on_copper"
+}

@@ -1,0 +1,29 @@
+{
+  "name": "create_stone_mine",
+  "objective": "We need create an automated stone mine that mines stone to a chest further away and right from it. The final setup should be checked by looking if the chest has any stone in it",
+  "corrections": [],
+  "token_count": 12396,
+  "cost": 0.0050916,
+  "snippet_passed": false,
+  "inventory": {
+    "iron-plate": 50,
+    "coal": 100,
+    "copper-plate": 50,
+    "iron-chest": 2,
+    "burner-mining-drill": 3,
+    "electric-mining-drill": 1,
+    "assembling-machine-1": 1,
+    "stone-furnace": 9,
+    "transport-belt": 500,
+    "boiler": 1,
+    "burner-inserter": 32,
+    "pipe": 15,
+    "steam-engine": 1,
+    "small-electric-pole": 10,
+    "wooden-chest": 1
+},
+  "plans": [
+    ""
+  ],
+  "mining_setup": "There are no entities on the map"
+}

@@ -1,14 +1,11 @@
-# Create an automated coal transportation system from a mining drill to 3 stone furnaces
-
-# Find the nearest coal patch
+# Find the nearest coal patch and move to it
 coal_position = nearest(Resource.Coal)
 assert coal_position, "No coal found nearby"
-
-# Move to the coal position
 move_to(coal_position)
 
 # Get the coal patch details
 coal_patch = get_resource_patch(Resource.Coal, coal_position, radius=10)
+print(coal_patch)
 assert coal_patch, "No coal patch found within radius"
 
 # Place the mining drill
@@ -37,5 +34,4 @@ inspection = inspect_entities(miner.position, radius=10)
 assert any(e.name == "burner-mining-drill" for e in inspection.entities), "Mining drill not found"
 assert len([e for e in inspection.entities if e.name == "stone-furnace"]) == 3, "Not all stone furnaces found"
 assert any(e.name == "transport-belt" for e in inspection.entities), "Transport belts not found"
-
 print("Automated coal transportation system created successfully!")

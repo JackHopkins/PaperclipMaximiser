@@ -1,0 +1,15 @@
+{
+  "name": "craft_10_transport_belts",
+  "objective": "Craft 10 transport belts. The final success should be checked by looking if 10 transport belts are in inventory",
+  "corrections": [],
+  "token_count": 34938,
+  "cost": 0.014449799999999999,
+  "snippet_passed": false,
+  "inventory": {},
+  "plans": [
+    "",
+    "",
+    ""
+  ],
+  "mining_setup": "There are no entities on the map"
+}

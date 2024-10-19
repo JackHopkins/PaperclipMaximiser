@@ -1,0 +1,20 @@
+{
+  "name": "smelt_20_iron_plates",
+  "objective": "Smelt 20 iron plates. The final success should be checked by looking if the iron plates are in inventory",
+  "corrections": [],
+  "token_count": 23047,
+  "cost": 0.0094497,
+  "snippet_passed": true,
+  "inventory": {
+    "iron-plate": 20,
+    "coal": 20,
+    "copper-plate": 20,
+    "stone-furnace": 3,
+    "iron-ore": 10
+  },
+  "plans": [
+    "",
+    ""
+  ],
+  "mining_setup": "There are no entities on the map"
+}

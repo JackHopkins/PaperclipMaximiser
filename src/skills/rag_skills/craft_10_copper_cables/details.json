@@ -1,0 +1,14 @@
+{
+  "name": "craft_10_copper_cables",
+  "objective": "Craft 10 copper cables. The final success should be checked by looking if 10 copper cables are in inventory",
+  "corrections": [],
+  "token_count": 23387,
+  "cost": 0.0095865,
+  "snippet_passed": false,
+  "inventory": {},
+  "plans": [
+    "",
+    ""
+  ],
+  "mining_setup": "There are no entities on the map"
+}
