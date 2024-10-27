@@ -1,3 +1,8 @@
+import sys
+sys.path.append(r"C:\Users\martb\Documents\paperpclip_max\PaperclipMaximiser\src")
+sys.path.append(r"C:\Users\martb\Documents\paperpclip_max\PaperclipMaximiser")
+
+
 import ast
 import json
 import os
@@ -283,7 +288,58 @@ if __name__ == "__main__":
                                 tcp_port=27015,
                                 fast=True,
                                 inventory=inventory)
+    test_string = """
+# Find coal patch and move there
+coal_patch = get_resource_patch(Resource.Coal, nearest(Resource.Coal))
+assert coal_patch is not None, "No coal patch found"
+move_to(coal_patch.bounding_box.center)
 
+# Place burner mining drill on coal and fuel it immediately
+drill = place_entity(Prototype.BurnerMiningDrill, Direction.RIGHT, coal_patch.bounding_box.center)
+assert drill is not None, "Failed to place burner mining drill"
+insert_item(Prototype.Coal, drill, 5)
+drill_check = get_entity(Prototype.BurnerMiningDrill, drill.position)
+assert drill_check.status in [EntityStatus.NORMAL, EntityStatus.WORKING], f"Drill not operational: {drill_check.status}"
+
+# Place stone furnace to the right of drill with proper spacing for belt and inserter
+furnace = place_entity_next_to(Prototype.StoneFurnace, drill.position, Direction.RIGHT, spacing=4)
+assert furnace is not None, "Failed to place stone furnace"
+
+# Place burner inserter between drill and furnace
+inserter_pos = Position(x=furnace.position.x - 1.5, y=furnace.position.y)
+inserter = place_entity(Prototype.BurnerInserter, Direction.RIGHT, inserter_pos)
+assert inserter is not None, "Failed to place burner inserter"
+insert_item(Prototype.Coal, inserter, 5)
+
+# Connect drill to inserter with belt
+belts = connect_entities(drill.drop_position, inserter.pickup_position, Prototype.TransportBelt)
+assert len(belts) > 0, "Failed to place transport belts"
+
+# Add coal to furnace before verifying status
+insert_item(Prototype.Coal, furnace, 5)
+
+# Verify all entities are properly placed and operational by getting fresh state
+drill_check = get_entity(Prototype.BurnerMiningDrill, drill.position)
+assert drill_check.status in [EntityStatus.NORMAL, EntityStatus.WORKING], f"Drill not working: {drill_check.status}"
+
+inserter_check = get_entity(Prototype.BurnerInserter, inserter.position)
+assert inserter_check.status in [EntityStatus.NORMAL, EntityStatus.WORKING, EntityStatus.WAITING_FOR_SOURCE_ITEMS], f"Inserter not working: {inserter_check.status}"
+
+for belt in belts:
+            belt_check = get_entity(Prototype.TransportBelt, belt.position)
+            assert belt_check.status in [EntityStatus.NORMAL, EntityStatus.WORKING], f"Belt not working: {belt_check.status}"
+            
+furnace_check = get_entity(Prototype.StoneFurnace, furnace.position)
+assert furnace_check.status in [EntityStatus.NORMAL, EntityStatus.NO_INGREDIENTS], f"Furnace not ready: {furnace_check.status}"
+
+# Get all entities in area to verify setup - fixed get_entities call
+area_entities = get_entities({Prototype.BurnerMiningDrill, Prototype.StoneFurnace, Prototype.BurnerInserter, Prototype.TransportBelt})
+assert len([e for e in area_entities if e.name == "burner-mining-drill"]) == 1, "Mining drill missing"
+assert len([e for e in area_entities if e.name == "stone-furnace"]) == 1, "Furnace missing"
+assert len([e for e in area_entities if e.name == "burner-inserter"]) == 1, "Inserter missing"
+assert len([e for e in area_entities if e.name == "transport-belt"]) > 0, "Transport belt missing"
+    """
+    _ = instance.eval_with_error(test_string, timeout=10)
     for curriculum_item in sampler.stream_curriculum(10):
         function_name = curriculum_item['function_name']
         existing_state = sampler.load_existing_state(function_name)
