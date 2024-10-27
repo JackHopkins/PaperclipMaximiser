@@ -8,6 +8,9 @@ USER INPUT
 DESCRIPTION
 {description}
 
+INVENTORY REQUIREMENTS
+{inventory}
+
 NAME
 {name}
 
