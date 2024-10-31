@@ -17,7 +17,7 @@ factorio = FactorioInstance(address='localhost',
                             bounding_box=200,
                             tcp_port=27015,
                             cache_scripts=True,
-                            fast=False,
+                            fast=True,
                             inventory={
                                 'coal': 50,
                                 'copper-plate': 50,

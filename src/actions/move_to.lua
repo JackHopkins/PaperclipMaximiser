@@ -1,7 +1,7 @@
 -- move_to
 
 -- Register the tick handler when the module is loaded
-script.on_nth_tick(2, function(event)
+script.on_nth_tick(5, function(event)
     if global.walking_queues then
         global.actions.update_walking_queues()
     end
@@ -239,7 +239,7 @@ global.actions.update_walking_queues = function()
                          (player.position.y - queue.current_target.y)^2)^0.5
 
         -- If player is close enough to current target
-        if distance < 0.5 then
+        if distance < 1 then
             -- Remove the current position from queue
             table.remove(queue.positions, 1)
 
@@ -273,7 +273,7 @@ global.actions.clear_walking_queue = function(player_index)
     end
 end
 
-global.actions.get_queue_length = function(player_index)
+global.actions.get_walking_queue_length = function(player_index)
     if global.walking_queues and global.walking_queues[player_index] then
         return #global.walking_queues[player_index].positions
     end
