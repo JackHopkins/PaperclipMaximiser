@@ -7,7 +7,7 @@ local function start_mining_entity(player, entity)
 
         -- First select the entity
         player.update_selected_entity(entity.position)
-        player.selected = entity
+        --player.selected = entity
 
         -- Then set mining state with position
         if not player.mining_state.mining then
