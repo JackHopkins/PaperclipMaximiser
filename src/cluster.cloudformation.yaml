@@ -153,6 +153,11 @@ Resources:
   # ECS Service
   FactorioService:
     Type: AWS::ECS::Service
+    DependsOn:
+      - MountTarget1
+      - MountTarget2
+      - EFSSecurityGroupIngress
+      - FactorioSecurityGroupEgress
     Properties:
       ServiceName: factorio-service
       Cluster: !Ref ECSCluster
@@ -168,10 +173,11 @@ Resources:
             - !Ref PublicSubnet2
           SecurityGroups:
             - !Ref FactorioSecurityGroup
+            - !Ref EFSAccessSecurityGroup
       Tags:
         - Key: PUBLICHOSTEDZONE
           Value: !Ref FactorioHostedZoneName
-        - Key : HOSTEDZONEID
+        - Key: HOSTEDZONEID
           Value: !Ref FactorioHostedZoneID
       PropagateTags: SERVICE
 
@@ -196,6 +202,17 @@ Resources:
           Permissions: '0755'
 
   # Security Groups
+  EFSAccessSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Security group for EFS access
+      VpcId: !Ref VPC
+      SecurityGroupEgress:
+        - IpProtocol: -1
+          FromPort: -1
+          ToPort: -1
+          CidrIp: 0.0.0.0/0
+
   FactorioSecurityGroup:
     Type: AWS::EC2::SecurityGroup
     Properties:
@@ -210,6 +227,32 @@ Resources:
           FromPort: 27015
           ToPort: 27015
           CidrIp: 0.0.0.0/0
+      SecurityGroupEgress:
+        - IpProtocol: -1
+          FromPort: -1
+          ToPort: -1
+          CidrIp: 0.0.0.0/0
+
+
+  # Add ingress rule to EFS security group after both groups are created
+  EFSSecurityGroupIngress:
+    Type: AWS::EC2::SecurityGroupIngress
+    Properties:
+      GroupId: !Ref EFSSecurityGroup
+      IpProtocol: tcp
+      FromPort: 2049
+      ToPort: 2049
+      SourceSecurityGroupId: !Ref FactorioSecurityGroup
+
+  # Add egress rule to Factorio security group after both groups are created
+  FactorioSecurityGroupEgress:
+    Type: AWS::EC2::SecurityGroupEgress
+    Properties:
+      GroupId: !Ref FactorioSecurityGroup
+      IpProtocol: tcp
+      FromPort: 2049
+      ToPort: 2049
+      DestinationSecurityGroupId: !Ref EFSSecurityGroup
 
   # Routing Tables
   PublicRouteTable:
