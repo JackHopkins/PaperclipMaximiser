@@ -392,7 +392,7 @@ global.actions.connect_entities = function(player_index, source_x, source_y, tar
 
     local last_position = path[1].position
     local last_dir
-    for i = 1 + initial_offset, #path-1, step_size do
+    for i = 1, #path-1, step_size do
         original_dir = (path[i + step_size] and get_direction(path[i].position, path[i + step_size].position)) or get_direction(path[i].position, end_position)
         dir = global.utils.get_entity_direction(connection_type, original_dir/2)
         place_at_position(player, connection_type, path[i].position, dir, serialized_entities)
@@ -416,7 +416,10 @@ global.actions.connect_entities = function(player_index, source_x, source_y, tar
         place_at_position(player, connection_type, end_position, get_direction(preemptive_target, { x = target_x, y = target_y }), serialized_entities)
 
         -- We might want to remove this last one
-        -- place_at_position(player, connection_type, preemptive_target, get_direction(path[#path-2].position, preemptive_target), serialized_entities)
+        -- if the path is longer than 2, we need to place the last entity at the target position to ensure connection
+        if #path > 2 then
+            place_at_position(player, connection_type, preemptive_target, get_direction(path[#path-2].position, preemptive_target), serialized_entities)
+        end
 
     elseif connection_type == 'pipe' then
         -- If the connection_type is a pipe, we have to do some extra work to ensure no missing pipes
