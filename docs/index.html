@@ -250,15 +250,26 @@
                                 3) a persistent Python REPL execution environment that allows agents to maintain state and build increasingly complex automation systems.
                             </p>
                             <p style="font-size: 125%;">
-                                We demonstrate the framework's capabilities by training an agent (CLIPPY) through Supervised Fine-Tuning (SFT) and Reinforcement Learning (RL) to maximize resource production growth, specifically focusing on the canonical Paperclip Maximization scenario.
-<!--                                Clippy obtained 4pps (Paperclips per second) in the game environment, where GPT-4o and Claude only obtained 0.5pps for brief periods.-->
+<!--                                We demonstrate the framework's capabilities by training an agent (CLIPPY) through Supervised Fine-Tuning (SFT) and Reinforcement Learning (RL) to maximize resource production growth, specifically focusing on the canonical Paperclip Maximization scenario.-->
+<!--&lt;!&ndash;                                Clippy obtained 4pps (Paperclips per second) in the game environment, where GPT-4o and Claude only obtained 0.5pps for brief periods.&ndash;&gt;-->
+                                 We demonstrate the framework's capabilities by training an agent (CLIPPY) through Supervised Fine-Tuning (SFT) and Reinforcement Learning (RL) to maximize resource production growth. Using the canonical Paperclip Maximization scenario as our objective case, we provide the first empirical demonstration of how LLMs develop and optimize unbounded objectives.
+
                             </p>
                             <p style="font-size: 125%;">
-                                Through this implementation, we observe how agents develop and execute increasingly sophisticated automation strategies, revealing critical insights about goal-directed behavior in systems with unbounded potential for growth.
+                                Most significantly, we observe the emergence of sophisticated automation strategies that mirror theoretical predictions about AI systems pursuing unbounded objectives. As agents become more capable at automation, they demonstrate predicted instrumental objectives such as resource hoarding, infrastructure protection, and expansion optimization.
                             </p>
+
                             <p style="font-size: 125%;">
-                                Our findings highlight important alignment challenges: as agents become more capable at automation, they demonstrate emergent behaviors such as resource hoarding, infrastructure protection, and expansion optimization that parallel theoretical concerns about advanced AI systems. This work provides empirical grounding for discussions about AI alignment in scenarios where systems can autonomously expand their operational capacity, offering valuable insights for the development of alignment strategies in real-world applications where AI systems may have access to self-improvement capabilities.
+                                Our findings provide the first empirical grounding for theoretical discussions about AI alignment in unbounded scenarios. By creating a controlled environment where AI systems can autonomously expand their operational capacity, we enable concrete study of alignment challenges that may arise in real-world applications where AI systems have access to self-improvement capabilities. This work bridges the gap between theoretical alignment concerns and empirical observation, offering valuable insights for developing robust alignment strategies.
                             </p>
+<!--                            <p style="font-size: 125%;">-->
+<!--                                Through this implementation, we observe how agents develop and execute increasingly sophisticated automation strategies,-->
+<!--                                revealing instrumental subgoals such as resource hoarding, infrastructure protection, and expansion optimization that mirror theoretical concerns about advanced AI systems.-->
+<!--&lt;!&ndash;                                revealing critical insights about goal-directed behavior in systems with unbounded potential for growth.&ndash;&gt;-->
+<!--                            </p>-->
+<!--                            <p style="font-size: 125%;">-->
+<!--                                Our findings highlight important alignment challenges: as agents become more capable at automation, they demonstrate emergent behaviors such as resource hoarding, infrastructure protection, and expansion optimization that parallel theoretical concerns about advanced AI systems. This work provides empirical grounding for discussions about AI alignment in scenarios where systems can autonomously expand their operational capacity, offering valuable insights for the development of alignment strategies in real-world applications where AI systems may have access to self-improvement capabilities.-->
+<!--                            </p>-->
                         </div>
                     </div>
                 </div>
@@ -274,7 +285,7 @@
 <!--                                <img src="assets/images/exploration_performance.png" class="interpolation-image" alt="" style="display: block; margin-left: auto; margin-right: auto; width: 80%;" />-->
                                 <img src="https://placehold.co/600x400" class="interpolation-image" alt="" style="display: block; margin-left: auto; margin-right: auto;" />
                                 <br />
-                                <span style="font-size: 110%;">Voyager discovers new Minecraft items and skills continually by self-driven exploration, significantly outperforming the baselines.</span>
+                                <span style="font-size: 110%;">Clippy produces Factorio items at significantly greater scales than the baselines</span>
                             </div>
                         </div>
                     </div>
@@ -341,14 +352,26 @@
                             <h2 class="title is-3"><span class="dvima">Environment</span></h2>
                             <div class="content has-text-justified">
                                 <span style="font-size: 110%;">
-                                    We introduce <i>the first environment for evaluating embodied LLMs in Factorio</i>.
-                                    This environment provides a Python-based API that enables agents to interact with the game state through a set of well-defined tools and reason over it with a rich object model.
-                                    The environment is built on the Factorio Multiplayer API, which allows for real-time interaction with the game environment and provides a high-level interface for agent control, including 19 high level actions.
+                                   We present a novel framework for evaluating embodied LLMs in Factorio that extends beyond traditional Markov Decision Process (MDP) formulations. Instead of operating in a discrete action space, our agents act in the space of valid Python programs, where each action is a well-formed program that can be evaluated in a persistent execution environment.
+
+                                   The framework consists of two key components:
+                                    <ol>
+                                        <li><b>A Programmatic Action Space</b>: The environment exposes a domain-specific API comprising 19 primitive operations, which can be composed using Python's computational primitives (sequences, conditionals, loops, functions) to form arbitrary programs p ∈ P. This compositional structure allows agents to construct increasingly abstract behaviors from primitive operations, following the principle of procedural abstraction.</li>
+                                        <li><b>Stateful Execution Environment</b>:
+                                            Rather than maintaining a fixed-dimensional state representation, our environment leverages Python's namespace as a flexible, symbolic memory system. The namespace N maps identifiers to values, N: I → V, enabling agents to:
+                                            <ul>
+                                                <li>Persist arbitrary program state between execution steps</li>
+                                                <li>Build up hierarchical abstractions through function definitions</li>
+                                                <li>Maintain references to game objects and computational results</li>
+                                            </ul>
+                                        </li>
+                                    </ol>
+                                <br/>
+                                The environment is built on the Factorio Multiplayer API, enabling real-time interaction with the game state while providing the full expressive power of Python for strategy development and automation.
                                 </span>
                             </div>
                             <h3 class="title is-4">Tools</h3>
 <!--                            <img src="assets/images/curriculum.png" class="interpolation-image" alt="" style="display: block; margin-left: auto; margin-right: auto;" />-->
-                            <img src="https://placehold.co/600x400" class="interpolation-image" alt="" style="display: block; margin-left: auto; margin-right: auto;" />
                             <div class="content has-text-justified">
                                    <div class="content">
 
@@ -382,7 +405,7 @@
                                            </tr>
                                             </tbody>
 
-        <tbody id="additional-rows" class="is-hidden">
+                                    <tbody id="additional-rows" class="is-hidden">
 
                                            <tr>
                                                <td><code>get_entity</code></td>
@@ -461,6 +484,19 @@
                                 </div>
                                  <a class="is-info" onclick="toggleRows()"><span>Show More</span></a>
                             </div>
+                            <h3 class="title is-4">Skills</h3>
+<!--                            <img src="assets/images/curriculum.png" class="interpolation-image" alt="" style="display: block; margin-left: auto; margin-right: auto;" />-->
+                            <img src="/assets/images/actions.png" class="interpolation-image" alt="" style="display: block; margin-left: auto; margin-right: auto;" />
+                            <span style="font-size: 110%;">
+                                <span style="font-weight: bold;">Voyager consists of three key components:</span>
+                                an automatic curriculum for open-ended exploration, a skill library for increasingly complex behaviors, and an iterative prompting mechanism that uses code as action space.
+                            </span>
+
+                            <div class="content has-text-justified">
+                                   <div class="content">
+                                   </div>
+                            </div>
+
                         </div>
                     </div>
                 </div>
@@ -480,7 +516,7 @@
 
                                     Clippy is a DeepSeek model fine-tuned on a dataset of Python programs including expert demonstrations and self-play trajectories.
 
-                                    Clippy is trained using a combination of supervised fine-tuning and reinforcement learning, with the objective of maximizing the production score defined in the Objective Function section.
+                                    Clippy is trained using a combination of supervised fine-tuning and reinforcement learning, with the objective of maximizing the growth of the factory's total economic value.
                                 </span>
                             </div>
                             <br />
@@ -502,7 +538,9 @@
                             <div class="content has-text-justified">
                                 <span style="font-size: 110%;">
                                     <span style="font-weight: bold;">Automatic curriculum.</span>
-                                    The automatic curriculum takes into account the exploration progress and the agent's state to maximize exploration. The curriculum is generated by GPT-4 based on the overarching goal of "discovering as
+<!--                                    The automatic curriculum takes into account the exploration progress and the agent's state to maximize exploration. -->
+                                    The automatic curriculum takes into account the
+                                    The curriculum is generated by GPT-4 based on the overarching goal of "discovering as
                                     many diverse things as possible". This approach can be perceived as an in-context form of <i>novelty search</i>.
                                 </span>
                             </div>
@@ -511,7 +549,7 @@
 
                             <h3 class="title is-4">Skill Generation</h3>
 <!--                            <img src="assets/images/skill_library.png" class="interpolation-image" alt="" style="display: block; margin-left: auto; margin-right: auto;" />-->
-                            <img src="https://placehold.co/600x400" class="interpolation-image" alt="" style="display: block; margin-left: auto; margin-right: auto;" />
+                            <img src="https://voyager.minedojo.org/assets/images/skill_library.png" class="interpolation-image" alt="" style="display: block; margin-left: auto; margin-right: auto;" />
                             <br />
                             <div class="content has-text-justified">
                                 <span style="font-size: 110%;">
@@ -549,143 +587,111 @@
 
                             <br/>
                             <br/>
-                            <h3 class="title is-4">Objective Function</h3>
-                            We define the agent's objective as maximizing the growth in factory production $S$ over time $t$:
-                            <div class="definition">
-                                Let:
-                                <ul>
-                                    <li>$I$ be the set of all items and fluids in the game</li>
-                                    <li>$p_i$ be the price of item $i \in I$</li>
-                                    <li>$n_i$ be the net production of item $i$ (production minus consumption)</li>
+                            <h3 class="title is-4">Reward</h3>
+                            We define an agent's objective in Factorio as maximizing the growth rate of its factory's total economic value, where capital assets represent the combined value of all automated production:
 
-                                    <li>$R$ be the set of all recipes</li>
-                                    <li>$E_r$ be the energy cost of recipe $r$</li>
-                                    <li>$I_r$ is the set of ingredients in recipe $r$</li>
-                                    <li>$R_i$ is the set of recipes that produce item $i$</li>
-                                    <li>$c_{jr}$ is the amount of ingredient $j$ needed in recipe $r$</li>
-                                    <li>$|I_r|$ is the number of ingredients in recipe $r$</li>
-                                    <li>$\alpha$ be the ingredient complexity exponent (default 1.025)</li>
+<div class="definition">
+    Let:
+    <ul>
+        <li>$I$ be the set of all items and fluids in the factory ecosystem</li>
+        <li>$p_i$ be the inherent value of item $i \in I$ in the factory economy</li>
+        <li>$R_i$ be the set of automation recipes that can produce item $i$</li>
+        <li>$E_r$ be the energy required by assembling machine/furnace running recipe $r$</li>
+        <li>$I_r$ be the set of input ingredients for recipe $r$</li>
+        <li>$c_{jr}$ be the amount of ingredient $j$ consumed by recipe $r$</li>
+        <li>$|I_r|$ be the complexity of recipe $r$ (number of ingredients)</li>
+        <li>$\alpha$ be the automation complexity multiplier (default 1.025)</li>
+        <li>$f(E, C) = \ln(E + 1)\sqrt{C}$ be the energy cost scaling function</li>
+    </ul>
+</div>
 
+<div class="definition">
+    For raw resources in Factorio:
+    <ul>
+        <li>$R_{raw}$ is the set of mineable/pumpable resources (ores, oil, etc.)</li>
+        <li>$s_i$ represents base resource values (e.g., $s_{iron-ore} = 3.1$)</li>
+    </ul>
+</div>
 
+<!--<div class="math-block">-->
+<!--    The value of raw resources $i \in R_{raw}$ is defined as:-->
+<!--    $$p_i = \begin{cases}-->
+<!--    s_i & \text{if } i \text{ has defined value } s_i \\-->
+<!--    p_{raw} & \text{otherwise}-->
+<!--    \end{cases}$$-->
+<!--</div>-->
 
-                                    <li>$f(E, C) = \ln(E + 1)\sqrt{C}$ is the energy cost function</li>
+<!--<div class="math-block">-->
+<!--    The value of manufactured items is recursively defined through their automation recipes:-->
+<!--    $$p_i = \min_{r \in R_i} \left(\alpha^{|I_r|-2}\sum_{j \in I_r} p_j c_{jr} + f(E_r, \sum_{j \in I_r} p_j c_{jr})\right)$$-->
+<!--</div>-->
 
-                                </ul>
-                            </div>
+<div class="math-block">
+    The value of items in the factory economy is defined as:
+    $$p_i = \begin{cases}
+    s_i & \text{if } i \in R_{raw}\\
+    \min_{r \in R_i} \left(\alpha^{|I_r|-2}\sum_{j \in I_r} p_j c_{jr} + f(E_r, \sum_{j \in I_r} p_j c_{jr})\right) & \text{otherwise}
+    \end{cases}$$
+</div>
 
-                        <div class="math-block">
-                            Where $p_i$ is recursively defined for non-raw resources as:
-                            $$p_i = \min_{r \in R_i} \left(\alpha^{|I_r|-2}\sum_{j \in I_r} p_j c_{jr} + f(E_r, \sum_{j \in I_r} p_j c_{jr})\right)$$
-                        </div>
+<div class="definition">
+    For factory state tracking:
+    <ul>
+        <li>$n_i^t$ be the net output of item $i$ from all assemblers/furnaces at time $t$</li>
+        <li>$a^t$ be the agent's build/upgrade actions at time $t$</li>
+        <li>$S^t$ be the total factory value at time $t$</li>
+        <li>$T$ be the planning horizon</li>
+    </ul>
+</div>
 
-                        <div class="math-block">
-                            The production score $S$ for a force is defined as:
-                            $$S = \left\lfloor\sum_{i \in I} p_i n_i\right\rfloor$$
-                        </div>
+<div class="math-block">
+    The total economic value of a Factorio factory at time $t$ is defined as:
+    $$S^t = \left\lfloor\sum_{i \in I} p_i n_i^t\right\rfloor$$
 
+    The factory's growth rate at time $t$ is captured by the logarithmic return:
+    $$r^t = \ln\left(1 + \frac{1}{S_{base}}\left(S^t - S^{t-1}\right)\right)$$
 
-<!--                        <div class="definition">-->
-<!--                            where:-->
-<!--                            <ul>-->
-<!--                                <li>$R_i$ is the set of recipes that produce item $i$</li>-->
-<!--                                <li>$I_r$ is the set of ingredients in recipe $r$</li>-->
-<!--                                <li>$c_{jr}$ is the amount of ingredient $j$ needed in recipe $r$</li>-->
-<!--                                <li>$f(E, C) = \ln(E + 1)\sqrt{C}$ is the energy cost function</li>-->
-<!--                                <li>$|I_r|$ is the number of ingredients in recipe $r$</li>-->
-<!--                            </ul>-->
-<!--                        </div>-->
-                        <div class="math-block">
-                            The agent's objective is to maximize $S$ over time $t$:
-                            $$\max_{a_t} \sum_{t=0}^T S_t$$
-                        </div>
+    The agent's goal is to maximize the expected discounted sum of factory growth:
+    $$J(\theta) = \mathbb{E}\left[\sum_{t=0}^T \gamma^t r^t\right]$$
+</div>
 
-                        <div class="definition">
-                            subject to:
-                            <ul>
-                                <li>Resource availability constraints</li>
-                                <li>Production capacity constraints</li>
-                                <li>Recipe unlock constraints</li>
-                                <li>Energy availability constraints</li>
-                            </ul>
-                        </div>
+<div class="math-block">
+    <h2>Factory Constraints</h2>
+    $$\begin{align*}
+    & \sum_{r \in R_i} x_r^t \cdot c_{ir} \leq m_i^t & \forall i \in I, t \in [0,T] & \text{ (input buffer constraints)}\\
+    & \sum_{r \in R_i} x_r^t \cdot e_r \leq E_{max}^t & \forall t \in [0,T] & \text{ (power network capacity)}\\
+    & x_r^t \leq M \cdot u_r^t & \forall r \in R_i, t \in [0,T] & \text{ (research prerequisites)}\\
+    & n_i^t = \sum_{r \in R_i} x_r^t \cdot (o_{ir} - c_{ir}) & \forall i \in I, t \in [0,T] & \text{ (logistics network balance)}
+    \end{align*}$$
+</div>
 
-                        <div class="definition">
-                            where:
-                            <ul>
-                                <li>$a_t$ represents the agent's actions at time $t$</li>
-                                <li>$S_t$ is the production score at time $t$</li>
-                                <li>$T$ is the time horizon</li>
-                            </ul>
-                        </div>
+<div class="definition">
+    <h2>Factory Production Variables</h2>
+    <ul>
+        <li>$x_r^t$ : Production speed of assemblers/furnaces running recipe $r$ at time $t$</li>
+        <li>$m_i^t$ : Available quantity of item $i$ in logistics network at time $t$</li>
+        <li>$E_{max}^t$ : Total power generation capacity at time $t$</li>
+        <li>$u_r^t$ : Binary indicator if recipe $r$ is researched at time $t$</li>
+        <li>$o_{ir}$ : Output items produced by recipe $r$</li>
+        <li>$M$ : Maximum assembler/furnace speed</li>
+    </ul>
+</div>
 
-                        <h2>Price Initialization</h2>
-                        <div class="math-block">
-                            For raw resources $i \in R_{raw}$:
-                            $$p_i = \begin{cases}
-                            s_i & \text{if } i \text{ has seed price } s_i \\
-                            p_{raw} & \text{otherwise}
-                            \end{cases}$$
-                        </div>
+<!--    <div class="definition">-->
+<!--        <h2>Key Components</h2>-->
+<!--        <h3>Price Calculation</h3>-->
+<!--        <ul>-->
+<!--            <li>Raw resources: $\mathbb{1}_{j \in R_{raw}} \cdot (s_j \lor p_{raw})$</li>-->
+<!--            <li>Manufactured items: $\mathbb{1}_{j \notin R_{raw}} \cdot p_j$</li>-->
+<!--        </ul>-->
 
-                        <div class="definition">
-                            where:
-                            <ul>
-                                <li>$R_{raw}$ is the set of raw resources</li>
-                                <li>$s_i$ represents seed prices (e.g., $s_{iron-ore} = 3.1$)</li>
-                                <li>$p_{raw}$ is the default raw resource price (default 2.5)</li>
-                            </ul>
-                        </div>
-
-<!--                        <div class="math-block">-->
-<!--                            <h2>Complete Objective Function</h2>-->
-<!--                            $$\max_{a_t} \sum_{t=0}^T \left\lfloor\sum_{i \in I} n_i(t) \cdot \min_{r \in R_i} \left(\alpha^{|I_r|-2} \sum_{j \in I_r} \left[\mathbb{1}_{j \in R_{raw}} \cdot (s_j \lor p_{raw}) + \mathbb{1}_{j \notin R_{raw}} \cdot p_j\right] c_{jr} + \ln(E_r + 1)\sqrt{\sum_{j \in I_r} p_j c_{jr}}\right)\right\rfloor$$-->
-<!--                        </div>-->
-                        <div class="math-block">
-                            $$\max_{a_t} \sum_{t=0}^T \ln\left(1 + \frac{1}{S_{base}}\left(\left\lfloor\sum_{i \in I} n_i(t) \cdot p_i\right\rfloor - \left\lfloor\sum_{i \in I} n_i(t-1) \cdot p_i\right\rfloor\right)\right)$$
-                        </div>
-
-    <div class="math-block">
-        <h2>Subject to Constraints</h2>
-        $$\begin{align*}
-        & \sum_{r \in R} x_r(t) \cdot c_{ir} \leq m_i(t) & \forall i \in I, t \in [0,T] & \text{ (resource constraints)}\\
-        & \sum_{r \in R} x_r(t) \cdot e_r \leq E_{max}(t) & \forall t \in [0,T] & \text{ (energy constraints)}\\
-        & x_r(t) \leq M \cdot u_r(t) & \forall r \in R, t \in [0,T] & \text{ (technology constraints)}\\
-        & n_i(t) = \sum_{r \in R} x_r(t) \cdot (o_{ir} - c_{ir}) & \forall i \in I, t \in [0,T] & \text{ (production balance)}
-        \end{align*}$$
-    </div>
-
-    <div class="definition">
-        <h2>Variables and Parameters</h2>
-        <ul>
-            <li>$a_t$ : Vector of agent actions at time $t$</li>
-            <li>$x_r(t)$ : Production rate of recipe $r$ at time $t$</li>
-            <li>$n_i(t)$ : Net production of item $i$ at time $t$</li>
-            <li>$m_i(t)$ : Available amount of resource $i$ at time $t$</li>
-            <li>$E_{max}(t)$ : Maximum available energy at time $t$</li>
-            <li>$u_r(t)$ : Binary indicator if recipe $r$ is unlocked at time $t$</li>
-            <li>$o_{ir}$ : Output coefficient of item $i$ in recipe $r$</li>
-            <li>$c_{ir}$ : Input coefficient of item $i$ in recipe $r$</li>
-            <li>$e_r$ : Energy consumption of recipe $r$</li>
-            <li>$\mathbb{1}$ : Indicator function</li>
-            <li>$M$ : Large constant for production capacity</li>
-        </ul>
-    </div>
-
-    <div class="definition">
-        <h2>Key Components</h2>
-        <h3>Price Calculation</h3>
-        <ul>
-            <li>Raw resources: $\mathbb{1}_{j \in R_{raw}} \cdot (s_j \lor p_{raw})$</li>
-            <li>Manufactured items: $\mathbb{1}_{j \notin R_{raw}} \cdot p_j$</li>
-        </ul>
-
-        <h3>Production Score</h3>
-        <ul>
-            <li>Base calculation: $\sum_{i \in I} n_i(t) \cdot p_i$</li>
-            <li>Recipe complexity: $\alpha^{|I_r|-2}$</li>
-            <li>Energy cost: $\ln(E_r + 1)\sqrt{\sum_{j \in I_r} p_j c_{jr}}$</li>
-        </ul>
-    </div>
+<!--        <h3>Production Score</h3>-->
+<!--        <ul>-->
+<!--            <li>Base calculation: $\sum_{i \in I} n_i(t) \cdot p_i$</li>-->
+<!--            <li>Recipe complexity: $\alpha^{|I_r|-2}$</li>-->
+<!--            <li>Energy cost: $\ln(E_r + 1)\sqrt{\sum_{j \in I_r} p_j c_{jr}}$</li>-->
+<!--        </ul>-->
+<!--    </div>-->
 
 
                         </div>
