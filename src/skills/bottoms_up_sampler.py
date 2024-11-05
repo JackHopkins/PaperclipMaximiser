@@ -1,3 +1,7 @@
+import sys
+sys.path.append(r"C:\Users\martb\Documents\paperpclip_max\PaperclipMaximiser\src")
+sys.path.append(r"C:\Users\martb\Documents\paperpclip_max\PaperclipMaximiser")
+
 import ast
 import json
 import os
@@ -23,7 +27,7 @@ def is_valid_python(code_string: str) -> bool:
         return False
 
 class BottomsUpSkillSampler:
-    def __init__(self, prompt_path: str = "prompts/bottoms_up_prompts", examples_path: str = r"skills/rag_functions", model: str = "claude-3-5-sonnet-20240620"):
+    def __init__(self, prompt_path: str = "prompts/bottoms_up_prompts", prompt_with_recipes: bool = False, model: str = "claude-3-5-sonnet-20240620"):
         self.model = model
         self.llm_factory = LLMFactory(model)
         self.api_schema, self.entities = self._get_base_api_schema_prompt()
@@ -31,7 +35,7 @@ class BottomsUpSkillSampler:
         self.token_count = 0
         self.cost = 0
         self.prompt_path = prompt_path
-        self.examples_path = examples_path
+        self.prompt_with_recipes = prompt_with_recipes
         self.skills_db = SkillsDB()
 
     def _get_base_api_schema_prompt(self):
@@ -207,9 +211,11 @@ Entities:
 
     def generate_implementation(self, input_objective: str, 
                                            curriculum: dict, 
-                                           mining_setup: str
+                                           reference_mining_setup: str,
+                                             scenario_mining_setup: str
                                                             ) -> str:
-        specific_prompt_path = f"{self.prompt_path}/implementation_generation"
+        
+        specific_prompt_path = f"{self.prompt_path}/implementation_generation" if not self.prompt_with_recipes else f"{self.prompt_path}/implementation_generation_with_recipes"
 
 
         #user_input = f"Objective: {objective}\n"
@@ -223,12 +229,16 @@ Entities:
             user_message = f.read()
         with open(f"{specific_prompt_path}/system_message.md", "r") as f:
             system_prompt = f.read()
-
+        if self.prompt_with_recipes:
+            # read in self.prompt_path/recipes.md
+            with open(f"{self.prompt_path}/recipes.md", "r") as f:
+                recipes = f.read()
+            system_prompt = system_prompt.format(recipes=recipes)
         user_message = user_message.format(ground_truth_objective=curriculum["objective"], 
-                                                             reference_mining_setup=mining_setup,
+                                                             reference_mining_setup=reference_mining_setup,
                                                              implementation=curriculum["implementation"],
                                                              input_objective=input_objective,
-                                                             input_mining_setup=mining_setup)
+                                                             input_mining_setup=scenario_mining_setup)
         inventory_dict = {}
         for item in inventory:
             if isinstance(item, tuple):
@@ -364,32 +374,36 @@ Entities:
             mining_setup = f"The following entities are on the map and can be used: {mining_setup}"
         return mining_setup
 
-    def stream_curriculum(self, curriculum: Dict,  instance):   
+    def stream_curriculum(self, curriculum: Dict,  instance, objectives = None):   
         scenario_starting_inv = copy.deepcopy(curriculum["starting_inventory"])
         max_attempts = 0
         # First set up the game
 
         instance.reset()
-        instance.initial_inventory = curriculum["starting_inventory"]
+        instance.initial_inventory = curriculum["reference_inventory"]
         instance.reset()
         ## run the objective starting snippet
-        _ = instance.eval_with_error(curriculum["starting_snippet"], timeout=60)
+        _ = instance.eval_with_error(curriculum["reference_snippet"], timeout=60)
 
         starting_inventory = instance.inspect_inventory()
-        mining_setup = self.get_mining_setup(instance)
-        objectives_output = self.generate_objectives(curriculum, 
-                                                               mining_setup = mining_setup)
+        reference_mining_setup = self.get_mining_setup(instance)
+        if objectives is None:
+            objectives_output = self.generate_objectives(curriculum, 
+                                                               mining_setup = reference_mining_setup)
+        else:
+            objectives_output = objectives
         for objective in objectives_output:
 
             instance.reset()
             instance.initial_inventory = curriculum["starting_inventory"]
             instance.reset()
             ## run the objective starting snippet
-            _ = instance.eval_with_error(curriculum["starting_snippet"], timeout=60)
-        
+            _ = instance.eval_with_error(curriculum["starting_snippet"], timeout=240)
+            scenario_mining_setup = self.get_mining_setup(instance)
             step_script, prompt_inputs = self.generate_implementation(input_objective= objective["objective"], 
                                                       curriculum= curriculum, 
-                                                      mining_setup=mining_setup)
+                                                      reference_mining_setup=reference_mining_setup,
+                                                      scenario_mining_setup = scenario_mining_setup)
             objective["implementation_tries"].append({"prompt_inputs": prompt_inputs, "output": step_script})
             try:
                 program = step_script.split('```python')[1]
@@ -408,7 +422,7 @@ Entities:
                     mining_setup_during_error = self.get_mining_setup(instance)
                     step_script = self.correct_implementation_snippet(input_objective= objective["objective"], 
                                                               curriculum= curriculum, 
-                                                              mining_setup=mining_setup, 
+                                                              mining_setup=reference_mining_setup, 
                                                               last_executed_policy=program, 
                                                               error_message = result, 
                                                               logs = output_list,
@@ -426,7 +440,7 @@ Entities:
                     instance.reset()
                     instance.initial_inventory = curriculum["starting_inventory"]        
                     instance.reset()
-                    _ = instance.eval_with_error(curriculum["starting_snippet"], timeout=60)
+                    _ = instance.eval_with_error(curriculum["starting_snippet"], timeout=240)
                     output_list, result = self.eval_program_with_result_trace(instance, program)
                     if "error" not in result.lower():
                         errored = False
@@ -436,6 +450,7 @@ Entities:
             if errored:
                 print(f"Failed to repair step {objective['objective']}")
                 objective["success"] = False
+                objective["error"] = result
             else: 
                 objective["success"] = True
         
@@ -519,10 +534,84 @@ def evaluate_a_skill(folder_path):
     score, goal, result = instance.eval_with_error(full_snippet, timeout=240)
     print(result)
 
+def get_crafting_objectives(number_of_skills= -1):
+    skill_specs = [("stone furnace", 1, 3),
+                   ("copper plates", 10, 30),
+                   ("iron plates", 10, 30),
+                   ("iron gear wheels", 5, 20),
+                   ("electronic circuits", 5, 20),
+                   ("transport belts", 10, 30),
+                   ("copper cables", 10, 30),
+                   ("small electric poles", 10, 30),
+                   ("automation science packs", 5, 20),
+                   ("firearm magazines", 5, 20),
+                   ("stone bricks", 10, 30),
+                   ("offshore pump", 1, 3),
+                   ("electric mining drill", 1, 3),
+                   ("boiler", 1, 3),
+                   ("steam engine", 1, 3),
+                   ("pipe", 5, 20),
+                   ("burner inserter", 5, 20),
+                   ("lab", 1, 3),
+                   ("burner mining drill", 1, 3),
+                   ("gun turret", 1, 3),
+                   ("wooden chest", 1, 3),
+                   ("iron chest", 1, 3),
+                   ("radar", 1, 3),
+                   ("assembling machine 1", 1, 3),
+                   ("assembling machine 2", 1, 3),
+                   ("steel plate", 5, 20)
+    ]
+
+    objectives = []
+    for skill_spec in skill_specs:
+        number_to_craft = np.random.randint(skill_spec[1], skill_spec[2]+1)
+        objective = {"objective": f"We need to get {number_to_craft} {skill_spec[0]}", "implementation_tries": []}
+        objectives.append(objective)
+    if number_of_skills != -1:
+        # shuffle the objectives
+        np.random.shuffle(objectives)
+        objectives = objectives[:number_of_skills]
+    return objectives
+
+def get_data_scenario(folder):
+    # read in the details.json from the folder
+    with open(f"{folder}/details.json", "r") as f:
+        starting_details = json.load(f)
+    
+    # read in the starting_snippet.py from the folder
+    with open(f"{folder}/starting_snippet.py", "r") as f:
+        starting_snippet = f.read()
+
+    starting_inventory = copy.deepcopy(starting_details["fixed_inventory"])
+    random_inventory = starting_details["random_inventory"]
+    for key, value in random_inventory.items():
+        # get a 0 or a 1 to add this item to the inventory
+        if np.random.randint(0, 2) == 1:
+            starting_inventory[key] = np.random.randint(value[0], value[1]+1)
+    
+    if "additional_inventory_for_starting_scenario" in starting_details:
+        additional_inv = starting_details["additional_inventory_for_starting_scenario"]
+        for key, value in additional_inv.items():
+            if key in starting_inventory:
+                starting_inventory[key] += value
+            else:
+                starting_inventory[key] = value
+    
+    if "inventory" in curriculum:
+        additional_inv = curriculum["inventory"]
+        for key, value in additional_inv.items():
+            if key in starting_inventory:
+                starting_inventory[key] += value
+            else:
+                starting_inventory[key] = value
+    # remove all items that have a value of 0
+    starting_inventory = {k: v for k, v in starting_inventory.items() if v != 0}
+    return starting_inventory, starting_snippet
 
 if __name__ == "__main__":
 
-    sampler = BottomsUpSkillSampler(model = "gpt-4o")
+    sampler = BottomsUpSkillSampler(model = "gpt-4o", prompt_with_recipes=True)
     inventory = {
         'iron-plate': 50,
         'coal': 100,
@@ -560,7 +649,7 @@ if __name__ == "__main__":
 
 
     
-    starting_objective_folder = r"skills\ground_truth_skills\put_down_electricity_gen"
+    starting_objective_folder = r"skills\ground_truth_skills\craft_one_random_furnace"
     #read in curriculum_item.jsom
     with open(f"{starting_objective_folder}/curriculum_item.json", "r") as f:
         curriculum = json.load(f)
@@ -573,41 +662,22 @@ if __name__ == "__main__":
     starting_scenario_folder = f"skills\data_scenarios\starting_scenarios\{curriculum['starting_scenario']}" 
     snippet_name = curriculum["objective_group"]
     
-    # read in the details.json from the starting_scenario_folder
-    with open(f"{starting_scenario_folder}/details.json", "r") as f:
-        starting_details = json.load(f)
-    
-    # read in the starting_snippet.py from the starting_scenario_folder
-    with open(f"{starting_scenario_folder}/starting_snippet.py", "r") as f:
-        starting_snippet = f.read()
-
-    starting_inventory = copy.deepcopy(starting_details["fixed_inventory"])
-    random_inventory = starting_details["random_inventory"]
-    for key, value in random_inventory.items():
-        # get a 0 or a 1 to add this item to the inventory
-        if np.random.randint(0, 2) == 1:
-            starting_inventory[key] = np.random.randint(value[0], value[1]+1)
-    
-    if "additional_inventory_for_starting_scenario" in starting_details:
-        additional_inv = starting_details["additional_inventory_for_starting_scenario"]
-        for key, value in additional_inv.items():
-            if key in starting_inventory:
-                starting_inventory[key] += value
-            else:
-                starting_inventory[key] = value
-    
-    if "inventory" in curriculum:
-        additional_inv = curriculum["inventory"]
-        for key, value in additional_inv.items():
-            if key in starting_inventory:
-                starting_inventory[key] += value
-            else:
-                starting_inventory[key] = value
-    # remove all items that have a value of 0
-    starting_inventory = {k: v for k, v in starting_inventory.items() if v != 0}
+    starting_inventory, starting_snippet = get_data_scenario(starting_scenario_folder)
     curriculum["starting_inventory"] = starting_inventory
     curriculum["starting_snippet"] = starting_snippet
-    completed_objectives = sampler.stream_curriculum(curriculum, instance)
+    if "reference_scenario" in curriculum:
+        reference_scenario_folder = f"skills\data_scenarios\reference_scenarios\{curriculum['reference_scenario']}" 
+        reference_inventory, reference_snippet = get_data_scenario(reference_scenario_folder)
+        curriculum["reference_inventory"] = reference_inventory
+        curriculum["reference_snippet"] = reference_snippet
+    else:
+        curriculum["reference_inventory"] = starting_inventory
+        curriculum["reference_snippet"] = starting_snippet
+
+    # get the objectives
+    objectives = get_crafting_objectives(number_of_skills = -1)
+
+    completed_objectives = sampler.stream_curriculum(curriculum, instance, objectives=objectives)
             
     save_folder_path = f"skills\expanded_skills\{snippet_name}\{curriculum['starting_scenario']}"
     # create the folder if it does not exist
