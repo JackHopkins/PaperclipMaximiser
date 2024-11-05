@@ -1,13 +1,9 @@
 import json
 import os
-from dataclasses import dataclass
-from typing import List, Dict, Set, Tuple, Union
 from collections import defaultdict
-
-import json
 from dataclasses import dataclass
-from typing import List, Dict, Set, Tuple
-from collections import defaultdict
+from typing import List, Dict, Optional
+from typing import Union
 
 from factorio_entities import EntityGroup
 from factorio_instance import FactorioInstance
@@ -23,6 +19,7 @@ class Entity:
     type: str = None
     neighbours: List[int] = None
     input_priority: str = None
+    recipe: Optional[str] = None
 
 
 class BlueprintAnalyzer:
