@@ -34,10 +34,20 @@ class Prototype(enum.Enum):
     AssemblingMachine2 = "assembling-machine-2", AssemblingMachine
     AssemblingMachine3 = "assembling-machine-3", AssemblingMachine
     BurnerInserter = "burner-inserter", BurnerInserter
+    Inserter = "inserter", Inserter
+    FastInserter = "fast-inserter", Inserter
     BurnerMiningDrill = "burner-mining-drill", BurnerMiningDrill
     ElectricMiningDrill = "electric-mining-drill", MiningDrill
     StoneFurnace = "stone-furnace", Furnace
     TransportBelt = "transport-belt", TransportBelt
+    FastTransportBelt = "fast-transport-belt", TransportBelt
+    ExpressTransportBelt = "express-transport-belt", TransportBelt
+    UndergroundBelt = "underground-belt", Entity
+    FastUndergroundBelt = "fast-underground-belt", Entity
+    ExpressUndergroundBelt = "express-underground-belt", Entity
+    Splitter = "splitter", BeltGroup
+    FastSplitter = "fast-splitter", BeltGroup
+    ExpressSplitter = "express-splitter", BeltGroup
     OffshorePump = "offshore-pump", OffshorePump
     PumpJack = "pumpjack", PumpJack
     Boiler = "boiler", Boiler
@@ -51,6 +61,8 @@ class Prototype(enum.Enum):
     SteelPlate = "steel-plate", None # Crafting requires smelting 5 iron plates, smelts for 4 seconds per ore
     CopperPlate = "copper-plate", None # Crafting requires smelting 1 copper ore, smelts for 0.5 seconds per ore
     SmallElectricPole = "small-electric-pole", Entity
+    MediumElectricPole = "medium-electric-pole", Entity
+    BigElectricPole = "big-electric-pole", Entity
     IronOre = "iron-ore", None
     CopperOre = "copper-ore", None
     Stone = "stone", None
@@ -64,6 +76,7 @@ class Prototype(enum.Enum):
     StoneBrick = "stone-brick", None # Crafting requires smelting 2 stone to make one stone brick
     Radar = "radar", Entity # Crafting requires 5 electronic circuits, 5 iron gear wheels, 10 iron plates
     StoneWall = "stone-wall", Entity # Crafting requires 5 stone bricks
+    SmallLamp = "small-lamp", Entity # Crafting requires 1 electronic circuit, 3 iron plates
 
 prototype_by_name = {prototype.value[0]: prototype for prototype in Prototype}
 

@@ -52,6 +52,8 @@ class GetEntities(Action):
                 if matching_prototype not in entities and entities:
                     continue
                 metaclass = matching_prototype.value[1]
+                while isinstance(metaclass, tuple):
+                    metaclass = metaclass[1]
 
                 # Process nested dictionaries (like inventories)
                 for key, value in entity_data.items():

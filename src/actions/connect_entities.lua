@@ -365,7 +365,7 @@ global.actions.connect_entities = function(player_index, source_x, source_y, tar
 
 
     for i = 1, #path - 1 do
-        create_beam_point_with_direction(player, get_direction(path[i].position, path[i + 1].position), path[i].position)
+        --create_beam_point_with_direction(player, get_direction(path[i].position, path[i + 1].position), path[i].position)
         --create_arrow_with_direction(player, get_direction(path[i].position, path[i + 1].position), path[i].position)
     end
 

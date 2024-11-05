@@ -28,6 +28,25 @@ def test_place(game):
     game.place_entity(Prototype.Boiler, position=(0, 0))
     assert boilers_in_inventory - 1 == game.inspect_inventory()[Prototype.Boiler]
 
+def test_place_transport_belt_next_to_miner(game):
+    """
+    Place a transport belt next to a burner mining drill
+    :param game:
+    :return:
+    """
+    iron_position = game.get_resource_patch(Resource.IronOre, game.nearest(Resource.IronOre)).bounding_box.center
+    game.move_to(iron_position)
+    drill = game.place_entity(Prototype.BurnerMiningDrill, position=iron_position, exact=True)
+    for y in range(-1, 3, 1):
+        world_y = y + drill.position.y
+        world_x = -1.0 + drill.position.x - 1
+        game.move_to(Position(x=world_x, y=world_y))
+        game.place_entity(Prototype.TransportBelt, position=Position(x=world_x, y=world_y), direction=Direction.UP, exact=True)
+
+    #belt = game.place_entity(Prototype.TransportBelt, direction=Direction.RIGHT, position=iron_position + Position(x=-1, y=0))
+    #assert belt is not None
+    #assert belt.direction == Direction.RIGHT
+    pass
 def test_place_wall(game):
     """
     Place a wall at (0, 0)

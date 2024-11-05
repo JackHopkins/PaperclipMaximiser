@@ -226,6 +226,7 @@ class Entity(BaseModel):
     warnings: List[str] = []
     status: EntityStatus = EntityStatus.NORMAL
 
+
 class TransportBelt(Entity):
     input_position: Position
     output_position: Position

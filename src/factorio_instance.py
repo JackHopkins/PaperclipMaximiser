@@ -33,7 +33,6 @@ from utilities.controller_loader import load_schema, load_definitions, parse_fil
 from vocabulary import Vocabulary
 
 from factorio_entities import *
-
 CHUNK_SIZE = 32
 MAX_SAMPLES = 5000
 
@@ -121,6 +120,7 @@ class FactorioInstance:
         self.Direction = Direction
         self.Position = Position
         self.EntityStatus = EntityStatus
+        self.BoundingBox = BoundingBox
 
         # Statically named directions
         self.UP, self.ABOVE, self.TOP = [Direction.UP]*3
@@ -542,6 +542,7 @@ class FactorioInstance:
         self.lua_script_manager.load_init_into_game('serialize')
         self.lua_script_manager.load_init_into_game('production_score')
         self.lua_script_manager.load_init_into_game('initialise_inventory')
+        self.lua_script_manager.load_init_into_game('set_white_background')
 
         self._reset(**kwargs)
 
@@ -667,6 +668,10 @@ class FactorioInstance:
             with open(file_path, 'r') as file:
                 code = compile(file.read(), file_path, 'exec')
                 exec(code, snippet_globals)
+        except Exception as e:
+            print(f"Error executing file {file_path}: {e}")
+            traceback.print_exc()
+            raise e
         finally:
             # Ensure cleanup is performed
             if clean:

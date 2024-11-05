@@ -48,6 +48,8 @@ class PlaceObject(Action):
         x, y = self.get_position(position)
         try:
             name, metaclass = entity.value
+            while isinstance(metaclass, tuple):
+                metaclass = metaclass[1]
         except Exception as e:
             raise Exception(f"Passed in {entity} argument is not a valid Prototype", e)
 
@@ -77,6 +79,7 @@ class PlaceObject(Action):
                 raise Exception(f"Could not create {name} object from response: {cleaned_response}", e)
 
             # if object is a burner insert, and is missing a pickup_position, calculate it from the position and direction
+            # TODO: Remove and move to
             if entity.name == Prototype.BurnerInserter.name:
                 if not object.pickup_position:
                     if direction == Direction.UP:
