@@ -1,5 +1,5 @@
 {
-  "fixed_inventory": {"wooden-chest": 1, "copper-ore": 20},
+  "fixed_inventory": {"wooden-chest": 1, "copper-plate": 20},
   "random_inventory": {
 }
 }

@@ -5,7 +5,7 @@ NAME_TO_ENTITY_MAPPING = {"coal": Prototype.Coal, "iron-ore": Prototype.IronOre,
                           "iron-plate": Prototype.IronPlate, "copper-plate": Prototype.CopperPlate, 
                           }
 
-furnace_pos = Position(x = 8, y = 1)
+furnace_pos = Position(x = -4, y = -12)
 move_to(furnace_pos)
 stone_furnace = place_entity(Prototype.WoodenChest, Direction.UP, furnace_pos)
 

@@ -4,6 +4,8 @@
     "coal": [0, 20],
     "stone": [0, 10],
     "iron-ore": [0, 20],
-    "copper-ore": [0, 20]
+    "copper-ore": [0, 20],
+    "iron-plate": [0, 20],
+    "copper-plate": [0, 20]
 }
 }
