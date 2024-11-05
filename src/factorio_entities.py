@@ -194,13 +194,28 @@ class TileDimensions(BaseModel):
 
 class Ingredient(BaseModel):
     name: str
-    count: int
+    count: Optional[int] = 1
+    type: str
 
+class Product(Ingredient):
+    probability: Optional[float] = 1
+
+"""
+{'name': 'assembling-machine-1', 'position': {'y': 0.5, 'x': 0.5},
+ 'direction': 0, 'health': 300, 'energy': 0, 'type': 'assembling-machine', 
+ 'status': <EntityStatus.NO_POWER: 'no_power'>, 'warnings': ['not connected to power network', ')'], 
+ 'furnace_source': {}, 'furnace_result': {}, 'furnace_modules': {}, 'assembling_machine_input': {}, 
+ 'assembling_machine_output': {}, 'assembling_machine_modules': {}, 'lab_input': {}, 'lab_modules': {},
+  'dimensions': {'width': 2.3984375, 'height': 2.3984375}, 'tile_dimensions': {'tile_width': 3, 'tile_height': 3},
+   'recipe': {'name': 'iron-gear-wheel', 'category': 'crafting', 'enabled': True, 'energy': 0.5, 
+   'ingredients': [{'name': 'iron-plate', 'type': 'item', 'amount': 2}], 
+   'products': [{'name': 'iron-gear-wheel', 'type': 'item', 'amount': 1, 'probability': 1}]}}
+"""
 
 class Recipe(BaseModel):
-    name: str
-    ingredients: Union[List[Ingredient], Dict[str, Any]]
-    products: Optional[Union[List[Ingredient], Dict[str, Any]]] = []
+    name: Optional[str]
+    ingredients: Optional[List[Ingredient]] = []
+    products: Optional[List[Product]] = []
     energy: Optional[float] = 0
     category: Optional[str] = None
     enabled: bool = False

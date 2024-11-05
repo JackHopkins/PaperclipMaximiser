@@ -7,6 +7,7 @@ from typing import Union
 
 from factorio_entities import EntityGroup
 from factorio_instance import FactorioInstance
+from factorio_types import prototype_by_name
 
 
 @dataclass
@@ -157,6 +158,7 @@ class BlueprintAnalyzer:
             origin_calc = f"game.nearest_buildable({self._name_to_prototype_string(miners[0].name)}, bounding_box=miner_box)"
         else:
             origin_calc = "Position(x=0, y=0)"
+
         lines = [
             "# Calculate bounding box",
             "left_top = Position(",
@@ -187,49 +189,77 @@ class BlueprintAnalyzer:
             ""
         ]
 
+        # Track entity counters for variable names
+        entity_counters = defaultdict(int)
+        entity_vars = []
+
+        def get_entity_var_name(entity_name: str) -> str:
+            """Generate a unique variable name for an entity"""
+            clean_name = entity_name.replace('-', '_')
+            entity_counters[clean_name] += 1
+            return f"{clean_name}_{entity_counters[clean_name]}"
+
         # Generate vertical patterns
         for pattern in vertical_patterns:
+            array_name = f"{pattern['name'].replace('-', '_')}_vertical"
             lines.extend([
                 f"# Place {pattern['name']} vertically at x={pattern['x']:.1f}",
+                f"{array_name} = []",
                 f"for i in range({pattern['count']}):",
                 f"    world_y = {pattern['start_y']:.1f} + ({pattern['step']:.1f} * i) + origin.y",
                 f"    world_x = {pattern['x']:.1f} + origin.x",
                 "    game.move_to(Position(x=world_x, y=world_y))",
-                f"    game.place_entity({self._name_to_prototype_string(pattern['name'])}, "
+                f"    entity = game.place_entity({self._name_to_prototype_string(pattern['name'])}, "
                 f"position=Position(x=world_x, y=world_y), "
-                f"direction={self._direction_to_enum(pattern['direction'])},"
+                f"direction={self._direction_to_enum(pattern['direction'])}, "
                 f"exact=True)",
+                f"    {array_name}.append(entity)",
                 ""
             ])
+            entity_vars.append(array_name)
 
         # Generate horizontal patterns
         for pattern in horizontal_patterns:
+            array_name = f"{pattern['name'].replace('-', '_')}_horizontal"
             lines.extend([
                 f"# Place {pattern['name']} horizontally at y={pattern['y']:.1f}",
+                f"{array_name} = []",
                 f"for i in range({pattern['count']}):",
                 f"    world_x = {pattern['start_x']:.1f} + ({pattern['step']:.1f} * i) + origin.x",
                 f"    world_y = {pattern['y']:.1f} + origin.y",
                 "    game.move_to(Position(x=world_x, y=world_y))",
-                f"    game.place_entity({self._name_to_prototype_string(pattern['name'])}, "
+                f"    entity = game.place_entity({self._name_to_prototype_string(pattern['name'])}, "
                 f"position=Position(x=world_x, y=world_y), "
-                f"direction={self._direction_to_enum(pattern['direction'])},"
+                f"direction={self._direction_to_enum(pattern['direction'])}, "
                 f"exact=True)",
+                f"    {array_name}.append(entity)",
                 ""
             ])
+            entity_vars.append(array_name)
 
         # Generate individual placements
         for entity in singles:
+            var_name = get_entity_var_name(entity.name)
             lines.extend([
                 f"# Place individual {entity.name}",
                 f"game.move_to(Position(x=origin.x + {entity.position['x']:.1f}, "
                 f"y=origin.y + {entity.position['y']:.1f}))",
-                f"game.place_entity({self._name_to_prototype_string(entity.name)}, "
+                f"{var_name} = game.place_entity({self._name_to_prototype_string(entity.name)}, "
                 f"position=Position(x=origin.x + {entity.position['x']:.1f}, "
                 f"y=origin.y + {entity.position['y']:.1f}), "
                 f"direction={self._direction_to_enum(entity.direction)}, "
                 f"exact=True)",
                 ""
             ])
+            entity_vars.append(var_name)
+
+            # Add recipe setting if recipe exists
+            if entity.recipe:
+                lines.append(
+                    f"game.set_entity_recipe({var_name}, "
+                    f"Prototype.{prototype_by_name[entity.recipe].name})"
+                )
+                lines.append("")
 
         return "\n".join(lines)
 

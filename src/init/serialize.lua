@@ -619,7 +619,6 @@ function get_entity_direction(entity, direction)
 			return direction
 		end
 
-		game.print("Returning direction: ")
 		return direction
 	end
 

@@ -37,7 +37,8 @@ class GetEntities(Action):
 
             entities_list = []
             belt_list = []
-            for entity_data in response:
+            for raw_entity_data in response:
+                entity_data = self.clean_response(raw_entity_data)
                 # Find the matching Prototype
                 matching_prototype = None
                 for prototype in Prototype:
