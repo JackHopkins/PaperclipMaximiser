@@ -19,6 +19,7 @@ load_dotenv()
 import time
 from skills_db import SkillsDB
 import copy
+
 def is_valid_python(code_string: str) -> bool:
     try:
         ast.parse(code_string)
@@ -209,10 +210,48 @@ Entities:
             examples_string += f"\nOUTPUT:\n{example['implementation']}\n\n"
         return examples_string
 
-    def generate_implementation(self, input_objective: str, 
+    def generate_plan(self, input_objective: str, 
                                            curriculum: dict, 
                                            reference_mining_setup: str,
                                              scenario_mining_setup: str
+                                                            ) -> str:
+        
+        specific_prompt_path = f"{self.prompt_path}/planning_generation_with_recipes"
+
+        # read in the user_mesasge_planning.md and system_message_planning.md
+        with open(f"{specific_prompt_path}/user_message.md", "r") as f:
+            user_message = f.read()
+        with open(f"{specific_prompt_path}/system_message.md", "r") as f:
+            system_prompt = f.read()
+        
+        # read in self.prompt_path/recipes.md
+        with open(f"{self.prompt_path}/recipes.md", "r") as f:
+            recipes = f.read()
+        system_prompt = system_prompt.format(recipes=recipes)
+        user_message = user_message.format(ground_truth_objective=curriculum["objective"], 
+                                                             reference_mining_setup=reference_mining_setup,
+                                                             implementation=curriculum["implementation"],
+                                                             input_objective=input_objective,
+                                                             input_mining_setup=scenario_mining_setup)
+        inventory_dict = {}
+        for item in inventory:
+            if isinstance(item, tuple):
+                inventory_dict[item[0]] = inventory[item]
+            else:
+                inventory_dict[item] = inventory[item]
+        
+        output = self._call_api(system_prompt, user_message,
+                                max_tokens = 2048, temperature = 0.5,
+                                model = "claude-3-5-sonnet-20240620")
+        prompt_inputs = {"curriculum": curriculum, "input_objective": input_objective, "input_mining_setup": scenario_mining_setup, "reference_mining_setup": reference_mining_setup}
+        return output, prompt_inputs
+
+
+    def generate_implementation(self, input_objective: str, 
+                                           curriculum: dict, 
+                                           reference_mining_setup: str,
+                                             scenario_mining_setup: str,
+                                             plan = ""
                                                             ) -> str:
         
         specific_prompt_path = f"{self.prompt_path}/implementation_generation" if not self.prompt_with_recipes else f"{self.prompt_path}/implementation_generation_with_recipes"
@@ -239,6 +278,8 @@ Entities:
                                                              implementation=curriculum["implementation"],
                                                              input_objective=input_objective,
                                                              input_mining_setup=scenario_mining_setup)
+        if plan:
+            user_message += f"\n\nPlan to solve this objective\n\n{plan}"
         inventory_dict = {}
         for item in inventory:
             if isinstance(item, tuple):
@@ -247,9 +288,9 @@ Entities:
                 inventory_dict[item] = inventory[item]
         
         output = self._call_api(system_prompt, user_message,
-                                max_tokens = 2048, temperature = 0.5,
+                                max_tokens = 8192, temperature = 0.5,
                                 model = "claude-3-5-sonnet-20240620")
-        prompt_inputs = {"curriculum": curriculum, "input_objective": input_objective, "mining_setup": mining_setup}
+        prompt_inputs = {"curriculum": curriculum, "input_objective": input_objective, "input_mining_setup": scenario_mining_setup, "reference_mining_setup": reference_mining_setup}
         return output, prompt_inputs
         #try:
         #    program = response.replace('```python', '```')
@@ -308,7 +349,8 @@ Entities:
                                         curriculum: List[Dict[str, str]],
                                         logs : list, 
                                         mining_setup: str,
-                                        mining_setup_during_error
+                                        mining_setup_during_error, 
+                                        plan = ""
                                         ) -> str:
         
         
@@ -332,7 +374,9 @@ Entities:
             game_log = game_log_string,
             mining_setup = mining_setup,
             mining_setup_during_error = mining_setup_during_error)
-        return self._call_api(system_prompt, user_message, max_tokens = 2048,
+        if plan:
+            user_message += f"\n\nPlan to solve the current objective\n\n{plan}"
+        return self._call_api(system_prompt, user_message, max_tokens = 8192,
                               model = "claude-3-5-sonnet-20240620"
                               )
 
@@ -374,7 +418,7 @@ Entities:
             mining_setup = f"The following entities are on the map and can be used: {mining_setup}"
         return mining_setup
 
-    def stream_curriculum(self, curriculum: Dict,  instance, objectives = None):   
+    def stream_curriculum(self, curriculum: Dict,  instance, objectives = None, include_planning = False):   
         scenario_starting_inv = copy.deepcopy(curriculum["starting_inventory"])
         max_attempts = 0
         # First set up the game
@@ -400,11 +444,21 @@ Entities:
             ## run the objective starting snippet
             _ = instance.eval_with_error(curriculum["starting_snippet"], timeout=240)
             scenario_mining_setup = self.get_mining_setup(instance)
+            if include_planning:
+                plan_string, prompt_inputs = self.generate_plan(input_objective= objective["objective"],
+                                                        curriculum= curriculum, 
+                                                        reference_mining_setup=reference_mining_setup,
+                                                        scenario_mining_setup = scenario_mining_setup)
+            
             step_script, prompt_inputs = self.generate_implementation(input_objective= objective["objective"], 
                                                       curriculum= curriculum, 
                                                       reference_mining_setup=reference_mining_setup,
-                                                      scenario_mining_setup = scenario_mining_setup)
+                                                      scenario_mining_setup = scenario_mining_setup,
+                                                      plan = plan_string if include_planning else ""
+                                                      )
             objective["implementation_tries"].append({"prompt_inputs": prompt_inputs, "output": step_script})
+            objective["plan"] = plan_string if include_planning else ""
+            objective["scenario_mining_setup"] = scenario_mining_setup
             try:
                 program = step_script.split('```python')[1]
                 program = program.split('```')[0]
@@ -417,8 +471,9 @@ Entities:
             errored = False if "error" not in result.lower() else True
             if "error" in result.lower():
                 errored = True
+                print(f"Error in step {objective['objective']}. Error: {result}")
                 for i in range(max_attempts):
-                    print(f"Error in step {objective}. Attempt {i+1}. Error: {result}")
+                    print(f"Error in step {objective['objective']}. Attempt {i+1}. Error: {result}")
                     mining_setup_during_error = self.get_mining_setup(instance)
                     step_script = self.correct_implementation_snippet(input_objective= objective["objective"], 
                                                               curriculum= curriculum, 
@@ -426,7 +481,8 @@ Entities:
                                                               last_executed_policy=program, 
                                                               error_message = result, 
                                                               logs = output_list,
-                                                              mining_setup_during_error = mining_setup_during_error)
+                                                              mining_setup_during_error = mining_setup_during_error,
+                                                              plan = plan_string if include_planning else "")
                                                               
                     objective["implementation_tries"].append({"error_message": result, "output": step_script})
                     try:
@@ -503,7 +559,7 @@ def save_synth_skills_into_db():
                 dependencies = []
                 implementation_model = "expanded_synthetic"
                 version = "mart_expansion_v1"
-    
+                meta = json.dumps({"objective": objective, "curriculum": curriculum})
 
                 db.save_function(name = name, 
                             description = description, 
@@ -511,7 +567,8 @@ def save_synth_skills_into_db():
                             dependencies = dependencies, 
                             implementation_model = implementation_model,
                             signature = signature,
-                            version = version)
+                            version = version, 
+                            meta = meta)
 
 def evaluate_a_skill(folder_path):
     # readinthe full_snippet.py
@@ -574,7 +631,7 @@ def get_crafting_objectives(number_of_skills= -1):
         objectives = objectives[:number_of_skills]
     return objectives
 
-def get_data_scenario(folder):
+def get_data_scenario(folder, curriculum = {}):
     # read in the details.json from the folder
     with open(f"{folder}/details.json", "r") as f:
         starting_details = json.load(f)
@@ -610,7 +667,8 @@ def get_data_scenario(folder):
     return starting_inventory, starting_snippet
 
 if __name__ == "__main__":
-
+    save_synth_skills_into_db()
+    use_crafting_objectives = True
     sampler = BottomsUpSkillSampler(model = "gpt-4o", prompt_with_recipes=True)
     inventory = {
         'iron-plate': 50,
@@ -649,7 +707,7 @@ if __name__ == "__main__":
 
 
     
-    starting_objective_folder = r"skills\ground_truth_skills\craft_one_random_furnace"
+    starting_objective_folder = r"skills\ground_truth_skills\craft_one_random_chest"
     #read in curriculum_item.jsom
     with open(f"{starting_objective_folder}/curriculum_item.json", "r") as f:
         curriculum = json.load(f)
@@ -662,12 +720,12 @@ if __name__ == "__main__":
     starting_scenario_folder = f"skills\data_scenarios\starting_scenarios\{curriculum['starting_scenario']}" 
     snippet_name = curriculum["objective_group"]
     
-    starting_inventory, starting_snippet = get_data_scenario(starting_scenario_folder)
+    starting_inventory, starting_snippet = get_data_scenario(starting_scenario_folder, curriculum)
     curriculum["starting_inventory"] = starting_inventory
     curriculum["starting_snippet"] = starting_snippet
     if "reference_scenario" in curriculum:
-        reference_scenario_folder = f"skills\data_scenarios\reference_scenarios\{curriculum['reference_scenario']}" 
-        reference_inventory, reference_snippet = get_data_scenario(reference_scenario_folder)
+        reference_scenario_folder = f"skills\data_scenarios\starting_scenarios\{curriculum['reference_scenario']}" 
+        reference_inventory, reference_snippet = get_data_scenario(reference_scenario_folder, curriculum)
         curriculum["reference_inventory"] = reference_inventory
         curriculum["reference_snippet"] = reference_snippet
     else:
@@ -675,36 +733,39 @@ if __name__ == "__main__":
         curriculum["reference_snippet"] = starting_snippet
 
     # get the objectives
-    objectives = get_crafting_objectives(number_of_skills = -1)
+    objectives = get_crafting_objectives(number_of_skills = -1) if use_crafting_objectives else None
 
-    completed_objectives = sampler.stream_curriculum(curriculum, instance, objectives=objectives)
+    completed_objectives = sampler.stream_curriculum(curriculum, instance, objectives=objectives, include_planning = True)
             
     save_folder_path = f"skills\expanded_skills\{snippet_name}\{curriculum['starting_scenario']}"
     # create the folder if it does not exist
     os.makedirs(save_folder_path, exist_ok=True)
     for objective in completed_objectives:
-        # get the nr of files in the folder
-        nr_files = len(os.listdir(save_folder_path))
-        # create the folder
-        folder_path = f"{save_folder_path}/{nr_files}_{objective['success']}"
+        try:
+            # get the nr of files in the folder
+            nr_files = len(os.listdir(save_folder_path))
+            # create the folder
+            folder_path = f"{save_folder_path}/{nr_files}_{objective['success']}"
 
-        os.makedirs(folder_path, exist_ok=True)
-        # write the ground truth snippet
-        with open(f"{folder_path}/reference_snippet.py", "w") as f:
-            f.write(curriculum["implementation"])
-        # write the curriculum_item.json
-        with open(f"{folder_path}/curriculum_item.json", "w") as f:
-            json.dump(curriculum, f, indent=2)
-        
-        # write the implementation if it exists
-        if "final_implementation" in objective:
-            with open(f"{folder_path}/implementation.py", "w") as f:
-                f.write(objective["final_implementation"])
-            # remove the final_implementation from the objective
-            del objective["final_implementation"]
-        # write the objective
-        with open(f"{folder_path}/objective.json", "w") as f:
-            json.dump(objective, f, indent=2)
+            os.makedirs(folder_path, exist_ok=True)
+            # write the ground truth snippet
+            with open(f"{folder_path}/reference_snippet.py", "w") as f:
+                f.write(curriculum["implementation"])
+            # write the curriculum_item.json
+            with open(f"{folder_path}/curriculum_item.json", "w") as f:
+                json.dump(curriculum, f, indent=2)
+
+            # write the implementation if it exists
+            if "final_implementation" in objective:
+                with open(f"{folder_path}/implementation.py", "w") as f:
+                    f.write(objective["final_implementation"])
+                # remove the final_implementation from the objective
+                del objective["final_implementation"]
+            # write the objective
+            with open(f"{folder_path}/objective.json", "w") as f:
+                json.dump(objective, f, indent=2)
+        except Exception as e:
+            print(f"Failed to save objective: {e}")
 
         
     print("All objectives have been completed. The program will now exit.")
