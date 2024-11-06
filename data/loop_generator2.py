@@ -149,7 +149,7 @@ class BlueprintAnalyzer:
         pairs.sort()
         hash2 = hash(tuple(pairs))
 
-        return hash1 == hash2
+        assert hash1 == hash2, f"The difference in entities is {set(blueprint_pairs) - set(pairs)}"
 
     def generate_program(self) -> str:
         vertical_patterns, horizontal_patterns, singles = self.find_patterns()
@@ -157,7 +157,7 @@ class BlueprintAnalyzer:
         if miners:
             origin_calc = f"game.nearest_buildable({self._name_to_prototype_string(miners[0].name)}, bounding_box=miner_box)"
         else:
-            origin_calc = "Position(x=0, y=0)"
+            origin_calc = f"game.nearest_buildable({self._name_to_prototype_string(self.entities[0].name)}, bounding_box=miner_box)"
 
         lines = [
             "# Calculate bounding box",
@@ -208,7 +208,7 @@ class BlueprintAnalyzer:
                 f"for i in range({pattern['count']}):",
                 f"    world_y = {pattern['start_y']:.1f} + ({pattern['step']:.1f} * i) + origin.y",
                 f"    world_x = {pattern['x']:.1f} + origin.x",
-                "    game.move_to(Position(x=world_x, y=world_y))",
+                "    game.move_to(Position(x=world_x+1, y=world_y))",
                 f"    entity = game.place_entity({self._name_to_prototype_string(pattern['name'])}, "
                 f"position=Position(x=world_x, y=world_y), "
                 f"direction={self._direction_to_enum(pattern['direction'])}, "
@@ -227,7 +227,7 @@ class BlueprintAnalyzer:
                 f"for i in range({pattern['count']}):",
                 f"    world_x = {pattern['start_x']:.1f} + ({pattern['step']:.1f} * i) + origin.x",
                 f"    world_y = {pattern['y']:.1f} + origin.y",
-                "    game.move_to(Position(x=world_x, y=world_y))",
+                "    game.move_to(Position(x=world_x, y=world_y+1))",
                 f"    entity = game.place_entity({self._name_to_prototype_string(pattern['name'])}, "
                 f"position=Position(x=world_x, y=world_y), "
                 f"direction={self._direction_to_enum(pattern['direction'])}, "
@@ -237,12 +237,15 @@ class BlueprintAnalyzer:
             ])
             entity_vars.append(array_name)
 
+        # Order placement of entities by left to right
+        singles.sort(key=lambda e: e.position['x'])
+
         # Generate individual placements
         for entity in singles:
             var_name = get_entity_var_name(entity.name)
             lines.extend([
                 f"# Place individual {entity.name}",
-                f"game.move_to(Position(x=origin.x + {entity.position['x']:.1f}, "
+                f"game.move_to(Position(x=origin.x + {entity.position['x']:.1f}+1, "
                 f"y=origin.y + {entity.position['y']:.1f}))",
                 f"{var_name} = game.place_entity({self._name_to_prototype_string(entity.name)}, "
                 f"position=Position(x=origin.x + {entity.position['x']:.1f}, "
@@ -274,7 +277,7 @@ def analyze_blueprint(blueprint_json: str) -> str:
     analyzer = BlueprintAnalyzer(blueprint_json)
     return analyzer.generate_program(), analyzer.get_inventory()
 
-execution_dir = os.path.dirname(os.path.realpath(__file__)) + "/blueprints/mining/"
+execution_dir = os.path.dirname(os.path.realpath(__file__)) + "/blueprints/manufacturing/"
 filename = "1a. Mining" #Early Mining"
 
 # iterate over all json files in the directory
@@ -299,15 +302,18 @@ for filename in os.listdir(execution_dir):
                                         fast=True,
                                         cache_scripts=False,
                                         inventory=inventory)
-            score, goal, result = instance.eval_with_error(code.replace("game.", ""), timeout=20)
+            score, goal, result = instance.eval_with_error(code.replace("game.", ""), timeout=30)
             if "error" in result:
                 raise Exception(result["error"])
 
             print(code)
             game_entities = instance.get_entities()
-
-            assert analyzer.verify_placement(game_entities)
-
+            try:
+                analyzer.verify_placement(game_entities)
+            except AssertionError as e:
+                print(e)
+                print("Error in blueprint")
+                continue
             # Write the code to a python file of the same name
             with open(execution_dir+filename.replace(".json", ".py"), "w") as f1:
                 f1.write(code)
