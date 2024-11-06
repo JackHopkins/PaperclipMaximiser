@@ -16,8 +16,10 @@ def game(instance):
         'burner-inserter': 10,
         'transport-belt': 100,
         'iron-chest': 1,
-        'wooden-chest': 1,
+        'wooden-chest': 2,
         'coal': 50,
+        'assembling-machine-1': 1,
+        'inserter': 10
     }
     instance.reset()
     yield instance
@@ -271,3 +273,96 @@ def test_mining_blueprint_3(game):
         world_y = 1.5 + origin.y
         game.move_to(Position(x=world_x, y=world_y))
         game.place_entity(Prototype.SmallElectricPole, position=Position(x=world_x, y=world_y), direction=Direction.UP)
+
+def test_minig_blueprint_4(game):
+    # Calculate bounding box
+    left_top = Position(
+        x=0,
+        y=0
+    )
+    right_bottom = Position(
+        x=5,
+        y=5.5
+    )
+    center = Position(
+        x=(left_top.x + right_bottom.x) / 2,
+        y=(left_top.y + right_bottom.y) / 2
+    )
+
+    miner_box = BoundingBox(
+        left_top=left_top,
+        right_bottom=right_bottom,
+        center=center
+    )
+
+    # Find valid position using nearest_buildable
+    origin = game.nearest_buildable(Prototype.BurnerMiningDrill, bounding_box=miner_box)
+
+    assert origin, 'Could not find valid position'
+    origin = origin + left_top + Position(x=0.5, y=0.5)
+    game.move_to(origin)
+
+    # Place individual burner-mining-drill
+    game.move_to(Position(x=origin.x + 2.0, y=origin.y + 0.0))
+    burner_mining_drill_1 = game.place_entity(Prototype.BurnerMiningDrill,
+                                              position=Position(x=origin.x + 2.0, y=origin.y + 0.0),
+                                              direction=Direction.DOWN, exact=True)
+
+    # Place individual burner-mining-drill
+    game.move_to(Position(x=origin.x + 0.0, y=origin.y + 3.0))
+    burner_mining_drill_2 = game.place_entity(Prototype.BurnerMiningDrill,
+                                              position=Position(x=origin.x + 0.0, y=origin.y + 3.0),
+                                              direction=Direction.DOWN, exact=True)
+
+    # Place individual assembling-machine-1
+    game.move_to(Position(x=origin.x + 2.5, y=origin.y + 2.5))
+    assembling_machine_1_1 = game.place_entity(Prototype.AssemblingMachine1,
+                                               position=Position(x=origin.x + 2.5, y=origin.y + 2.5),
+                                               direction=Direction.UP, exact=True)
+
+    game.set_entity_recipe(assembling_machine_1_1, Prototype.StoneFurnace)
+
+    # Place individual burner-mining-drill
+    game.move_to(Position(x=origin.x + 5.0, y=origin.y + 3.0))
+    burner_mining_drill_3 = game.place_entity(Prototype.BurnerMiningDrill,
+                                              position=Position(x=origin.x + 5.0, y=origin.y + 3.0),
+                                              direction=Direction.DOWN, exact=True)
+
+    # Place individual stone-furnace
+    game.move_to(Position(x=origin.x + 0.0, y=origin.y + 5.0))
+    stone_furnace_1 = game.place_entity(Prototype.StoneFurnace, position=Position(x=origin.x + 0.0, y=origin.y + 5.0),
+                                        direction=Direction.UP, exact=True)
+
+    # Place individual inserter
+    game.move_to(Position(x=origin.x + 2.5, y=origin.y + 4.5))
+    inserter_1 = game.place_entity(Prototype.Inserter, position=Position(x=origin.x + 2.5, y=origin.y + 4.5),
+                                   direction=Direction.UP, exact=True)
+
+    # Place individual stone-furnace
+    game.move_to(Position(x=origin.x + 5.0, y=origin.y + 5.0))
+    stone_furnace_2 = game.place_entity(Prototype.StoneFurnace, position=Position(x=origin.x + 5.0, y=origin.y + 5.0),
+                                        direction=Direction.UP, exact=True)
+
+    # Place individual small-electric-pole
+    game.move_to(Position(x=origin.x + 3.5, y=origin.y + 4.5))
+    small_electric_pole_1 = game.place_entity(Prototype.SmallElectricPole,
+                                              position=Position(x=origin.x + 3.5, y=origin.y + 4.5),
+                                              direction=Direction.UP, exact=True)
+
+    # Place individual wooden-chest
+    game.move_to(Position(x=origin.x + 2.5, y=origin.y + 5.5))
+    wooden_chest_1 = game.place_entity(Prototype.WoodenChest, position=Position(x=origin.x + 2.5, y=origin.y + 5.5),
+                                       direction=Direction.UP, exact=True)
+
+    # Place individual inserter
+    game.move_to(Position(x=origin.x + 1.5, y=origin.y + 5.5))
+    inserter_2 = game.place_entity(Prototype.Inserter, position=Position(x=origin.x + 1.5, y=origin.y + 5.5),
+                                   direction=Direction.LEFT, exact=True)
+
+    # Place individual inserter
+    game.move_to(Position(x=origin.x + 3.5, y=origin.y + 5.5))
+    inserter_3 = game.place_entity(Prototype.Inserter, position=Position(x=origin.x + 3.5, y=origin.y + 5.5),
+                                   direction=Direction.RIGHT, exact=True)
+
+    entities = game.get_entities()
+

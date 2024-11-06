@@ -28,3 +28,5 @@ client/__pycache__/
 /src/skills/bottom_up/skill_generation_logs/
 /data/blueprints/decoded/
 /data/blueprints/mining/
+/data/blueprints/electricity/
+/data/blueprints/manufacturing/

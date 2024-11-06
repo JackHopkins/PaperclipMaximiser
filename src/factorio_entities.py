@@ -241,6 +241,10 @@ class Entity(BaseModel):
     warnings: List[str] = []
     status: EntityStatus = EntityStatus.NORMAL
 
+class Splitter(Entity):
+    input_positions: List[Position]
+    output_positions: List[Position]
+    inventory: List[Inventory]
 
 class TransportBelt(Entity):
     input_position: Position

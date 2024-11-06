@@ -39,13 +39,13 @@ class Prototype(enum.Enum):
     BurnerMiningDrill = "burner-mining-drill", BurnerMiningDrill
     ElectricMiningDrill = "electric-mining-drill", MiningDrill
     StoneFurnace = "stone-furnace", Furnace
-    TransportBelt = "transport-belt", TransportBelt
     FastTransportBelt = "fast-transport-belt", TransportBelt
     ExpressTransportBelt = "express-transport-belt", TransportBelt
+    Splitter = "splitter", Splitter
+    TransportBelt = "transport-belt", TransportBelt
     UndergroundBelt = "underground-belt", Entity
     FastUndergroundBelt = "fast-underground-belt", Entity
     ExpressUndergroundBelt = "express-underground-belt", Entity
-    Splitter = "splitter", BeltGroup
     FastSplitter = "fast-splitter", BeltGroup
     ExpressSplitter = "express-splitter", BeltGroup
     OffshorePump = "offshore-pump", OffshorePump
@@ -77,6 +77,10 @@ class Prototype(enum.Enum):
     Radar = "radar", Entity # Crafting requires 5 electronic circuits, 5 iron gear wheels, 10 iron plates
     StoneWall = "stone-wall", Entity # Crafting requires 5 stone bricks
     SmallLamp = "small-lamp", Entity # Crafting requires 1 electronic circuit, 3 iron plates
+    SciencePack1 = "science-pack-1", None # Crafting requires 1 copper plate, 1 iron gear wheel
+    SciencePack2 = "science-pack-2", None # Crafting requires 1 inserter, 1 transport belt
+    SciencePack3 = "science-pack-3", None # Crafting requires 1 advanced circuit, 1 engine unit, 1 electric mining drill
+    EngineUnit = "engine-unit", None # Crafting requires 1 iron gear wheel, 1 pipe, 2 engine units
 
 prototype_by_name = {prototype.value[0]: prototype for prototype in Prototype}
 

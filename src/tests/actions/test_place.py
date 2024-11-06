@@ -10,7 +10,7 @@ def game(instance):
     instance.initial_inventory = {
         'stone-furnace': 1, 'boiler': 1, 'steam-engine': 1, 'offshore-pump': 4, 'pipe': 100,
         'iron-plate': 50, 'copper-plate': 20, 'coal': 50, 'burner-inserter': 50, 'burner-mining-drill': 50,
-        'transport-belt': 50, 'stone-wall': 100
+        'transport-belt': 50, 'stone-wall': 100, 'splitter': 4
     }
 
     instance.reset()
@@ -223,3 +223,20 @@ def test_placed_drill_status(game):
     game.sleep(1)
     drill = game.get_entity(Prototype.BurnerMiningDrill, drill.position)
     assert drill.energy > 0
+
+def test_place_splitter(game):
+    """
+    Place a splitter at (0, 0)
+    :param game:
+    :return:
+    """
+    splitters_in_inventory = game.inspect_inventory()[Prototype.Splitter]
+    splitter = game.place_entity(Prototype.Splitter, position=(0, 2), direction=Direction.UP)
+    assert splitter.direction.value == Direction.UP.value
+    splitter = game.place_entity(Prototype.Splitter, position=splitter.output_positions[0], direction=Direction.DOWN)
+    assert splitter.direction.value == Direction.DOWN.value
+    splitter = game.place_entity(Prototype.Splitter, position=(2, 0), direction=Direction.RIGHT)
+    assert splitter.direction.value == Direction.RIGHT.value
+    splitter = game.place_entity(Prototype.Splitter, position=splitter.output_positions[0], direction=Direction.LEFT)
+    assert splitter.direction.value == Direction.LEFT.value
+    assert splitters_in_inventory - 4 == game.inspect_inventory()[Prototype.Splitter]

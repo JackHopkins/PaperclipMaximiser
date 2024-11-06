@@ -583,7 +583,7 @@ function get_entity_direction(entity, direction)
 		else
 			return defines.direction.west
 		end
-	elseif prototype and prototype.type == "transport-belt" then
+	elseif prototype and prototype.type == "transport-belt" or prototype.type == "splitter" then
 			--game.print("Transport belt direction: " .. direction)
 			if direction == 0 then
 				return defines.direction.north
@@ -860,6 +860,67 @@ global.utils.serialize_entity = function(entity)
 		serialized.inventory = entity.get_transport_line(1).get_contents()
 	end
 
+	-- Add input and output positions if the entity is a splitter
+	if entity.type == "splitter" then
+		-- Initialize positions based on entity center
+		local x, y = entity.position.x, entity.position.y
+
+		-- Calculate the offset for left/right positions (0.5 tiles)
+		local lateral_offset = 0.5
+
+		if entity.direction == defines.direction.north then
+			-- Input positions (south side)
+			serialized.input_positions = {
+				{x = x - lateral_offset, y = y + 1},
+				{x = x + lateral_offset, y = y + 1}
+			}
+			-- Output positions (north side)
+			serialized.output_positions = {
+				{x = x - lateral_offset, y = y - 1},
+				{x = x + lateral_offset, y = y - 1}
+			}
+		elseif entity.direction == defines.direction.south then
+			-- Input positions (north side)
+			serialized.input_positions = {
+				{x = x + lateral_offset, y = y - 1},
+				{x = x - lateral_offset, y = y - 1}
+			}
+			-- Output positions (south side)
+			serialized.output_positions = {
+				{x = x + lateral_offset, y = y + 1},
+				{x = x - lateral_offset, y = y + 1}
+			}
+		elseif entity.direction == defines.direction.east then
+			-- Input positions (west side)
+			serialized.input_positions = {
+				{x = x - 1, y = y - lateral_offset},
+			 	{x = x - 1, y = y + lateral_offset}
+			}
+			-- Output positions (east side)
+			serialized.output_positions = {
+				{x = x + 1, y = y - lateral_offset},
+				{x = x + 1, y = y + lateral_offset}
+			}
+		elseif entity.direction == defines.direction.west then
+			-- Input positions (east side)
+			serialized.input_positions = {
+				{x = x + 1, y = y + lateral_offset},
+				{x = x + 1, y = y - lateral_offset}
+			}
+			-- Output positions (west side)
+			serialized.output_positions = {
+				{x = x - 1, y = y + lateral_offset},
+				{x = x - 1, y = y - lateral_offset}
+			}
+		end
+
+		-- Get the contents of both output lines
+		serialized.inventory = {
+			entity.get_transport_line(1).get_contents(),
+			entity.get_transport_line(2).get_contents()
+		}
+	end
+
 	-- Add input and output locations if the entity is an inserter
 	if entity.type == "inserter" then
 		serialized.pickup_position = entity.pickup_position
@@ -893,10 +954,10 @@ global.utils.serialize_entity = function(entity)
 	end
 
 	-- Add input and output locations if the entity is a splitter
-	if entity.type == "splitter" then
-		serialized.input_position = entity.input_position
-		serialized.output_position = entity.output_position
-	end
+	--if entity.type == "splitter" then
+	--	serialized.input_position = entity.input_position
+	--	serialized.output_position = entity.output_position
+	--end
 
 	-- Add input and output locations if the entity is a pipe
 	if entity.type == "pipe" then

@@ -1,4 +1,5 @@
 import json
+import re
 from pathlib import Path
 from typing import Any, Dict, List, Union, Set
 from collections import Counter
@@ -220,7 +221,8 @@ def write_blueprints_to_folder(blueprints: List[Blueprint], folder: str):
     Path(folder).mkdir(parents=True, exist_ok=True)
 
     for bp in blueprints:
-        with open(f"{folder}/{bp.label}.json", "w") as f:
+        label = bp.label.replace('/', '').replace("[", "").replace("]", "")
+        with open(f"{folder}/{label}.json", "w") as f:
             json.dump(bp.data, f, indent=2)
 
 def main():
@@ -241,15 +243,24 @@ def main():
     plot_histograms(index.blueprints)
 
     # Find mining drill blueprints
-    mining_drills = {'burner-mining-drill', 'electric-mining-drill'}
-    drill_blueprints = index.find_blueprints_with_any_of(mining_drills)
-    write_blueprints_to_folder(drill_blueprints, "./blueprints/mining")
+    # mining_drills = {'burner-mining-drill', 'electric-mining-drill'}
+    # drill_blueprints = index.find_blueprints_with_any_of(mining_drills)
+    # write_blueprints_to_folder(drill_blueprints, "./blueprints/mining")
+
+    # Find smelting blueprints
+   # mining_drills = {'stone-furnace', 'electric-furnace'}
+   # drill_blueprints = index.find_blueprints_with_any_of(mining_drills)
+    #write_blueprints_to_folder(drill_blueprints, "./blueprints/smelting")
 
     # Find electricity generation blueprints
-    electricity = { 'boiler', 'offshore-pump' }
-    electricity_blueprints = index.find_blueprints_with_any_of(electricity)
-    write_blueprints_to_folder(electricity_blueprints, "./blueprints/electricity")
+    #electricity = { 'boiler', 'offshore-pump' }
+    #electricity_blueprints = index.find_blueprints_with_any_of(electricity)
+    #write_blueprints_to_folder(electricity_blueprints, "./blueprints/electricity")
 
+    # Find assembly  blueprints
+    manufacturing = { 'assembling-machine-1', 'assembling-machine-2', 'assembling-machine-3' }
+    manufacturing_blueprints = index.find_blueprints_with_any_of(manufacturing)
+    write_blueprints_to_folder(manufacturing_blueprints, "./blueprints/manufacturing")
 
 
     pass
