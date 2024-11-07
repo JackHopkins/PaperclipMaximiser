@@ -1,3 +1,7 @@
+import sys
+sys.path.append(r"C:\Users\martb\Documents\paperpclip_max\PaperclipMaximiser\src")
+sys.path.append(r"C:\Users\martb\Documents\paperpclip_max\PaperclipMaximiser")
+
 import re
 import os
 import ast
@@ -68,25 +72,37 @@ class SFTDatasetCreator:
         # We need a objective, starting mining scenario and the starting inventory
         # everything that is over 30 sleeep, put to 30
         if "mart" in skill["version"]:
-            # first get the objective and the starting inventory from the description
-            description = skill["description"]
-            # split by Starting Inventory: 
-            description_parts = description.split("Starting Inventory: ")
-            objective = description_parts[0].replace("Objective: ", "").strip()
-            inventory = description_parts[1].split("Scenario:")[0].strip()
-            inventory = inventory.replace("\n", "")
-            inventory = eval(inventory)
-            assert type(inventory) == dict, f"Inventory is not a dict: {inventory}"
-            # now we need to get the starting scenario
-            # get all starting scenarios that are in the name
-            starting_scenarios = [scenario for scenario in self.starting_scenario_names if scenario in skill["name"]]
-            # get the one that is longest (heuristic that the shorter ones are subset of longer ones)
-            starting_scenario = max(starting_scenarios, key=len)
+            if "meta" in skill and skill["meta"]:
+                skill["objective"] = skill["meta"]["objective"]["objective"]
+                starting_inv = skill["meta"]["curriculum"]["starting_inventory"]
+                #starting_inv = eval(skill["meta"]["curriculum"]["starting_inventory"])
+                starting_scenario = skill["meta"]["curriculum"]["starting_scenario"]
+                # now put them into the skill
+                skill["starting_inventory"] = starting_inv
+                skill["starting_scenario"] = starting_scenario
+                del skill["meta"]["curriculum"]
+                del skill["meta"]["objective"]["implementation_tries"]
 
-            # now put them into the skill
-            skill["objective"] = objective
-            skill["starting_inventory"] = inventory
-            skill["starting_scenario"] = starting_scenario
+            else:
+                # first get the objective and the starting inventory from the description
+                description = skill["description"]
+                # split by Starting Inventory: 
+                description_parts = description.split("Starting Inventory: ")
+                objective = description_parts[0].replace("Objective: ", "").strip()
+                inventory = description_parts[1].split("Scenario:")[0].strip()
+                inventory = inventory.replace("\n", "")
+                inventory = eval(inventory)
+                assert type(inventory) == dict, f"Inventory is not a dict: {inventory}"
+                # now we need to get the starting scenario
+                # get all starting scenarios that are in the name
+                starting_scenarios = [scenario for scenario in self.starting_scenario_names if scenario in skill["name"]]
+                # get the one that is longest (heuristic that the shorter ones are subset of longer ones)
+                starting_scenario = max(starting_scenarios, key=len)
+
+                # now put them into the skill
+                skill["objective"] = objective
+                skill["starting_inventory"] = inventory
+                skill["starting_scenario"] = starting_scenario
         else:
             starting_scenario = "full_scratch"
             inventory = {}
@@ -196,10 +212,18 @@ class SFTDatasetCreator:
             return {"success": False, "traces": [], "error_message": result}
 
         initial_mining_setup = get_mining_setup(instance)
-        first_user_message = f"Your starting inventory is {skill['starting_inventory']}. Your initial mining setup is: {initial_mining_setup}. Create a script to achieve the following objective: {skill['objective']}"
+        #first_user_message = f"Your starting inventory is {skill['starting_inventory']}. Your initial mining setup is: {initial_mining_setup}. Create a script to achieve the following objective: {skill['objective']}"
+        first_user_message = f"Your starting inventory is {skill['starting_inventory']}. Your initial mining setup is: {initial_mining_setup}. Create a useful task that you can carry out in the current game and the python script to achieve the task"
         traces.append({"role": "system", "content": self.system_prompt})
+        
+        if "meta" in skill and skill["meta"] and "objective" in skill["meta"] and "plan" in skill["meta"]["objective"]:
+            plan = "\n" + skill["meta"]["objective"]["plan"] + "\n" if skill["meta"]["objective"]["plan"] else "\n"
+        else:
+            plan = "\n"
+        if plan != "\n":
+            first_user_message += f"Also think step by step how you can achieve this task and bring out a thorough plan"
+        assistant_message = f"Sure! The task I will carry out is {skill['objective']}.{plan}The policy to achieve this task is \n\n```python\n{skill['implementation']}\n```"
         traces.append({"role": "user", "content": first_user_message})
-        assistant_message = f"The policy to achieve the objective is \n\n```python\n{skill['implementation']}\n```"
         traces.append({"role": "assistant", "content": assistant_message})
         return {"success": True, "traces": traces}
 
@@ -355,7 +379,6 @@ class SFTDatasetCreator:
         plan = curriculum_item["full_plan"]
         plan = plan.replace("\n\n", "\n")
         # remove import from implementation
-        implementation = implementation.replace("from factorio_instance import *", f'from factorio_instance import *\n\n"""\n{plan}"""')
         implementation = implementation.replace("\n###SEP", "")
         implementation = implementation.replace("\n#Step Execution", "")
         starting_inventory = curriculum_item["starting_inventory"]
@@ -367,10 +390,10 @@ class SFTDatasetCreator:
                 starting_inventory[item] += value
         
         dependencies = [f"'{item}': {value}" for item, value in starting_inventory.items()]
-
+        meta = {"curriculum": curriculum_item, "objective": {"objective": objective, "plan": plan, "implementation_tries": 0}}
         return {"name": curriculum_item["name"], "implementation": implementation, "description": description, 
                 "signature": signature, "dependencies": dependencies, "version": version, "starting_inventory": starting_inventory, "objective": objective,
-                "starting_scenario": curriculum_item["starting_scenario"]}
+                "starting_scenario": curriculum_item["starting_scenario"], "meta": meta}
 
 
 
@@ -386,6 +409,7 @@ class SFTDatasetCreator:
                                 fast=True,
                                 #cache_scripts=False,
                                 inventory=inventory)
+        self.init_system_prompt(instance)
         # get folders in nb_skill_folder
         objective_groups = os.listdir(nb_skill_folder)
         for objective_group in objective_groups:
@@ -424,7 +448,7 @@ class SFTDatasetCreator:
                     else:
                         raise ValueError(f"Error in {objective_group} {starting_scenario} skill {skill['name']}: {trace_output['error_message']}")
 
-    def create_training_eval_dataset(self, full_dataset_path, training_dataset_path, eval_dataset_path, training_ratio=0.9):
+    def create_training_eval_dataset(self, full_dataset_path, training_dataset_path, eval_dataset_path, training_ratio=1):
         with open(full_dataset_path) as f:
             all_skills = [json.loads(line) for line in f.readlines()]
         random.shuffle(all_skills)
@@ -461,7 +485,9 @@ class SFTDatasetCreator:
 if __name__ == "__main__":
     starting_scenario_path = r"skills\data_scenarios\starting_scenarios"
     dataloader = SFTDatasetCreator(starting_scenario_path,
-                                   finetuning_prompt_path = r"prompts\bottoms_up_prompts\finetuning_prompts\system_message_policy.md")
+                                   #finetuning_prompt_path = r"prompts\bottoms_up_prompts\finetuning_prompts\system_message_policy.md",
+                                   finetuning_prompt_path = r"prompts\bottoms_up_prompts\finetuning_prompts\system_message_policy_self_gen.md",
+                                   )
     notebook_skill_path = r"datasets/notebook_skills"
     raw_input_jsonl_file = r"datasets\sft_dataset_raw.jsonl"
     postprocessed_input_jsonl_file = r"datasets\sft_dataset_postprocessed.jsonl"
@@ -469,18 +495,18 @@ if __name__ == "__main__":
     failed_output_file = r"datasets\sft_failed_traces.jsonl"
     training_dataset_path = r"datasets\sft_training_dataset.jsonl"
     eval_dataset_path = r"datasets\sft_eval_dataset.jsonl"
-    successful_output_file_policy = r"datasets\sft_successful_traces_policy.jsonl"
-    failed_output_file_policy = r"datasets\sft_failed_traces_policy.jsonl"
-    training_dataset_path_policy = r"datasets\sft_training_dataset_policy.jsonl"
-    eval_dataset_path_policy = r"datasets\sft_eval_dataset_policy.jsonl"
+    successful_output_file_policy = r"datasets\sft_successful_traces_policy_self_gen.jsonl"
+    failed_output_file_policy = r"datasets\sft_failed_traces_policy_self_gen.jsonl"
+    training_dataset_path_policy = r"datasets\sft_training_dataset_policy_self_gen.jsonl"
+    eval_dataset_path_policy = r"datasets\sft_eval_dataset_policy_self_gen.jsonl"
     func_test_paths = [r"tests\functional", r"tests\connect\test_connect_pipes.py",
                        r"tests\connect\test_connect_poles.py",
                        r"tests\connect\test_connect_transport_belts.py",
                        r"tests\connect\test_connect_walls.py"]
-    dataloader.create_jsonl_dataset_from_db_skills(raw_input_jsonl_file,  func_test_paths)
-    dataloader.postprocess_skills(raw_input_jsonl_file, postprocessed_input_jsonl_file)
-    dataloader.create_game_traces(postprocessed_input_jsonl_file, successful_output_file_policy, failed_output_file_policy, full_policy = True)
-    dataloader.get_traces_from_notebook_skills(notebook_skill_path, successful_output_file_policy, full_policy=True)
+    #dataloader.create_jsonl_dataset_from_db_skills(raw_input_jsonl_file,  [])
+    #dataloader.postprocess_skills(raw_input_jsonl_file, postprocessed_input_jsonl_file)
+    #dataloader.create_game_traces(postprocessed_input_jsonl_file, successful_output_file_policy, failed_output_file_policy, full_policy = True)
+    #dataloader.get_traces_from_notebook_skills(notebook_skill_path, successful_output_file_policy, full_policy=True)
     dataloader.create_training_eval_dataset(successful_output_file_policy, training_dataset_path_policy, eval_dataset_path_policy)
     #dataloader.add_system_prompt(training_dataset_path)
     #dataloader.add_system_prompt(eval_dataset_path)
