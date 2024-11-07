@@ -667,7 +667,6 @@ def get_data_scenario(folder, curriculum = {}):
     return starting_inventory, starting_snippet
 
 if __name__ == "__main__":
-    save_synth_skills_into_db()
     use_crafting_objectives = True
     sampler = BottomsUpSkillSampler(model = "gpt-4o", prompt_with_recipes=True)
     inventory = {
@@ -769,4 +768,4 @@ if __name__ == "__main__":
 
         
     print("All objectives have been completed. The program will now exit.")
-    #save_synth_skills_into_db()
+    save_synth_skills_into_db()
