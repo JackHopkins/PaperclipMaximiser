@@ -34,29 +34,34 @@ class SFTDatasetCreator:
         # get all folder names in the starting scenario folder
         self.starting_scenario_names = os.listdir(starting_scenario_folder)
 
+    def read_input_file(self, input_file) -> List[Dict]:
+        with open(input_file) as f:
+            skills = [json.loads(line) for line in f.readlines()]
+        return skills
+    
+    def read_output_file(self, output_file) -> List[Dict]:
+        if os.path.exists(output_file):
+            with open(output_file) as f:
+                skills = [json.loads(line) for line in f.readlines()]
+        else:
+            skills = []
+        return skills
+
+    def check_if_skill_exists(self, skill, existing_skills) -> bool:
+        for existing_skill in existing_skills:
+            if existing_skill["name"] == skill["name"] and existing_skill["implementation"] == skill["implementation"]:
+                return True
+        return False
 
     def postprocess_skills(self, input_file, output_file) -> Dict:
         # check if the output file exists
-        if os.path.exists(output_file):
-            # read in the output jsonl file
-            with open(output_file) as f:
-                post_processed_skills = [json.loads(line) for line in f.readlines()]
-        else:
-            post_processed_skills = []
-
-        # read in the input jsonl file
-        with open(input_file) as f:
-            skills = [json.loads(line) for line in f.readlines()]
-
+        post_processed_skills = self.read_output_file(input_file)
+        # read in the skills from the input file
+        skills = self.read_input_file(input_file)
 
         for skill_idx, skill in enumerate(skills):
             print(f"Processing skill {skill_idx}/{len(skills)}")
-            exists = False
-            # check if the skill is already post processed
-            for postprocessed_skill in post_processed_skills:
-                if postprocessed_skill["name"] == skill["name"] and postprocessed_skill["implementation"] == skill["implementation"]:
-                    exists = True
-                    break
+            exists = self.check_if_skill_exists(skill, post_processed_skills)
             if exists:
                 continue
             try:
@@ -67,6 +72,48 @@ class SFTDatasetCreator:
             # save the skill to the output file
             with open(output_file, "a") as f:
                 f.write(json.dumps(skill) + "\n")
+
+    def postprocess_skills_with_planning(self, input_file, output_file):
+        # check if the output file exists
+        post_processed_skills = self.read_output_file(output_file)
+        # read in the skills from the input file
+        skills = self.read_input_file(input_file)
+        instance = FactorioInstance(address='localhost',
+                                bounding_box=200,
+                                tcp_port=27015,
+                                fast=True,
+                                #cache_scripts=False,
+                                inventory={})
+        for skill_idx, skill in enumerate(skills):
+            print(f"Processing skill {skill_idx}/{len(skills)}")
+            exists = self.check_if_skill_exists(skill, post_processed_skills)
+            if exists:
+                continue
+            if "mart" in skill["version"]:
+                try:
+                    skill = self.backfill_plan(skill, instance)
+                except Exception as e:
+                    print(f"Error in skill {skill['name']}: {e}")
+                    continue
+            ## save the skill to the output file
+            with open(output_file, "a") as f:
+                f.write(json.dumps(skill) + "\n")
+
+
+    def backfill_plan(self, skill: Dict, instance) -> Dict:
+        # We need a objective, starting mining scenario and the starting inventory
+        # everything that is over 30 sleeep, put to 30
+        if "meta" in skill and "objective" in skill["meta"] and "plan" in skill["meta"]["objective"] and skill["meta"]["objective"]["plan"]:
+            skill["initial_plan"] = skill["meta"]["objective"]["plan"]
+            return skill
+        # get the initial mining setup
+        initial_setup_result = self.get_initial_mining_setup(skill, instance) 
+        if not initial_setup_result["success"]:
+            raise ValueError(f"Error in getting initial mining setup: {initial_setup_result['error']}")
+
+        plan = self.postprocessor.generate_planning(skill, initial_setup_result)
+        skill["initial_plan"] = plan
+        return skill
 
     def enchance_skill_with_attributes(self, skill: Dict) -> Dict:
         # We need a objective, starting mining scenario and the starting inventory
@@ -194,9 +241,8 @@ class SFTDatasetCreator:
         output_list, result = eval_program_with_result_trace(instance, new_step)
         return output_list, result, new_step
 
-    def get_policy_from_skill(self, skill: Dict, instance) -> Dict:
-        traces = []
-        
+
+    def get_initial_mining_setup(self, skill, instance):
         instance.reset()
         instance.initial_inventory = skill["starting_inventory"]
         instance.reset()
@@ -209,20 +255,30 @@ class SFTDatasetCreator:
 
         output_list, result = eval_program_with_result_trace(instance, starting_scenario_code)
         if "error" in result.lower():
-            return {"success": False, "traces": [], "error_message": result}
+            return {"success": False, "error": result}
 
         initial_mining_setup = get_mining_setup(instance)
+        return {"success": True, "mining_setup": initial_mining_setup}
+    
+    def get_policy_from_skill(self, skill: Dict, instance) -> Dict:
+        traces = []
+        
+        initial_setup_result = self.get_initial_mining_setup(skill, instance) 
+        if not initial_setup_result["success"]:
+            return {"success": False, "traces": [], "error_message": initial_setup_result["error"]}
+
+        initial_mining_setup = initial_setup_result["mining_setup"]
         #first_user_message = f"Your starting inventory is {skill['starting_inventory']}. Your initial mining setup is: {initial_mining_setup}. Create a script to achieve the following objective: {skill['objective']}"
         first_user_message = f"Your starting inventory is {skill['starting_inventory']}. Your initial mining setup is: {initial_mining_setup}. Create a useful task that you can carry out in the current game and the python script to achieve the task"
         traces.append({"role": "system", "content": self.system_prompt})
         
-        if "meta" in skill and skill["meta"] and "objective" in skill["meta"] and "plan" in skill["meta"]["objective"]:
-            plan = "\n" + skill["meta"]["objective"]["plan"] + "\n" if skill["meta"]["objective"]["plan"] else "\n"
+        if "initial_plan" in skill:
+            plan = "\n" + skill["initial_plan"] + "\n" if skill["initial_plan"] else "\n"
         else:
             plan = "\n"
         if plan != "\n":
-            first_user_message += f"Also think step by step how you can achieve this task and bring out a thorough plan"
-        assistant_message = f"Sure! The task I will carry out is {skill['objective']}.{plan}The policy to achieve this task is \n\n```python\n{skill['implementation']}\n```"
+            first_user_message += f"First bring out a thorough step-by-step plan how you can achieve this task and then create the python script to achieve the task."
+        assistant_message = f"Sure! The task I will carry out is {skill['objective']}{plan}The policy to achieve this task is \n\n```python\n{skill['implementation']}\n```"
         traces.append({"role": "user", "content": first_user_message})
         traces.append({"role": "assistant", "content": assistant_message})
         return {"success": True, "traces": traces}
@@ -371,13 +427,14 @@ class SFTDatasetCreator:
                 with open(fail_output_file, "a") as f:
                     f.write(json.dumps(skill) + "\n")
 
-    def get_skill_from_nb_skills(self, implementation, curriculum_item):
+    def get_skill_from_nb_skills(self, implementation, curriculum_item, override_plan = False):
         objective = curriculum_item["objective"]
         version = "mart_nb"
         description =""
         signature = ""
         plan = curriculum_item["full_plan"]
         plan = plan.replace("\n\n", "\n")
+        plan = plan.replace("Plan Analysis:\n", "")
         # remove import from implementation
         implementation = implementation.replace("\n###SEP", "")
         implementation = implementation.replace("\n#Step Execution", "")
@@ -393,11 +450,11 @@ class SFTDatasetCreator:
         meta = {"curriculum": curriculum_item, "objective": {"objective": objective, "plan": plan, "implementation_tries": 0}}
         return {"name": curriculum_item["name"], "implementation": implementation, "description": description, 
                 "signature": signature, "dependencies": dependencies, "version": version, "starting_inventory": starting_inventory, "objective": objective,
-                "starting_scenario": curriculum_item["starting_scenario"], "meta": meta}
+                "starting_scenario": curriculum_item["starting_scenario"], "meta": meta, "initial_plan": plan}
 
 
 
-    def get_traces_from_notebook_skills(self, nb_skill_folder, output_file, full_policy = False):
+    def get_traces_from_notebook_skills(self, nb_skill_folder, output_file, full_policy = False, override_plan  = False):
         # open the output file to get existing successful traces
         with open(output_file) as f:
             successful_traces = [json.loads(line) for line in f.readlines()]
@@ -427,7 +484,7 @@ class SFTDatasetCreator:
                     with open(os.path.join(starting_scenario_path, skill, "full_snippet.py")) as f:
                         full_snippet = f.read()
 
-                    skill = self.get_skill_from_nb_skills(full_snippet, skill_data)
+                    skill = self.get_skill_from_nb_skills(full_snippet, skill_data, override_plan = override_plan)
                     exists = False
                     for trace in successful_traces:
                         if trace["name"] == skill["name"] and trace["implementation"] == skill["implementation"]:
@@ -491,13 +548,14 @@ if __name__ == "__main__":
     notebook_skill_path = r"datasets/notebook_skills"
     raw_input_jsonl_file = r"datasets\sft_dataset_raw.jsonl"
     postprocessed_input_jsonl_file = r"datasets\sft_dataset_postprocessed.jsonl"
+    postprocessed_input_jsonl_file_planning_backfilled = r"datasets\sft_dataset_postprocessed_planning.jsonl"
     successful_output_file = r"datasets\sft_successful_traces.jsonl"
     failed_output_file = r"datasets\sft_failed_traces.jsonl"
     training_dataset_path = r"datasets\sft_training_dataset.jsonl"
     eval_dataset_path = r"datasets\sft_eval_dataset.jsonl"
-    successful_output_file_policy = r"datasets\sft_successful_traces_policy_self_gen.jsonl"
-    failed_output_file_policy = r"datasets\sft_failed_traces_policy_self_gen.jsonl"
-    training_dataset_path_policy = r"datasets\sft_training_dataset_policy_self_gen.jsonl"
+    successful_output_file_policy = r"datasets\sft_successful_traces_policy_self_gen_v2.jsonl"
+    failed_output_file_policy = r"datasets\sft_failed_traces_policy_self_gen_v2.jsonl"
+    training_dataset_path_policy = r"datasets\sft_training_dataset_policy_self_gen_v2.jsonl"
     eval_dataset_path_policy = r"datasets\sft_eval_dataset_policy_self_gen.jsonl"
     func_test_paths = [r"tests\functional", r"tests\connect\test_connect_pipes.py",
                        r"tests\connect\test_connect_poles.py",
@@ -505,7 +563,7 @@ if __name__ == "__main__":
                        r"tests\connect\test_connect_walls.py"]
     #dataloader.create_jsonl_dataset_from_db_skills(raw_input_jsonl_file,  [])
     #dataloader.postprocess_skills(raw_input_jsonl_file, postprocessed_input_jsonl_file)
-    #dataloader.create_game_traces(postprocessed_input_jsonl_file, successful_output_file_policy, failed_output_file_policy, full_policy = True)
+    dataloader.create_game_traces(postprocessed_input_jsonl_file_planning_backfilled, successful_output_file_policy, failed_output_file_policy, full_policy = True)
     #dataloader.get_traces_from_notebook_skills(notebook_skill_path, successful_output_file_policy, full_policy=True)
     dataloader.create_training_eval_dataset(successful_output_file_policy, training_dataset_path_policy, eval_dataset_path_policy)
     #dataloader.add_system_prompt(training_dataset_path)
