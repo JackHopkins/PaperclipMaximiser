@@ -180,4 +180,5 @@ if __name__ == "__main__":
         #starting_scenarios = ["multiple_entiti_environment"]
         evaluator.run_simulations_from_starting_scenarios(starting_scenarios, 2, 2, include_plan=True)
     else:
-       evaluator.run_supervised_episode(5, "Get 1 offshore pump", include_plan=True)
+       objective = "Get 1 offshore pump"
+       evaluator.run_supervised_episode(5, objective, include_plan=True)
