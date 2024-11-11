@@ -277,7 +277,7 @@ class SFTDatasetCreator:
         else:
             plan = "\n"
         if plan != "\n":
-            first_user_message += f"First bring out a thorough step-by-step plan how you can achieve this task and then create the python script to achieve the task."
+            first_user_message += f"\nFirst bring out a thorough step-by-step plan how you can achieve this task and then create the python script to achieve the task."
         assistant_message = f"Sure! The task I will carry out is {skill['objective']}{plan}The policy to achieve this task is \n\n```python\n{skill['implementation']}\n```"
         traces.append({"role": "user", "content": first_user_message})
         traces.append({"role": "assistant", "content": assistant_message})
