@@ -108,7 +108,7 @@ class FactorioInstance:
             self.script_dict = {**self.lua_script_manager.action_scripts, **self.lua_script_manager.init_scripts}
             self.setup_controllers(self.lua_script_manager, self.game_state)
             self.initialise(fast, **inventory)
-            self.observe_all()
+            #self.observe_all()
 
         self._tasks = []
 
@@ -148,7 +148,10 @@ class FactorioInstance:
             print(e)
             pass
         #self.game_state._initial_score = 0
-        self.game_state.initial_score, goal = self.score()
+        try:
+            self.game_state.initial_score, goal = self.score()
+        except Exception as e:
+            self.game_state.initial_score, goal = 0, None
 
     def set_inventory(self, **kwargs):
         self.begin_transaction()

@@ -34,20 +34,22 @@ class Prototype(enum.Enum):
     AssemblingMachine2 = "assembling-machine-2", AssemblingMachine
     AssemblingMachine3 = "assembling-machine-3", AssemblingMachine
     BurnerInserter = "burner-inserter", BurnerInserter
-    Inserter = "inserter", Inserter
     FastInserter = "fast-inserter", Inserter
+    ExpressInserter = "express-inserter", Inserter
+    Inserter = "inserter", Inserter
     BurnerMiningDrill = "burner-mining-drill", BurnerMiningDrill
     ElectricMiningDrill = "electric-mining-drill", MiningDrill
     StoneFurnace = "stone-furnace", Furnace
     FastTransportBelt = "fast-transport-belt", TransportBelt
     ExpressTransportBelt = "express-transport-belt", TransportBelt
     Splitter = "splitter", Splitter
+    FastSplitter = "fast-splitter", Splitter
+    ExpressSplitter = "express-splitter", Splitter
     TransportBelt = "transport-belt", TransportBelt
-    UndergroundBelt = "underground-belt", Entity
-    FastUndergroundBelt = "fast-underground-belt", Entity
-    ExpressUndergroundBelt = "express-underground-belt", Entity
-    FastSplitter = "fast-splitter", BeltGroup
-    ExpressSplitter = "express-splitter", BeltGroup
+    ExpressUndergroundBelt = "express-underground-belt", UndergroundBelt
+    FastUndergroundBelt = "fast-underground-belt", UndergroundBelt
+    UndergroundBelt = "underground-belt", UndergroundBelt
+
     OffshorePump = "offshore-pump", OffshorePump
     PumpJack = "pumpjack", PumpJack
     Boiler = "boiler", Boiler
@@ -68,6 +70,7 @@ class Prototype(enum.Enum):
     Stone = "stone", None
     CopperCable = "copper-cable", None # Crafting 2 copper cables requires 1 copper plate
     ElectronicCircuit = "electronic-circuit", None # Crafting requires 3 copper cables, 1 iron plate
+    AdvancedCircuit = "advanced-circuit", None # Crafting requires 2 electronic circuits, 2 plastic bars, 4 copper cables
     Lab = "lab", Lab # Crafting requires 10 electronic circuits, 10 iron gear wheels, 4 transport belts
     AutomationSciencePack = "automation-science-pack", None
     Accumulator = "accumulator", Accumulator
@@ -80,6 +83,7 @@ class Prototype(enum.Enum):
     SciencePack1 = "science-pack-1", None # Crafting requires 1 copper plate, 1 iron gear wheel
     SciencePack2 = "science-pack-2", None # Crafting requires 1 inserter, 1 transport belt
     SciencePack3 = "science-pack-3", None # Crafting requires 1 advanced circuit, 1 engine unit, 1 electric mining drill
+    MilitarySciencePack = "military-science-pack", None # Crafting requires 1 piercing round magazine, 1 grenade, 1 gun turret
     EngineUnit = "engine-unit", None # Crafting requires 1 iron gear wheel, 1 pipe, 2 engine units
 
 prototype_by_name = {prototype.value[0]: prototype for prototype in Prototype}

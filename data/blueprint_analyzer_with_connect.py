@@ -2,7 +2,7 @@ import json
 import os
 from collections import defaultdict
 from dataclasses import dataclass
-from typing import List, Dict, Optional
+from typing import List, Dict, Optional, Union, Tuple
 from typing import Union
 
 from factorio_entities import EntityGroup
@@ -21,9 +21,19 @@ class Entity:
     neighbours: List[int] = None
     input_priority: str = None
     recipe: Optional[str] = None
+    output_priority: str = None
+    control_behavior: Dict = None
+    connections: Dict = None
+    filter: Dict = None
 
 
-class BlueprintAnalyzer:
+class BlueprintAnalyzerWithConnect:
+    BELT_TYPES = {
+        'transport-belt',
+        'fast-transport-belt',
+        'express-transport-belt'
+    }
+
     def __init__(self, blueprint: Dict):
         self.blueprint = blueprint
         self.entities = [Entity(**entity) for entity in self.blueprint['entities']]
@@ -39,12 +49,84 @@ class BlueprintAnalyzer:
             entity.position['x'] = entity.position['x'] - self.min_x
             entity.position['y'] = entity.position['y'] - self.min_y
 
+    def find_belt_sequences(self) -> List[List[Entity]]:
+        """Find sequences of connected belts of the same type."""
+        # Create a map of positions to entities for quick lookup
+        pos_to_entity = {(e.position['x'], e.position['y']): e for e in self.entities}
+
+        # Track processed entities
+        processed = set()
+        sequences = []
+
+        def get_connected_belts(entity: Entity, belt_type: str) -> List[Entity]:
+            """Get all belts connected to this entity in a sequence."""
+            sequence = []
+            stack = [entity]
+            seen = set()
+
+            while stack:
+                current = stack.pop(0)
+                if (current.position['x'], current.position['y']) in seen:
+                    continue
+
+                seen.add((current.position['x'], current.position['y']))
+                sequence.append(current)
+
+                # Check adjacent positions based on direction
+                x, y = current.position['x'], current.position['y']
+                adjacent_positions = [
+                    (x + 1, y), (x - 1, y),  # horizontal
+                    (x, y + 1), (x, y - 1)  # vertical
+                ]
+
+                for adj_x, adj_y in adjacent_positions:
+                    adj_entity = pos_to_entity.get((adj_x, adj_y))
+                    if (adj_entity and
+                            adj_entity.name == belt_type and
+                            (adj_x, adj_y) not in seen and
+                            abs(adj_entity.direction - current.direction) in {0, 4}):  # Same direction or opposite
+                        stack.append(adj_entity)
+
+            return sequence
+
+        # Find sequences for each belt type
+        for entity in self.entities:
+            if entity.entity_number in processed:
+                continue
+
+            if entity.name in self.BELT_TYPES:
+                sequence = get_connected_belts(entity, entity.name)
+                if len(sequence) >= 2:  # Only consider sequences of 2 or more belts
+                    sequences.append(sequence)
+                    processed.update(e.entity_number for e in sequence)
+
+        return sequences
+
+    def _get_hash(self) -> str:
+        # we get the pairwise dx and dy between all entities
+        # we then sort the pairs by dx and dy
+        # we then hash the sorted pairs
+        # this should give us a unique hash for each blueprint
+
+        pairs = []
+        for i in range(len(self.entities)):
+            for j in range(len(self.entities)):
+                dx = self.entities[i].position['x'] - self.entities[j].position['x']
+                dy = self.entities[i].position['y'] - self.entities[j].position['y']
+                pairs.append((int(dx*2), int(dy*2)))
+
+        pairs.sort()
+        return hash(tuple(pairs)), pairs
+
     def find_patterns(self):
         # Group entities by type and x-coordinate for vertical patterns
         vertical_groups = defaultdict(list)
         horizontal_groups = defaultdict(list)
 
-        for entity in self.entities:
+        # Skip belt entities as they'll be handled separately
+        non_belt_entities = [e for e in self.entities if e.name not in self.BELT_TYPES]
+
+        for entity in non_belt_entities:
             key = (entity.name, entity.direction)
             x = round(entity.position['x'] * 2) / 2  # Round to nearest 0.5
             y = round(entity.position['y'] * 2) / 2
@@ -97,32 +179,10 @@ class BlueprintAnalyzer:
                     })
                     used_entities.update(e.entity_number for e in entities)
 
-        # Collect remaining entities
-        singles = [e for e in self.entities if e.entity_number not in used_entities]
+        # Collect remaining non-belt entities
+        singles = [e for e in non_belt_entities if e.entity_number not in used_entities]
 
         return vertical_patterns, horizontal_patterns, singles
-
-    def get_inventory(self):
-        entity_counts = {}
-        for entity in self.entities:
-            entity_counts[entity.name] = entity_counts.get(entity.name, 0) + 1
-        return entity_counts
-
-    def _get_hash(self) -> str:
-        # we get the pairwise dx and dy between all entities
-        # we then sort the pairs by dx and dy
-        # we then hash the sorted pairs
-        # this should give us a unique hash for each blueprint
-
-        pairs = []
-        for i in range(len(self.entities)):
-            for j in range(len(self.entities)):
-                dx = self.entities[i].position['x'] - self.entities[j].position['x']
-                dy = self.entities[i].position['y'] - self.entities[j].position['y']
-                pairs.append((int(dx*2), int(dy*2)))
-
-        pairs.sort()
-        return hash(tuple(pairs)), pairs
 
     def verify_placement(self, game_entities: List[Union[Entity, EntityGroup]]) -> bool:
         # Blueprint hash
@@ -153,6 +213,8 @@ class BlueprintAnalyzer:
 
     def generate_program(self) -> str:
         vertical_patterns, horizontal_patterns, singles = self.find_patterns()
+        belt_sequences = self.find_belt_sequences()
+
         miners = [e for e in self.entities if 'mining-drill' in e.name]
         if miners:
             origin_calc = f"game.nearest_buildable({self._name_to_prototype_string(miners[0].name)}, bounding_box=miner_box)"
@@ -166,8 +228,8 @@ class BlueprintAnalyzer:
             f"    y=0",
             ")",
             "right_bottom = Position(",
-            f"    x={self.max_x-self.min_x},",
-            f"    y={self.max_y-self.min_y}",
+            f"    x={self.max_x - self.min_x},",
+            f"    y={self.max_y - self.min_y}",
             ")",
             "center = Position(",
             "    x=(left_top.x + right_bottom.x) / 2,",
@@ -188,6 +250,23 @@ class BlueprintAnalyzer:
             "game.move_to(origin)",
             ""
         ]
+
+        # Generate belt sequences first
+        for idx, sequence in enumerate(belt_sequences):
+            if len(sequence) >= 2:
+                start = sequence[0]
+                end = sequence[-1]
+                belt_type = start.name
+
+                lines.extend([
+                    f"# Connect {belt_type} sequence",
+                    f"source_pos = Position(x=origin.x + {start.position['x']:.1f}, y=origin.y + {start.position['y']:.1f})",
+                    f"target_pos = Position(x=origin.x + {end.position['x']:.1f}, y=origin.y + {end.position['y']:.1f})",
+                    f"belt_group_{idx} = game.connect_entities(source_pos, target_pos, "
+                    f"connection_type={self._name_to_prototype_string(belt_type)})"
+                    # f"direction={self._direction_to_enum(start.direction)})",
+                    ""
+                ])
 
         # Track entity counters for variable names
         entity_counters = defaultdict(int)
@@ -237,10 +316,8 @@ class BlueprintAnalyzer:
             ])
             entity_vars.append(array_name)
 
-        # Order placement of entities by left to right
+        # Generate individual placements for remaining non-belt entities
         singles.sort(key=lambda e: e.position['x'])
-
-        # Generate individual placements
         for entity in singles:
             var_name = get_entity_var_name(entity.name)
             lines.extend([
@@ -266,6 +343,13 @@ class BlueprintAnalyzer:
 
         return "\n".join(lines)
 
+    def get_inventory(self):
+        entity_counts = {}
+        for entity in self.entities:
+            entity_counts[entity.name] = entity_counts.get(entity.name, 0) + 1
+        return entity_counts
+
+
     def _direction_to_enum(self, direction: int) -> str:
         direction_map = {0: "UP", 2: "RIGHT", 4: "DOWN", 6: "LEFT"}
         return f"Direction.{direction_map.get(direction, 'UP')}"
@@ -273,47 +357,52 @@ class BlueprintAnalyzer:
     def _name_to_prototype_string(self, name: str) -> str:
         return f"Prototype.{name.title().replace('-', '')}"
 
-def analyze_blueprint(blueprint_json: str) -> str:
-    analyzer = BlueprintAnalyzer(blueprint_json)
-    return analyzer.generate_program(), analyzer.get_inventory()
+if __name__ == "__main__":
+    execution_dir = os.path.dirname(os.path.realpath(__file__)) + "/blueprints/mining/"
+    filename = "1a. Mining"  # Early Mining"
 
-execution_dir = os.path.dirname(os.path.realpath(__file__)) + "/blueprints/manufacturing/"
-filename = "1a. Mining" #Early Mining"
+    # iterate over all json files in the directory
+    for filename in os.listdir(execution_dir):
+        if filename.endswith(".json"):
+            # skip if the python file exists
+            #if os.path.exists(execution_dir + filename.replace(".json", ".py")):
+            #    continue
+            with open(execution_dir + filename, "r") as f:
+                print(filename)
+                blueprint_json = f.read()
+                blueprint = json.loads(blueprint_json)
+                if len(blueprint['entities']) > 200:
+                    print("Skipping large blueprint")
+                    continue
+                analyzer = BlueprintAnalyzerWithConnect(blueprint)
+                code = analyzer.generate_program()
 
-# iterate over all json files in the directory
-for filename in os.listdir(execution_dir):
-    if filename.endswith(".json"):
-        # skip if the python file exists
-        if os.path.exists(execution_dir+filename.replace(".json", ".py")):
-            continue
-        with open(execution_dir+filename, "r") as f:
-            print(filename)
-            blueprint_json = f.read()
-            blueprint = json.loads(blueprint_json)
-            if len(blueprint['entities']) > 100:
-                print("Skipping large blueprint")
-                continue
-            analyzer = BlueprintAnalyzer(blueprint)
-            code = analyzer.generate_program()
-            inventory = analyzer.get_inventory()
-            instance = FactorioInstance(address='localhost',
-                                        bounding_box=200,
-                                        tcp_port=27015,
-                                        fast=True,
-                                        cache_scripts=False,
-                                        inventory=inventory)
-            score, goal, result = instance.eval_with_error(code.replace("game.", ""), timeout=30)
-            if "error" in result:
-                raise Exception(result["error"])
+                if "connect_entities" not in code:
+                    continue
+                inventory = analyzer.get_inventory()
+                instance = FactorioInstance(address='localhost',
+                                            bounding_box=200,
+                                            tcp_port=27015,
+                                            fast=True,
+                                            cache_scripts=False,
+                                            inventory=inventory)
+                try:
+                    score, goal, result = instance.eval_with_error(code.replace("game.", ""), timeout=60)
+                    if "error" in result:
+                        raise Exception(result["error"])
+                except Exception as e:
+                    print(e)
+                    print("Error in blueprint")
+                    continue
 
-            print(code)
-            game_entities = instance.get_entities()
-            try:
-                analyzer.verify_placement(game_entities)
-            except AssertionError as e:
-                print(e)
-                print("Error in blueprint")
-                continue
-            # Write the code to a python file of the same name
-            with open(execution_dir+filename.replace(".json", ".py"), "w") as f1:
-                f1.write(code)
+                print(code)
+                game_entities = instance.get_entities()
+                try:
+                    analyzer.verify_placement(game_entities)
+                except AssertionError as e:
+                    print(e)
+                    print("Error in blueprint")
+                    continue
+                # Write the code to a python file of the same name
+                with open(execution_dir + filename.split('.json')[0] + " with connect"+  ".py", "w") as f1:
+                    f1.write(code)

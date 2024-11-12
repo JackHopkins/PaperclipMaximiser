@@ -65,6 +65,9 @@ class BlueprintIndex:
                 result.update(self.name_to_blueprints[name])
         return sorted(list(filter(lambda x:x.entity_count<=max_entities, result)), key=lambda bp: bp.entity_count)
 
+    def find_all_blueprints(self, max_entities=100):
+        return list(filter(lambda x:x.entity_count<=max_entities, self.blueprints))
+
 
 def get_blueprints_from_blueprint_book(data: Dict, source_file: str, index: BlueprintIndex) -> int:
     """Process blueprints from blueprint book and return count of processed blueprints"""
@@ -202,7 +205,7 @@ def get_blueprints_from_blueprint_book(data: Dict, source_file: str, index: Blue
                 ):
                     processed += 1
 
-    if 'blueprint_book' in data:
+    if 'blueprint_book' in data and 'blueprints' in data['blueprint_book']:
         for bp in data['blueprint_book']['blueprints']:
             if 'blueprint_book' in bp:
                 processed += get_blueprints_from_blueprint_book(bp, source_file, index)
@@ -225,6 +228,15 @@ def write_blueprints_to_folder(blueprints: List[Blueprint], folder: str):
         with open(f"{folder}/{label}.json", "w") as f:
             json.dump(bp.data, f, indent=2)
 
+def get_processed_filenames(blueprints_dir: str) -> Set[str]:
+    """Get all filenames from subdirectories of blueprints folder"""
+    processed = set()
+    for subdir in Path(blueprints_dir).iterdir():
+        if subdir.is_dir() and subdir.name != 'decoded' and subdir.name != 'misc':
+            for file in subdir.glob('*.json'):
+                processed.add(file.stem)
+    return processed
+
 def main():
     # Get prototype names
     prototype_names = set(proto.value[0] for proto in Prototype)
@@ -242,6 +254,10 @@ def main():
     # Plot histograms
     plot_histograms(index.blueprints)
 
+    # Get already processed blueprints
+    processed_names = get_processed_filenames("./blueprints")
+
+
     # Find mining drill blueprints
     # mining_drills = {'burner-mining-drill', 'electric-mining-drill'}
     # drill_blueprints = index.find_blueprints_with_any_of(mining_drills)
@@ -257,10 +273,42 @@ def main():
     #electricity_blueprints = index.find_blueprints_with_any_of(electricity)
     #write_blueprints_to_folder(electricity_blueprints, "./blueprints/electricity")
 
+    # load all filenames from directories in blueprints
+    # load all blueprints from blueprints
+
+
     # Find assembly  blueprints
-    manufacturing = { 'assembling-machine-1', 'assembling-machine-2', 'assembling-machine-3' }
-    manufacturing_blueprints = index.find_blueprints_with_any_of(manufacturing)
-    write_blueprints_to_folder(manufacturing_blueprints, "./blueprints/manufacturing")
+
+    all_blueprints = index.find_all_blueprints()
+    #write_blueprints_to_folder(manufacturing_blueprints, "./blueprints/manufacturing")
+
+    # Find unprocessed blueprints
+    processed_blueprints = set()
+    for bp in all_blueprints:
+        processed_blueprints.add(bp)
+
+    # Find blueprints that haven't been processed yet
+    misc_blueprints = [bp for bp in index.blueprints if
+                       bp not in processed_blueprints and bp.label not in processed_names]
+
+    analyze_missing_prototypes(index.blueprints, prototype_names)
+
+    # Filter out blueprints that only contain belts
+    belt_only_blueprints = []
+    non_belt_blueprints = []
+    for bp in misc_blueprints:
+        if all('-belt' in entity['name'] or 'splitter' in entity['name'] for entity in bp.data['entities']):
+            belt_only_blueprints.append(bp)
+        else:
+            non_belt_blueprints.append(bp)
+
+    # Write unprocessed blueprints to misc folder
+    write_blueprints_to_folder(belt_only_blueprints, "./blueprints/balancing")
+    write_blueprints_to_folder(non_belt_blueprints, "./blueprints/other")
+
+    print(f"Total blueprints: {len(index.blueprints)}")
+    print(f"Processed blueprints: {len(processed_blueprints)}")
+    print(f"Misc blueprints: {len(misc_blueprints)}")
 
 
     pass

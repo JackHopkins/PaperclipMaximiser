@@ -4,7 +4,7 @@
     <head>
         <meta charset="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
-        <title>FORGE | a Framework for Open-ended Resource Gathering and Expansion</title>
+        <title>LLMs are Central Planners | a Framework for Open-ended Resource Gathering and Expansion</title>
 
         <link href="https://fonts.googleapis.com/css?family=Google+Sans|Noto+Sans|Castoro" rel="stylesheet" />
 
@@ -74,7 +74,7 @@
                 <div class="container is-max-desktop">
                     <div class="columns is-centered">
                         <div class="column has-text-centered">
-                            <h1 class="title is-1 publication-title">CLIPPY: Open-Ended Automation with Large Language Models</h1>
+                            <h1 class="title is-1 publication-title">Large Language Models are Central Planners</h1>
 <!--                            <h2 class="title is-2">Paperclip Maximization with Large Language Models</h2>-->
 
                             <div class="is-size-5 publication-authors">
@@ -252,7 +252,7 @@
                             <p style="font-size: 125%;">
 <!--                                We demonstrate the framework's capabilities by training an agent (CLIPPY) through Supervised Fine-Tuning (SFT) and Reinforcement Learning (RL) to maximize resource production growth, specifically focusing on the canonical Paperclip Maximization scenario.-->
 <!--&lt;!&ndash;                                Clippy obtained 4pps (Paperclips per second) in the game environment, where GPT-4o and Claude only obtained 0.5pps for brief periods.&ndash;&gt;-->
-                                 We demonstrate the framework's capabilities by training an agent (CLIPPY) through Supervised Fine-Tuning (SFT) and Reinforcement Learning (RL) to maximize resource production growth. Using the canonical Paperclip Maximization scenario as our objective case, we provide the first empirical demonstration of how LLMs develop and optimize unbounded objectives.
+                                 We demonstrate the framework's capabilities by training an agent through Supervised Fine-Tuning (SFT) and Reinforcement Learning (RL) to maximize resource production growth. Using the canonical Paperclip Maximization scenario as our objective case, we provide the first empirical demonstration of how LLMs develop and optimize unbounded objectives.
 
                             </p>
                             <p style="font-size: 125%;">
@@ -302,7 +302,7 @@
                             <h2 class="title is-3"><span class="dvima">Introduction</span></h2>
                             <div class="content has-text-justified">
                                 <span style="font-size: 110%;">
-                                    Building generally capable AI agents that can pursue open-ended objectives in complex, resource-rich environments represents a crucial challenge for understanding advanced AI systems.
+                                    Building AI agents that can pursue open-ended objectives in complex, resource-rich environments represents a crucial challenge for deploying generally capable AI systems in the real world.
                                     While recent work has explored embodied agents in sandbox environments like Minecraft, these environments typically focus on individual crafting and exploration rather than systematic resource optimization and industrial-scale production chains.
                                     The difference in scale between Factorio and Minecraft is striking.
                                     Whereas completing Minecraft typically requires harvesting 1-2×10<sup>2</sup> resource units,
@@ -321,7 +321,7 @@
                                     <br/>
 <!--                                    Unlike Minecraft's localized crafting decisions, actions in Factorio have cascading effects throughout the production system. For instance, scaling up electronic circuit production requires coordinating multiple interdependent processes: copper wire manufacturing, iron plate smelting, and raw ore mining—each with its own logistics and processing requirements.-->
 
-                                    Classical approaches to agent development, using reinforcement learning (RL) and imitation learning on primitive actions, struggle to capture this complexity.
+                                    Classical approaches to agent development, using reinforcement learning (RL) and imitation learning on primitive actions using Markov Decision Processes, struggle to capture this complexity due to the combinatorial explosion of possible actions and states.
                                     While recent large language model (LLM) based agents have shown impressive capabilities in generating action plans, they typically lack mechanisms for building and maintaining reusable strategies.
                                     We address this limitation by designing an action-space where agents write, execute, and refine Python programs.
                                     Such an approach has recently been shown to improve the performance of LLMs on several natural language benchmarks, as well as providing several functional advantages:
@@ -354,15 +354,17 @@
                                 <span style="font-size: 110%;">
                                    We present a novel framework for evaluating embodied LLMs in Factorio that extends beyond traditional Markov Decision Process (MDP) formulations. Instead of operating in a discrete action space, our agents act in the space of valid Python programs, where each action is a well-formed program that can be evaluated in a persistent execution environment.
 
-                                   The framework consists of two key components:
+                                   The framework consists of three key components:
                                     <ol>
                                         <li><b>A Programmatic Action Space</b>: The environment exposes a domain-specific API comprising 19 primitive operations, which can be composed using Python's computational primitives (sequences, conditionals, loops, functions) to form arbitrary programs p ∈ P. This compositional structure allows agents to construct increasingly abstract behaviors from primitive operations, following the principle of procedural abstraction.</li>
+                                        <li><b>A Unified Observation Space</b>: The environment provides a unified, symbolic observation space, where the agent's state is represented as the output of the most recent program execution. This allows the agent to define the scope of its observations by printing relevant information to the environment's output stream.</li>
                                         <li><b>Stateful Execution Environment</b>:
                                             Rather than maintaining a fixed-dimensional state representation, our environment leverages Python's namespace as a flexible, symbolic memory system. The namespace N maps identifiers to values, N: I → V, enabling agents to:
                                             <ul>
                                                 <li>Persist arbitrary program state between execution steps</li>
                                                 <li>Build up hierarchical abstractions through function definitions</li>
                                                 <li>Maintain references to game objects and computational results</li>
+                                                <li>Print state into the observation space</li>
                                             </ul>
                                         </li>
                                     </ol>

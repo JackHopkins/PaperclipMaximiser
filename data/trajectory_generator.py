@@ -1,7 +1,10 @@
 import math
 import os
+import textwrap
 
-from factorio_entities import Position, BoundingBox
+from jinja2 import Template
+
+from factorio_entities import Position, BoundingBox, EntityGroup
 from factorio_instance import FactorioInstance, Direction
 from factorio_types import Resource, prototype_by_name
 
@@ -15,12 +18,18 @@ import json
 class BlueprintEntity:
     entity_number: int
     name: str
-    position: dict
+    position: Dict[str, float]
     direction: int = 0
+    items: Dict[str, int] = None
+    type: str = None
+    neighbours: List[int] = None
+    input_priority: str = None
     recipe: Optional[str] = None
-    neighbours: Optional[dict] = None
-    type: Optional[str] = None
-    items: Optional[dict] = None
+    output_priority: str = None
+    control_behavior: Dict = None
+    connections: Dict = None
+    filter: Dict = None
+    dimensions: Tuple[int, int] = None  # (width, height)
 
 
 class EntityPriority(Enum):
@@ -74,13 +83,13 @@ def find_valid_origin(entities: List[BlueprintEntity], resource: Resource, game:
         return Position(x=0, y=0)
 
     # Calculate bounding box dimensions based on miner positions
-    min_x = min(e.position["x"] for e in miners)
-    max_x = max(e.position["x"] for e in miners)
-    min_y = min(e.position["y"] for e in miners)
-    max_y = max(e.position["y"] for e in miners)
+    min_x = min(e.position["x"] for e in entities)
+    max_x = max(e.position["x"] for e in entities)
+    min_y = min(e.position["y"] for e in entities)
+    max_y = max(e.position["y"] for e in entities)
 
-    # Create bounding box relative to first miner
-    base_miner = miners[0]
+    # Create bounding box relative to first entity
+    base_miner = entities[0]
     left_top = Position(
         x=min_x - base_miner.position["x"],
         y=min_y - base_miner.position["y"]
@@ -102,7 +111,7 @@ def find_valid_origin(entities: List[BlueprintEntity], resource: Resource, game:
 
     # Use nearest_buildable to find valid position
     return game.nearest_buildable(
-        prototype_by_name[base_miner.name],
+        prototype_by_name[miners[0].name],
         bounding_box=bounding_box
     )
 
@@ -255,7 +264,7 @@ def get_entity_priority(entity_name: str) -> EntityPriority:
 
 def is_transport_belt(entity_name: str) -> bool:
     """Check if an entity is a transport belt."""
-    return "transport-belt" in entity_name or "splitter" in entity_name or "underground-belt" in entity_name
+    return "transport-belt" in entity_name# or "splitter" in entity_name or "underground-belt" in entity_name
 
 def direction_to_enum(direction: int) -> str:
     """Convert numeric direction to Direction enum name."""
@@ -362,12 +371,40 @@ def convert_blueprint_to_trace(blueprint_json: str) -> List[str]:
     blueprint = json.loads(blueprint_json)
     entities = [BlueprintEntity(**e) for e in blueprint["entities"]]
 
+    # Normalize positions by subtracting minimum x,y
+    min_x = min(e.position["x"] for e in entities)
+    min_y = min(e.position["y"] for e in entities)
+
+    # Create new normalized entities
+    normalized_entities = []
+    for entity in entities:
+        new_entity = BlueprintEntity(
+            entity_number=entity.entity_number,
+            name=entity.name,
+            position={
+                "x": entity.position["x"] - min_x,
+                "y": entity.position["y"] - min_y
+            },
+            direction=entity.direction,
+            recipe=entity.recipe,
+            neighbours=entity.neighbours,
+            type=entity.type,
+            items=entity.items
+        )
+        normalized_entities.append(new_entity)
+
+    # Use normalized entities for the rest of the processing
+    entities = normalized_entities
+
     # Determine resource type
     resource = determine_resource_type(entities)
 
     miners = [p for p in entities if "mining-drill" in p.name]
 
-    origin = find_valid_origin(entities, resource, instance)
+    try:
+        origin = find_valid_origin(entities, resource, instance)
+    except Exception as e:
+        raise ValueError(f"Failed to find valid origin: {e}. Skipping blueprint.")
 
     trace = []
     if resource and miners:
@@ -401,7 +438,7 @@ def convert_blueprint_to_trace(blueprint_json: str) -> List[str]:
         trace.append(f"# Place {entity.name}")
 
         if placement.reference_entity is None:
-            trace.append(f"game.move_to(origin+Position(x={entity.position['x']},y={entity.position['y']})))")
+            trace.append(f"game.move_to(origin+Position(x={entity.position['x']},y={entity.position['y']}))")
             if "mining-drill" in entity.name:
                 trace.append(
                     f"{entity_var} = game.place_entity("
@@ -413,7 +450,8 @@ def convert_blueprint_to_trace(blueprint_json: str) -> List[str]:
                 trace.append(
                     f"{entity_var} = game.place_entity("
                     f"Prototype.{prototype_by_name[entity.name].name}, "
-                    f"direction=Direction.{direction_to_enum(entity.direction)})"
+                    f"direction=Direction.{direction_to_enum(entity.direction)}, "
+                    f"position=origin+Position(x={entity.position['x']},y={entity.position['y']}))"
                 )
         else:
             ref_var = placed_entity_vars[placement.reference_entity]
@@ -428,7 +466,7 @@ def convert_blueprint_to_trace(blueprint_json: str) -> List[str]:
             if abs(dx) > abs(dy):
                 direction_words = ["RIGHT" if dx > 0 else "LEFT"]
                 spacing = abs(dx)
-                spacing -= tile_dimensions[entity.name][0]
+                spacing -= (tile_dimensions[entity.name][0]/2 + tile_dimensions[ref.name][0]/2)
 
                 if 0 < abs(dy) < 1:
                     if dy > 0 and ref.name != 'burner-mining-drill': # We should generalise this to all entities larger than 1x1
@@ -441,7 +479,7 @@ def convert_blueprint_to_trace(blueprint_json: str) -> List[str]:
             else:
                 direction_words = ["DOWN" if dy > 0 else "UP"]
                 spacing = abs(dy)
-                spacing -= tile_dimensions[entity.name][1]
+                spacing -= (tile_dimensions[entity.name][1]/2 + tile_dimensions[ref.name][1]/2)
                 if 0 < abs(dx) < 1:
                     if dx > 0 and ref.name != 'burner-mining-drill': # We should generalise this to all entities larger than 1x1
                         position_ref_modifier = [".right()"]*abs(dx)
@@ -479,21 +517,49 @@ def convert_blueprint_to_trace(blueprint_json: str) -> List[str]:
             trace.append(
                 f"game.set_entity_recipe({entity_var}, "
                 f"Prototype.{prototype_by_name[entity.recipe].name})"
-            )
+  )
 
         trace.append("")
 
-    # Place belt segments
+
     # Place belt segments
     for segment_idx, segment in enumerate(belt_segments):
         start, end = find_segment_endpoints(segment)
 
+        # Connection type
+        connection_type = "Prototype." + prototype_by_name[start.name].name
+
+        if start.position['x'] > end.position['x']:
+            direction = 6
+        elif start.position['x'] < end.position['x']:
+            direction = 2
+        elif start.position['y'] > end.position['y']:
+            direction = 0
+        else:
+            direction = 4
         # If the start needs to connect to a non-belt entity, reference that
         trace.append(f"# Place transport belt segment {segment_idx + 1}")
+
 
         # Generate variable names for the segment endpoints
         start_var = generate_entity_variable_name(start.name, entities, start.entity_number)
         end_var = generate_entity_variable_name(end.name, entities, end.entity_number)
+
+        if len(segment) == 1:
+            trace.append(f"game.move_to(origin+Position(x={segment[0].position['x']},y={segment[0].position['y']}))")
+            trace.append(
+                f"belt_segment_{segment_idx + 1} = game.place_entity("
+                f"{connection_type}, "
+                f"direction=Direction.{direction_to_enum(segment[0].direction)}, "
+                f"position=origin+Position(x={segment[0].position['x']}, y={segment[0].position['y']})"
+                f")"
+            )
+            trace.append(
+                f"assert belt_segment_{segment_idx + 1}, "
+                f"'Failed to place belt segment {segment_idx + 1}'"
+            )
+            trace.append("")
+            continue
 
         # Find reference points for the belt segment
         start_ref = None
@@ -515,11 +581,11 @@ def convert_blueprint_to_trace(blueprint_json: str) -> List[str]:
                 end_closest_distance = end_distance
                 end_closest_var = placed_entity_vars[entity.entity_number]
 
-            if abs(entity.position["x"] - start.position["x"]) <= 1 and \
-                    abs(entity.position["y"] - start.position["y"]) <= 1:
+            if abs(entity.position["x"] - start.position["x"]) < 1 and \
+                    abs(entity.position["y"] - start.position["y"]) < 1:
                 start_ref = f"{placed_entity_vars[entity.entity_number]}.position"
-            if abs(entity.position["x"] - end.position["x"]) <= 1 and \
-                    abs(entity.position["y"] - end.position["y"]) <= 1:
+            if abs(entity.position["x"] - end.position["x"]) < 1 and \
+                    abs(entity.position["y"] - end.position["y"]) < 1:
                 end_ref = f"{placed_entity_vars[entity.entity_number]}.position"
 
         if not start_ref:
@@ -532,11 +598,25 @@ def convert_blueprint_to_trace(blueprint_json: str) -> List[str]:
             dy = end.position["y"] - end_closest_entity.position["y"]
             end_ref = f"Position(x={end_closest_var}.position.x+{dx}, y={end_closest_var}.position.y+{dy})"
 
+        # Check to see if we should swap start and end, depending on the direction of the belts.
+        # If the belts are going down, but the start has a lower y value than the end, we should swap.
+        # If the belts are going left, but the start has a lower x value than the end, we should swap.
+
+        if start.position["y"] < end.position["y"] and start.position["x"] == end.position["x"] and direction == 4:
+            start_ref, end_ref = end_ref, start_ref
+        elif start.position["x"] < end.position["x"] and start.position["y"] == end.position["y"] and direction == 6:
+            start_ref, end_ref = end_ref, start_ref
+        elif start.position["y"] > end.position["y"] and start.position["x"] == end.position["x"] and direction == 0:
+            start_ref, end_ref = end_ref, start_ref
+        elif start.position["x"] > end.position["x"] and start.position["y"] == end.position["y"] and direction == 2:
+            start_ref, end_ref = end_ref, start_ref
+
+
         # Connect the belt segment
         trace.append(
             f"belt_segment_{segment_idx + 1} = game.connect_entities("
             f"{start_ref}, {end_ref}, "
-            f"connection_type=Prototype.TransportBelt)"
+            f"connection_type={connection_type})"
         )
 
         # Store references to placed belts
@@ -569,24 +649,143 @@ def generate_trace(blueprint_json: str) -> str:
     trace_lines = convert_blueprint_to_trace(blueprint_json)
     return "\n".join(trace_lines)
 
+def get_inventory(blueprint_json):
+    blueprint = json.loads(blueprint_json)
+    entities = [BlueprintEntity(**e) for e in blueprint["entities"]]
+    entity_counts = {}
+    for entity in entities:
+        entity_counts[entity.name] = entity_counts.get(entity.name, 0) + 1
+    return entity_counts
+
+def _create_more_ore(position: Position, size=20):
+    """
+    We need to create more ore, because some mining templates don't fit on the lab scenario ore deposits.
+    :param position: Position to create ore
+    :param size: Size of patch
+    :return: A lua script to create more ore
+    """
+    return \
+f"""
+/c local surface=game.players[1].surface
+local ore=nil
+local size={size}
+local density=10
+for y=-size, size do
+	for x=-size, size do
+		a=(size+1-math.abs(x))*10
+		b=(size+1-math.abs(y))*10
+		if a<b then
+			ore=math.random(a*density-a*(density-8), a*density+a*(density-8))
+		end
+		if b<a then
+			ore=math.random(b*density-b*(density-8), b*density+b*(density-8))
+		end
+		if surface.get_tile({position.x}+x, {position.y}+y).collides_with("ground-tile") then
+			surface.create_entity({{name="copper-ore", amount=ore, position={{{position.x}+x, {position.y}+y}}}})
+		end
+	end
+end
+""".strip()
+
+def verify_placement(game_entities, blueprint_json):
+
+    def _get_hash(entities) -> str:
+        # we get the pairwise dx and dy between all entities
+        # we then sort the pairs by dx and dy
+        # we then hash the sorted pairs
+        # this should give us a unique hash for each blueprint
+
+        pairs = []
+        for i in range(len(entities)):
+            for j in range(len(entities)):
+                dx = entities[i].position['x'] - entities[j].position['x']
+                dy = entities[i].position['y'] - entities[j].position['y']
+                pairs.append((int(dx*2), int(dy*2)))
+
+        pairs.sort()
+        return hash(tuple(pairs)), pairs
+
+    blueprint = json.loads(blueprint_json)
+    entities = [BlueprintEntity(**e) for e in blueprint["entities"]]
+    # Blueprint hash
+    hash1, blueprint_pairs = _get_hash(entities)
+
+    # Game hash
+    positions = []
+    for entity in game_entities:
+        if isinstance(entity, EntityGroup):
+            if hasattr(entity, 'belts'):
+                positions.extend([(e.position.x, e.position.y) for e in entity.belts])
+            elif hasattr(entity, 'pipes'):
+                positions.extend([(e.position.x, e.position.y) for e in entity.pipes])
+        else:
+            positions.append((entity.position.x, entity.position.y))
+
+    pairs = []
+    for i in range(len(positions)):
+        for j in range(len(positions)):
+            dx = positions[i][0] - positions[j][0]
+            dy = positions[i][1] - positions[j][1]
+            pairs.append((int(dx * 2), int(dy * 2)))
+
+    pairs.sort()
+    hash2 = hash(tuple(pairs))
+
+    assert hash1 == hash2, f"The difference in entities is {set(blueprint_pairs) - set(pairs)}"
+
 # get execution dir dynamically
-execution_dir = os.path.dirname(os.path.realpath(__file__)) + "/blueprints/mining/"
-filename = "Early Mining"
+execution_dir = os.path.dirname(os.path.realpath(__file__)) + "/blueprints/electricity/"
+output_dir = os.path.dirname(os.path.realpath(__file__)) + "/full/electricity/"
+#filename = "miner_cycle"
 
+files = os.listdir(execution_dir)
 # generate if python file doesn't exist
+for file in files:
+    filename = file.replace(".json", "").replace(".py", "")
+    if not os.path.exists(output_dir+filename+".py") and os.path.exists(execution_dir+filename+".json"):
+        with open(execution_dir+filename+".json", "r") as f:
+            blueprint_json = f.read()
+            inventory = get_inventory(blueprint_json)
+            instance.set_inventory(**inventory)
+            #instance.add_command(_create_more_ore(Position(x=0, y=0), 30))
+            instance.execute_transaction()
+            instance.move_to(Position(x=0, y=0))
+            trace = None
+            try:
+                trace = generate_trace(blueprint_json)
 
-if not os.path.exists(execution_dir+filename+".py"):
-    with open(execution_dir+filename+".json", "r") as f:
-        blueprint_json = f.read()
-        trace = generate_trace(blueprint_json)
-        # write to python file in same directory
-        with open(execution_dir+filename+".py", "w") as f1:
-            f1.write(trace.replace("game.", ""))
+                score, goal, result = instance.eval_with_error(trace.replace("game.", ""), timeout=60)
+                if "error" in result:
+                    raise Exception(result["error"])
 
-try:
-   result = instance.run_snippet_file_in_factorio_env(execution_dir+filename+".py", clean=True)
-   pass
-except Exception as e:
-    print(e)
-    print("Error running snippet in Factorio environment")
-    exit(1)
+                game_entities = instance.get_entities()
+                verify_placement(game_entities, blueprint_json)
+
+                # Write the code to a python file of the same name
+                with open(output_dir + filename.split('.json')[0] + ".py", "w") as f1:
+                    f1.write(trace)
+
+            except Exception as e:
+                print(e)
+                print("Error in blueprint")
+
+                # Load template string from file
+                with open(os.path.dirname(os.path.realpath(__file__))+"/test_template.jinja2", "r") as f:
+                    template_str = f.read()
+                    # Create template object
+                    template = Template(template_str)
+
+                    # Render the template
+                    rendered = template.render(
+                        inventory=inventory,
+                        test_name=filename.replace(" ", "_"),
+                        test_content=trace,
+                    )
+
+                    # Write to file
+                    with open(output_dir + "test_"+ filename + "_error.py", 'w') as f:
+                        f.write(rendered)
+
+
+
+

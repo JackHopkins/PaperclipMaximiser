@@ -34,10 +34,11 @@ def test_nearest_buildable_mining_drill(game):
     # Define mining drill bounding box (3x3)
     drill_box = BoundingBox(
         left_top=Position(x=-1, y=-1),
-        right_bottom=Position(x=1, y=1),
-        center=Position(x=0, y=0)
+        right_bottom=Position(x=19, y=5),
+        center=Position(x=9, y=2)
     )
 
+    # {'center': {'x': 9.0, 'y': 2.0}, 'left_top': {'x': -1.0, 'y': -1.0}, 'right_bottom': {'x': 19.0, 'y': 5.0}}
     # Find nearest buildable position for mining drill
     position = game.nearest_buildable(
         Prototype.ElectricMiningDrill,
@@ -75,12 +76,12 @@ def test_nearest_buildable_invalid_position(game):
 def test_nearest_buildable_manual_box(game):
     # Calculate bounding box for miners
     left_top = Position(
-        x=-3.0,
+        x=3.0,
         y=0.0
     )
     right_bottom = Position(
-        x=21.0,
-        y=4.0
+        x=13.0,
+        y=32.0
     )
     center = Position(
         x=(left_top.x + right_bottom.x) / 2,
@@ -98,7 +99,7 @@ def test_nearest_buildable_manual_box(game):
         Prototype.ElectricMiningDrill,
         bounding_box=miner_box
     )
-    pass
+    assert origin
 
 def test_nearest_buildable_multiple_entities(game):
     """

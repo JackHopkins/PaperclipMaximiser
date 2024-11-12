@@ -127,6 +127,9 @@ class Position(BaseModel):
     def __add__(self, other) -> 'Position':
         return Position(x=self.x + other.x, y=self.y + other.y)
 
+    def __sub__(self, other) -> 'Position':
+        return Position(x=self.x - other.x, y=self.y - other.y)
+
     def is_close(self, a: 'Position', tolerance: float = 0.5) -> bool:
         return abs(self.x - a.x) < tolerance and abs(self.y - a.y) < tolerance
 
@@ -264,6 +267,8 @@ class Inserter(Entity):
     pickup_position: Optional[Position] = None
     drop_position: Position
 
+class UndergroundBelt(Entity):
+    type: str
 
 class MiningDrill(Entity):
     drop_position: Position
