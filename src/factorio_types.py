@@ -54,6 +54,7 @@ class Prototype(enum.Enum):
     IronOre = "iron-ore", None
     CopperOre = "copper-ore", None
     Stone = "stone", None
+    Wood = "wood", None
     CopperCable = "copper-cable", None # Crafting 2 copper cables requires 1 copper plate
     ElectronicCircuit = "electronic-circuit", None # Crafting requires 3 copper cables, 1 iron plate
     Lab = "lab", Lab # Crafting requires 10 electronic circuits, 10 iron gear wheels, 4 transport belts
