@@ -10,8 +10,8 @@ from slpp import slpp as lua
 
 
 def _load_script(filename):
-    with open(filename, "r") as file:
-        script_string = "".join(file.readlines())
+    with open(filename, "r", encoding='utf-8') as file:
+        script_string = file.read()
         pruned = Path(filename).name[:-4]
         return pruned, script_string
 
@@ -87,15 +87,20 @@ def _lua2python(command, response, *parameters, trace=False, start=0):
         if trace:
             print(f"success: {command}")
         end = timer()
-        splitted = response.split("\n")[-1]
 
-        if "[string" in splitted:
-            a, b = splitted.split("[string")
-            splitted = a + '[\"' + b.replace('"', '!!')
-            # remove trailing ',} '
-            splitted = re.sub(r',\s*}\s*$', '', splitted) + "\"]}"
+        if response[0] != '{':
 
-        output = lua.decode(splitted)
+            splitted = response.split("\n")[-1]
+
+            if "[string" in splitted:
+                a, b = splitted.split("[string")
+                splitted = a + '[\"' + b.replace('"', '!!')
+                # remove trailing ',} '
+                splitted = re.sub(r',\s*}\s*$', '', splitted) + "\"]}"
+
+            output = lua.decode(splitted)
+        else:
+            output = lua.decode(response)
 
         ##output = luadata.unserialize(splitted[-1], encoding="utf-8", multival=False)
 
