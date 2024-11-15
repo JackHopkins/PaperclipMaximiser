@@ -1,3 +1,7 @@
+import sys
+sys.path.append(r"C:\Users\martb\Documents\paperpclip_max\PaperclipMaximiser\src")
+sys.path.append(r"C:\Users\martb\Documents\paperpclip_max\PaperclipMaximiser")
+
 import re
 import os
 import ast
@@ -265,7 +269,7 @@ class SFTDatasetCreator:
 
         initial_mining_setup = initial_setup_result["mining_setup"]
         #first_user_message = f"Your starting inventory is {skill['starting_inventory']}. Your initial mining setup is: {initial_mining_setup}. Create a script to achieve the following objective: {skill['objective']}"
-        first_user_message = f"Your starting inventory is {skill['starting_inventory']}. Your initial mining setup is: {initial_mining_setup}. Create a useful task that you can carry out in the current game and the python script to achieve the task"
+        first_user_message = f"Your starting inventory is {skill['starting_inventory']}. Your initial mining setup is: {initial_mining_setup}. Create a python script that achieves the following task\n{skill['objective']}"
         traces.append({"role": "system", "content": self.system_prompt})
         
         if "initial_plan" in skill:
@@ -274,7 +278,7 @@ class SFTDatasetCreator:
             plan = "\n"
         if plan != "\n":
             first_user_message += f"\nFirst bring out a thorough step-by-step plan how you can achieve this task and then create the python script to achieve the task."
-        assistant_message = f"Sure! The task I will carry out is {skill['objective']}{plan}The policy to achieve this task is \n\n```python\n{skill['implementation']}\n```"
+        assistant_message = f"Sure!{plan}The policy to achieve this task is \n\n```python\n{skill['implementation']}\n```"
         traces.append({"role": "user", "content": first_user_message})
         traces.append({"role": "assistant", "content": assistant_message})
         return {"success": True, "traces": traces}
@@ -534,12 +538,47 @@ class SFTDatasetCreator:
         with open(file, "w") as f:
             for skill in skills:
                 f.write(json.dumps(skill) + "\n")
-
+    
+    def rewrite_unsupervised_to_supervised(self, input_file, output_file):
+        instance = FactorioInstance(address='localhost',
+                                bounding_box=200,
+                                tcp_port=27015,
+                                fast=True,
+                                #cache_scripts=False,
+                                inventory={})
+        self.init_system_prompt(instance)
+        with open(input_file) as f:
+            skills = [json.loads(line) for line in f.readlines()]
+        new_skills = []
+        planning_addition = "First bring out a thorough step-by-step plan how you can achieve this task and then create the python script to achieve the task."
+        for skill in skills:
+            messages = [{"role": "system", "content": self.system_prompt}]
+            user_message_from_skill = skill["messages"][1]["content"]
+            # get everything until "Create a useful"
+            user_message_new = user_message_from_skill.split("Create a useful")[0] 
+            assistant_message = skill["messages"][2]["content"]
+            # get everything until the first \n
+            assistant_message_objective = assistant_message.split("\n")[0]
+            # get the first index of the objective in the assistant message and remove it
+            objective_index = assistant_message_objective.find(assistant_message_objective)
+            new_assistant_message = assistant_message[objective_index + len(assistant_message_objective):].strip()
+            assistant_message_objective = assistant_message_objective.replace("Sure! The task I will carry out is ", "")
+            user_message_new += f"Create a python script that achieves the following task\n{assistant_message_objective}"
+            if planning_addition in user_message_from_skill:
+                user_message_new += f"\n{planning_addition}"
+            messages.append({"role": "user", "content": user_message_new})
+            messages.append({"role": "assistant", "content": new_assistant_message})
+            new_skills.append({"messages": messages})
+        
+        with open(output_file, "w") as f:
+            for skill in new_skills:
+                f.write(json.dumps(skill) + "\n")
+        
 if __name__ == "__main__":
     starting_scenario_path = r"skills\data_scenarios\starting_scenarios"
     dataloader = SFTDatasetCreator(starting_scenario_path,
                                    #finetuning_prompt_path = r"prompts\bottoms_up_prompts\finetuning_prompts\system_message_policy.md",
-                                   finetuning_prompt_path = r"prompts\bottoms_up_prompts\finetuning_prompts\system_message_policy_self_gen.md",
+                                   finetuning_prompt_path = r"prompts\bottoms_up_prompts\finetuning_prompts\system_message_policy_supervised.md",
                                    )
     notebook_skill_path = r"datasets/notebook_skills"
     raw_input_jsonl_file = r"datasets\sft_dataset_raw.jsonl"
@@ -549,18 +588,19 @@ if __name__ == "__main__":
     failed_output_file = r"datasets\sft_failed_traces.jsonl"
     training_dataset_path = r"datasets\sft_training_dataset.jsonl"
     eval_dataset_path = r"datasets\sft_eval_dataset.jsonl"
-    successful_output_file_policy = r"datasets\sft_successful_traces_policy_self_gen_v2.jsonl"
-    failed_output_file_policy = r"datasets\sft_failed_traces_policy_self_gen_v2.jsonl"
-    training_dataset_path_policy = r"datasets\sft_training_dataset_policy_self_gen_v2.jsonl"
-    eval_dataset_path_policy = r"datasets\sft_eval_dataset_policy_self_gen.jsonl"
+    successful_output_file_policy = r"datasets\sft_successful_traces_instruct.jsonl"
+    failed_output_file_policy = r"datasets\sft_failed_traces_instruct.jsonl"
+    training_dataset_path_policy = r"datasets\sft_training_dataset_instruct.jsonl"
+    eval_dataset_path_policy = r"datasets\sft_eval_dataset_instruct.jsonl"
     func_test_paths = [r"tests\functional", r"tests\connect\test_connect_pipes.py",
                        r"tests\connect\test_connect_poles.py",
                        r"tests\connect\test_connect_transport_belts.py",
                        r"tests\connect\test_connect_walls.py"]
+    #dataloader.rewrite_unsupervised_to_supervised(r"datasets\sft_training_dataset_policy_self_gen_v2.jsonl", training_dataset_path_policy)
     #dataloader.create_jsonl_dataset_from_db_skills(raw_input_jsonl_file,  [])
     #dataloader.postprocess_skills(raw_input_jsonl_file, postprocessed_input_jsonl_file)
-    dataloader.create_game_traces(postprocessed_input_jsonl_file_planning_backfilled, successful_output_file_policy, failed_output_file_policy, full_policy = True)
+    #dataloader.create_game_traces(postprocessed_input_jsonl_file_planning_backfilled, successful_output_file_policy, failed_output_file_policy, full_policy = True)
     #dataloader.get_traces_from_notebook_skills(notebook_skill_path, successful_output_file_policy, full_policy=True)
-    dataloader.create_training_eval_dataset(successful_output_file_policy, training_dataset_path_policy, eval_dataset_path_policy)
+    #dataloader.create_training_eval_dataset(successful_output_file_policy, training_dataset_path_policy, eval_dataset_path_policy)
     #dataloader.add_system_prompt(training_dataset_path)
     #dataloader.add_system_prompt(eval_dataset_path)

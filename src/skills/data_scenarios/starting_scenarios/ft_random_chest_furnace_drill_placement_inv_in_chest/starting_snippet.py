@@ -18,9 +18,9 @@ inventory = inspect_inventory()
 chests_in_inventory = inventory.get(Prototype.WoodenChest, 0)
 chest_positions = []
 for chest in range(chests_in_inventory):
-    # get a random x and y position between -15 and 15
-    x = random.randint(-15, 15)
-    y = random.randint(-15, 15)
+    # get a random x and y position between -150 and 150
+    x = random.randint(-150, 150)
+    y = random.randint(-150, 150)
     chest_pos = Position(x = x, y = y)
     move_to(chest_pos)
     chest = place_entity(Prototype.WoodenChest, Direction.UP, chest_pos)
@@ -30,8 +30,8 @@ furnaces_in_inventory = inventory.get(Prototype.StoneFurnace, 0)
 furnace_positions = []
 for furnace in range(furnaces_in_inventory):
     # get a random x and y position between -15 and 15
-    x = random.randint(-15, 15)
-    y = random.randint(-15, 15)
+    x = random.randint(-150, 150)
+    y = random.randint(-150, 150)
     furnace_pos = Position(x = x, y = y)
     move_to(furnace_pos)
     furnace = place_entity(Prototype.StoneFurnace, Direction.UP, furnace_pos)

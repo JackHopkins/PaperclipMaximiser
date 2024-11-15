@@ -130,7 +130,7 @@ class Position(BaseModel):
     def __sub__(self, other) -> 'Position':
         return Position(x=self.x - other.x, y=self.y - other.y)
 
-    def is_close(self, a: 'Position', tolerance: float = 0.5) -> bool:
+    def is_close(self, a: 'Position', tolerance: float = 5) -> bool:
         return abs(self.x - a.x) < tolerance and abs(self.y - a.y) < tolerance
 
     def above(self) -> 'Position':

@@ -44,14 +44,14 @@ class SkillsDB:
     def save_function(self, name: str, implementation: str, 
                       description: str, dependencies: List[str], 
                       signature: str, implementation_model: str,
-                      version: str = "v1.0") -> None:
+                      version: str = "v1.0", meta = {}) -> None:
         cursor = self.conn.cursor()
         embedding = self.get_embedding(signature)
         cursor.execute("""
-            INSERT INTO public.skills (name, implementation, description, embedding, dependencies, version, embedding_model, implementation_model, signature)
-            VALUES (%s, %s, %s, %s::vector, %s, %s, %s, %s, %s)
+            INSERT INTO public.skills (name, implementation, description, embedding, dependencies, version, embedding_model, implementation_model, signature, meta)
+            VALUES (%s, %s, %s, %s::vector, %s, %s, %s, %s, %s, %s)
         """, (name, implementation, description, embedding, dependencies, version, "text-embedding-3-small",
-              implementation_model, signature))
+              implementation_model, signature, Json(meta)))
         self.conn.commit()
 
     

@@ -1,7 +1,10 @@
+import sys
+sys.path.append(r"C:\Users\martb\Documents\paperpclip_max\PaperclipMaximiser\src")
+sys.path.append(r"C:\Users\martb\Documents\paperpclip_max\PaperclipMaximiser")
+
 import ast
 import json
 import os
-import sys
 import textwrap
 from itertools import cycle
 from typing import List, Dict, Any
@@ -16,8 +19,6 @@ load_dotenv()
 import time
 from skills.skills_db import SkillsDB
 import copy
-
-
 def is_valid_python(code_string: str) -> bool:
     try:
         ast.parse(code_string)
@@ -30,7 +31,7 @@ def eval_program_with_result_trace(instance, program):
         try:
             score, goal, result = instance.eval_with_error(program, timeout=60)
         except Exception as e:
-            result = f"error: {str(e.args[0])}"
+            result = f"error: {str(e)}"
         # split result by newlines
         output_list = result.splitlines()
         return output_list, result
@@ -555,6 +556,10 @@ if __name__ == "__main__":
     #    'iron-ore':10
     #}
     #inventory = {}
+    #inventory = {
+    #    'iron-plate': 50,
+    #    'copper-plate': 50,
+    #}
     instance = FactorioInstance(address='localhost',
                                 bounding_box=200,
                                 tcp_port=27015,
@@ -563,7 +568,10 @@ if __name__ == "__main__":
                                 inventory=inventory)
 
 
-    
+    test_string = '\n\nfrom factorio_instance import *\n\n"""\nStep 1: Print recipe for burner mining drill\n"""\n# Get the recipe for burner mining drill\nrecipe = get_prototype_recipe(Prototype.BurnerMiningDrill)\n\n# Print the recipe details\nprint("Burner Mining Drill Recipe:")\nprint(f"Ingredients: {recipe.ingredients}")\n\n"""\nStep 2: Calculate total raw materials needed\n"""\niron_plates_needed = 8  # 3 for drill + 5 for gears\nstone_needed = 5  # For stone furnace\n\nprint(f"Total raw materials needed: {iron_plates_needed} iron plates, {stone_needed} stone")\n\n"""\nStep 3: Gather raw resources\n"""\n# Find and move to the nearest iron ore patch\niron_ore_position = nearest(Resource.IronOre)\nprint(f"Moving to iron ore patch at {iron_ore_position}")\nmove_to(iron_ore_position)\n\n# Mine iron ore (we need at least 8 iron plates, so mine a bit more to be safe)\nprint("Mining iron ore...")\nharvest_resource(iron_ore_position, quantity=10)\nprint(f"Mined iron ore. Current inventory: {inspect_inventory()}")\n\n# Find and move to the nearest stone patch\nstone_position = nearest(Resource.Stone)\nprint(f"Moving to stone patch at {stone_position}")\nmove_to(stone_position)\n\n# Mine stone (we need 5 stone for the furnace)\nprint("Mining stone...")\nharvest_resource(stone_position, quantity=5)\nprint(f"Mined stone. Current inventory: {inspect_inventory()}")\n\n"""\nStep 4: Craft intermediate items\n"""\n# Craft stone furnace\nprint("Crafting stone furnace...")\ncraft_item(Prototype.StoneFurnace, quantity=1)\nprint(f"Crafted stone furnace. Current inventory: {inspect_inventory()}")\n\n# Craft iron gear wheels (each requires 2 iron plates)\nprint("Crafting iron gear wheels...")\ncraft_item(Prototype.IronGearWheel, quantity=3)\nprint(f"Crafted iron gear wheels. Current inventory: {inspect_inventory()}")\n\n"""\nStep 5: Craft burner mining drill\n"""\nprint("Crafting burner mining drill...")\ncraft_item(Prototype.BurnerMiningDrill, quantity=1)\nprint(f"Crafted burner mining drill. Current inventory: {inspect_inventory()}")\n\n"""\nStep 6: Verify crafting success\n"""\nfinal_inventory = inspect_inventory()\nassert final_inventory.get(Prototype.BurnerMiningDrill, 0) >= 1, "Failed to craft burner mining drill"\nprint("Successfully crafted burner mining drill!")\n\n'
+    test_string = '\nfrom factorio_instance import *\n\n"""\nStep 1: Place a burner inserter next to the stone furnace\n- Move to the stone furnace\n- Place the burner inserter to the right of the furnace\n- Rotate the inserter to take items out of the furnace\n"""\n# Move to the stone furnace\nfurnace_pos = Position(x=85.0, y=12.0)\nmove_to(Position(x=82.0, y=12.0))\nplace_entity(Prototype.StoneFurnace, position = furnace_pos)\nmove_to(Position(x=82.0, y=12.0))\n\n# Place the burner inserter\ninserter = place_entity_next_to(Prototype.BurnerInserter, \n                                direction=Direction.RIGHT, \n                                reference_position=furnace_pos)'
+    _, result = eval_program_with_result_trace(instance, test_string)
+
     starting_objective_folder = r"skills\ground_truth_skills\put_down_electricity_gen"
     #read in curriculum_item.jsom
     with open(f"{starting_objective_folder}/curriculum_item.json", "r") as f:
