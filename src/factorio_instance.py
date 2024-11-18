@@ -351,6 +351,7 @@ class FactorioInstance:
         for index, node in enumerate(tree.body):
             try:
                 if isinstance(node, ast.FunctionDef):
+                    node = self._change_print_to_log(node)
                     # For function definitions, we need to compile and exec
                     compiled = compile(ast.Module([node], type_ignores=[]), 'file', 'exec')
                     exec(compiled, eval_dict)
@@ -438,6 +439,9 @@ class FactorioInstance:
                 node.body[subnode_idx] = self._change_print_to_log(subnode)
             for subnode_idx, subnode in enumerate(node.orelse):
                 node.orelse[subnode_idx] = self._change_print_to_log(subnode)
+        elif isinstance(node, ast.FunctionDef):
+            for subnode_idx, subnode in enumerate(node.body):
+                node.body[subnode_idx] = self._change_print_to_log(subnode)
         return node
 
     def eval_with_error(self, expr, timeout=60):
