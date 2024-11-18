@@ -14,28 +14,33 @@ class DBClient:
         self.conn = psycopg2.connect(**db_config)
 
     async def create_program(self, program: Program) -> Program:
-        with self.conn.cursor() as cur:
-            cur.execute("""
-                INSERT INTO programs (code, value, visits, parent_id, state_json, conversation_json, completion_token_usage, prompt_token_usage, token_usage, response, holdout_value, raw_reward, version)
-                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
-                RETURNING id, created_at
-            """, (program.code, program.value, program.visits, program.parent_id,
-                  program.state.to_raw() if program.state else None,
-                  json.dumps(program.conversation.dict()),
-                  program.completion_token_usage,
-                  program.prompt_token_usage,
-                  program.token_usage,
-                  program.response,
-                  program.holdout_value,
-                  program.raw_reward,
-                  program.version
-                  ))
+        try:
+            with self.conn.cursor() as cur:
+                cur.execute("""
+                    INSERT INTO programs (code, value, visits, parent_id, state_json, conversation_json, completion_token_usage, prompt_token_usage, token_usage, response, holdout_value, raw_reward, version, version_description)
+                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                    RETURNING id, created_at
+                """, (program.code, program.value, program.visits, program.parent_id,
+                      program.state.to_raw() if program.state else None,
+                      json.dumps(program.conversation.dict()),
+                      program.completion_token_usage,
+                      program.prompt_token_usage,
+                      program.token_usage,
+                      program.response,
+                      program.holdout_value,
+                      program.raw_reward,
+                      program.version,
+                      program.version_description
+                      ))
 
-            id, created_at = cur.fetchone()
-            self.conn.commit()
-            program.id = id
-            program.created_at = created_at
-            return program
+                id, created_at = cur.fetchone()
+                self.conn.commit()
+                program.id = id
+                program.created_at = created_at
+                return program
+        except Exception as e:
+            print(e)
+            raise e
 
     @tenacity.retry(retry=retry_if_exception_type((psycopg2.OperationalError, psycopg2.InterfaceError)), wait=wait_exponential(multiplier=1, min=4, max=10))
     async def sample_parent(self, version=1) -> Optional[Program]:

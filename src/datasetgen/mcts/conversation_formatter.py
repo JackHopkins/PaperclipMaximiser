@@ -7,17 +7,30 @@ from datasetgen.mcts.conversation import Message, Conversation
 
 PLANNING_ADDITION_PROMPT = \
 """
-First bring out a thorough step-by-step plan how you can achieve this task and then create the python script to achieve the task.
+Identify an appropriate next task given the recent history and environment feedback.
+Develop thorough step-by-step plan how you can achieve this task and then create the python script to achieve the task.
 For your plan, follow this structure:
 1) What entities are needed for the task
 2) What entities do we have on the map, in different entity inventories or in our inventory
 3) What entities are we missing for the task
-4) Execution -- Taking into account 1,2 and 3, what steps do we need to take to successfully carry out the task
+4) Execution -- Taking into account 1,2 and 3, what are the steps we need to take to successfully carry out the task.
 """
 
 
 class CodeProcessor:
     """Handles code block processing and summarization"""
+
+    @staticmethod
+    def is_comment_start(line: str) -> bool:
+        """Check if line starts a comment (either # or \"\"\")"""
+        stripped = line.strip()
+        return stripped.startswith('#') or stripped.startswith('"""')
+
+    @staticmethod
+    def is_comment_end(line: str) -> bool:
+        """Check if line ends a comment block"""
+        stripped = line.strip()
+        return not stripped.startswith('"""') and stripped.endswith('"""')
 
     @staticmethod
     def extract_code_blocks(content: str) -> List[Tuple[str, int, int]]:
@@ -70,33 +83,44 @@ class CodeProcessor:
                              preserve_comments: bool = True) -> str:
         """
         Summarize a code block by replacing code sections with line count indicators.
-        Uses plural form when omitting multiple lines.
+        Handles both inline (#) and block (\"\"\") comments.
         """
         lines = code.splitlines()
 
-        # If there are no lines, return empty string
         if not lines:
             return ""
 
-        # Check if this is a pure code block (no comments)
-        has_comments = any(line.strip().startswith('#') for line in lines)
-
-        if not has_comments:
-            # For pure code blocks, treat the entire content as one section
-            return f"<LINES 1-{len(lines)} OMITTED>"
-
-        # Regular processing for blocks with comments
         result = []
         code_start = None
         code_lines = 0
+        in_docstring = False
 
         for i, line in enumerate(lines, 1):
             stripped = line.strip()
 
+            # Handle docstring boundaries
+            if stripped.startswith('"""'):
+                if not in_docstring:  # Start of docstring
+                    if code_start is not None:
+                        if code_lines == 1:
+                            result.append(f"<LINE {code_start} OMITTED>")
+                        else:
+                            result.append(f"<LINES {code_start}-{code_start + code_lines - 1} OMITTED>")
+                        code_start = None
+                        code_lines = 0
+                    in_docstring = True
+                    result.append(line)
+                    continue
+
+            if in_docstring:
+                result.append(line)
+                if stripped.endswith('"""'):
+                    in_docstring = False
+                continue
+
+            # Handle regular comments and code
             if stripped.startswith('#'):
-                # If we were collecting code lines
                 if code_start is not None:
-                    # Determine whether to use singular or plural form
                     if code_lines == 1:
                         result.append(f"<LINE {code_start} OMITTED>")
                     else:
@@ -150,10 +174,12 @@ class DefaultFormatter(ConversationFormatter):
 class StructurePreservingFormatter(ConversationFormatter):
     """
     Formatter that preserves program structure through comments while reducing token usage.
+    It replaces all code not in the most recent history with `<LINE X CUT/>` tags.
     """
 
-    def __init__(self):
+    def __init__(self, planning=True):
         self.code_processor = CodeProcessor()
+        self.planning = planning
 
     def format_message(self, message: Message, is_last: bool = False) -> Optional[Message]:
         if message.role == "system":
@@ -179,9 +205,12 @@ class StructurePreservingFormatter(ConversationFormatter):
             try:
                 if "Execution result:" in content:
                     result = content.split("Execution result:")[1].split("Updated state:")[0]
+                    content = f"Execution result:\n{result.strip()}"
+                    if self.planning:
+                        content = PLANNING_ADDITION_PROMPT + '\n' + content
                     return Message(
                         role="user",
-                        content=f"Execution result:\n{result.strip()}"
+                        content=content
                     )
                 else:
                     return Message(

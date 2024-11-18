@@ -36,6 +36,7 @@ class LLMFactory:
     def call(self, *args, **kwargs):
         max_tokens = kwargs.get('max_tokens', 1500)
         model_to_use = kwargs.get('model', self.model)
+        n_samples = kwargs.get('n', 1)
         if "claude" in model_to_use:
             # Set up and call the Anthropic API
             api_key = os.getenv('ANTHROPIC_API_KEY')
@@ -109,6 +110,7 @@ class LLMFactory:
                                                   max_tokens = kwargs.get('max_tokens', 2048),
                                                   temperature=kwargs.get('temperature', 0.3),
                                                   messages=kwargs.get('messages', None),
+                                                  n=n_samples,  # Use requested number of samples
                                                   #stop=["\n\n"],#, "\n#"],
                                                   #presence_penalty=1,
                                                   #frequency_penalty=0.6,

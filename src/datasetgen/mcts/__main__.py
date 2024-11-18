@@ -1,11 +1,16 @@
+import os
+os.environ["FORCE_COLOR"] = "1"
+os.environ["TERM"] = "xterm-256color"
+
 import concurrent
 import os
 from typing import Tuple, List
 
 from dotenv import load_dotenv
-
+from rich import print
+from rich.console import Console
 from cluster.local.cluster_ips import get_local_container_ips
-from datasetgen.mcts.conversation_formatter import OutputOnlyFormatter
+from datasetgen.mcts.conversation_formatter import StructurePreservingFormatter
 from datasetgen.mcts.db_client import DBClient
 from datasetgen.mcts.factorio_evaluator import FactorioEvaluator
 from datasetgen.mcts.game_state import GameState
@@ -48,6 +53,10 @@ async def main():
                          password=os.getenv("SKILLS_DB_PASSWORD"))
 
     instances = create_parallel_instances()
+
+    for instance in instances:
+        instance.speed(10) # Set the game speed to 10x normal speed for faster testing
+
     # Initialize FactorioEvaluator with the list of instances
     evaluator = FactorioEvaluator(db_client, instances)
     initial_state = GameState.from_instance(instances[0])
@@ -59,12 +68,21 @@ async def main():
         system_prompt = f.read().format(schema=instances[0].get_system_prompt())
 
     print("Initializing MCTS...")
-    mcts = MCTS(llm, db_client, evaluator, system_prompt, initial_state, version=2, formatter=OutputOnlyFormatter(planning=True))
+    console = Console(color_system="windows")
+
+    mcts = MCTS(llm,
+                db_client,
+                evaluator,
+                system_prompt,
+                initial_state,
+                version=3,
+                version_description="Execution results exclude entities and inventory",
+                formatter=StructurePreservingFormatter(planning=True))
 
     print("Starting MCTS search...")
     best_programs = await mcts.search(
-        n_iterations=100,
-        samples_per_iteration=5,
+        n_iterations=500,
+        samples_per_iteration=len(instances)-1, # One for each instance, minus a holdout.
         skip_failures=False,
     )
 

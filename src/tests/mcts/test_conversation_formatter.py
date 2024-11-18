@@ -6,7 +6,7 @@ from datasetgen.mcts.conversation_formatter import StructurePreservingFormatter,
 
 class TestStructurePreservingFormatter(unittest.TestCase):
     def setUp(self):
-        self.formatter = StructurePreservingFormatter()
+        self.formatter = StructurePreservingFormatter(planning=False)
         self.conversation = Conversation(messages=[
             Message(
                 role="system",
@@ -134,6 +134,34 @@ class TestStructurePreservingFormatter(unittest.TestCase):
             formatted.content,
             "<LINES 1-2 OMITTED>"
         )
+
+    def test_docstring_code_summariser(self):
+        code_block = '''from factorio_instance import *
+
+    """
+    Objective: We need to get 20 copper plates
+
+    Planning:
+    1. Print the recipe for copper plates
+    2. Analyze the current game state
+    """
+
+    """
+    Step 1: Print recipe for copper plates
+    """
+    print("Copper Plate Recipe:")
+    print("Crafting requires smelting")
+
+    """
+    Step 2: Analyze current game state
+    """
+    inventory = inspect_inventory()
+    print(f"Current inventory: {inventory}")'''
+
+        summarized = self.formatter.code_processor.summarize_code_block(code_block, preserve_comments=True)
+
+        pass
+
 
 if __name__ == '__main__':
     unittest.main()

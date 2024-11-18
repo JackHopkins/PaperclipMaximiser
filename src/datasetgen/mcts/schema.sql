@@ -33,7 +33,7 @@ BEGIN
         FROM programs
         WHERE version = target_version
         ORDER BY created_at DESC
-        LIMIT 20
+        LIMIT 100
     ),
     softmax AS (
         SELECT
