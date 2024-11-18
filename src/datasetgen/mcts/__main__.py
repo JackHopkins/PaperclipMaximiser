@@ -1,4 +1,7 @@
 import os
+
+from datasetgen.mcts.chunked_mcts import ChunkedMCTS
+
 os.environ["FORCE_COLOR"] = "1"
 os.environ["TERM"] = "xterm-256color"
 
@@ -68,15 +71,14 @@ async def main():
         system_prompt = f.read().format(schema=instances[0].get_system_prompt())
 
     print("Initializing MCTS...")
-    console = Console(color_system="windows")
 
-    mcts = MCTS(llm,
+    mcts = ChunkedMCTS(llm,
                 db_client,
                 evaluator,
                 system_prompt,
                 initial_state,
-                version=3,
-                version_description="Execution results exclude entities and inventory",
+                version=4,
+                version_description="Step-wise evaluation / Execution results exclude entities and inventory",
                 formatter=StructurePreservingFormatter(planning=True))
 
     print("Starting MCTS search...")
