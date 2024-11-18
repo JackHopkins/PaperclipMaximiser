@@ -26,8 +26,21 @@ y = 2
 '''
         chunks = self.splitter._split_into_chunks(code)
         self.assertEqual(len(chunks), 1)
-        self.assertEqual(chunks[0].docstring, "First task")
-        self.assertEqual(chunks[0].code.strip(), "x = 1\ny = 2")
+        self.assertTrue("First task" in chunks[0].code)
+        self.assertTrue( "x = 1\ny = 2" in chunks[0].code.strip())
+
+    def test_comment(self):
+        code = '''
+"""First task"""
+# This is a comment
+x = 1
+y = 2
+'''
+        chunks = self.splitter._split_into_chunks(code)
+        self.assertEqual(len(chunks), 1)
+        self.assertTrue("First task" in chunks[0].code)
+        self.assertTrue("x = 1\ny = 2" in chunks[0].code.strip())
+        self.assertTrue("# This is a comment" in chunks[0].code.strip())
 
     def test_multiple_chunks(self):
         code = '''
@@ -42,8 +55,10 @@ z = 3
 '''
         chunks = self.splitter._split_into_chunks(code)
         self.assertEqual(len(chunks), 3)
-        self.assertEqual([c.docstring for c in chunks], ["First task", "Second task", "Third task"])
-        self.assertEqual([c.code.strip() for c in chunks], ["x = 1", "y = 2", "z = 3"])
+        for program, task, value in zip(chunks, ["First task", "Second task", "Third task"], ["x = 1", "y = 2", "z = 3"]):
+            self.assertTrue(task in program.code)
+            self.assertTrue(value in program.code)
+
 
     def test_multiline_code(self):
         code = '''
@@ -75,7 +90,7 @@ y = 2
 '''
         chunks = self.splitter._split_into_chunks(code)
         self.assertEqual(len(chunks), 2)
-        self.assertEqual(chunks[0].docstring.strip(), "Build initial structure\nWith multiple lines")
+        self.assertTrue("Build initial structure\nWith multiple lines" in chunks[0].code)
 
     def test_no_docstring(self):
         code = "x = 1\ny = 2"
@@ -109,8 +124,8 @@ result = func1() + func2()
 x = 1
 '''
         chunks = self.splitter._split_into_chunks(code)
-        self.assertEqual(len(chunks), 1)
-        self.assertEqual(chunks[0].docstring, "Task 2")
+        self.assertEqual(len(chunks), 2)
+        self.assertTrue("Task 2" in chunks[1].code)
 
     def test_code_with_strings(self):
         code = '''

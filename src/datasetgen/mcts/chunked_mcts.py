@@ -14,35 +14,58 @@ from datasetgen.mcts.program import Program
 class ChunkedMCTS(MCTS):
     def _split_into_chunks(self, program_code: str) -> List[Program]:
         chunks = []
+        lines = program_code.splitlines()
         current_docstring = ""
-        current_code = []
+        current_lines = []
+        current_start = 0
         module = ast.parse(program_code)
 
-        for node in module.body:
+        # Track docstring positions to identify chunk boundaries
+        docstring_positions = []
+        for i, node in enumerate(module.body):
             if isinstance(node, ast.Expr) and isinstance(node.value, ast.Constant):
-                if current_code and current_docstring:
-                    chunks.append(Program(
-                        code=f'"""{current_docstring}"""\n'+"\n".join(current_code),
-                        conversation=Conversation(messages=[]) # We need this to conform to the Program class structure
-                    ))
-                    current_code = []
-                current_docstring = node.value.s
-            else:
-                # Get the source lines for this node
-                start = node.lineno
-                end = node.end_lineno if hasattr(node, 'end_lineno') else start
-                code_lines = program_code.splitlines()[start - 1:end]
-                current_code.extend(code_lines)
+                docstring_positions.append((node.lineno - 1, node.end_lineno - 1, node.value.s))
 
-        if current_code and current_docstring:
-            chunks.append(Program(
-                code=f'"""{current_docstring}"""\n'+"\n".join(current_code),
-                conversation=Conversation(messages=[]) # We need this to conform to the Program class structure
-            ))
+        if not docstring_positions:
+            return []
+
+        # Process chunks between docstrings
+        for i, (start_pos, end_pos, docstring) in enumerate(docstring_positions):
+            # If this isn't the first chunk, append the previous one
+            if current_docstring and current_lines:
+                chunks.append(Program(
+                    code="\n".join(current_lines),
+                    conversation=Conversation(messages=[])
+                ))
+
+            # Start new chunk
+            current_docstring = docstring
+            current_lines = []
+
+            # Add any lines before the docstring that follow the previous chunk
+            if i > 0:
+                prev_end = docstring_positions[i - 1][1]
+                current_lines.extend(lines[prev_end + 1:start_pos])
+
+            # Add the docstring lines
+            current_lines.extend(lines[start_pos:end_pos + 1])
+
+            # If this is the last docstring, add all remaining lines
+            if i == len(docstring_positions) - 1:
+                current_lines.extend(lines[end_pos + 1:])
+                chunks.append(Program(
+                    code="\n".join(current_lines),
+                    conversation=Conversation(messages=[])
+                ))
+            else:
+                # Add lines until the next docstring
+                next_start = docstring_positions[i + 1][0]
+                current_lines.extend(lines[end_pos + 1:next_start])
+
         return chunks
 
-    async def _evaluate_chunks(self, chunks: List[Program], start_state: GameState, instance_id: int) -> Tuple[
-        List[Program], float]:
+    async def _evaluate_chunks(self, chunks: List[Program], start_state: GameState, instance_id: int) \
+            -> Tuple[List[Program], float]:
         current_state = start_state
         holdout_start = GameState.from_instance(self.evaluator.holdout)
         self.evaluator.holdout.reset(holdout_start)
@@ -87,6 +110,10 @@ class ChunkedMCTS(MCTS):
 
             for i, (program, chunks) in enumerate(raw_programs):
                 instance_id = i % (len(self.evaluator.instances) - 1)
+
+
+                self.evaluator.instances[instance_id].reset(start_state)  # Reset to the start state before evaluating each chunk.
+                self.logger.update_instance(i, program_id=program.id, status="resetting")
 
                 try:
                     evaluated_chunks, holdout, entity_list = await self._evaluate_chunks(chunks, start_state, instance_id)
