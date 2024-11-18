@@ -43,6 +43,7 @@ def entity_serializer(obj: Any) -> Dict:
 class Message(BaseModel):
     role: str
     content: str
+    metadata: Dict[str, Any] = field(default_factory=dict)
 
 
 class Conversation(BaseModel):
