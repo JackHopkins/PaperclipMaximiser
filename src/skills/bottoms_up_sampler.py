@@ -29,7 +29,7 @@ def is_valid_python(code_string: str) -> bool:
 def eval_program_with_result_trace(instance, program):
         # evaluate the step
         try:
-            score, goal, result = instance.eval_with_error(program, timeout=60)
+            score, goal, result = instance.eval_with_error(program, timeout=20)
         except Exception as e:
             result = f"error: {str(e)}"
         # split result by newlines

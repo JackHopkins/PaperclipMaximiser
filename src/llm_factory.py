@@ -34,7 +34,7 @@ class LLMFactory:
         ]
 
     def call(self, *args, **kwargs):
-        max_tokens = kwargs.get('max_tokens', 1000)
+        max_tokens = kwargs.get('max_tokens', 1500)
         model_to_use = kwargs.get('model', self.model)
         if "claude" in model_to_use:
             # Set up and call the Anthropic API
@@ -73,12 +73,14 @@ class LLMFactory:
                 raise
 
             return response
+
         elif "deepseek" in model_to_use:
+
             client = OpenAI(api_key=os.getenv("DEEPSEEK_API_KEY"), base_url="https://api.deepseek.com")
             response = client.chat.completions.create(*args,
                                                   **kwargs,
                                                   temperature=1,
-                                                  model=model,
+                                                  model=model_to_use,
                                                   #stop=["\n\n"],
                                                   stop=["```END"],
                                                   #top_p=1,
