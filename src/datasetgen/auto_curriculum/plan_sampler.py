@@ -1,8 +1,12 @@
 from typing import Any
 from llm_factory import LLMFactory
+import os
+from datasetgen.auto_curriculum.dataset_utils import instantiate_the_map, initialise_starting_scenario
+from datasetgen.mcts.game_state import GameState
+from factorio_instance import FactorioInstance
 
 class PlanSampler():
-    def __init__(self, model, system_prompt_path, starting_scenarios_folder,):
+    def __init__(self, model, system_prompt_path, starting_scenarios_folder):
         
         self.model = model
         self.system_prompt_path = system_prompt_path
@@ -53,3 +57,34 @@ class PlanSampler():
     def __call__(self, instance, game_state_str) -> Any:
         instance.reset(game_state_str)
         return self.get_unsupervised_objective(instance)
+    
+    def get_game_state(self, instance, starting_scenario_name):
+        # gets starting scenario details
+        starting_scenario_path = os.path.join(self.starting_scenarios_folder, starting_scenario_name)
+        starting_scenario = initialise_starting_scenario(
+                    starting_scenario_path)  # Gets the starting scenario details
+        # instantiate the map
+        result = instantiate_the_map(starting_scenario, instance, self.starting_scenarios_folder)
+        if not result["success"]:
+            print(f"Error in starting scenario: {result['error']}")
+            return False
+        # get the game state
+        game_state = GameState.from_instance(instance)
+        return game_state
+
+if __name__ == "__main__":
+        prompt_path = "prompts/bottoms_up_prompts/finetuning_prompts/system_message_policy_self_gen.md"
+        model_path = "path_to_model"
+        starting_scenario_folder = "skills/data_scenarios/starting_scenarios"
+        sampler = PlanSampler(model_path, prompt_path, starting_scenario_folder)
+        starting_scenario = "ft_random_chest_furnace_placement_with_mining_entities"
+        instance = FactorioInstance(address='localhost',
+                                    bounding_box=200,
+                                    tcp_port=27015,
+                                    fast=True,
+                                    #cache_scripts=False,
+                                    inventory={})
+                                    
+        game_state = sampler.get_game_state(starting_scenario)
+        objective = sampler(instance, game_state)
+
