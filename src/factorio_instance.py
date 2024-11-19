@@ -389,7 +389,7 @@ class FactorioInstance:
                 if self._sequential_exception_count == self.max_sequential_exception_count:
                     pass
 
-                raise Exception(error_message)
+                raise Exception('\n'.join([f"{i}: {str(r)}" for i, r in results.items()]))
                         #break
 
                     # parts = list(e.args)

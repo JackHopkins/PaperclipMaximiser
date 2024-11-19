@@ -13,6 +13,6 @@
     "electronic-circuit": [0, 20],
     "small-electric-pole": [5, 10]
 },
-  "fixed_inventory": {"wooden-chest": 3,
+  "fixed_inventory": {"wooden-chest": 2,
                                                 "stone-furnace": 2}
 }

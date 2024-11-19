@@ -43,10 +43,11 @@ StoneWall
 
 GENERAL INSTRUCTIONS
 - if the agent should use a specific entity on the map, bring out the position of that entity
-- You cannot pick up or move existing entities as they might be part of a automated system. Rather craft new ones or connect things together
+- You cannot pick up or move existing entities as they might be part of a automated system. Rather craft new ones
 - To power a electric drill or a assembling machine, first a electricity setup must be created with 1 offshore pump, 1 boiler, 1 steam engine, atleast 10 pipes and then the entities can be connected with small poles to the steam engine to power the entities. The agent knows how to put down the setup so the final task can be "Put down the electricity setup" if all entities are in inventory or on the map
 - Do not bring out crafting materials, the recipes might change between game versions. Bring out only the final required entities
 - If any calculations need to be done, leave that open in the plan. These gaps will be filled later
+- Assume always that there are iron ore, stone, coal and copper ore patches existing on the map but the exact location is not known beforehand
 
 INSTRUCTIONS FOR CREATING MINES OR CONNECTIONS
 - For creation of mines or connections, analyse the starting position of the construct, what the construct does, the end position of the construct and how to check that the construct works. Analyse the amount of entities you need to create the construction like inserters, the amount of transport belts, poles and coal

@@ -32,6 +32,8 @@ For your plan, follow this structure:
 2) What entities do we have on the map, in different entity inventories or in our inventory
 3) What entities are we missing for the task
 4) Execution -- Taking into account 1,2 and 3, what steps do we need to take to successfully carry out the task
+
+Make sure to bring out your steps in python docstrings as well, with '''step 1 - x''', '''step 2 - x''' etc
 """
 
 
@@ -121,6 +123,232 @@ For your plan, follow this structure:
         return full_output
 
 
+    def get_general_plan_for_task_with_env(self, instance, task):
+        self.init_system_prompt(instance)
+        messages = [{"role": "system", "content": self.system_prompt}]
+        starting_inventory = instance.inspect_inventory()
+        mining_setup = get_mining_setup(instance)
+        user_message = f"Your starting inventory is {starting_inventory}. Your initial mining setup is: {mining_setup}. The user has given you the following task\nPrint the entities that are missing to achieve: {task}\nPrevious tasks that have been completed with logs: This is the first call to the agent"
+        user_message += self.planning_addition_for_prompt
+        messages.append({"role": "user", "content": user_message})
+        response = self.llm_factory.call(messages=messages,
+                                        temperature=0.5,
+                                        max_tokens=4096,
+                                        #stop_sequences = ["```"],
+                                        )
+        full_output = response.choices[0].message.content
+
+        user_message = f"Your starting inventory is {starting_inventory}. Your initial mining setup is: {mining_setup}. Create a python script that achieves the following task\n{task}"
+        #user_message += self.planning_addition_for_prompt
+        #user_message += self.planning_addition_for_prompt
+        planning_addition_for_prompt = """
+First bring out a thorough step-by-step plan how you can achieve this task and then create the python script to achieve the task.
+For your plan, follow this structure:
+1) What entities are needed for the task. If you don't know the required number for an entity, leave it as 'will be calculated later'
+2) Execution -- What steps do we need to take to successfully carry out the task
+"""     
+        planning_addition_for_prompt = """
+First bring out a general step-by-step list of steps you need to carry out to achieve this task and then create the python script to achieve the task. The plan should not mention any specific entities on the map, only general steps that need to be taken for a task like this
+"""     
+
+        user_message += planning_addition_for_prompt
+        messages.append({"role": "user", "content": user_message})
+        response = self.llm_factory.call(messages=messages,
+                                        temperature=0.3,
+                                        max_tokens=4096,
+                                        stop_sequences = ["```"],
+                                        )
+        full_output = response.choices[0].message.content
+        # get everything until the last \ sign
+        last_backslash = full_output.strip().rfind("\n")
+        if last_backslash != -1:
+            full_output = full_output[:last_backslash]
+
+        plan = full_output.strip()
+        #return plan
+        initial_planning_agent_system_prompt_path = r"prompts\bottoms_up_prompts\finetuning_prompts\planning_agent_system_prompt_draft_initial_plan_v4.md"
+        initial_planning_agent_user_prompt = r"prompts\bottoms_up_prompts\finetuning_prompts\planning_agent_user_prompt_draft_initial_plan_v4.md"
+        initial_system_prompt = self.read_in_prompt(initial_planning_agent_system_prompt_path)
+        initial_user_prompt_base = self.read_in_prompt(initial_planning_agent_user_prompt)
+
+        planning_model = self.planner_model
+
+        logs = []
+        planning_output = ""
+        current_step = 0
+        while "#ENTITIES" not in planning_output:
+            log_str = "\n\n".join(logs) if logs else "The agent has not yet interacted with the world"
+            starting_inventory = instance.inspect_inventory()
+            mining_setup = get_mining_setup(instance)
+            messages = [{"role": "system", "content": initial_system_prompt}]
+            starting_inventory = instance.inspect_inventory()
+            mining_setup = get_mining_setup(instance)
+            user_message = initial_user_prompt_base.format(objective = task, starting_inventory=starting_inventory, mining_setup=mining_setup,
+                                                            logs=log_str, plan = plan)
+            messages.append({"role": "user", "content": user_message})
+            response = self.llm_factory.call(model = planning_model,
+                                                messages=messages,
+                                                temperature=0.7,
+                                                max_tokens=4096)
+
+            current_step += 1
+            if "claude" in planning_model:
+                entity_analysis = response.content[0].text
+            else:
+                entity_analysis = response.choices[0].message.content
+            if "#entities" in entity_analysis.lower():
+                entity_analysis = entity_analysis.lower().split("#entities")[-2].strip()
+                return entity_analysis
+
+            # get the output between two #STEP tags
+            if "#COMMAND" in entity_analysis:
+                planning_output = entity_analysis.split("#COMMAND")[-2].strip()
+            else:
+                print(f"Missing planning output in response: {entity_analysis}")
+                continue
+            output = self.run_supervised_episode(instance, 1, planning_output, include_plan=True)
+            trace_logs = []
+            for trace in output["traces"]:
+                trace_logs+= trace["logs"]
+            log_str = f"Step {current_step}: {planning_output}\nLogs from output\n{trace_logs}"
+            logs.append(log_str)
+        # get everything after "Required entities"
+        entity_analysis = entity_analysis.split("#ENTITIES")[-1]
+        return entity_analysis
+
+    def get_plan_for_task_from_executor(self, instance, task):
+        self.init_system_prompt(instance)
+        messages = [{"role": "system", "content": self.system_prompt}]
+        starting_inventory = instance.inspect_inventory()
+        mining_setup = get_mining_setup(instance)
+        user_message = f"Your starting inventory is {starting_inventory}. Your initial mining setup is: {mining_setup}. Bring out the plan and python policy for the objective\n{task}"
+        user_message += self.planning_addition_for_prompt
+        #user_message += f"\nFirst bring out a thorough step-by-step list of steps you need to carry out to achieve this task and the entities you require for this task. Then create the python script to achieve the task."
+        messages.append({"role": "user", "content": user_message})
+        assistant_message = "```python\n"
+        messages.append({"role": "assistant", "content": assistant_message})
+        response = self.llm_factory.call(messages=messages,
+                                        temperature=0.7,
+                                        max_tokens=4096,
+                                        #stop_sequences = ["```"],
+                                        )
+        full_output = response.choices[0].message.content
+        # split by ```
+        split_plan = full_output.split("```")
+        plan_string = split_plan[0]
+        program = split_plan[1]
+        # split program by """
+        split_program = program.split('"""')
+        return full_output
+
+    def get_general_plan_for_task(self, instance, task):
+        self.init_system_prompt(instance)
+        messages = [{"role": "system", "content": self.system_prompt}]
+        starting_inventory = instance.inspect_inventory()
+        mining_setup = get_mining_setup(instance)
+        user_message = f"Your starting inventory is {starting_inventory}. Your initial mining setup is: {mining_setup}. Create a python script that achieves the following task\n{task}"
+        user_message += "\nBring out a general step-by-step list of steps you need to carry out to achieve this task. Bring out a list of entities you need for the task"
+        
+        #user_message = f"Your starting inventory is {starting_inventory}. Your initial mining setup is: {mining_setup}. Print out the entities to achieve the following task\n{task}"
+        #user_message += "\nFirst analyse what entities you need to achieve the task. Then in python code print out the entities and the amount of each entity you need\nFor connection entities like transport belts, poles or pipes, calculate the amount by using using get_connection_amount function. Use the actual positions where you will place the entities to calculate the amount of connection entities needed"
+        messages.append({"role": "user", "content": user_message})
+        response = self.llm_factory.call(messages=messages,
+                                        temperature=0.3,
+                                        max_tokens=4096,
+                                        #stop_sequences = ["```"],
+                                        )
+        full_output = response.choices[0].message.content
+        #if "```python" in full_output:
+        #        program = full_output.split("```python")[1]
+        #        program = program.split("```")[0]
+        #else:
+        #    print(f"Missing python code in response: {program}")
+        #output_list, result = eval_program_with_result_trace(instance, program)
+        
+        plan = full_output.strip()
+
+        initial_planning_agent_system_prompt_path = r"prompts\bottoms_up_prompts\finetuning_prompts\planning_agent_system_prompt_draft_initial_plan.md"
+        initial_planning_agent_user_prompt = r"prompts\bottoms_up_prompts\finetuning_prompts\planning_agent_user_prompt_draft_initial_plan_v2.md"
+        initial_system_prompt = self.read_in_prompt(initial_planning_agent_system_prompt_path)
+        initial_user_prompt_base = self.read_in_prompt(initial_planning_agent_user_prompt)
+        starting_inventory = instance.inspect_inventory()
+        mining_setup = get_mining_setup(instance)
+        messages = [{"role": "system", "content": initial_system_prompt}]
+        user_message = initial_user_prompt_base.format(objective = task, starting_inventory=starting_inventory, mining_setup=mining_setup, input_plan = plan)
+        messages.append({"role": "user", "content": user_message})
+        planning_model = self.planner_model
+        response = self.llm_factory.call(model = planning_model,
+                                            messages=messages,
+                                            temperature=0.7,
+                                            max_tokens=4096)
+        if "claude" in planning_model:
+            entity_analysis = response.content[0].text
+        else:
+            entity_analysis = response.choices[0].message.content
+        # get everything after "Required entities"
+        entity_analysis = entity_analysis.split("Required entities")[-1]
+        return entity_analysis
+
+    def run_supervised_mcts(self, instance, tries: int, task, include_plan: bool = False):
+        """
+        Run the supervised task
+        Need to implement saving the successful trace
+        """
+        planning_addition_for_prompt = """
+First bring out a thorough step-by-step plan how you can achieve this task and then create the python script to achieve the task.
+For your plan, follow this structure:
+1) What entities are needed for the task
+2) What entities do we have on the map, in different entity inventories or in our inventory
+3) What entities are we missing for the task
+"""
+        self.init_system_prompt(instance)
+        success = False
+        traces = []
+        # get the starting state of the game
+        save_string = instance._save_entity_state(distance=1000)
+        logs = []
+        for i in range(tries):
+            #if i != 0:
+            #    # reset the game
+            #    instance._load_entity_state(save_string)
+            messages = [{"role": "system", "content": self.system_prompt}]
+            starting_inventory = instance.inspect_inventory()
+            mining_setup = get_mining_setup(instance)
+            user_message = f"Your starting inventory is {starting_inventory}. Your initial mining setup is: {mining_setup}. Create a python script that achieves the following task\n{task}"
+            log_str = "\n\n".join(logs) if logs else ""
+            log_str += f"Logs from previous executions to solve this task\n{log_str}" if log_str else "" 
+            if log_str:
+                user_message += f"\n{log_str}"
+            if include_plan:
+                user_message += f"\n{self.planning_addition_for_prompt}"
+                user_message = user_message.strip()
+            messages.append({"role": "user", "content": user_message})
+            response = self.llm_factory.call(messages=messages,
+                                            temperature=0.4,
+                                            max_tokens=4096)
+            full_output = response.choices[0].message.content
+            if "```python" in full_output:
+                program = full_output.split("```python")[1]
+                program = program.split("```")[0]
+            else:
+                print(f"Missing python code in response: {program}")
+                continue
+            output_list, result, error = eval_program_with_result_trace(instance, program)
+            logs_from_execution = "\n".join(output_list)
+            logs.append(logs_from_execution)
+            inventory_dict = self.get_inventory_dict(starting_inventory)
+            traces.append({"program": program, "logs": output_list, "result": result, "full_output": full_output,
+                           "starting_inventory": inventory_dict, "mining_setup": mining_setup,
+                           "messages": messages, "planning": include_plan,
+                           "success": "error" not in result.lower()})
+            if error:
+                print(f"Error in program: {result}")
+                continue
+            success = True
+            break
+        return {"traces": traces, "success": success, "task": task}
+
+
     def run_supervised_episode(self, instance, tries: int, task, include_plan: bool = False):
         """
         Run the supervised task
@@ -129,7 +357,12 @@ For your plan, follow this structure:
         self.init_system_prompt(instance)
         success = False
         traces = []
+        # get the starting state of the game
+        save_string = instance._save_entity_state(distance=1000)
         for i in range(tries):
+            #if i != 0:
+            #    # reset the game
+            #    instance._load_entity_state(save_string)
             messages = [{"role": "system", "content": self.system_prompt}]
             starting_inventory = instance.inspect_inventory()
             mining_setup = get_mining_setup(instance)
@@ -139,7 +372,7 @@ For your plan, follow this structure:
                 user_message = user_message.strip()
             messages.append({"role": "user", "content": user_message})
             response = self.llm_factory.call(messages=messages,
-                                            temperature=0.3,
+                                            temperature=0.5,
                                             max_tokens=4096)
             full_output = response.choices[0].message.content
             if "```python" in full_output:
@@ -216,11 +449,14 @@ For your plan, follow this structure:
                                          version = "planner_executor_v1.0",
                                          meta = output_dict)
 
-    def run_external_planning_episode(self, number_of_tasks: int, episode_length = 10, executor_tries = 1, instance = None, task:str = None):
+    def run_external_planning_episode(self, number_of_tasks: int, episode_length = 10, executor_tries = 4, instance = None, task:str = None):
         """
         Run the supervised task
         Need to implement saving the successful trace
         """
+        #ob = self.get_unsupervised_objective(instance)
+        #task = self.run_supervised_mcts(instance, executor_tries, task, include_plan = True)
+        plan = self.get_plan_for_task_from_executor(instance, task)
         if not instance:
             # instantiate the instance
             instance = FactorioInstance(address='localhost',
@@ -253,24 +489,7 @@ For your plan, follow this structure:
         #system_prompt_judge = self.read_in_prompt(judge_system_prompt_path)
         #user_prompt_base_judge = self.read_in_prompt(judge_user_prompt)    
         
-        initial_planning_agent_system_prompt_path = r"prompts\bottoms_up_prompts\finetuning_prompts\planning_agent_system_prompt_draft_initial_plan.md"
-        initial_planning_agent_user_prompt = r"prompts\bottoms_up_prompts\finetuning_prompts\planning_agent_user_prompt_draft_initial_plan.md"
-        initial_system_prompt = self.read_in_prompt(initial_planning_agent_system_prompt_path)
-        initial_user_prompt_base = self.read_in_prompt(initial_planning_agent_user_prompt)
-        starting_inventory = instance.inspect_inventory()
-        inventory_dict = self.get_inventory_dict(starting_inventory)
-        mining_setup = get_mining_setup(instance)
-        messages = [{"role": "system", "content": initial_system_prompt}]
-        user_message = initial_user_prompt_base.format(objective = task, starting_inventory=starting_inventory, mining_setup=mining_setup)
-        messages.append({"role": "user", "content": user_message})
-        response = self.llm_factory.call(model = self.planner_model,
-                                            messages=messages,
-                                            temperature=0.7,
-                                            max_tokens=4096)
-        if "claude" in self.planner_model:
-            entity_analysis = response.content[0].text
-        else:
-            entity_analysis = response.choices[0].message.content
+        entity_analysis = self.get_general_plan_for_task_with_env(instance, task)
         if task is None:
             generate_tasks = True
         else:
@@ -423,15 +642,16 @@ if __name__ == "__main__":
     evaluator = ModelEvaluator(executor_model = supervised_model_path, 
                                objective_model = unsupervised_model_path,
                                #r"prompts\bottoms_up_prompts\finetuning_prompts\system_message_policy_self_gen.md",
-                               #system_prompt_path = r"prompts\bottoms_up_prompts\finetuning_prompts\system_message_policy_supervised.md",
                                system_prompt_path = r"prompts\bottoms_up_prompts\finetuning_prompts\system_message_policy_supervised.md",
+                               #system_prompt_path = r"prompts\bottoms_up_prompts\finetuning_prompts\system_message_policy_supervised_step.md",
                                save_path = r"datasetgen\finetuned_model_gen", # Where to save the traces
                                starting_scenarios_folder=r"skills\data_scenarios\starting_scenarios" # Where the starting scenarios are stored
                                )
     unsupervised_trace = True
     #evaluator.run_external_planning_episode(number_of_tasks = 2)
     #task = "Create a iron plate mine with burner drill feeding a furnace"
-    task = "Create a burner iron ore mine into a chest"
+    task = "Create a burner iron ore mine into a chest placed 10 spaces away"
+    #task = "Get 5 offshore pumps"
     #task = None
     if unsupervised_trace:
         starting_scenarios = ["ft_random_chest_furnace_placement_inv_in_chest"]
@@ -442,4 +662,4 @@ if __name__ == "__main__":
                                                           )
     else:
        objective = "You need to manually mine 50 iron ore, 50 copper ore and 70 coal"
-       evaluator.run_supervised_episode(5, objective, include_plan=True)
+       evaluator.run_supervised_episode(5, task, include_plan=True)
