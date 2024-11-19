@@ -104,7 +104,7 @@ class FactorioLogger:
         table.add_row("Total Programs:", str(instance.total_programs))
         table.add_row("Last Update:", instance.last_update.strftime("%H:%M:%S"))
         table.add_row("Avg Time / Program:", Text(avg_time))
-        table.add_row("# Entities:", Text(f"{instance.start_entities} -> {instance.final_entities}", style="cyan" if instance.start_entities >= instance.final_entities else "red"))
+        table.add_row("# Entities:", Text(f"{instance.start_entities} -> {instance.final_entities}", style="red" if instance.start_entities != instance.final_entities else "cyan"))
         table.add_row("# Inventory:", Text(f"{instance.start_inventory_count} -> {instance.final_inventory_count}"))
 
         return Panel(

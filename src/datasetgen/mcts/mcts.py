@@ -59,15 +59,12 @@ class MCTS:
                 code = self._verify_response_is_python(code)
                 return code
             except Exception as e1:
-                print(f"Failed to extract code from choice: {str(e1)}")
                 # Sometimes it samples a leading line, before writing unblocked python code.
                 content = "\n".join(choice.message.content.split("\n")[1:])
                 try:
                     code = self._verify_response_is_python(content)
                     return code
                 except Exception as e2:
-                    print(f"Failed to extract code from choice after removing leading line: {str(e2)}")
-
                     try:
                         code = content.split('from factorio_instance import *')[1].strip()
                         code = self._verify_response_is_python(code)
@@ -75,6 +72,8 @@ class MCTS:
                     except Exception as e2:
                         print(f"Failed to extract code from choice after removing leading line and factorio_instance import: {str(e2)}")
                         return None
+                    print(f"Failed to extract code from choice after removing leading line: {str(e2)}")
+                print(f"Failed to extract code from choice: {str(e1)}")
 
     @retry(wait=wait_exponential(multiplier=1, min=4, max=10))
     async def _generate_programs_batch(self, conversation: Conversation, n_samples: int) -> List[Program]:
@@ -89,6 +88,7 @@ class MCTS:
             # Single API call to generate n_samples completions
             response = self.llm.call(
                 messages=formatted_messages,
+                max_tokens=2048,
                 n=n_samples,
                 temperature=0.7  # Adjust as needed
             )

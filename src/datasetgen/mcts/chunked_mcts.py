@@ -13,62 +13,60 @@ from datasetgen.mcts.program import Program
 
 class ChunkedMCTS(MCTS):
     def _split_into_chunks(self, program_code: str) -> List[Program]:
-        chunks = []
+        """Split the program code into chunks based on docstrings."""
+
+        program_code = program_code.replace("from factorio_instance import *", "").strip()
         lines = program_code.splitlines()
-        current_docstring = ""
-        current_lines = []
-        current_start = 0
+        chunks = []
         module = ast.parse(program_code)
 
-        # Track docstring positions to identify chunk boundaries
+        # Find all docstrings and their positions
         docstring_positions = []
-        for i, node in enumerate(module.body):
+        for node in module.body:
             if isinstance(node, ast.Expr) and isinstance(node.value, ast.Constant):
                 docstring_positions.append((node.lineno - 1, node.end_lineno - 1, node.value.s))
 
         if not docstring_positions:
             return []
 
-        # Process chunks between docstrings
+        # Handle everything before first docstring
+        first_docstring_start = docstring_positions[0][0]
+        if first_docstring_start > 0:
+            preamble = lines[:first_docstring_start]
+            if any(line.strip() for line in preamble):  # If there's any non-empty content
+                chunks.append(Program(
+                    code='\n'.join(preamble),
+                    conversation=Conversation(messages=[])
+                ))
+
+        # Process each chunk
         for i, (start_pos, end_pos, docstring) in enumerate(docstring_positions):
-            # If this isn't the first chunk, append the previous one
-            if current_docstring and current_lines:
-                chunks.append(Program(
-                    code="\n".join(current_lines),
-                    conversation=Conversation(messages=[])
-                ))
+            chunk_lines = []
 
-            # Start new chunk
-            current_docstring = docstring
-            current_lines = []
+            # Add docstring lines
+            chunk_lines.extend(lines[start_pos:end_pos + 1])
 
-            # Add any lines before the docstring that follow the previous chunk
-            if i > 0:
-                prev_end = docstring_positions[i - 1][1]
-                current_lines.extend(lines[prev_end + 1:start_pos])
-
-            # Add the docstring lines
-            current_lines.extend(lines[start_pos:end_pos + 1])
-
-            # If this is the last docstring, add all remaining lines
-            if i == len(docstring_positions) - 1:
-                current_lines.extend(lines[end_pos + 1:])
-                chunks.append(Program(
-                    code="\n".join(current_lines),
-                    conversation=Conversation(messages=[])
-                ))
-            else:
-                # Add lines until the next docstring
+            # Add code lines until next docstring or end
+            if i < len(docstring_positions) - 1:
                 next_start = docstring_positions[i + 1][0]
-                current_lines.extend(lines[end_pos + 1:next_start])
+                chunk_lines.extend(lines[end_pos + 1:next_start])
+            else:
+                # For last chunk, add all remaining lines
+                chunk_lines.extend(lines[end_pos + 1:])
+
+            # Create program for this chunk
+            if chunk_lines:
+                chunks.append(Program(
+                    code='\n'.join(chunk_lines),
+                    conversation=Conversation(messages=[])
+                ))
 
         return chunks
 
     async def _evaluate_chunks(self, chunks: List[Program], start_state: GameState, instance_id: int) \
             -> Tuple[List[Program], float]:
         current_state = start_state
-        holdout_start = GameState.from_instance(self.evaluator.holdout)
-        self.evaluator.holdout.reset(holdout_start)
+        self.evaluator.holdout.reset(current_state)
         holdout_future = asyncio.create_task(self.evaluator._run_holdout())
         entity_list = []
         try:
@@ -108,44 +106,72 @@ class ChunkedMCTS(MCTS):
             self.evaluator.set_sampling_status()
             raw_programs = await self._generate_programs_batch(conversation, samples_per_iteration)
 
+            # Process programs in parallel
+            eval_futures = []
             for i, (program, chunks) in enumerate(raw_programs):
                 instance_id = i % (len(self.evaluator.instances) - 1)
+                self.evaluator.instances[instance_id].reset(start_state)
+                self.evaluator.logger.update_instance(i, program_id=program.id, status="resetting")
 
+                # Create evaluation future for this program's chunks
+                eval_futures.append(self._process_program_chunks(
+                    program=program,
+                    chunks=chunks,
+                    start_state=start_state,
+                    instance_id=instance_id,
+                    parent_id=parent.id if parent else None,
+                    skip_failures=skip_failures
+                ))
 
-                self.evaluator.instances[instance_id].reset(start_state)  # Reset to the start state before evaluating each chunk.
-                self.logger.update_instance(i, program_id=program.id, status="resetting")
+            # Wait for all programs to complete
+            await asyncio.gather(*eval_futures)
+            self.evaluator.logger.update_progress()
 
-                try:
-                    evaluated_chunks, holdout, entity_list = await self._evaluate_chunks(chunks, start_state, instance_id)
-                    last_chunk_id = parent.id if parent else None
-                    last_conversation_stage = program.conversation
-                    for chunk, entities in zip(evaluated_chunks, entity_list):
-                        chunk_program = Program(
-                            code=chunk.code,
-                            conversation=program.conversation,
-                            value=chunk.value - (holdout / len(evaluated_chunks)),  # Distribute holdout value
-                            state=chunk.state,
-                            response=chunk.response,
-                            version=self.version,
-                            version_description=self.version_description,
-                            parent_id=last_chunk_id,
-                            token_usage=program.token_usage // len(evaluated_chunks),
-                            completion_token_usage=program.completion_token_usage // len(evaluated_chunks),
-                            prompt_token_usage=program.prompt_token_usage // len(evaluated_chunks)
-                        )
-                        last_conversation_stage.add_result(chunk.code, chunk.value - (holdout / len(evaluated_chunks)), chunk.response, chunk.state, entities)
-                        chunk_program.id = hash((chunk.code, json.dumps(chunk_program.conversation.model_dump()['messages'])))
-                        chunk_program.conversation = last_conversation_stage
+    async def _process_program_chunks(self, program: Program, chunks: List[Program],
+                                      start_state: GameState, instance_id: int,
+                                      parent_id: Optional[int], skip_failures: bool):
+        try:
+            evaluated_chunks, holdout, entity_list = await self._evaluate_chunks(chunks, start_state, instance_id)
+            last_chunk_id = parent_id
+            last_conversation_stage = program.conversation
 
-                        last_chunk_id = chunk_program.id
-                        if not skip_failures or chunk_program.value is not None:
-                            await self.db.create_program(chunk_program)
+            for chunk, entities in zip(evaluated_chunks, entity_list):
+                chunk_program = Program(
+                    code=chunk.code,
+                    conversation=program.conversation,
+                    value=chunk.value - (holdout / len(evaluated_chunks)),
+                    raw_reward=chunk.value,
+                    holdout_value=holdout / len(evaluated_chunks),
+                    state=chunk.state,
+                    response=chunk.response,
+                    version=self.version,
+                    version_description=self.version_description,
+                    parent_id=last_chunk_id,
+                    token_usage=program.token_usage // len(evaluated_chunks),
+                    completion_token_usage=program.completion_token_usage // len(evaluated_chunks),
+                    prompt_token_usage=program.prompt_token_usage // len(evaluated_chunks)
+                )
 
-                except Exception as e:
-                    print(f"Failed to evaluate program: {str(e)}")
-                    continue
+                last_conversation_stage.add_result(
+                    chunk.code,
+                    chunk.value - (holdout / len(evaluated_chunks)),
+                    chunk.response,
+                    chunk.state,
+                    entities
+                )
 
-                self.evaluator.logger.update_progress()
+                chunk_program.id = hash(
+                    (chunk.code, json.dumps(chunk_program.conversation.model_dump()['messages'])))
+                chunk_program.conversation = last_conversation_stage
+
+                if skip_failures and "error" in chunk.response.lower():
+                    break
+
+                created = await self.db.create_program(chunk_program)
+                last_chunk_id = created.id
+
+        except Exception as e:
+            print(f"Failed to evaluate program on instance {instance_id}: {str(e)}")
 
     async def _generate_programs_batch(self, conversation: Conversation, n_samples: int) -> List[Tuple[Program, List[Program]]]:
         programs = await super()._generate_programs_batch(conversation, n_samples)

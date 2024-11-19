@@ -61,7 +61,7 @@ async def main():
         instance.speed(10) # Set the game speed to 10x normal speed for faster testing
 
     # Initialize FactorioEvaluator with the list of instances
-    evaluator = FactorioEvaluator(db_client, instances)
+    evaluator = FactorioEvaluator(db_client, instances, value_accrual_time=3)
     initial_state = GameState.from_instance(instances[0])
 
     # Get execution directory from __file__ or other source
@@ -77,15 +77,15 @@ async def main():
                 evaluator,
                 system_prompt,
                 initial_state,
-                version=4,
-                version_description="Step-wise evaluation / Execution results exclude entities and inventory",
+                version=5,
+                version_description="Step-wise evaluation / Errors not saved / Execution results exclude entities and inventory",
                 formatter=StructurePreservingFormatter(planning=True))
 
     print("Starting MCTS search...")
     best_programs = await mcts.search(
         n_iterations=500,
         samples_per_iteration=len(instances)-1, # One for each instance, minus a holdout.
-        skip_failures=False,
+        skip_failures=True,
     )
 
     print("\nBest programs found:")

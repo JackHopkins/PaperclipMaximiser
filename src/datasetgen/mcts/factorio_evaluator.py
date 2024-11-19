@@ -92,8 +92,20 @@ class FactorioEvaluator:
             entities = instance.get_entities()
             final_inventory = instance.inspect_inventory()
 
+            # Check to see if the inventories are different
+            # If so, we put a hint in the code and result
+            if start_inventory.__dict__ != final_inventory.__dict__ and 'error' not in result.lower():
+                program.code += '\nprint(f"Inventory changed to {inspect_inventory()}")'
+                result += f'\n('+str(len(program.code.split('\n')))+f': Inventory changed to {final_inventory},)'
+
+            # Check to see if the entities are different
+            # If so, we put a hint in the code and result
+            if start_entities != entities and 'error' not in result.lower():
+                program.code += '\nprint(f"Entities on the map: {get_entities()}")\n'
+                result += "\n("+str(len(program.code.split('\n')))+f': Entities on the map: {entities},)'
+
             self.logger.update_instance(instance_id, status="accruing value")
-            await asyncio.sleep(10)
+            await asyncio.sleep(self.value_accrual_time)
 
             score, _ = instance.score()
             final_reward = score - initial_value
@@ -134,7 +146,7 @@ class FactorioEvaluator:
 
             initial_value, _ = self.holdout.score()
             self.logger.update_instance(len(self.instances), status="accruing value")
-            await asyncio.sleep(10)
+            await asyncio.sleep(self.value_accrual_time)
             entities = self.holdout.get_entities()
             reward, _ = self.holdout.score()
             final_inventory = self.holdout.inspect_inventory()

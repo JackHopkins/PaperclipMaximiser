@@ -7,8 +7,9 @@ from datasetgen.mcts.conversation import Message, Conversation
 
 PLANNING_ADDITION_PROMPT = \
 """
-Identify an appropriate next task given the recent history and environment feedback.
-Develop thorough step-by-step plan how you can achieve this task and then create the python script to achieve the task.
+Your goal is to automate an increasingly complex factory process.
+Identify an appropriate next task given the recent history and environment feedback to achieve this goal.
+Develop thorough step-by-step plans for how you can achieve the next task and then create the python script to achieve the task.
 For your plan, follow this structure:
 1) What entities are needed for the task
 2) What entities do we have on the map, in different entity inventories or in our inventory

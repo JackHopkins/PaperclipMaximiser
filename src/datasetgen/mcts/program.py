@@ -27,6 +27,9 @@ class Program(BaseModel):
     version: int = 1
     version_description: str = ""
 
+    def __repr__(self):
+        return self.code
+
     def get_uct(self, parent_visits: int, exploration_constant: float = 1.41) -> float:
         if self.visits == 0:
             return float('inf')
