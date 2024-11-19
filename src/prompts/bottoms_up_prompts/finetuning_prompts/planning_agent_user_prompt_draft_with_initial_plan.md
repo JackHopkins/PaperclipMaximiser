@@ -37,7 +37,7 @@ Initial inventory
                             "burner-inserter": 5,
                             "coal": 10}}
 Steps
-Step 1 - #STEP Print out the location of the nearest coal patch and calculate the distance from that to the chest at Position(x = 0, y = 1). Print out if we have enough transport belts to cover the distance #STEP
+Step 1 - #STEP Print out the location of the nearest coal patch and calculate the distance from that to the chest at Position(x = 0, y = 1) using the get_connection_amount function. Print out if we have enough transport belts to cover the distance #STEP
 Step 2 - #STEP Create a coal mine from a drill at center of coal patch to a chest placed 10 spaces away. Check the coal mine by looking if the chest has coal #STEP
 #OUTPUT An automatic coal mine has been created to the drill at Position(x = 11, y = 12) to the chest at Position(x = 5, y = 9) #OUTPUT
 
@@ -49,7 +49,7 @@ Initial inventory
 {{}}
 Steps
 Step 1 - #STEP Get the burner inserters and transport belts from the chest at Position(x = 0, y =  1). #STEP
-Step 2 - #STEP Calculate the distance between Position(x = 0, y = 1) and Position(x = 12, y = 1). Print out if there are enough transport belts to make the connection #STEP
+Step 2 - #STEP Calculate the distance between Position(x = 0, y = 1) and Position(x = 12, y = 1) using get_connection_amount function. Print out if there are enough transport belts to make the connection #STEP
 Step 2 - #STEP Create a connection that moves iron ore from chest at Position(x=0, y=1) to the furnace at Position(x=12, y=1). Check the connection by looking if the furnace has smelted iron plates in it #STEP
 #OUTPUT Connection that moves items from chest at Position(x=0, y=1) to furnace at Position(x=12, y=1) has been created #OUTPUT
 

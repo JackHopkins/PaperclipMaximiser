@@ -29,12 +29,16 @@ def is_valid_python(code_string: str) -> bool:
 def eval_program_with_result_trace(instance, program):
         # evaluate the step
         try:
-            score, goal, result = instance.eval_with_error(program, timeout=20)
+            score, goal, result = instance.eval_with_error(program, timeout=300)
+            error = False
         except Exception as e:
-            result = f"error: {str(e)}"
+            result = e
+            # get the error message
+            result = str(e)
+            error = True
         # split result by newlines
         output_list = result.splitlines()
-        return output_list, result
+        return output_list, result, error
 
 def get_mining_setup(instance):
         mining_setup = instance.get_entities()
@@ -555,7 +559,7 @@ if __name__ == "__main__":
     #    'stone-furnace': 3,
     #    'iron-ore':10
     #}
-    #inventory = {}
+    inventory = {}
     #inventory = {
     #    'iron-plate': 50,
     #    'copper-plate': 50,
@@ -566,10 +570,17 @@ if __name__ == "__main__":
                                 fast=True,
                                 #cache_scripts=False,
                                 inventory=inventory)
-
+    save_string = instance._save_entity_state(distance=1000)
 
     test_string = '\n\nfrom factorio_instance import *\n\n"""\nStep 1: Print recipe for burner mining drill\n"""\n# Get the recipe for burner mining drill\nrecipe = get_prototype_recipe(Prototype.BurnerMiningDrill)\n\n# Print the recipe details\nprint("Burner Mining Drill Recipe:")\nprint(f"Ingredients: {recipe.ingredients}")\n\n"""\nStep 2: Calculate total raw materials needed\n"""\niron_plates_needed = 8  # 3 for drill + 5 for gears\nstone_needed = 5  # For stone furnace\n\nprint(f"Total raw materials needed: {iron_plates_needed} iron plates, {stone_needed} stone")\n\n"""\nStep 3: Gather raw resources\n"""\n# Find and move to the nearest iron ore patch\niron_ore_position = nearest(Resource.IronOre)\nprint(f"Moving to iron ore patch at {iron_ore_position}")\nmove_to(iron_ore_position)\n\n# Mine iron ore (we need at least 8 iron plates, so mine a bit more to be safe)\nprint("Mining iron ore...")\nharvest_resource(iron_ore_position, quantity=10)\nprint(f"Mined iron ore. Current inventory: {inspect_inventory()}")\n\n# Find and move to the nearest stone patch\nstone_position = nearest(Resource.Stone)\nprint(f"Moving to stone patch at {stone_position}")\nmove_to(stone_position)\n\n# Mine stone (we need 5 stone for the furnace)\nprint("Mining stone...")\nharvest_resource(stone_position, quantity=5)\nprint(f"Mined stone. Current inventory: {inspect_inventory()}")\n\n"""\nStep 4: Craft intermediate items\n"""\n# Craft stone furnace\nprint("Crafting stone furnace...")\ncraft_item(Prototype.StoneFurnace, quantity=1)\nprint(f"Crafted stone furnace. Current inventory: {inspect_inventory()}")\n\n# Craft iron gear wheels (each requires 2 iron plates)\nprint("Crafting iron gear wheels...")\ncraft_item(Prototype.IronGearWheel, quantity=3)\nprint(f"Crafted iron gear wheels. Current inventory: {inspect_inventory()}")\n\n"""\nStep 5: Craft burner mining drill\n"""\nprint("Crafting burner mining drill...")\ncraft_item(Prototype.BurnerMiningDrill, quantity=1)\nprint(f"Crafted burner mining drill. Current inventory: {inspect_inventory()}")\n\n"""\nStep 6: Verify crafting success\n"""\nfinal_inventory = inspect_inventory()\nassert final_inventory.get(Prototype.BurnerMiningDrill, 0) >= 1, "Failed to craft burner mining drill"\nprint("Successfully crafted burner mining drill!")\n\n'
-    test_string = '\nfrom factorio_instance import *\n\n"""\nStep 1: Place a burner inserter next to the stone furnace\n- Move to the stone furnace\n- Place the burner inserter to the right of the furnace\n- Rotate the inserter to take items out of the furnace\n"""\n# Move to the stone furnace\nfurnace_pos = Position(x=85.0, y=12.0)\nmove_to(Position(x=82.0, y=12.0))\nplace_entity(Prototype.StoneFurnace, position = furnace_pos)\nmove_to(Position(x=82.0, y=12.0))\n\n# Place the burner inserter\ninserter = place_entity_next_to(Prototype.BurnerInserter, \n                                direction=Direction.RIGHT, \n                                reference_position=furnace_pos)'
+    test_string = '\nfrom factorio_instance import *\n\nfor i in range(2):    if True:\n        print("Hello")\n        m = 1\n        print("Hello2")\n    elif False:\n        print("Hello3")\n        m = 2\n        print("Hello4")\n    else:\n        print("Hello5")\n        m = 3\n        print("Hello6")\n\nprint(m)\n'
+    test_string = '\nfrom factorio_instance import *\n\n"""\nObjective: Create a burner iron ore mine from a drill at Position(x=84.5, y=14.5) to a wooden chest placed 10 spaces away.\nUse burner inserters and transport belts to connect the drill to the chest.\nCheck the construct by looking if the chest has iron ore in it.\nPrint out the input and output mine entity positions.\n"""\n\n# Step 1: Place the wooden chest 10 spaces away from the drill\ndrill_position = Position(x=84.5, y=14.5)\nchest_position = Position(x=94.5, y=14.5)  # 10 spaces to the right of the drill\n\nmove_to(chest_position)'
+
+    test_string = '\nfrom factorio_instance import *\n\niron_loc = nearest(Resource.IronOre)\nprint(iron_loc)\nmove_to(iron_loc)\nharvest_resource(iron_loc, quantity=10)\nprint(inspect_inventory())\n'
+
+    _, result = eval_program_with_result_trace(instance, test_string)
+    instance._load_entity_state(save_string)
+    test_string = '\nfrom factorio_instance import *\n\nmove_to(Position(x = 0, y = 0))'
     _, result = eval_program_with_result_trace(instance, test_string)
 
     starting_objective_folder = r"skills\ground_truth_skills\put_down_electricity_gen"
