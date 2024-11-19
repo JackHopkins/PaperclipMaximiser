@@ -104,12 +104,13 @@ class LLMFactory:
                                                   stream=False)
         else:
             client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+            stop_sequences = kwargs.get('stop_sequences', None)
             assert "messages" in kwargs, "You must provide a list of messages to the model."
             return client.chat.completions.create(model = model_to_use,
                                                   max_tokens = kwargs.get('max_tokens', 2048),
                                                   temperature=kwargs.get('temperature', 0.3),
                                                   messages=kwargs.get('messages', None),
-                                                  #stop=["\n\n"],#, "\n#"],
+                                                  stop=stop_sequences,#, "\n#"],
                                                   #presence_penalty=1,
                                                   #frequency_penalty=0.6,
                                                   stream=False)
