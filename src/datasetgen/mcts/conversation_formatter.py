@@ -104,9 +104,9 @@ class CodeProcessor:
                 if not in_docstring:  # Start of docstring
                     if code_start is not None:
                         if code_lines == 1:
-                            result.append(f"<LINE {code_start} OMITTED>")
+                            result.append(f"<LINE {code_start} CUT/>")
                         else:
-                            result.append(f"<LINES {code_start}-{code_start + code_lines - 1} OMITTED>")
+                            result.append(f"<LINES {code_start}-{code_start + code_lines - 1} CUT/>")
                         code_start = None
                         code_lines = 0
                     in_docstring = True
@@ -123,9 +123,9 @@ class CodeProcessor:
             if stripped.startswith('#'):
                 if code_start is not None:
                     if code_lines == 1:
-                        result.append(f"<LINE {code_start} OMITTED>")
+                        result.append(f"<LINE {code_start} CUT/>")
                     else:
-                        result.append(f"<LINES {code_start}-{code_start + code_lines - 1} OMITTED>")
+                        result.append(f"<LINES {code_start}-{code_start + code_lines - 1} CUT/>")
                     code_start = None
                     code_lines = 0
                 result.append(line)
@@ -138,9 +138,9 @@ class CodeProcessor:
         # Handle any remaining code section
         if code_start is not None:
             if code_lines == 1:
-                result.append(f"<LINE {code_start} OMITTED>")
+                result.append(f"<LINE {code_start} CUT/>")
             else:
-                result.append(f"<LINES {code_start}-{code_start + code_lines - 1} OMITTED>")
+                result.append(f"<LINES {code_start}-{code_start + code_lines - 1} CUT/>")
 
         return '\n'.join(result)
 

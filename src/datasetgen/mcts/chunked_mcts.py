@@ -12,6 +12,11 @@ from datasetgen.mcts.program import Program
 
 
 class ChunkedMCTS(MCTS):
+
+    def __init__(self, *args, logit_bias: Optional[float] = None, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.logit_bias = logit_bias
+
     def _split_into_chunks(self, program_code: str) -> List[Program]:
         """Split the program code into chunks based on docstrings."""
 
@@ -174,7 +179,8 @@ class ChunkedMCTS(MCTS):
             print(f"Failed to evaluate program on instance {instance_id}: {str(e)}")
 
     async def _generate_programs_batch(self, conversation: Conversation, n_samples: int) -> List[Tuple[Program, List[Program]]]:
-        programs = await super()._generate_programs_batch(conversation, n_samples)
+        # We generate one extra program in case there is an error in parsing one. This way we can always return n_samples programs to keep the servers occupied.
+        programs = (await super()._generate_programs_batch(conversation, n_samples+1, logit_bias=self.logit_bias))[:n_samples]
         chunked_programs = []
 
         for i, program in enumerate(programs):

@@ -110,6 +110,7 @@ class LLMFactory:
                                                   max_tokens = kwargs.get('max_tokens', 2048),
                                                   temperature=kwargs.get('temperature', 0.3),
                                                   messages=kwargs.get('messages', None),
+                                                  logit_bias=kwargs.get('logit_bias', None),
                                                   n=n_samples,  # Use requested number of samples
                                                   #stop=["\n\n"],#, "\n#"],
                                                   #presence_penalty=1,

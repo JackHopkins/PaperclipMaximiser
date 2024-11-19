@@ -72,11 +72,20 @@ async def main():
 
     print("Initializing MCTS...")
 
+    # Logit bias
+    logit_bias = {
+        "15714": -100, # 'LINE'
+        "145968": -100, # ' CUT'
+        "27": -100, # '<'
+        "20225": -100 #'/>'
+    }
+
     mcts = ChunkedMCTS(llm,
                 db_client,
                 evaluator,
                 system_prompt,
                 initial_state,
+                logit_bias=logit_bias,
                 version=5,
                 version_description="Step-wise evaluation / Errors not saved / Execution results exclude entities and inventory",
                 formatter=StructurePreservingFormatter(planning=True))

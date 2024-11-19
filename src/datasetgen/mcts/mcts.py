@@ -1,6 +1,6 @@
 import asyncio
 import json
-from typing import Optional, List
+from typing import Optional, List, Dict
 
 from tenacity import wait_exponential, retry
 
@@ -76,7 +76,7 @@ class MCTS:
                 print(f"Failed to extract code from choice: {str(e1)}")
 
     @retry(wait=wait_exponential(multiplier=1, min=4, max=10))
-    async def _generate_programs_batch(self, conversation: Conversation, n_samples: int) -> List[Program]:
+    async def _generate_programs_batch(self, conversation: Conversation, n_samples: int, logit_bias: Optional[Dict[str, float]] = None) -> List[Program]:
         """Generate multiple programs in a single API call using 'n' parameter"""
         formatted_messages = self.formatter.to_llm_messages(
             self.formatter.format_conversation(conversation)
@@ -90,7 +90,8 @@ class MCTS:
                 messages=formatted_messages,
                 max_tokens=2048,
                 n=n_samples,
-                temperature=0.7  # Adjust as needed
+                temperature=0.7,  # Adjust as needed
+                logit_bias=logit_bias
             )
 
             programs = []

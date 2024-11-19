@@ -96,13 +96,13 @@ class FactorioEvaluator:
             # If so, we put a hint in the code and result
             if start_inventory.__dict__ != final_inventory.__dict__ and 'error' not in result.lower():
                 program.code += '\nprint(f"Inventory changed to {inspect_inventory()}")'
-                result += f'\n('+str(len(program.code.split('\n')))+f': Inventory changed to {final_inventory},)'
+                result += f'\n'+str(len(program.code.split('\n')))+f': (Inventory changed to {final_inventory},)'
 
             # Check to see if the entities are different
             # If so, we put a hint in the code and result
             if start_entities != entities and 'error' not in result.lower():
                 program.code += '\nprint(f"Entities on the map: {get_entities()}")\n'
-                result += "\n("+str(len(program.code.split('\n')))+f': Entities on the map: {entities},)'
+                result += "\n"+str(len(program.code.split('\n')))+f': (Entities on the map: {entities},)'
 
             self.logger.update_instance(instance_id, status="accruing value")
             await asyncio.sleep(self.value_accrual_time)

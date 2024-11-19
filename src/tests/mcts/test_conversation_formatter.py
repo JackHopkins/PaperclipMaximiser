@@ -51,7 +51,7 @@ class TestStructurePreservingFormatter(unittest.TestCase):
 
         summarized = CodeProcessor.summarize_code_block(code_block, preserve_comments=True)
 
-        self.assertEqual("# Gather iron ore\n<LINES 2-3 OMITTED>\n# Construct stone furnace", summarized)
+        self.assertEqual("# Gather iron ore\n<LINES 2-3 CUT/>\n# Construct stone furnace", summarized)
 
         summarized2 = CodeProcessor.summarize_code_block(
             "# Gather iron ore\n# Gather more iron ore\nprint(0)\nprint(1)\n# Construct stone furnace", preserve_comments=True)
@@ -73,7 +73,7 @@ class TestStructurePreservingFormatter(unittest.TestCase):
         self.assertEqual(assistant1.role, "assistant")
         expected_summary = (
             "# Gather iron ore\n"
-            "<LINES 2-3 OMITTED>\n"
+            "<LINES 2-3 CUT/>\n"
             "# Construct stone furnace"
         )
         self.assertEqual(assistant1.content, expected_summary)
@@ -108,9 +108,9 @@ class TestStructurePreservingFormatter(unittest.TestCase):
         formatted = self.formatter.format_message(message, is_last=False)
         expected = (
             "# First task\n"
-            "<LINE 2 OMITTED>\n"
+            "<LINE 2 CUT/>\n"
             "# Second task\n"
-            "<LINE 4 OMITTED>"
+            "<LINE 4 CUT/>"
         )
         self.assertEqual(formatted.content, expected)
         self.assertEqual(formatted.metadata, {"summarized": True})
@@ -132,7 +132,7 @@ class TestStructurePreservingFormatter(unittest.TestCase):
         formatted = self.formatter.format_message(message, is_last=False)
         self.assertEqual(
             formatted.content,
-            "<LINES 1-2 OMITTED>"
+            "<LINES 1-2 CUT/>"
         )
 
     def test_docstring_code_summariser(self):
