@@ -222,15 +222,18 @@ First bring out a general step-by-step list of steps you need to carry out to ac
         starting_inventory = instance.inspect_inventory()
         mining_setup = get_mining_setup(instance)
         user_message = f"Your starting inventory is {starting_inventory}. Your initial mining setup is: {mining_setup}. Bring out the plan and python policy for the objective\n{task}"
-        user_message += self.planning_addition_for_prompt
+        user_message = f"Your starting inventory is {{}}. Your initial mining setup is: There are no entities on the map. Bring out the list of entities required for the objective\n{task}"
+        user_message += "\nFirst plan step by step and bring out a thorough list of entities you need to craft to achieve this objective and then create the python script to achieve the task. The list of entities should incldue all the entities that you need to craft to achieve this objective"
+        
+        #user_message += self.planning_addition_for_prompt
         #user_message += f"\nFirst bring out a thorough step-by-step list of steps you need to carry out to achieve this task and the entities you require for this task. Then create the python script to achieve the task."
         messages.append({"role": "user", "content": user_message})
-        assistant_message = "```python\n"
-        messages.append({"role": "assistant", "content": assistant_message})
+        #assistant_message = "```python\n"
+        #messages.append({"role": "assistant", "content": assistant_message})
         response = self.llm_factory.call(messages=messages,
                                         temperature=0.7,
                                         max_tokens=4096,
-                                        #stop_sequences = ["```"],
+                                        stop_sequences = ["```"],
                                         )
         full_output = response.choices[0].message.content
         # split by ```
@@ -651,7 +654,7 @@ if __name__ == "__main__":
     #evaluator.run_external_planning_episode(number_of_tasks = 2)
     #task = "Create a iron plate mine with burner drill feeding a furnace"
     task = "Create a burner iron ore mine into a chest placed 10 spaces away"
-    #task = "Get 5 offshore pumps"
+    task = "Get 5 offshore pumps"
     #task = None
     if unsupervised_trace:
         starting_scenarios = ["ft_random_chest_furnace_placement_inv_in_chest"]
