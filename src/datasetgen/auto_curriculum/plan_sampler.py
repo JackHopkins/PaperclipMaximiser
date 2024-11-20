@@ -44,6 +44,7 @@ For your plan, follow this structure:
         full_output = full_output.strip()
         new_line_idx = full_output.rfind("\n")
         full_output = full_output[:new_line_idx].replace("Sure!", "").strip()
+        full_output = f'"""\n{full_output}\n"""'
         return full_output
     
     def get_mining_setup(self, instance):
