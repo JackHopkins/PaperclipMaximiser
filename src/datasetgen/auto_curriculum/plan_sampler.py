@@ -12,6 +12,14 @@ class PlanSampler():
         self.system_prompt_path = system_prompt_path
         self.llm_factory = LLMFactory(model)
         self.starting_scenarios_folder = starting_scenarios_folder
+        self.planning_addition_for_prompt = """
+First bring out a thorough step-by-step plan how you can achieve this task and then create the python script to achieve the task.
+For your plan, follow this structure:
+1) What entities are needed for the task
+2) What entities do we have on the map, in different entity inventories or in our inventory
+3) What entities are we missing for the task
+4) Execution -- Taking into account 1,2 and 3, what steps do we need to take to successfully carry out the task
+"""
         
     
     def get_unsupervised_objective(self, instance):
@@ -23,18 +31,20 @@ class PlanSampler():
         mining_setup = self.get_mining_setup(instance)
         messages = [{"role": "system", "content": self.system_prompt}]
         user_message = f"Your starting inventory is {starting_inventory}. Your initial mining setup is: {mining_setup}. Create a useful task that you can carry out in the current game and the python script to achieve the task"
+        user_message += f"\n{self.planning_addition_for_prompt}"
         messages.append({"role": "user", "content": user_message})
         response = self.llm_factory.call(messages=messages,
                                          model = self.model,
                                         temperature=0.7,
                                         max_tokens=4096,
-                                        stop_sequences = ["\n"])
+                                        stop_sequences = ["```"])
         
         
         full_output = response.choices[0].message.content
-        full_output = full_output.lower().replace("sure! the task i will carry out is", "").strip()
-        if "." in full_output:
-            full_output = full_output.split(".")[0]
+        full_output = full_output.strip()
+        new_line_idx = full_output.rfind("\n")
+        full_output = full_output[:new_line_idx].replace("Sure!", "").strip()
+        full_output = f'"""\n{full_output}\n"""'
         return full_output
     
     def get_mining_setup(self, instance):
@@ -85,6 +95,6 @@ if __name__ == "__main__":
                                     #cache_scripts=False,
                                     inventory={})
                                     
-        game_state = sampler.get_game_state(starting_scenario)
+        game_state = sampler.get_game_state(instance, starting_scenario)
         objective = sampler(instance, game_state)
 
