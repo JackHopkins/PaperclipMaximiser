@@ -23,17 +23,15 @@ class ModelEvaluator:
         self.save_path = save_path
         self.starting_scenarios_folder = starting_scenarios_folder
         self.skills_db = SkillsDB()
-        self.planner_model = "claude-3-5-sonnet-20240620"
+        self.planner_model = "claude-3-5-sonnet-20241022"
         self.objective_model = objective_model if objective_model else executor_model
         self.planning_addition_for_prompt = """
-First bring out a thorough step-by-step plan how you can achieve this task and then create the python script to achieve the task.
+First bring out a thorough step-by-step plan how you can achieve this task and then create the one python script to achieve the full task.
 For your plan, follow this structure:
 1) What entities are needed for the task
 2) What entities do we have on the map, in different entity inventories or in our inventory
 3) What entities are we missing for the task
 4) Execution -- Taking into account 1,2 and 3, what steps do we need to take to successfully carry out the task
-
-Make sure to bring out your steps in python docstrings as well, with '''step 1 - x''', '''step 2 - x''' etc
 """
 
 
@@ -223,7 +221,7 @@ First bring out a general step-by-step list of steps you need to carry out to ac
         mining_setup = get_mining_setup(instance)
         user_message = f"Your starting inventory is {starting_inventory}. Your initial mining setup is: {mining_setup}. Bring out the plan and python policy for the objective\n{task}"
         user_message = f"Your starting inventory is {{}}. Your initial mining setup is: There are no entities on the map. Bring out the list of entities required for the objective\n{task}"
-        user_message += "\nFirst plan step by step and bring out a thorough list of entities you need to craft to achieve this objective and then create the python script to achieve the task. The list of entities should incldue all the entities that you need to craft to achieve this objective"
+        user_message += "\nFirst plan step by step and bring out a thorough list of entities you need to craft to achieve this objective, do not forget required fuel. Then create the python script to achieve the task. The list of entities should incldue all the entities that you need to craft to achieve this objective"
         
         #user_message += self.planning_addition_for_prompt
         #user_message += f"\nFirst bring out a thorough step-by-step list of steps you need to carry out to achieve this task and the entities you require for this task. Then create the python script to achieve the task."
@@ -236,6 +234,11 @@ First bring out a general step-by-step list of steps you need to carry out to ac
                                         stop_sequences = ["```"],
                                         )
         full_output = response.choices[0].message.content
+        full_output = full_output.strip()
+        new_line_idx = full_output.rfind("\n")
+        if new_line_idx != -1:
+            full_output = full_output[:new_line_idx].strip()
+        return full_output
         # split by ```
         split_plan = full_output.split("```")
         plan_string = split_plan[0]
@@ -351,6 +354,81 @@ For your plan, follow this structure:
             break
         return {"traces": traces, "success": success, "task": task}
 
+    def get_next_step(self, system_prompt, user_prompt_base, task, 
+                      starting_inventory, mining_setup, plan, log_str,
+                      number_of_steps = 4):
+        outputs = []
+        for i in range(number_of_steps):
+            messages = [{"role": "system", "content": system_prompt}]
+            user_message = user_prompt_base.format(objective = task, starting_inventory=starting_inventory, mining_setup=mining_setup, logs=log_str, plan = plan)
+            messages.append({"role": "user", "content": user_message})
+            response = self.llm_factory.call(model = self.planner_model,
+                                                messages=messages,
+                                                temperature=0.7,
+                                                max_tokens=4096)
+
+            if "claude" in self.planner_model:
+                full_output = response.content[0].text
+            else:
+                full_output = response.choices[0].message.content
+            if "#output" in full_output.lower() and "#step" not in full_output.lower():
+                outputs.append({"full_output": full_output, "messages": messages, "completion": True})
+                break
+            outputs.append({"full_output": full_output, "messages": messages, "completion": False})
+        return outputs
+    
+
+    def get_next_step_judge(self, system_prompt, user_prompt_base, task, 
+                      starting_inventory, mining_setup, plan, log_str,
+                      ):
+        tries = 4
+        step = None
+        outputs = self.get_next_step(system_prompt, user_prompt_base, task,
+                                             starting_inventory, mining_setup, plan, 
+                                             log_str, 2)
+        # check for completions
+        for output in outputs:
+            if output["completion"]:
+                step = output["full_output"].lower().split("#output")[-1].strip()
+                return {"meta": {"type": "single","step_outputs": []}, "full_output": output["full_output"],
+                        "messages": output["messages"], "step": step, "completion": True}
+            
+        candidates = [x["full_output"] for x in outputs]
+        step_candidate_str = ""
+        for step_idx, step_candidate in enumerate(candidates):
+            step_candidate_str += f"Step {step_idx}\n{step_candidate}\n\n"
+        judge_system_prompt_path = r"prompts\bottoms_up_prompts\finetuning_prompts\planning_agent_system_prompt_step_judge.md"
+        judge_user_prompt = r"prompts\bottoms_up_prompts\finetuning_prompts\planning_agent_user_prompt_step_judge.md"
+        judge_system_prompt = self.read_in_prompt(judge_system_prompt_path)
+        judge_user_prompt_base = self.read_in_prompt(judge_user_prompt)
+        messages = [{"role": "system", "content": judge_system_prompt}]
+        user_message = judge_user_prompt_base.format(objective = task, starting_inventory=starting_inventory, 
+                                                     mining_setup=mining_setup, logs=log_str, plan = plan,
+                                                     analysis_step_str = step_candidate_str)
+        messages.append({"role": "user", "content": user_message})
+        for i in range(tries):
+            response = self.llm_factory.call(model = self.planner_model,
+                                            messages=messages,
+                                            temperature=0.4,
+                                            max_tokens=4096)
+
+            if "claude" in self.planner_model:
+                full_output = response.content[0].text
+            else:
+                full_output = response.choices[0].message.content
+            # get the output after OUTPUT
+            if "#OUTPUT" in full_output:
+                step = full_output.split("#OUTPUT")[-1]
+            
+            # split it by #step
+            if "#STEP" in full_output:
+                step = full_output.split("#STEP")[-2].strip()
+                break
+
+        if step is None:
+            raise ValueError("No step was found fro judge after retries")
+        return {"meta": {"type": "judge", "step_outputs": outputs}, "full_output": full_output,
+                 "messages": messages, "step": step, "completion": False}
 
     def run_supervised_episode(self, instance, tries: int, task, include_plan: bool = False):
         """
@@ -375,7 +453,7 @@ For your plan, follow this structure:
                 user_message = user_message.strip()
             messages.append({"role": "user", "content": user_message})
             response = self.llm_factory.call(messages=messages,
-                                            temperature=0.5,
+                                            temperature=0.3,
                                             max_tokens=4096)
             full_output = response.choices[0].message.content
             if "```python" in full_output:
@@ -384,7 +462,7 @@ For your plan, follow this structure:
             else:
                 print(f"Missing python code in response: {program}")
                 continue
-            output_list, result = eval_program_with_result_trace(instance, program)
+            output_list, result, success = eval_program_with_result_trace(instance, program)
             inventory_dict = self.get_inventory_dict(starting_inventory)
             traces.append({"program": program, "logs": output_list, "result": result, "full_output": full_output,
                            "starting_inventory": inventory_dict, "mining_setup": mining_setup,
@@ -419,12 +497,14 @@ For your plan, follow this structure:
         step_traces = output_dict["traces"]
         # for each, create a folder and save the details
         for trace_idx, step_trace in enumerate(step_traces): 
-            planner_details_json = {"step": step_trace["step"],
+            planner_details_json = {"step_idx": step_trace["step_idx"],
+                                    "step": step_trace["step"],
                                    "planning_output": step_trace["planning_output"],
                                    "success": step_trace["executor_output"]["success"],
                                    "inventory_dict": step_trace["inventory_dict"],
                                    "mining_setup": step_trace["mining_setup"],
-                                   "messages": step_trace["messages"]}
+                                   "messages": step_trace["messages"],
+                                   "meta": step_trace["meta"]}
             # create a folder for the trace
             trace_folder = os.path.join(save_folder, f"step_{trace_idx}")
             os.makedirs(trace_folder)
@@ -452,7 +532,7 @@ For your plan, follow this structure:
                                          version = "planner_executor_v1.0",
                                          meta = output_dict)
 
-    def run_external_planning_episode(self, number_of_tasks: int, episode_length = 10, executor_tries = 4, instance = None, task:str = None):
+    def run_external_planning_episode(self, number_of_tasks: int, episode_length = 10, executor_tries = 1, instance = None, task:str = None):
         """
         Run the supervised task
         Need to implement saving the successful trace
@@ -460,6 +540,7 @@ For your plan, follow this structure:
         #ob = self.get_unsupervised_objective(instance)
         #task = self.run_supervised_mcts(instance, executor_tries, task, include_plan = True)
         plan = self.get_plan_for_task_from_executor(instance, task)
+        #plan = "To complete this objective, we need to create a basic iron ore mining operation. We'll need a burner mining drill to extract the iron ore and a wooden chest to store it. Since the chest needs to be placed 10 spaces away from the drill, we'll also need transport belts or inserters to move the ore from the drill to the chest.\n\nHere's a breakdown of the entities we need to craft:\n\n1. Burner Mining Drill:\n   - Recipe: 3 iron gear wheels, 3 iron plates, 1 stone furnace\n   - Total raw resources needed: 9 iron plates, 5 stone\n\n2. Wooden Chest:\n   - Recipe: 2 wood\n   - Total raw resources needed: 2 wood\n\n3. Burner Inserter (to insert ore into the chest):\n   - Recipe: 1 iron gear wheel, 1 iron plate\n   - Total raw resources needed: 3 iron plates\n\n4. Transport Belts (optional, if needed):\n   - Recipe: 1 iron gear wheel, 1 iron plate (crafts 2 belts)\n   - Total raw resources needed per pair: 3 iron plates\n\n5. Fuel for the burner mining drill and inserter:\n   - Coal or wood (exact amount depends on availability and usage rate)\n\nIn total, we'll need at least 15 iron plates, 5 stone, and some coal or wood for fuel. We'll also need some additional iron plates if we need to craft transport belts.\n\nWe should also consider crafting a stone furnace if we need to smelt the iron plates from iron ore. This would require an additional 5 stone."
         if not instance:
             # instantiate the instance
             instance = FactorioInstance(address='localhost',
@@ -477,8 +558,8 @@ For your plan, follow this structure:
         #system_prompt = self.read_in_prompt(planning_agent_system_prompt_path)
         #user_prompt_base = self.read_in_prompt(planning_agent_user_prompt)
 
-        planning_agent_system_prompt_path = r"prompts\bottoms_up_prompts\finetuning_prompts\planning_agent_system_prompt_draft_with_initial_plan.md"
-        planning_agent_user_prompt = r"prompts\bottoms_up_prompts\finetuning_prompts\planning_agent_user_prompt_draft_with_initial_plan.md"
+        planning_agent_system_prompt_path = r"prompts\bottoms_up_prompts\finetuning_prompts\planning_agent_system_prompt_draft_with_initial_plan_v2.md"
+        planning_agent_user_prompt = r"prompts\bottoms_up_prompts\finetuning_prompts\planning_agent_user_prompt_draft_with_initial_plan_v2.md"
         system_prompt = self.read_in_prompt(planning_agent_system_prompt_path)
         user_prompt_base = self.read_in_prompt(planning_agent_user_prompt)
         
@@ -492,7 +573,7 @@ For your plan, follow this structure:
         #system_prompt_judge = self.read_in_prompt(judge_system_prompt_path)
         #user_prompt_base_judge = self.read_in_prompt(judge_user_prompt)    
         
-        entity_analysis = self.get_general_plan_for_task_with_env(instance, task)
+        #entity_analysis = self.get_general_plan_for_task_with_env(instance, task)
         if task is None:
             generate_tasks = True
         else:
@@ -510,32 +591,23 @@ For your plan, follow this structure:
                 starting_inventory = instance.inspect_inventory()
                 inventory_dict = self.get_inventory_dict(starting_inventory)
                 mining_setup = get_mining_setup(instance)
-                messages = [{"role": "system", "content": system_prompt}]
-                user_message = user_prompt_base.format(objective = task, starting_inventory=starting_inventory, mining_setup=mining_setup, logs=log_str, entity_analysis = entity_analysis)
-                messages.append({"role": "user", "content": user_message})
-                response = self.llm_factory.call(model = self.planner_model,
-                                                    messages=messages,
-                                                    temperature=0.7,
-                                                    max_tokens=4096)
-
+                #outputs, message_traces = self.get_next_step(system_prompt, user_prompt_base, 
+                #                                       task, starting_inventory, 
+                #                                       mining_setup, plan, log_str,
+                #                                       number_of_steps = 1)
+                #full_output = outputs[0]
+                #messages = message_traces[0]
+                planner_output = self.get_next_step_judge(system_prompt, user_prompt_base, 
+                                                       task, starting_inventory, 
+                                                       mining_setup, plan, log_str)
                 current_step += 1
-                if "claude" in self.planner_model:
-                    full_output = response.content[0].text
-                else:
-                    full_output = response.choices[0].message.content
-                if "#output" in full_output.lower():
-                    planning_output = full_output.lower().split("#output")[-1].strip()
-                    traces.append({"step": current_step, "executor_output": {"success": True, "traces": []}, "planning_output": planning_output,
-                                   "inventory_dict": inventory_dict, "mining_setup": mining_setup, "messages": messages})
+                if planner_output["completion"]:
+                    traces.append({"step": current_step, "executor_output": {"success": True, "traces": []}, "planning_output": planner_output["step"],
+                                   "inventory_dict": inventory_dict, "mining_setup": mining_setup, "messages": planner_output["messages"],
+                                   "meta": planner_output["meta"]})
                     success = True
                     break
-                # get the output between two #STEP tags
-                if "#STEP" in full_output:
-                    planning_output = full_output.split("#STEP")[-2].strip()
-                   # planning_output = planning_output.split("#STEP")[0]
-                else:
-                    print(f"Missing planning output in response: {full_output}")
-                    continue
+                planning_output = planner_output["step"]
                 pre_executor_mining_setup = instance.get_entities()
                 output = self.run_supervised_episode(instance, executor_tries, planning_output, include_plan=True)
                 post_executor_mining_setup = instance.get_entities()
@@ -555,8 +627,9 @@ For your plan, follow this structure:
                     removed_entity_str_list = "\n".join(removed_entity_str_list)
                     log_str += f"\nThe following entities have been removed by the agent\n{removed_entity_str_list}"
                 logs.append(log_str)
-                traces.append({"step": current_step, "executor_output": output, "planning_output": planning_output,
-                               "inventory_dict": inventory_dict, "mining_setup": mining_setup, "messages": messages})
+                traces.append({"step_idx": current_step, "step":planning_output,  "executor_output": output, "planning_output": planner_output["full_output"],
+                               "inventory_dict": inventory_dict, "mining_setup": mining_setup, "messages": planner_output["messages"],
+                               "meta": planner_output["meta"]})
             output =  {"general_objective": task, "traces": traces, "success": success}
             self.save_planner_executor_traces(output, "planner_executor_traces")
 
@@ -637,6 +710,9 @@ For your plan, follow this structure:
 def get_all_folders_in_path(path):
     return [f for f in os.listdir(path) if os.path.isdir(os.path.join(path, f))]
 
+def sample_random_folders(folders, num_samples):
+    return random.sample(folders, num_samples)
+
 
 if __name__ == "__main__":
     unsupervised_model_path = r"ft:gpt-4o-2024-08-06:paperplane-ai:fact-self-gen-planning:AQzcPI91"
@@ -654,7 +730,7 @@ if __name__ == "__main__":
     #evaluator.run_external_planning_episode(number_of_tasks = 2)
     #task = "Create a iron plate mine with burner drill feeding a furnace"
     task = "Create a burner iron ore mine into a chest placed 10 spaces away"
-    task = "Get 5 offshore pumps"
+    #task = "Get 5 offshore pumps"
     #task = None
     if unsupervised_trace:
         starting_scenarios = ["ft_random_chest_furnace_placement_inv_in_chest"]
