@@ -4,6 +4,16 @@ import os
 from datasetgen.auto_curriculum.dataset_utils import instantiate_the_map, initialise_starting_scenario
 from datasetgen.mcts.game_state import GameState
 from factorio_instance import FactorioInstance
+import random
+
+
+def get_all_folders_in_path(path):
+    return [f for f in os.listdir(path) if os.path.isdir(os.path.join(path, f))]
+
+def sample_random_folders(folders, num_samples):
+    return random.sample(folders, num_samples)
+
+
 
 class PlanSampler():
     def __init__(self, model, system_prompt_path, starting_scenarios_folder):
