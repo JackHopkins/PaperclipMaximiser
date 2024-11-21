@@ -221,6 +221,7 @@ class Product(Ingredient):
 class Recipe(BaseModel):
     name: Optional[str]
     ingredients: Optional[List[Ingredient]] = []
+    sub_recipes: Optional[List['Recipe']] = []
     products: Optional[List[Product]] = []
     energy: Optional[float] = 0
     category: Optional[str] = None
