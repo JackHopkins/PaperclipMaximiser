@@ -207,8 +207,8 @@ class StructurePreservingFormatter(ConversationFormatter):
                 if "Execution result:" in content:
                     result = content.split("Execution result:")[1].split("Updated state:")[0]
                     content = f"Execution result:\n{result.strip()}"
-                    if self.planning:
-                        content = PLANNING_ADDITION_PROMPT + '\n' + content
+                    #if self.planning:
+                    #    content = PLANNING_ADDITION_PROMPT + '\n' + content
                     return Message(
                         role="user",
                         content=content

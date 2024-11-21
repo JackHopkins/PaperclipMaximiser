@@ -110,6 +110,7 @@ class LLMFactory:
                                                   temperature=kwargs.get('temperature', 0.3),
                                                   messages=kwargs.get('messages', None),
                                                   logit_bias=kwargs.get('logit_bias', None),
+                                                  n=kwargs.get('n', None),
                                                   #stop=["\n\n"],#, "\n#"],
                                                   #presence_penalty=1,
                                                   #frequency_penalty=0.6,

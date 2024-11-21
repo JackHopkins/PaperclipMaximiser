@@ -9,7 +9,9 @@ CREATE TABLE programs (
     conversation_json JSONB,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     holdout_value: FLOAT DEFAULT 0.0,
-    raw_reward: FLOAT DEFAULT 0.0
+    raw_reward: FLOAT DEFAULT 0.0,
+    version: INTEGER DEFAULT 0, -- version of the program code
+    version_description: TEXT DEFAULT NULL, -- description of the version change
 );
 
 -- Task queue table

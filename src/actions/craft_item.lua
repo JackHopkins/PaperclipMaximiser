@@ -139,10 +139,10 @@ global.actions.craft_item = function(player_index, entity, count)
     if total_crafted >= count or (not global.fast and total_crafted > 0) then
         return count
     elseif total_crafted > 0 then
-        error("Successfully crafted " .. total_crafted .."x but failed to craft "
-                .. (count-total_crafted) .. "x " .. entity.." because ".. reason)
+        error("\"Successfully crafted " .. total_crafted .."x but failed to craft "
+                .. (count-total_crafted) .. "x " .. entity.." because ".. reason.."\"")
     else
-        error("Failed to craft " .. count .. "x " .. entity.." because "..reason)
+        error("\"Failed to craft " .. count .. "x " .. entity.." because "..reason.."\"")
     end
 end
 
@@ -303,10 +303,10 @@ global.actions.craft_item3 = function(player_index, entity, count)
     if total_crafted >= count or (not global.fast and total_crafted > 0) then
         return count
     elseif total_crafted > 0 then
-        error("Successfully crafted " .. total_crafted .."x but failed to craft "
-                .. (count-total_crafted) .. "x " .. entity.." because ".. reason)
+        error("\"Successfully crafted " .. total_crafted .."x but failed to craft "
+                .. (count-total_crafted) .. "x " .. entity.." because ".. reason.."\"")
     else
-        error("Failed to craft " .. count .. "x " .. entity.." because "..reason)
+        error("\"Failed to craft " .. count .. "x " .. entity.." because "..reason.."\"")
     end
 end
 
@@ -391,9 +391,9 @@ global.actions.craft_item2 = function(player_index, entity, count)
         game.print("Crafted x"..count.." "..entity)
         return count
     elseif total_crafted > 0 then
-        error("Successfully crafted " .. total_crafted .."x but failed to craft "
-                .. (count-total_crafted) .. "x " .. entity.." because ".. reason)
+        error("\"Successfully crafted " .. total_crafted .."x but failed to craft "
+                .. (count-total_crafted) .. "x " .. entity.." because ".. reason.."\"")
     else
-        error("Failed to craft " .. count .. "x_" .. entity.." because "..reason)
+        error("\"Failed to craft " .. count .. "x_" .. entity.." because "..reason.."\"")
     end
 end

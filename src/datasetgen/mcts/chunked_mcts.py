@@ -1,7 +1,6 @@
 import ast
 import asyncio
 import json
-from dataclasses import dataclass
 from typing import List, Tuple, Optional
 
 from datasetgen.mcts.conversation import Conversation, Message
@@ -114,7 +113,7 @@ class ChunkedMCTS(MCTS):
             # Process programs in parallel
             eval_futures = []
             for i, (program, chunks) in enumerate(raw_programs):
-                instance_id = i % (len(self.evaluator.instances) - 1)
+                instance_id = i % (len(self.evaluator.instances))
                 self.evaluator.instances[instance_id].reset(start_state)
                 self.evaluator.logger.update_instance(i, program_id=program.id, status="resetting")
 

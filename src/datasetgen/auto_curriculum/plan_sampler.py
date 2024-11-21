@@ -1,4 +1,8 @@
+from pyexpat.errors import messages
 from typing import Any
+
+from datasetgen.mcts.conversation import Conversation
+from datasetgen.mcts.program import Program
 from llm_factory import LLMFactory
 import os
 from datasetgen.auto_curriculum.dataset_utils import instantiate_the_map, initialise_starting_scenario
@@ -19,6 +23,32 @@ For your plan, follow this structure:
 2) What entities do we have on the map, in different entity inventories or in our inventory
 3) What entities are we missing for the task
 4) Execution -- Taking into account 1,2 and 3, what steps do we need to take to successfully carry out the task
+
+The format should look like this:
+
+'''
+Objective: XXX
+
+Planning:
+1) Entities needed for the task:
+...
+
+2) Entities we have:
+From the initial inventory:
+...
+
+Entities on the map:
+...
+
+3) Entities we are missing:
+...
+
+4) Execution steps:
+- ...
+- ...
+etc...
+'''
+
 """
         
     
@@ -36,7 +66,7 @@ For your plan, follow this structure:
         response = self.llm_factory.call(messages=messages,
                                          model = self.model,
                                         temperature=0.7,
-                                        max_tokens=4096,
+                                        max_tokens=256,
                                         stop_sequences = ["```"])
         
         
@@ -45,7 +75,7 @@ For your plan, follow this structure:
         new_line_idx = full_output.rfind("\n")
         full_output = full_output[:new_line_idx].replace("Sure!", "").strip()
         full_output = f'"""\n{full_output}\n"""'
-        return full_output
+        return full_output, response
     
     def get_mining_setup(self, instance):
         mining_setup = instance.get_entities()
@@ -66,8 +96,12 @@ For your plan, follow this structure:
 
     def __call__(self, instance, game_state_str) -> Any:
         instance.reset(game_state_str)
-        return self.get_unsupervised_objective(instance)
-    
+        objective, response = self.get_unsupervised_objective(instance)
+        try:
+            return objective.split("'''")[1].strip(), response
+        except:
+            return objective.split('"""')[2].strip(), response
+
     def get_game_state(self, instance, starting_scenario_name):
         # gets starting scenario details
         starting_scenario_path = os.path.join(self.starting_scenarios_folder, starting_scenario_name)
@@ -82,19 +116,27 @@ For your plan, follow this structure:
         game_state = GameState.from_instance(instance)
         return game_state
 
-if __name__ == "__main__":
-        prompt_path = "prompts/bottoms_up_prompts/finetuning_prompts/system_message_policy_self_gen.md"
-        model_path = "path_to_model"
-        starting_scenario_folder = "skills/data_scenarios/starting_scenarios"
-        sampler = PlanSampler(model_path, prompt_path, starting_scenario_folder)
-        starting_scenario = "ft_random_chest_furnace_placement_with_mining_entities"
-        instance = FactorioInstance(address='localhost',
-                                    bounding_box=200,
-                                    tcp_port=27015,
-                                    fast=True,
-                                    #cache_scripts=False,
-                                    inventory={})
-                                    
-        game_state = sampler.get_game_state(instance, starting_scenario)
-        objective = sampler(instance, game_state)
 
+
+# if __name__ == "__main__":
+#         prompt_path = "../../prompts/bottoms_up_prompts/finetuning_prompts/system_message_policy_self_gen.md"
+#         model_path = "ft:gpt-4o-2024-08-06:paperplane-ai:fact-self-gen-planning:AQzcPI91"
+#         starting_scenario_folder = "../../skills/data_scenarios/starting_scenarios"
+#         sampler = PlanSampler(model_path, prompt_path, starting_scenario_folder)
+#         starting_scenario = "ft_random_chest_furnace_placement_with_mining_entities"
+#         instance = FactorioInstance(address='localhost',
+#                                     bounding_box=200,
+#                                     tcp_port=27015,
+#                                     fast=True,
+#                                     #cache_scripts=False,
+#                                     inventory={})
+#
+#         game_state = sampler.get_game_state(instance, starting_scenario)
+#         objective = sampler(instance, game_state)
+#
+#         program = Program(code=objective,
+#                           conversation=Conversation(messages=[]),
+#                           value=10,
+#                           raw_reward=10,
+#                           response="")
+#         pass
