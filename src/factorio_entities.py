@@ -336,8 +336,24 @@ class BeltGroup(EntityGroup):
     belts: List[TransportBelt]
     output_positions: List[Position]
 
+    def __str__(self) -> str:
+        representation = f"BeltGroup(input_positions={self.input_positions}, output_positions={self.output_positions}, status={self.status})"
+        return representation
+    
+    def __repr__(self):
+        # Usually, __repr__ is meant to be unambiguous and possibly show more detail than __str__
+        return self.__str__()  # For simplicity, you can have both methods return the same string
+
 class Pipe(Entity):
     #connections: List[Position] = []
     pass
 class PipeGroup(EntityGroup):
     pipes: List[Pipe]
+
+    def __str__(self) -> str:
+        representation = f"PipeGroup(input_positions={self.input_positions}, status={self.status})"
+        return representation
+    
+    def __repr__(self):
+        # Usually, __repr__ is meant to be unambiguous and possibly show more detail than __str__
+        return self.__str__()  # For simplicity, you can have both methods return the same string
