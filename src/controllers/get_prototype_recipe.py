@@ -37,12 +37,11 @@ class GetPrototypeRecipe(Action):
                     return prototype
 
         ingredients = [Ingredient(name=ingredient['name'], count=ingredient['amount'], type=ingredient['type'] if 'type' in ingredient else None) for ingredient in parsed_response['ingredients']]
-        recursive_ingredients = [ing for ing in ingredients if ing.type == 'item']
-        final_recipe = Recipe(name=name, ingredients=ingredients)
+        ingredient_queue = [ing for ing in ingredients if ing.type == 'item']
+        final_recipe = Recipe(name=name, ingredients=ingredients, sub_recipes=[])
         processed_ingredients = [name]
-        final_list = [final_recipe]
-        while recursive_ingredients:
-            ingredient_to_process = recursive_ingredients.pop(0)
+        while ingredient_queue:
+            ingredient_to_process = ingredient_queue.pop(0)
             ingredient_name = ingredient_to_process.name
             if ingredient_name in processed_ingredients:
                 continue
@@ -52,7 +51,7 @@ class GetPrototypeRecipe(Action):
                 raise Exception(f"Could not get recipe of {ingredient_name}", response)
             parsed_response = parse_lua_dict(response)
             ingredients = [Ingredient(name=ingredient['name'], count=ingredient['amount'], type=ingredient['type'] if 'type' in ingredient else None) for ingredient in parsed_response['ingredients']]
-            recursive_ingredients += [ing for ing in ingredients if ing.type == 'item' and ing.name not in processed_ingredients]
-            final_list.append(Recipe(name=ingredient_name, ingredients=ingredients))
+            ingredient_queue += [ing for ing in ingredients if ing.type == 'item' and ing.name not in processed_ingredients]
+            final_recipe.sub_recipes.append(Recipe(name=ingredient_name, ingredients=ingredients))
 
-        return final_list
+        return final_recipe
