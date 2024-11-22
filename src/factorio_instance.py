@@ -185,6 +185,10 @@ class FactorioInstance:
         """
         #if self.memory:
         #    self.memory.log_observation(str(arg))
+        if self.line_value not in self.logging_results:
+            self.logging_results[self.line_value] = []
+        self.logging_results[self.line_value].append(repr(arg))
+
         print(f"{self.address} log: {repr(arg)}")
         return arg
 
@@ -308,8 +312,23 @@ class FactorioInstance:
         :return:
         """
 
+        def parse_result_into_str(data):
+            result = []
+
+            # Iterate over the dictionary items
+            for key, values in data.items():
+                # Iterate over each item in the list of values
+                for value in values:
+                    # Append the formatted string to the result list
+                    result.append(f"{key}: {value}")
+
+            # Join the list into a single string with '\n' as the separator
+            output_string = "\n".join(result)
+            return output_string
+
         tree = ast.parse(expr)
-        results = {}
+        self.logging_results = {}
+        self.line_value = 0
 
         # Create a persistent environment dictionary that includes both instance methods and allows attribute access
         # This is for creating and retrieving session variables that persist between eval calls.
@@ -349,24 +368,22 @@ class FactorioInstance:
 
         # Execute the expression
         for index, node in enumerate(tree.body):
+            self.line_value = index
             try:
+                node = self._change_print_to_log(node)
                 if isinstance(node, ast.FunctionDef):
-                    node = self._change_print_to_log(node)
                     # For function definitions, we need to compile and exec
                     compiled = compile(ast.Module([node], type_ignores=[]), 'file', 'exec')
                     exec(compiled, eval_dict)
                 elif isinstance(node, ast.Expr):
-                    node = self._change_print_to_log(node)
                     # For expressions (including function calls), we can use eval
                     compiled = compile(ast.Expression(node.value), 'file', 'eval')
                     response = eval(compiled, eval_dict)
                     # add response to results
                     # if node.value is a constant object, then it's a comment and we don't want to store it
                     if response is not True and response is not None and not isinstance(node.value, ast.Constant):
-                        results[index] = response
                         self._sequential_exception_count = 0
                 else:
-                    node = self._change_print_to_log(node)
                     # For other statements, use exec
                     compiled = compile(ast.Module([node], type_ignores=[]), 'file', 'exec')
                     exec(compiled, eval_dict)
@@ -385,11 +402,12 @@ class FactorioInstance:
                 error_type = error_traceback.strip().split('\n')[-1]
                 error_message += f"\n{error_type}"
 
-                results[index] = error_message#"\n".join(error_traceback.split("\n")[3:])
+                self.log(error_message)#"\n".join(error_traceback.split("\n")[3:])
                 if self._sequential_exception_count == self.max_sequential_exception_count:
                     pass
 
-                raise Exception('\n'.join([f"{i}: {str(r)}" for i, r in results.items()]))
+                result_output = parse_result_into_str(self.logging_results)
+                raise Exception(result_output)
                         #break
 
                     # parts = list(e.args)
@@ -425,7 +443,8 @@ class FactorioInstance:
                     # break
 
         score, goal = self.score()
-        return score, goal, '\n'.join([f"{i}: {str(r)}" for i, r in results.items()])
+        result_output = parse_result_into_str(self.logging_results)
+        return score, goal, result_output
 
     def _change_print_to_log(self, node):
         if isinstance(node, ast.Expr):
