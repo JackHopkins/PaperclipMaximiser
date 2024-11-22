@@ -1,5 +1,6 @@
 import json
 import os
+import random
 import statistics
 
 from datasetgen.auto_curriculum.plan_sampler import PlanSampler
@@ -68,56 +69,59 @@ async def get_seed_programs(
     scenarios = [f for f in os.listdir(plan_sampler.starting_scenarios_folder)
                  if os.path.isdir(os.path.join(plan_sampler.starting_scenarios_folder, f))]
 
-    seeds_per_scenario = n_seeds // len(scenarios)
-    remaining_seeds = n_seeds % len(scenarios)
+    # Select a random N number of scenarios
+    selected_scenarios = random.sample(scenarios, n_seeds)
 
-    for scenario in scenarios:
-        num_samples = seeds_per_scenario + (1 if remaining_seeds > 0 else 0)
-        remaining_seeds -= 1
+    for scenario in selected_scenarios:
+        game_state = plan_sampler.get_game_state(instance, scenario)
+        if not game_state:
+            continue
 
-        for _ in range(num_samples):
-            game_state = plan_sampler.get_game_state(instance, scenario)
-            if not game_state:
-                continue
+        objective, response = plan_sampler(instance, game_state)
 
-            objective, response = plan_sampler(instance, game_state)
+        if len(objective) < 100:
+            continue
 
-            if len(objective) < 100:
-                continue
+        conversation = Conversation(messages=[
+            Message(role="system", content=mcts.system_prompt),
+            Message(role="user",
+                    content=f"Starting Inventory: {json.dumps(game_state.inventory.__dict__)}"),
+            Message(role="assistant", content=objective)
+        ])
+        messages = conversation.model_dump()['messages']
+        if not objective.strip().startswith('"""'):
+            objective = '"""\n'+objective
 
+        try:
+            token_usage = response.usage.total_tokens if hasattr(response, 'usage') else None
+            completion_token_usage = response.usage.completion_tokens if hasattr(response, 'usage') else None
+            prompt_token_usage = response.usage.prompt_tokens if hasattr(response, 'usage') else None
+        except:
+            completion_token_usage = response.usage.output_tokens
+            prompt_token_usage = response.usage.input_tokens
+            token_usage = prompt_token_usage + completion_token_usage
 
-
-            conversation = Conversation(messages=[
-                Message(role="system", content=mcts.system_prompt),
-                Message(role="user",
-                        content=f"Inventory: {json.dumps(game_state.inventory.__dict__)}\n\n{PLANNING_ADDITION_PROMPT}"),
-                Message(role="assistant", content=objective)
-            ])
-            messages = conversation.model_dump()['messages']
-            if not objective.strip().startswith('"""'):
-                objective = '"""\n'+objective
-
-            program = Program(
-                id=hash((objective, json.dumps(messages))),
-                code=objective,
-                conversation=conversation,
-                value=default_reward,
-                state=game_state,
-                version=mcts.version,
-                version_description=mcts.version_description,
-                token_usage=response.usage.total_tokens if hasattr(response, 'usage') else None,
-                completion_token_usage=response.usage.completion_tokens if hasattr(response, 'usage') else None,
-                prompt_token_usage=response.usage.prompt_tokens if hasattr(response, 'usage') else None,
-            )
-            seeded_programs.append(program)
+        program = Program(
+            id=hash((objective, json.dumps(messages))),
+            code=objective,
+            conversation=conversation,
+            value=default_reward,
+            state=game_state,
+            version=mcts.version,
+            version_description=mcts.version_description,
+            token_usage=token_usage,
+            completion_token_usage=completion_token_usage,
+            prompt_token_usage=prompt_token_usage,
+        )
+        seeded_programs.append(program)
 
     return seeded_programs
 
 async def main():
-    model = "ft:gpt-4o-2024-08-06:paperplane-ai:fact-self-gen-planning:AQzcPI91"
-    prompt_path = "../../prompts/bottoms_up_prompts/finetuning_prompts/system_message_policy_self_gen.md"
-    version = 8
-    version_description = "Seeded / No planning prompt in user messages / Step-wise evaluation / Errors not saved"
+    model =  "ft:gpt-4o-2024-08-06:paperplane-ai:fact-self-gen-planning:AQzcPI91"#"o1-mini" #"gpt-4o" #"ft:gpt-4o-2024-08-06:paperplane-ai:fact-self-gen-planning:AQzcPI91"
+    prompt_path = "../../prompts/bottoms_up_prompts/finetuning_prompts/system_message_policy_refined.md"
+    version = 12
+    version_description = "Seeded / Base model / No planning prompt in user messages / Step-wise evaluation / Refined system prompt"
 
     # Initialize components
     llm = LLMFactory(model)
@@ -139,7 +143,7 @@ async def main():
     # Get execution directory from __file__ or other source
     execution_dir = os.path.dirname(os.path.realpath(__file__))
     # load from prompts/bottoms_up_prompts/system_message_policy_self_gen into string
-    with open("../../prompts/bottoms_up_prompts/finetuning_prompts/system_message_policy_self_gen.md", "r") as f:
+    with open("../../prompts/bottoms_up_prompts/finetuning_prompts/system_message_policy_refined.md", "r") as f:
         system_prompt = f.read().format(schema=instances[0].get_system_prompt())
 
     print("Initializing MCTS...")
@@ -168,7 +172,7 @@ async def main():
     sampler = PlanSampler(model, prompt_path, starting_scenario_folder)
 
     print("Sampling seed scenarios...")
-    seeded_programs = await get_seed_programs(mcts, sampler, n_seeds=0)
+    seeded_programs = await get_seed_programs(mcts, sampler, n_seeds=3)
     for program in seeded_programs:
         await db_client.create_program(program)
 
@@ -176,7 +180,7 @@ async def main():
     best_programs = await mcts.search(
         n_iterations=500,
         samples_per_iteration=len(instances)-1, # One for each instance, minus a holdout.
-        skip_failures=False,
+        skip_failures=True,
     )
 
     print("\nBest programs found:")

@@ -60,21 +60,23 @@ etc...
         self.init_system_prompt(instance)
         mining_setup = self.get_mining_setup(instance)
         messages = [{"role": "system", "content": self.system_prompt}]
-        user_message = f"Your starting inventory is {starting_inventory}. Your initial mining setup is: {mining_setup}. Create a useful task that you can carry out in the current game and the python script to achieve the task"
+        user_message = f"Your starting inventory is {starting_inventory}. Your initial mining setup is: {mining_setup}. In light of previous instructions, create a useful task that you can carry out in the current game and the python script to achieve the task"
         user_message += f"\n{self.planning_addition_for_prompt}"
         messages.append({"role": "user", "content": user_message})
         response = self.llm_factory.call(messages=messages,
                                          model = self.model,
                                         temperature=0.7,
-                                        max_tokens=256,
+                                        max_tokens=512,
                                         stop_sequences = ["```"])
         
-        
-        full_output = response.choices[0].message.content
+        try:
+            full_output = response.choices[0].message.content
+        except:
+            full_output = response.content[0].text.strip()
         full_output = full_output.strip()
         new_line_idx = full_output.rfind("\n")
         full_output = full_output[:new_line_idx].replace("Sure!", "").strip()
-        full_output = f'"""\n{full_output}\n"""'
+        #full_output = f'"""\n{full_output}\n"""'
         return full_output, response
     
     def get_mining_setup(self, instance):

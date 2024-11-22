@@ -6,7 +6,7 @@ global.actions.insert_item = function(player_index, insert_item, count, x, y)
     -- Check if player has enough items
     local item_count = player.get_item_count(insert_item)
     if item_count == 0 then
-        error('No '..insert_item..' to place')
+        error('\"No '..insert_item..' to place\"')
     end
 
     local closest_distance = math.huge

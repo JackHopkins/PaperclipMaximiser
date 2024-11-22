@@ -90,7 +90,7 @@ class MCTS:
                 messages=formatted_messages,
                 max_tokens=2048,
                 n=n_samples,
-                temperature=0.7,  # Adjust as needed
+                temperature=1,
                 logit_bias=logit_bias
             )
 
