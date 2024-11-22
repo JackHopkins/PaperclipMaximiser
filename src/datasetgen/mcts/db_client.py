@@ -1,8 +1,11 @@
 import json
+import math
+import random
 from typing import Optional, Dict, Any, List
 
 import psycopg2
 import tenacity
+from psycopg2.extras import DictCursor
 from tenacity import wait_exponential, retry_if_exception_type
 
 from datasetgen.mcts.evaluation_task import EvaluationTask
@@ -11,7 +14,12 @@ from datasetgen.mcts.program import Program
 
 class DBClient:
     def __init__(self, **db_config):
+        self.db_config = db_config
         self.conn = psycopg2.connect(**db_config)
+
+    def _get_new_connection(self):
+        """Create a new database connection"""
+        return psycopg2.connect(**self.db_config)
 
     async def create_program(self, program: Program) -> Program:
         try:
@@ -66,19 +74,62 @@ class DBClient:
             print(f"Error fetching program rewards: {e}")
             return []
 
-    @tenacity.retry(retry=retry_if_exception_type((psycopg2.OperationalError, psycopg2.InterfaceError)), wait=wait_exponential(multiplier=1, min=4, max=10))
+    @tenacity.retry(retry=retry_if_exception_type((psycopg2.OperationalError, psycopg2.InterfaceError)),
+                    wait=wait_exponential(multiplier=1, min=4, max=10))
     async def sample_parent(self, version=1) -> Optional[Program]:
-        with self.conn.cursor() as cur:
-            # Get sampled ID
-            cur.execute(f"SELECT sample_parent({version})")
-            sampled_id = cur.fetchone()[0]
-            if not sampled_id:
-                return None
+        """
+        Sample parent using a separate connection and transaction to avoid blocking.
+        Each MCTS group can call this independently without serialization.
+        """
+        # Create a new connection for this sampling operation
+        with self._get_new_connection() as conn:
+            with conn.cursor(cursor_factory=DictCursor) as cur:
+                # First get recent programs
+                cur.execute("""
+                        WITH recent AS (
+                            SELECT id, value
+                            FROM programs
+                            WHERE version = %s AND value IS NOT NULL
+                            ORDER BY created_at DESC
+                            LIMIT 100
+                        )
+                        SELECT id, value 
+                        FROM recent
+                    """, (version,))
 
-            # Fetch full program data
-            cur.execute("SELECT * FROM programs WHERE id = %s", (sampled_id,))
-            row = cur.fetchone()
-            return Program.from_row(dict(zip([desc[0] for desc in cur.description], row)))
+                results = cur.fetchall()
+                if not results:
+                    return None
+
+                # Calculate softmax weights
+                max_value = max(row['value'] for row in results)
+                weights = [
+                    (row['id'],
+                     math.exp(row['value'] - max_value))
+                    for row in results
+                ]
+
+                # Normalize weights
+                total_weight = sum(w[1] for w in weights)
+                if total_weight == 0:
+                    # If all weights are 0, use uniform distribution
+                    sampled_id = random.choice([w[0] for w in weights])
+                else:
+                    # Sample using normalized weights
+                    normalized_weights = [(id, w / total_weight) for id, w in weights]
+                    sampled_id = random.choices(
+                        [id for id, _ in normalized_weights],
+                        weights=[w for _, w in normalized_weights],
+                        k=1
+                    )[0]
+
+                # Fetch the selected program
+                cur.execute("""
+                        SELECT * FROM programs WHERE id = %s
+                    """, (sampled_id,))
+
+                row = cur.fetchone()
+                return Program.from_row(dict(row)) if row else None
 
     @tenacity.retry(retry=retry_if_exception_type((psycopg2.OperationalError, psycopg2.InterfaceError)),
                     wait=wait_exponential(multiplier=1, min=4, max=10))

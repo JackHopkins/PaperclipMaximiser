@@ -74,62 +74,86 @@ class ChunkedMCTS(MCTS):
         holdout_future = asyncio.create_task(self.evaluator._run_holdout())
         entity_list = []
         try:
-            for chunk in chunks:
-                instance = self.evaluator.instances[instance_id]
-                instance.reset(current_state)
-                self.evaluator.logger.update_instance(instance_id, status="executing")
+            try:
+                for chunk in chunks:
+                    instance = self.evaluator.instances[instance_id]
+                    instance.reset(current_state)
+                    self.evaluator.logger.update_instance(self.evaluator.instance_to_port[instance_id], status="executing")
 
-                reward, state, response, entities = await self.evaluator._evaluate_single(
-                    instance_id,
-                    chunk,
-                    instance
-                )
-                entity_list.append(entities)
-                chunk.state = state
-                chunk.value = reward
-                chunk.response = response
+                    reward, state, response, entities = await self.evaluator._evaluate_single(
+                        instance_id,
+                        chunk,
+                        instance
+                    )
+                    entity_list.append(entities)
+                    chunk.state = state
+                    chunk.value = reward
+                    chunk.response = response
 
-                current_state = state
+                    current_state = state
+            except Exception as e:
+                print(f"Detailed evaluation error in instance {instance_id}:")
+                print(f"Instance ID: {instance_id}")
+                print(f"TCP Port: {self.evaluator.instance_to_port.get(instance_id, 'Unknown')}")
+                print(f"Error: {str(e)}")
+                import traceback
+                traceback.print_exc()
+                raise
+        except Exception as e1:
+            print(f"Error during chunk evaluation:")
+            print(f"Instance ID: {instance_id}")
+            print(f"Number of chunks: {len(chunks)}")
+            print(f"Error: {str(e)}")
+            import traceback
+            traceback.print_exc()
+            raise e
+
+        try:
+            holdout_value = await holdout_future
+            return chunks, holdout_value, entity_list
         except Exception as e:
-            print(f"Error during evaluation: {e}")
-            raise e  # Propagate the exception to handle it elsewhere if needed.
-
-        holdout_value = await holdout_future
-        return chunks, holdout_value, entity_list
+            print(f"Error during holdout evaluation:")
+            print(f"Error: {str(e)}")
+            import traceback
+            traceback.print_exc()
+            raise e
 
     async def search(self, n_iterations: int, samples_per_iteration: int, skip_failures: bool = False):
         for iteration in range(n_iterations):
-            parent = await self.db.sample_parent(version=self.version)
-            start_state = parent.state if parent else self.initial_state
-            conversation = parent.conversation if parent else Conversation(messages=[
-                Message(role="system", content=self.system_prompt),
-                Message(role="user",
-                        content=f"Inventory: {json.dumps(start_state.inventory.__dict__)}\n\n{PLANNING_ADDITION_PROMPT}")
-            ])
-
-            self.evaluator.set_sampling_status()
-            raw_programs = await self._generate_programs_batch(conversation, samples_per_iteration)
-
-            # Process programs in parallel
-            eval_futures = []
-            for i, (program, chunks) in enumerate(raw_programs):
-                instance_id = i % (len(self.evaluator.instances))
-                self.evaluator.instances[instance_id].reset(start_state)
-                self.evaluator.logger.update_instance(i, program_id=program.id, status="resetting")
-
-                # Create evaluation future for this program's chunks
-                eval_futures.append(self._process_program_chunks(
-                    program=program,
-                    chunks=chunks,
-                    start_state=start_state,
-                    instance_id=instance_id,
-                    parent_id=parent.id if parent else None,
-                    skip_failures=skip_failures
-                ))
-
-            # Wait for all programs to complete
-            await asyncio.gather(*eval_futures)
+            self.run_iteration(samples_per_iteration, skip_failures)
             self.evaluator.logger.update_progress()
+
+    async def run_iteration(self, samples_per_iteration, skip_failures):
+        parent = await self.db.sample_parent(version=self.version)
+        start_state = parent.state if parent else self.initial_state
+        conversation = parent.conversation if parent else Conversation(messages=[
+            Message(role="system", content=self.system_prompt),
+            Message(role="user",
+                    content=f"Inventory: {json.dumps(start_state.inventory.__dict__)}\n\n{PLANNING_ADDITION_PROMPT}")
+        ])
+
+        self.evaluator.set_sampling_status()
+        raw_programs = await self._generate_programs_batch(conversation, samples_per_iteration)
+
+        # Process programs in parallel
+        eval_futures = []
+        for i, (program, chunks) in enumerate(raw_programs):
+            instance_id = i % (len(self.evaluator.instances))
+            self.evaluator.instances[instance_id].reset(start_state)
+            self.evaluator.logger.update_instance(self.evaluator.instances[i].tcp_port, program_id=program.id, status="resetting")
+
+            # Create evaluation future for this program's chunks
+            eval_futures.append(self._process_program_chunks(
+                program=program,
+                chunks=chunks,
+                start_state=start_state,
+                instance_id=instance_id,
+                parent_id=parent.id if parent else None,
+                skip_failures=skip_failures
+            ))
+
+        # Wait for all programs to complete
+        await asyncio.gather(*eval_futures)
 
     async def _process_program_chunks(self, program: Program, chunks: List[Program],
                                       start_state: GameState, instance_id: int,
@@ -140,42 +164,59 @@ class ChunkedMCTS(MCTS):
             last_conversation_stage = program.conversation
 
             for chunk, entities in zip(evaluated_chunks, entity_list):
-                chunk_program = Program(
-                    code=chunk.code,
-                    conversation=program.conversation,
-                    value=chunk.value - (holdout / len(evaluated_chunks)),
-                    raw_reward=chunk.value,
-                    holdout_value=holdout / len(evaluated_chunks),
-                    state=chunk.state,
-                    response=chunk.response,
-                    version=self.version,
-                    version_description=self.version_description,
-                    parent_id=last_chunk_id,
-                    token_usage=program.token_usage // len(evaluated_chunks),
-                    completion_token_usage=program.completion_token_usage // len(evaluated_chunks),
-                    prompt_token_usage=program.prompt_token_usage // len(evaluated_chunks)
-                )
+                try:
+                    chunk_program = Program(
+                        code=chunk.code,
+                        conversation=program.conversation,
+                        value=chunk.value - (holdout / len(evaluated_chunks)),
+                        raw_reward=chunk.value,
+                        holdout_value=holdout / len(evaluated_chunks),
+                        state=chunk.state,
+                        response=chunk.response,
+                        version=self.version,
+                        version_description=self.version_description,
+                        parent_id=last_chunk_id,
+                        token_usage=program.token_usage // len(evaluated_chunks),
+                        completion_token_usage=program.completion_token_usage // len(evaluated_chunks),
+                        prompt_token_usage=program.prompt_token_usage // len(evaluated_chunks)
+                    )
 
-                last_conversation_stage.add_result(
-                    chunk.code,
-                    chunk.value - (holdout / len(evaluated_chunks)),
-                    chunk.response,
-                    chunk.state,
-                    entities
-                )
+                    last_conversation_stage.add_result(
+                        chunk.code,
+                        chunk.value - (holdout / len(evaluated_chunks)),
+                        chunk.response,
+                        chunk.state,
+                        entities
+                    )
 
-                chunk_program.id = hash(
-                    (chunk.code, json.dumps(chunk_program.conversation.model_dump()['messages'])))
-                chunk_program.conversation = last_conversation_stage
+                    chunk_program.id = hash(
+                        (chunk.code, json.dumps(chunk_program.conversation.model_dump()['messages'])))
+                    chunk_program.conversation = last_conversation_stage
 
-                if skip_failures and "error" in chunk.response.lower():
-                    break
+                    if skip_failures and "error" in chunk.response.lower():
+                        print(f"Skipping chunk due to error in response:")
+                        print(f"Response: {chunk.response}")
+                        break
 
-                created = await self.db.create_program(chunk_program)
-                last_chunk_id = created.id
+                    created = await self.db.create_program(chunk_program)
+                    last_chunk_id = created.id
+                except Exception as e:
+                    print(f"Error processing chunk:")
+                    print(f"Chunk code: {chunk.code}")
+                    print(f"Response: {chunk.response}")
+                    print(f"Error: {str(e)}")
+                    import traceback
+                    traceback.print_exc()
+                    raise
 
         except Exception as e:
-            print(f"Failed to evaluate program on instance {instance_id}: {str(e)}")
+            print(f"Failed to evaluate program on instance {instance_id}:")
+            print(f"Program code: {program.code}")
+            print(f"Number of chunks: {len(chunks)}")
+            print(f"Error: {str(e)}")
+            import traceback
+            traceback.print_exc()
+            raise
 
     async def _generate_programs_batch(self, conversation: Conversation, n_samples: int) -> List[Tuple[Program, List[Program]]]:
         # We generate one extra program in case there is an error in parsing one. This way we can always return n_samples programs to keep the servers occupied.

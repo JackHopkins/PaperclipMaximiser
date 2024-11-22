@@ -77,3 +77,5 @@ Focus on creating sustainable, automated production chains that can be expanded 
 Remember to document your thinking process as Python comments, and explain how each new addition contributes to the overall factory.
 
 If an error is returned from your actions, you should reflect on why your actions caused this error, and attempt to fix it by observing the game state and submitting a fix.
+
+Remember - YOU are playing the game, and you should think about it in the first person. 

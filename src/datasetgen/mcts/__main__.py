@@ -6,6 +6,7 @@ import statistics
 from datasetgen.auto_curriculum.plan_sampler import PlanSampler
 from datasetgen.mcts.chunked_mcts import ChunkedMCTS
 from datasetgen.mcts.conversation import Conversation, Message
+from datasetgen.mcts.parallel_mcts import ParallelMCTS
 from datasetgen.mcts.program import Program
 
 os.environ["FORCE_COLOR"] = "1"
@@ -120,8 +121,8 @@ async def get_seed_programs(
 async def main():
     model =  "ft:gpt-4o-2024-08-06:paperplane-ai:fact-self-gen-planning:AQzcPI91"#"o1-mini" #"gpt-4o" #"ft:gpt-4o-2024-08-06:paperplane-ai:fact-self-gen-planning:AQzcPI91"
     prompt_path = "../../prompts/bottoms_up_prompts/finetuning_prompts/system_message_policy_refined.md"
-    version = 12
-    version_description = "Seeded / Base model / No planning prompt in user messages / Step-wise evaluation / Refined system prompt"
+    version = 13
+    version_description = "Seeded / Multi-MCTS / No planning prompt in user messages / Step-wise evaluation / Refined system prompt"
 
     # Initialize components
     llm = LLMFactory(model)
@@ -137,7 +138,7 @@ async def main():
         instance.speed(10) # Set the game speed to 10x normal speed for faster testing
 
     # Initialize FactorioEvaluator with the list of instances
-    evaluator = FactorioEvaluator(db_client, instances, value_accrual_time=3)
+    #evaluator = FactorioEvaluator(db_client, instances, value_accrual_time=3)
     initial_state = GameState.from_instance(instances[0])
 
     # Get execution directory from __file__ or other source
@@ -156,31 +157,42 @@ async def main():
         "20225": -100 #'/>'
     }
 
+    # mcts = ChunkedMCTS(llm,
+    #             db_client,
+    #             evaluator,
+    #             system_prompt,
+    #             initial_state,
+    #             logit_bias=logit_bias,
+    #             version=version,
+    #             version_description=version_description,
+    #             formatter=StructurePreservingFormatter(planning=True))
 
+    parallel_mcts = ParallelMCTS(
+        instances=instances,
+        system_prompt=system_prompt,
+        initial_state=initial_state,
+        llm_factory=llm,
+        n_parallel=4,  # Creates 4 rows of instance groups
+        db_client=db_client,
+        logit_bias=logit_bias,
+        version=version,
+        version_description=version_description,
+        formatter=StructurePreservingFormatter(planning=True),
+        mcts_class=ChunkedMCTS
+    )
 
-    mcts = ChunkedMCTS(llm,
-                db_client,
-                evaluator,
-                system_prompt,
-                initial_state,
-                logit_bias=logit_bias,
-                version=version,
-                version_description=version_description,
-                formatter=StructurePreservingFormatter(planning=True))
-
-    starting_scenario_folder = "../../skills/data_scenarios/starting_scenarios"
-    sampler = PlanSampler(model, prompt_path, starting_scenario_folder)
-
-    print("Sampling seed scenarios...")
-    seeded_programs = await get_seed_programs(mcts, sampler, n_seeds=3)
-    for program in seeded_programs:
-        await db_client.create_program(program)
+    #starting_scenario_folder = "../../skills/data_scenarios/starting_scenarios"
+    #sampler = PlanSampler(model, prompt_path, starting_scenario_folder)
+    #
+    # print("Sampling seed scenarios...")
+    # seeded_programs = await get_seed_programs(mcts, sampler, n_seeds=3)
+    # for program in seeded_programs:
+    #     await db_client.create_program(program)
 
     print("Starting MCTS search...")
-    best_programs = await mcts.search(
+    best_programs = await parallel_mcts.search(
         n_iterations=500,
-        samples_per_iteration=len(instances)-1, # One for each instance, minus a holdout.
-        skip_failures=True,
+        skip_failures=True
     )
 
     print("\nBest programs found:")
