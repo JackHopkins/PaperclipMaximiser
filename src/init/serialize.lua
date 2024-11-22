@@ -1088,11 +1088,11 @@ global.utils.serialize_entity = function(entity)
 	end
 
 	if entity.type == "generator" then
-		serialized.connection_points = get_pipe_positions_filtered(entity)
+		serialized.connection_points = get_pipe_positions(entity)
 	end
 
 	if entity.name == "pumpjack" then
-		serialized.connection_points = get_pumpjack_pipe_position_filtered(entity)
+		serialized.connection_points = get_pumpjack_pipe_position(entity)
 	end
 
 	-- Add fuel and input ingredients if the entity is a furnace or burner
