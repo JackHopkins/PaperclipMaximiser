@@ -14,6 +14,7 @@ load_dotenv()
 from llm_factory import LLMFactory
 from datasetgen.auto_curriculum.dataset_utils import instantiate_the_map, initialise_starting_scenario
 from skills.skills_db import SkillsDB
+from datasetgen.mcts.game_state import GameState
 class ModelEvaluator:
     def __init__(self, executor_model, system_prompt_path, save_path, starting_scenarios_folder, objective_model = None):
         
@@ -389,7 +390,7 @@ For your plan, follow this structure:
         # check for completions
         for output in outputs:
             if output["completion"]:
-                step = output["full_output"].lower().split("#output")[-1].strip()
+                step = output["full_output"].lower().split("#output")[-2].strip()
                 return {"meta": {"type": "single","step_outputs": []}, "full_output": output["full_output"],
                         "messages": output["messages"], "step": step, "completion": True}
             
@@ -418,7 +419,7 @@ For your plan, follow this structure:
                 full_output = response.choices[0].message.content
             # get the output after OUTPUT
             if "#OUTPUT" in full_output:
-                step = full_output.split("#OUTPUT")[-1]
+                step = full_output.split("#OUTPUT")[-2].strip()
             
             # split it by #step
             if "#STEP" in full_output:
@@ -439,11 +440,11 @@ For your plan, follow this structure:
         success = False
         traces = []
         # get the starting state of the game
-        save_string = instance._save_entity_state(distance=1000)
+        game_state = GameState.from_instance(instance)
         for i in range(tries):
-            #if i != 0:
-            #    # reset the game
-            #    instance._load_entity_state(save_string)
+            if i != 0:
+                # reset the game
+                instance.reset(game_state)
             messages = [{"role": "system", "content": self.system_prompt}]
             starting_inventory = instance.inspect_inventory()
             mining_setup = get_mining_setup(instance)
@@ -453,7 +454,7 @@ For your plan, follow this structure:
                 user_message = user_message.strip()
             messages.append({"role": "user", "content": user_message})
             response = self.llm_factory.call(messages=messages,
-                                            temperature=0.3,
+                                            temperature=0.5,
                                             max_tokens=4096)
             full_output = response.choices[0].message.content
             if "```python" in full_output:
@@ -532,7 +533,7 @@ For your plan, follow this structure:
                                          version = "planner_executor_v1.0",
                                          meta = output_dict)
 
-    def run_external_planning_episode(self, number_of_tasks: int, episode_length = 10, executor_tries = 1, instance = None, task:str = None):
+    def run_external_planning_episode(self, number_of_tasks: int, episode_length = 10, executor_tries = 3, instance = None, task:str = None):
         """
         Run the supervised task
         Need to implement saving the successful trace
@@ -602,19 +603,21 @@ For your plan, follow this structure:
                                                        mining_setup, plan, log_str)
                 current_step += 1
                 if planner_output["completion"]:
-                    traces.append({"step": current_step, "executor_output": {"success": True, "traces": []}, "planning_output": planner_output["step"],
+                    traces.append({"step_idx": current_step, "executor_output": {"success": True, "traces": []}, "step": planner_output["step"],
                                    "inventory_dict": inventory_dict, "mining_setup": mining_setup, "messages": planner_output["messages"],
-                                   "meta": planner_output["meta"]})
+                                   "meta": planner_output["meta"], "planning_output": planner_output["full_output"]})
                     success = True
                     break
                 planning_output = planner_output["step"]
                 pre_executor_mining_setup = instance.get_entities()
-                output = self.run_supervised_episode(instance, executor_tries, planning_output, include_plan=True)
+                output = self.run_supervised_episode(instance, executor_tries, planning_output, 
+                                                     include_plan=True)
                 post_executor_mining_setup = instance.get_entities()
                 new_entities, removed_entities = self.get_changed_entities(pre_executor_mining_setup, post_executor_mining_setup)
-                trace_logs = []
-                for trace in output["traces"]:
-                    trace_logs+= trace["logs"]
+                trace_logs = output["traces"][-1]["logs"]
+                #trace_logs = []
+                #for trace in output["traces"]:
+                #    trace_logs+= trace["logs"]
                 log_str = f"Step {current_step}: {planning_output}\nLogs from output\n{trace_logs}"
                 if new_entities:
                     #new_entity_str_list = [f"{entity.name} at position {entity.position}" for entity in new_entities if entity.name != "transport-belt"]
@@ -729,11 +732,13 @@ if __name__ == "__main__":
     unsupervised_trace = True
     #evaluator.run_external_planning_episode(number_of_tasks = 2)
     #task = "Create a iron plate mine with burner drill feeding a furnace"
-    task = "Create a burner iron ore mine into a chest placed 10 spaces away"
-    #task = "Get 5 offshore pumps"
+    #task = "Create a burner iron ore mine into a chest placed 10 spaces away"
+    task = "Get 5 offshore pumps"
+    task = "Create a electric iron ore mine into a chest placed 10 spaces away"
+    task = "Create a electric generating setup"
     #task = None
     if unsupervised_trace:
-        starting_scenarios = ["ft_random_chest_furnace_placement_inv_in_chest"]
+        starting_scenarios = ["put_down_electricity_generator"]
         #starting_scenarios = get_all_folders_in_path(r"skills\data_scenarios\starting_scenarios")
         #starting_scenarios = ["multiple_entiti_environment"]
         evaluator.run_simulations_from_starting_scenarios(starting_scenarios, 2, 2, include_plan=True, task = task,

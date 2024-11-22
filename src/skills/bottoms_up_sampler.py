@@ -544,7 +544,7 @@ if __name__ == "__main__":
         'transport-belt': 500,
         'boiler': 1,
         'burner-inserter': 32,
-        'pipe': 15,
+        'pipe': 20,
         'steam-engine': 1,
         'small-electric-pole': 10,
         "wooden-chest": 1,
@@ -559,7 +559,7 @@ if __name__ == "__main__":
     #    'stone-furnace': 3,
     #    'iron-ore':10
     #}
-    inventory = {}
+    #inventory = {}
     #inventory = {
     #    'iron-plate': 50,
     #    'copper-plate': 50,
@@ -576,9 +576,10 @@ if __name__ == "__main__":
     test_string = '\nfrom factorio_instance import *\n\nfor i in range(2):    if True:\n        print("Hello")\n        m = 1\n        print("Hello2")\n    elif False:\n        print("Hello3")\n        m = 2\n        print("Hello4")\n    else:\n        print("Hello5")\n        m = 3\n        print("Hello6")\n\nprint(m)\n'
     test_string = '\nfrom factorio_instance import *\n\n"""\nObjective: Create a burner iron ore mine from a drill at Position(x=84.5, y=14.5) to a wooden chest placed 10 spaces away.\nUse burner inserters and transport belts to connect the drill to the chest.\nCheck the construct by looking if the chest has iron ore in it.\nPrint out the input and output mine entity positions.\n"""\n\n# Step 1: Place the wooden chest 10 spaces away from the drill\ndrill_position = Position(x=84.5, y=14.5)\nchest_position = Position(x=94.5, y=14.5)  # 10 spaces to the right of the drill\n\nmove_to(chest_position)'
 
-    test_string = '\nfrom factorio_instance import *\n\niron_loc = nearest(Resource.IronOre)\nprint(iron_loc)\nmove_to(iron_loc)\nharvest_resource(iron_loc, quantity=10)\nprint(inspect_inventory())\n'
-
-    _, result = eval_program_with_result_trace(instance, test_string)
+    test_string = '\nfrom factorio_instance import *\n\niron_loc = nearest(Resource.IronOre)\nprint(iron_loc)\nmove_to(iron_loc)\nharvest_resource(iron_loc, quantity=10)\nprint(inspect_inventory())\nif True:\n    print("Hello")\n    m = 1\n    print(m)\n    print(m+1)'
+    #test_string = '\n\nfrom factorio_instance import *\n\n"""\nStep 1: Place the offshore pump at the water source\n"""\n# Move to the water source\nwater_source = Position(x=-40.5, y=-41.5)\nmove_to(water_source)\nprint(f"Moved to water source at {water_source}")\n\n# Place the offshore pump\npump = place_entity(Prototype.OffshorePump, Direction.UP, water_source)\nprint(f"Placed offshore pump at {pump.position}")\n\n"""\nStep 2: Place the boiler and connect it to the pump\n"""\n# Calculate position for the boiler (4 tiles away from the pump)\nboiler_position = Position(x=pump.position.x + 4, y=pump.position.y)\n\n# Move to the calculated position\nmove_to(boiler_position)\nprint(f"Moved to boiler position at {boiler_position}")\n\n# Place the boiler\nboiler = place_entity(Prototype.Boiler, Direction.UP, boiler_position)\nprint(f"Placed boiler at {boiler.position}")\n\n# Connect the pump to the boiler with pipes\npump_to_boiler_pipes = connect_entities(pump, boiler, Prototype.Pipe)\nassert pump_to_boiler_pipes, "Failed to connect pump to boiler with pipes"'
+    
+    _, result, error = eval_program_with_result_trace(instance, test_string)
     instance._load_entity_state(save_string)
     test_string = '\nfrom factorio_instance import *\n\nmove_to(Position(x = 0, y = 0))'
     _, result = eval_program_with_result_trace(instance, test_string)
