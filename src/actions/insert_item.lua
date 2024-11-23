@@ -111,7 +111,7 @@ global.actions.insert_item = function(player_index, insert_item, count, x, y)
     end
 
     if closest_entity == nil then
-        error("Could not find a nearby entity that can accept " .. insert_item)
+        error("\"Could not find a nearby entity that can accept " .. insert_item.."\"")
     end
 
     -- Throw an error if the entity is too far away from the player

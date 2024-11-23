@@ -13,15 +13,23 @@ from datasetgen.mcts.program import Program
 
 
 class DBClient:
-    def __init__(self, **db_config):
+    def __init__(self, max_conversation_length: int = 10, **db_config):
         self.db_config = db_config
         self.conn = psycopg2.connect(**db_config)
+        self.max_conversation_length = max_conversation_length
 
     def _get_new_connection(self):
         """Create a new database connection"""
         return psycopg2.connect(**self.db_config)
 
+    @tenacity.retry(retry=retry_if_exception_type((psycopg2.OperationalError, psycopg2.InterfaceError, psycopg2.DatabaseError)),
+                    wait=wait_exponential(multiplier=1, min=4, max=10))
     async def create_program(self, program: Program) -> Program:
+        """Create a new program, now with conversation length validation"""
+        # Check conversation length before saving
+        if len(program.conversation.messages) > self.max_conversation_length:
+            raise ValueError(f"Conversation length ({len(program.conversation.messages)}) "
+                             f"exceeds maximum allowed length ({self.max_conversation_length})")
         try:
             with self.conn.cursor() as cur:
                 cur.execute("""
@@ -80,22 +88,25 @@ class DBClient:
         """
         Sample parent using a separate connection and transaction to avoid blocking.
         Each MCTS group can call this independently without serialization.
+        Now includes conversation length filtering.
         """
         # Create a new connection for this sampling operation
         with self._get_new_connection() as conn:
             with conn.cursor(cursor_factory=DictCursor) as cur:
-                # First get recent programs
+                # First get recent programs with conversation length filter
                 cur.execute("""
                         WITH recent AS (
-                            SELECT id, value
+                            SELECT id, value, conversation_json
                             FROM programs
-                            WHERE version = %s AND value IS NOT NULL
+                            WHERE version = %s 
+                            AND value IS NOT NULL
+                            AND jsonb_array_length(conversation_json->'messages') < %s
                             ORDER BY created_at DESC
                             LIMIT 100
                         )
                         SELECT id, value 
                         FROM recent
-                    """, (version,))
+                        """, (version, self.max_conversation_length))
 
                 results = cur.fetchall()
                 if not results:
@@ -126,7 +137,7 @@ class DBClient:
                 # Fetch the selected program
                 cur.execute("""
                         SELECT * FROM programs WHERE id = %s
-                    """, (sampled_id,))
+                        """, (sampled_id,))
 
                 row = cur.fetchone()
                 return Program.from_row(dict(row)) if row else None

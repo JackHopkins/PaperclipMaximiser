@@ -9,7 +9,7 @@ from rich.panel import Panel
 from rich.progress import Progress, TextColumn, BarColumn, TaskProgressColumn
 from rich.table import Table
 from rich.text import Text
-
+from rich.box import SIMPLE
 
 @dataclass
 class InstanceGroupMetrics:
@@ -116,34 +116,48 @@ class GroupedFactorioLogger:
                     self.live.update(self._generate_layout())
 
     def _generate_instance_panel(self, instance: InstanceMetrics, group_id: int) -> Panel:
-        """Generate a panel for a single instance"""
-        table = Table(show_header=False, box=None, padding=(0, 1))
+        """Generate a panel for a single instance with two-column layout"""
+        # Create two tables for left and right columns
+        left_table = Table(show_header=False, box=None, padding=(0, 1))
+        right_table = Table(show_header=False, box=None, padding=(0, 1))
+
+        # Calculate average time
         avg_time = "N/A"
         if instance.total_programs > 0:
             avg_time = f"{((datetime.now() - self.start_time).total_seconds() / instance.total_programs):.2f} sec"
 
-        table.add_row("Program ID:", str(instance.program_id or "None"))
-        table.add_row("Status:", Text(instance.status, style="green" if instance.status == "running" else "yellow"))
-        table.add_row("Action Reward:", f"{instance.current_reward:.2f}")
-        table.add_row("Holdout Reward:", f"{instance.holdout_value:.2f}")
-        table.add_row("Advantage:", f"{instance.relative_reward:.2f}")
-        table.add_row("Error Count:",
-                      Text(str(instance.error_count), style="red" if instance.error_count > 0 else "white"))
-        table.add_row("Total Programs:", str(instance.total_programs))
-        table.add_row("Last Update:", instance.last_update.strftime("%H:%M:%S"))
-        table.add_row("Avg Time / Program:", Text(avg_time))
-        table.add_row("# Entities:", Text(f"{instance.start_entities} -> {instance.final_entities}",
-                                          style="red" if instance.start_entities != instance.final_entities else "cyan"))
-        table.add_row("# Inventory:", Text(f"{instance.start_inventory_count} -> {instance.final_inventory_count}"))
+        # Left column data
+        left_table.add_row("Program ID:", str(instance.program_id or "None"))
+        left_table.add_row("Status:",
+                           Text(instance.status, style="green" if instance.status == "running" else "yellow"))
+        left_table.add_row("Action Reward:", f"{instance.current_reward:.2f}")
+        left_table.add_row("Holdout Reward:", f"{instance.holdout_value:.2f}")
+        left_table.add_row("Advantage:", f"{instance.relative_reward:.2f}")
+        left_table.add_row("Error Count:",
+                           Text(str(instance.error_count), style="red" if instance.error_count > 0 else "white"))
 
-        title = (f"Holdout Instance (Port: {instance.tcp_port})"
+        # Right column data
+        right_table.add_row("Total Programs:", str(instance.total_programs))
+        right_table.add_row("Last Update:", instance.last_update.strftime("%H:%M:%S"))
+        right_table.add_row("Avg Time/Prog:", Text(avg_time))
+        right_table.add_row("Entities:", Text(f"{instance.start_entities} → {instance.final_entities}",
+                                              style="red" if instance.start_entities != instance.final_entities else "cyan"))
+        right_table.add_row("Inventory:", Text(f"{instance.start_inventory_count} → {instance.final_inventory_count}"))
+        right_table.add_row("Version:", Text(f"v{instance.version}"))
+
+        # Create a container table to hold both columns
+        container = Table.grid(padding=(0, 2))
+        container.add_row(left_table, right_table)
+
+        title = (f"Holdout (Port: {instance.tcp_port})"  # Shortened titles for more space
                  if instance.is_holdout
                  else f"Instance (Port: {instance.tcp_port})")
 
         return Panel(
-            table,
+            container,
             title=title,
-            border_style="blue" if not instance.is_holdout else "red"
+            border_style="blue" if not instance.is_holdout else "red",
+            padding=(0, 1)
         )
 
     def _generate_group_layout(self, group: InstanceGroupMetrics) -> Layout:
@@ -161,10 +175,13 @@ class GroupedFactorioLogger:
         # Split the layout horizontally for all instances in the group
         group_layout.split_row(*[Layout(panel, ratio=1) for panel in instance_panels])
 
+        # Use a more compact panel style with reduced padding and simplified border
         return Panel(
             group_layout,
-            title=f"MCTS Group {group.group_id}",
-            border_style="green"
+            title=f"Group {group.group_id}",  # Shortened title
+            border_style="green",
+            padding=(0, 1),  # Reduce vertical and horizontal padding
+            box=SIMPLE  # Use simpler border style
         )
 
     def _generate_layout(self) -> Layout:
@@ -175,7 +192,7 @@ class GroupedFactorioLogger:
         group_layouts = [self._generate_group_layout(group) for group in self.groups.values()]
 
         # Split vertically for each group
-        main_layout.split_column(*[Layout(layout, ratio=1) for layout in group_layouts])
+        main_layout.split_column(*[Layout(layout, ratio=1, minimum_size=3) for layout in group_layouts])
 
         # Add progress bar if it exists
         if self.progress_task is not None:

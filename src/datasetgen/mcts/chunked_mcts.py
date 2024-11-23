@@ -183,10 +183,9 @@ class ChunkedMCTS(MCTS):
 
                     last_conversation_stage.add_result(
                         chunk.code,
-                        chunk.value - (holdout / len(evaluated_chunks)),
                         chunk.response,
-                        chunk.state,
-                        entities
+                        score=chunk.value,
+                        advantage=chunk.value - (holdout / len(evaluated_chunks)),
                     )
 
                     chunk_program.id = hash(

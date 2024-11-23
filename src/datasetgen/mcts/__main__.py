@@ -90,8 +90,12 @@ async def get_seed_programs(
             Message(role="assistant", content=objective)
         ])
         messages = conversation.model_dump()['messages']
+
+        # Ensure that the objective is properly formatted as a Python docstring.
         if not objective.strip().startswith('"""'):
             objective = '"""\n'+objective
+        if not objective.strip().endswith('"""'):
+            objective = objective+'\n"""'
 
         try:
             token_usage = response.usage.total_tokens if hasattr(response, 'usage') else None
@@ -121,12 +125,14 @@ async def get_seed_programs(
 async def main():
     model =  "ft:gpt-4o-2024-08-06:paperplane-ai:fact-self-gen-planning:AQzcPI91"#"o1-mini" #"gpt-4o" #"ft:gpt-4o-2024-08-06:paperplane-ai:fact-self-gen-planning:AQzcPI91"
     prompt_path = "../../prompts/bottoms_up_prompts/finetuning_prompts/system_message_policy_refined.md"
-    version = 13
+    version = 14
     version_description = "Seeded / Multi-MCTS / No planning prompt in user messages / Step-wise evaluation / Refined system prompt"
+    max_conversation_length = 10  # Set maximum conversation length
 
     # Initialize components
     llm = LLMFactory(model)
-    db_client = DBClient(host=os.getenv("SKILLS_DB_HOST"),
+    db_client = DBClient(max_conversation_length=max_conversation_length,
+                         host=os.getenv("SKILLS_DB_HOST"),
                          port=os.getenv("SKILLS_DB_PORT"),
                          dbname=os.getenv("SKILLS_DB_NAME"),
                          user=os.getenv("SKILLS_DB_USER"),
@@ -181,13 +187,12 @@ async def main():
         mcts_class=ChunkedMCTS
     )
 
-    #starting_scenario_folder = "../../skills/data_scenarios/starting_scenarios"
-    #sampler = PlanSampler(model, prompt_path, starting_scenario_folder)
-    #
-    # print("Sampling seed scenarios...")
-    # seeded_programs = await get_seed_programs(mcts, sampler, n_seeds=3)
-    # for program in seeded_programs:
-    #     await db_client.create_program(program)
+    starting_scenario_folder = "../../skills/data_scenarios/starting_scenarios"
+    sampler = PlanSampler(model, prompt_path, starting_scenario_folder)
+    print("Sampling seed scenarios...")
+    seeded_programs = await get_seed_programs(parallel_mcts.instance_groups[0].mcts, sampler, n_seeds=3)
+    for program in seeded_programs:
+        await db_client.create_program(program)
 
     print("Starting MCTS search...")
     best_programs = await parallel_mcts.search(

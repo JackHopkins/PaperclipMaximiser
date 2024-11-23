@@ -116,12 +116,12 @@ class ParallelMCTS:
         """Run parallel MCTS searches across all groups"""
 
         # Create progress task if not exists
-        if not self.logger.progress_task:
-            total_steps = n_iterations * len(self.instance_groups)
-            self.logger.progress_task = self.logger.progress.add_task(
-                "Running MCTS iterations...",
-                total=total_steps
-            )
+        # if not self.logger.progress_task:
+        #     total_steps = n_iterations * len(self.instance_groups)
+        #     self.logger.progress_task = self.logger.progress.add_task(
+        #         "Running MCTS iterations...",
+        #         total=total_steps
+        #     )
 
         async def run_group_search(group: InstanceGroup):
             """Run iterations for a single group"""
@@ -129,15 +129,15 @@ class ParallelMCTS:
                 group_id = group.group_id
                 timing_data = {}
 
-                self.debugger.console.print(f"[bold blue]Initializing search for Group {group_id}[/bold blue]")
+               # self.debugger.console.print(f"[bold blue]Initializing search for Group {group_id}[/bold blue]")
 
                 for iteration in range(n_iterations):
                     iteration_start = time.time()
 
-                    # Debug header for iteration
-                    self.debugger.console.print(
-                        f"\n[yellow]Group {group_id} - Iteration {iteration + 1}/{n_iterations}[/yellow]"
-                    )
+                    # # Debug header for iteration
+                    # self.debugger.console.print(
+                    #     f"\n[yellow]Group {group_id} - Iteration {iteration + 1}/{n_iterations}[/yellow]"
+                    # )
 
                     await group.mcts.run_iteration(
                         len(group.active_instances),

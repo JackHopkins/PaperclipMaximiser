@@ -96,7 +96,8 @@ class MCTS:
                 max_tokens=2048,
                 n=n_samples,
                 temperature=1,
-                logit_bias=logit_bias
+                logit_bias=logit_bias,
+                presency_penalty=0.7
             )
 
             programs = []

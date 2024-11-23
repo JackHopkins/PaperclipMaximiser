@@ -90,7 +90,7 @@ class FactorioEvaluator:
                 program.state = state
                 program.raw_reward = raw_reward
                 program.holdout_value = holdout_value
-                program.conversation.add_result(program.code, relative_reward, response, state, entities)
+                program.conversation.add_result(program.code, response, score=raw_reward, advantage=relative_reward)
                 program.response = response
 
             return programs
@@ -128,14 +128,16 @@ class FactorioEvaluator:
 
             # Check to see if the inventories are different
             # If so, we put a hint in the code and result
-            if start_inventory.__dict__ != final_inventory.__dict__ and 'error' not in result.lower():
-                program.code += '\nprint(f"Inventory changed to {inspect_inventory()}")'
+            get_inventory_code = 'print(f"Inventory changed to {inspect_inventory()}")'
+            if start_inventory.__dict__ != final_inventory.__dict__ and 'error' not in result.lower() and get_inventory_code not in program.code:
+                program.code += f'\n{get_inventory_code}'
                 result += f'\n'+str(len(program.code.split('\n')))+f': (\'Inventory changed to {final_inventory}\',)'
 
             # Check to see if the entities are different
             # If so, we put a hint in the code and result
-            if start_entities != entities and 'error' not in result.lower():
-                program.code += '\nprint(f"Entities on the map: {get_entities()}")\n'
+            get_entities_code = 'print(f"Entities on the map: {get_entities()}")'
+            if start_entities != entities and 'error' not in result.lower() and get_entities_code not in program.code:
+                program.code += f'\n{get_entities_code}\n'
                 result += "\n"+str(len(program.code.split('\n')))+f': (\'Entities on the map: {entities}\',)'
 
             self.logger.update_instance(tcp_port, status="accruing value")
