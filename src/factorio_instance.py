@@ -85,7 +85,7 @@ class FactorioInstance:
                  ):
 
         self.persistent_vars = {}
-
+        self.speed=1
         self.tcp_port = tcp_port
         self.rcon_client, self.address = self.connect_to_server(address, tcp_port)
 
@@ -178,6 +178,7 @@ class FactorioInstance:
 
     def speed(self, speed):
         self.rcon_client.send_command(f'/c game.speed = {speed}')
+        self.speed = speed
 
     def log(self, *arg):
         """

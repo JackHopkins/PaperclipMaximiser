@@ -1,13 +1,14 @@
 import ast
 import asyncio
 import json
-from typing import List, Tuple, Optional
+from typing import List, Tuple, Optional, Union
 
 from datasetgen.mcts.conversation import Conversation, Message
 from datasetgen.mcts.conversation_formatter import PLANNING_ADDITION_PROMPT
 from datasetgen.mcts.game_state import GameState
 from datasetgen.mcts.mcts import MCTS
 from datasetgen.mcts.program import Program
+from factorio_entities import Entity, EntityGroup
 
 
 class ChunkedMCTS(MCTS):
