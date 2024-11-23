@@ -7,8 +7,6 @@ import psycopg2
 import tenacity
 from psycopg2.extras import DictCursor
 from tenacity import wait_exponential, retry_if_exception_type
-
-from datasetgen.mcts.evaluation_task import EvaluationTask
 from datasetgen.mcts.program import Program
 
 
@@ -27,9 +25,10 @@ class DBClient:
     async def create_program(self, program: Program) -> Program:
         """Create a new program, now with conversation length validation"""
         # Check conversation length before saving
-        if len(program.conversation.messages) > self.max_conversation_length:
-            raise ValueError(f"Conversation length ({len(program.conversation.messages)}) "
-                             f"exceeds maximum allowed length ({self.max_conversation_length})")
+        # if len(program.conversation.messages) > (self.max_conversation_length*2) + 1:
+        #     raise ValueError(f"Conversation length ({len(program.conversation.messages)}) "
+        #                      f"exceeds maximum allowed length ({self.max_conversation_length})")
+
         try:
             with self.conn.cursor() as cur:
                 cur.execute("""
@@ -90,6 +89,7 @@ class DBClient:
         Each MCTS group can call this independently without serialization.
         Now includes conversation length filtering.
         """
+        max_assistant_length = (self.max_conversation_length*2)+1
         # Create a new connection for this sampling operation
         with self._get_new_connection() as conn:
             with conn.cursor(cursor_factory=DictCursor) as cur:
@@ -106,7 +106,7 @@ class DBClient:
                         )
                         SELECT id, value 
                         FROM recent
-                        """, (version, self.max_conversation_length))
+                        """, (version, max_assistant_length))
 
                 results = cur.fetchall()
                 if not results:
@@ -188,18 +188,3 @@ class DBClient:
             self.conn.commit()
             row = cur.fetchone()
             return Program.from_row(dict(zip([desc[0] for desc in cur.description], row)))
-
-    async def update_task(self, task_id: int, updates: Dict[str, Any]) -> EvaluationTask:
-        with self.conn.cursor() as cur:
-            set_clauses = [f"{k} = %s" for k in updates.keys()]
-            values = list(updates.values())
-
-            cur.execute(f"""
-                UPDATE evaluation_queue
-                SET {', '.join(set_clauses)}
-                WHERE id = %s
-                RETURNING *
-            """, values + [task_id])
-
-            self.conn.commit()
-            return EvaluationTask.parse_obj(cur.fetchone())

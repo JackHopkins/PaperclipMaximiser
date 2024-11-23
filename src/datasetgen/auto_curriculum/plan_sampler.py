@@ -104,11 +104,10 @@ etc...
         except:
             return objective.split('"""')[2].strip(), response
 
-    def get_game_state(self, instance, starting_scenario_name):
+    def get_game_state(self, instance, starting_scenario_path):
         # gets starting scenario details
-        starting_scenario_path = os.path.join(self.starting_scenarios_folder, starting_scenario_name)
-        starting_scenario = initialise_starting_scenario(
-                    starting_scenario_path)  # Gets the starting scenario details
+        #starting_scenario_path = os.path.join(self.starting_scenarios_folder, starting_scenario_name)
+        starting_scenario = initialise_starting_scenario(starting_scenario_path)  # Gets the starting scenario details
         # instantiate the map
         result = instantiate_the_map(starting_scenario, instance, self.starting_scenarios_folder)
         if not result["success"]:

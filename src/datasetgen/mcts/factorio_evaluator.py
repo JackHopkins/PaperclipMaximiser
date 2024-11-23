@@ -116,10 +116,10 @@ class FactorioEvaluator:
             start_entities = instance.get_entities()
             start_inventory = instance.inspect_inventory()
             self.logger.update_instance(tcp_port, status="starting value")
-            initial_value, _ = instance.score()
+            initial_value, start_time = instance.score()
 
             self.logger.update_instance(tcp_port, status="executing")
-            reward, _, result = instance.eval(program.code, timeout=60)
+            reward, time, result = instance.eval(program.code, timeout=60)
 
             self.logger.update_instance(tcp_port, status="capturing state")
             state = GameState.from_instance(instance)
@@ -140,7 +140,7 @@ class FactorioEvaluator:
                 program.code += f'\n{get_entities_code}\n'
                 result += "\n"+str(len(program.code.split('\n')))+f': (\'Entities on the map: {entities}\',)'
 
-            self.logger.update_instance(tcp_port, status="accruing value")
+            self.logger.update_instance(tcp_port, status=f"accruing value ({self.value_accrual_time}s)")
             await asyncio.sleep(self.value_accrual_time)
 
             score, _ = instance.score()
@@ -202,7 +202,7 @@ class FactorioEvaluator:
 
             initial_value, _ = self.holdout.score()
             if self.logger:
-                self.logger.update_instance(self.holdout.tcp_port, status="accruing value")
+                self.logger.update_instance(self.holdout.tcp_port, status=f"accruing value ({self.value_accrual_time}s)")
             await asyncio.sleep(self.value_accrual_time)
             entities = self.holdout.get_entities()
             reward, _ = self.holdout.score()

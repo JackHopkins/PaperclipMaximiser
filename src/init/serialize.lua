@@ -1154,8 +1154,11 @@ global.utils.serialize_entity = function(entity)
         if not serialized.warnings then
             serialized.warnings = {}
         end
-        if #filtered_points < #serialized.connection_points then
-            table.insert(serialized.warnings, "Some connection points were filtered due to distance from entity center")
+
+        if serialized.connection_points ~= nil then
+            if #filtered_points < #serialized.connection_points then
+                table.insert(serialized.warnings, "Some connection points were filtered due to distance from entity center")
+            end
         end
     end
 

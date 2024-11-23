@@ -1,165 +1,179 @@
-import time
-from dataclasses import dataclass
-from typing import List, Tuple
 import asyncio
+import logging
 from math import floor
+from typing import List, Dict, Any
 
-from datasetgen.mcts.chunked_mcts import ChunkedMCTS
+from rich.console import Console
+
+from datasetgen.mcts.db_client import DBClient
 from datasetgen.mcts.factorio_evaluator import FactorioEvaluator
 from datasetgen.mcts.grouped_logger import GroupedFactorioLogger
-from datasetgen.mcts.mcts import MCTS
-from datasetgen.mcts.mcts_debugger import MCTSDebugger
+from datasetgen.mcts.instance_group import InstanceGroup
+from datasetgen.mcts.parallel_mcts_config import ParallelMCTSConfig
 from factorio_instance import FactorioInstance
 
-
-@dataclass
-class InstanceGroup:
-    """Represents a group of Factorio instances for parallel MCTS"""
-    group_id: int
-    active_instances: List[FactorioInstance]
-    holdout_instance: FactorioInstance
-    evaluator: FactorioEvaluator
-    mcts: MCTS
-
+# Configure logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 class ParallelMCTS:
+    """
+    Manages multiple parallel MCTS instances for distributed search
+    """
+
     def __init__(self,
-                 instances: List[FactorioInstance],
-                 n_parallel: int,
-                 db_client: 'DBClient',
+                 instances: List['FactorioInstance'],
+                 db_client: DBClient,
                  llm_factory: 'LLMFactory',
-                 system_prompt: str,
-                 initial_state: 'GameState',
-                 mcts_class=ChunkedMCTS,
-                 **mcts_kwargs):
+                 config: ParallelMCTSConfig):
+        """
+        Initialize parallel MCTS with configuration
 
-        self.debugger = MCTSDebugger()
+        Args:
+            instances: List of Factorio instances to distribute across groups
+            db_client: Database client for persistence
+            llm_factory: Factory for creating language models
+            config: Configuration parameters
+        """
+        self.console = Console()
+        self.config = config
+        self.db_client = db_client
+        self.llm_factory = llm_factory
 
-        self.n_parallel = n_parallel
-        instances_per_group = floor(len(instances) / n_parallel)
+        # Validate instance count
+        self._validate_instance_count(len(instances), config.n_parallel)
 
-        # Create shared logger for all groups
+        # Initialize logger
+        instances_per_group = floor(len(instances) / config.n_parallel)
         self.logger = GroupedFactorioLogger(
-            n_groups=n_parallel,
+            n_groups=config.n_parallel,
             instances_per_group=instances_per_group
         )
         self.logger.start()
 
-        self.instance_groups = self._create_instance_groups(
-            instances, n_parallel, db_client, llm_factory,
-            system_prompt, initial_state, mcts_class, **mcts_kwargs
-        )
+        # Create instance groups
+        self.instance_groups = self._create_instance_groups(instances)
 
-    def _create_instance_groups(self,
-                                instances: List[FactorioInstance],
-                                n_parallel: int,
-                                db_client: 'DBClient',
-                                llm_factory: 'LLMFactory',
-                                system_prompt: str,
-                                initial_state: 'GameState',
-                                mcts_class: type,
-                                **mcts_kwargs) -> List[InstanceGroup]:
+    def _validate_instance_count(self, total_instances: int, n_parallel: int):
+        """Validate that we have enough instances for the requested parallelism"""
+        min_required = n_parallel * 2  # Need at least 2 instances per group
 
-        if len(instances) < n_parallel * 2:
+        if total_instances < min_required:
             raise ValueError(
-                f"Need at least {n_parallel * 2} instances for {n_parallel} parallel searches "
-                f"(got {len(instances)})")
+                f"Need at least {min_required} instances for {n_parallel} parallel searches "
+                f"(got {total_instances})"
+            )
 
-        total_instances = len(instances)
         instances_per_group = floor(total_instances / n_parallel)
-
         if instances_per_group < 2:
             raise ValueError(
                 f"Not enough instances to allocate at least one active and one holdout "
-                f"instance per group (need {n_parallel * 2}, got {total_instances})")
+                f"instance per group (need {n_parallel * 2}, got {total_instances})"
+            )
 
+    def _create_instance_groups(self, instances: List['FactorioInstance']) -> List[InstanceGroup]:
+        """Create instance groups for parallel execution"""
+        instances_per_group = floor(len(instances) / self.config.n_parallel)
         groups = []
-        current_idx = 0
 
-        for group_id in range(n_parallel):
-            group_instances = instances[current_idx:current_idx + instances_per_group]
+        for group_id in range(self.config.n_parallel):
+            # Slice instances for this group
+            start_idx = group_id * instances_per_group
+            end_idx = start_idx + instances_per_group
+            group_instances = instances[start_idx:end_idx]
+
+            # Split into active and holdout instances
             active_instances = group_instances[:-1]
             holdout_instance = group_instances[-1]
 
-            # Create evaluator with shared logger
+            # Create evaluator for this group
             evaluator = FactorioEvaluator(
-                db_client=db_client,
+                db_client=self.db_client,
                 instances=group_instances,
                 value_accrual_time=3,
-                logger=self.logger  # Pass the shared logger
+                logger=self.logger
             )
 
             # Create MCTS instance
-            mcts = mcts_class(
-                llm_factory=llm_factory,
-                db_client=db_client,
+            mcts = self.config.mcts_class(
+                llm_factory=self.llm_factory,
+                db_client=self.db_client,
                 evaluator=evaluator,
-                system_prompt=system_prompt,
-                initial_state=initial_state,
-                **mcts_kwargs
+                system_prompt=self.config.system_prompt,
+                initial_state=self.config.initial_state,
+                **self.config.mcts_kwargs
             )
 
             groups.append(InstanceGroup(
                 group_id=group_id,
-                active_instances=active_instances,
-                holdout_instance=holdout_instance,
+                mcts=mcts,
                 evaluator=evaluator,
-                mcts=mcts
+                active_instances=active_instances,
+                holdout_instance=holdout_instance
             ))
-
-            current_idx += instances_per_group
 
         return groups
 
-
     async def search(self, n_iterations: int, skip_failures: bool = False):
-        """Run parallel MCTS searches across all groups"""
+        """
+        Run parallel MCTS search across all groups
 
-        # Create progress task if not exists
-        # if not self.logger.progress_task:
-        #     total_steps = n_iterations * len(self.instance_groups)
-        #     self.logger.progress_task = self.logger.progress.add_task(
-        #         "Running MCTS iterations...",
-        #         total=total_steps
-        #     )
+        Args:
+            n_iterations: Number of iterations to run
+            skip_failures: Whether to skip failed program generations
+        """
+        try:
+            search_tasks = [
+                self._run_group_search(group, n_iterations, skip_failures)
+                for group in self.instance_groups
+            ]
+            await asyncio.gather(*search_tasks)
 
-        async def run_group_search(group: InstanceGroup):
-            """Run iterations for a single group"""
-            try:
-                group_id = group.group_id
-                timing_data = {}
+        except Exception as e:
+            logger.error(f"Error during parallel search: {str(e)}", exc_info=True)
+            raise
+        finally:
+            self.cleanup()
 
-               # self.debugger.console.print(f"[bold blue]Initializing search for Group {group_id}[/bold blue]")
+    async def _run_group_search(self,
+                                group: InstanceGroup,
+                                n_iterations: int,
+                                skip_failures: bool):
+        """Run search iterations for a single group"""
+        try:
+            logger.info(f"Starting search for Group {group.group_id}")
 
-                for iteration in range(n_iterations):
-                    iteration_start = time.time()
+            for iteration in range(n_iterations):
+                await group.mcts.run_iteration(
+                    len(group.active_instances),
+                    skip_failures
+                )
+                self.logger.update_progress()
 
-                    # # Debug header for iteration
-                    # self.debugger.console.print(
-                    #     f"\n[yellow]Group {group_id} - Iteration {iteration + 1}/{n_iterations}[/yellow]"
-                    # )
-
-                    await group.mcts.run_iteration(
-                        len(group.active_instances),
-                        skip_failures
-                    )
-                    self.logger.update_progress()
-            except Exception as e:
-                print(f"Error in group {group.group_id}: {str(e)}")
-                raise e
-
-        # Create tasks for concurrent execution
-        search_tasks = [
-            run_group_search(group)
-            for group in self.instance_groups
-        ]
-
-        # Run all groups concurrently and wait for completion
-        await asyncio.gather(*search_tasks)
+        except Exception as e:
+            logger.error(f"Error in group {group.group_id}: {str(e)}", exc_info=True)
+            raise
 
     def cleanup(self):
-        """Clean up resources for all instance groups"""
+        """Clean up resources"""
         self.logger.stop()
         for group in self.instance_groups:
             if hasattr(group.evaluator, 'logger'):
                 group.evaluator.logger.stop()
+
+    def get_group_metrics(self, group_id: int) -> Dict[str, Any]:
+        """Get metrics for a specific group"""
+        if 0 <= group_id < len(self.instance_groups):
+            group = self.instance_groups[group_id]
+            return {
+                'active_instances': len(group.active_instances),
+                'total_programs': sum(
+                    inst.total_programs
+                    for inst in group.evaluator.logger.groups[group_id].instances.values()
+                ),
+                'error_count': sum(
+                    inst.error_count
+                    for inst in group.evaluator.logger.groups[group_id].instances.values()
+                )
+            }
+        return {}
