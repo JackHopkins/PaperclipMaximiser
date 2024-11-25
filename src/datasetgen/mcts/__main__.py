@@ -1,9 +1,15 @@
+import sys
+sys.path.append(r"C:\Users\martb\Documents\paperpclip_max\PaperclipMaximiser\src")
+sys.path.append(r"C:\Users\martb\Documents\paperpclip_max\PaperclipMaximiser")
+
+
 import json
 import os
 import statistics
 
 from datasetgen.auto_curriculum.plan_sampler import PlanSampler
 from datasetgen.mcts.chunked_mcts import ChunkedMCTS
+from datasetgen.mcts.planning_mcts import PlanningMCTS
 from datasetgen.mcts.conversation import Conversation, Message
 from datasetgen.mcts.program import Program
 
@@ -41,9 +47,17 @@ def create_instance(params: Tuple[str, int, int]) -> FactorioInstance:
     )
 
 
+def get_container_ips() -> List[Tuple[str, int, int]]:
+    """Get IP addresses of running Factorio containers in the local Docker setup."""
+    ips = ["3.239.166.77","34.238.27.2:34197","98.80.186.144:34197","34.201.5.24:34197"]
+    udp_ports = [34197, 34197, 34197, 34197]
+    tcp_ports = [27015, 27015, 27015, 27015]
+    return ips, udp_ports, tcp_ports
+
 def create_parallel_instances() -> List[FactorioInstance]:
     """Create Factorio instances in parallel using ThreadPoolExecutor from local servers"""
-    ips, udp_ports, tcp_ports = get_local_container_ips()
+    #ips, udp_ports, tcp_ports = get_local_container_ips()
+    ips, udp_ports, tcp_ports = get_container_ips()
     params = list(zip(ips, udp_ports, tcp_ports))
 
     with concurrent.futures.ThreadPoolExecutor() as executor:
@@ -53,7 +67,7 @@ def create_parallel_instances() -> List[FactorioInstance]:
 
 
 async def get_seed_programs(
-        mcts: ChunkedMCTS,
+        mcts: PlanningMCTS,
         plan_sampler: 'PlanSampler',
         n_seeds: int = 100,
 ) -> List[Program]:
@@ -154,7 +168,7 @@ async def main():
 
 
 
-    mcts = ChunkedMCTS(llm,
+    mcts = PlanningMCTS(llm,
                 db_client,
                 evaluator,
                 system_prompt,

@@ -11,6 +11,7 @@ from llm_factory import LLMFactory
 from datasetgen.auto_curriculum.dataset_utils import instantiate_the_map, initialise_starting_scenario
 from skills.skills_db import SkillsDB
 from datasetgen.mcts.game_state import GameState
+
 class PlanningExecutor:
     def __init__(self, instance, step_executor_model, planner_model, step_executor_prompt_path, step_generator_prompt_path, 
                  step_judge_prompt_path, example_plan_prompt_path):
@@ -164,13 +165,13 @@ class PlanningExecutor:
             else:
                 print(f"Missing python code in response: {program}")
                 continue
-            output_list, result, success = eval_program_with_result_trace(instance, program)
+            output_list, result, error = eval_program_with_result_trace(instance, program)
             inventory_dict = self.get_inventory_dict(starting_inventory)
             traces.append({"program": program, "logs": output_list, "result": result, "full_output": full_output,
                            "starting_inventory": inventory_dict, "mining_setup": mining_setup,
                            "messages": messages, "planning": include_plan,
                            "success": "error" not in result.lower()})
-            if "error" in result.lower():
+            if error:
                 print(f"Error in program: {result}")
                 continue
             success = True
