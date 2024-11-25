@@ -60,7 +60,7 @@ etc...
         self.init_system_prompt(instance)
         mining_setup = self.get_mining_setup(instance)
         messages = [{"role": "system", "content": self.system_prompt}]
-        user_message = f"Your starting inventory is {starting_inventory}. Your initial mining setup is: {mining_setup}. In light of previous instructions, create a useful task that you can carry out in the current game and the python script to achieve the task"
+        user_message = f"Your starting inventory is {starting_inventory}. Your initial mining setup is: {mining_setup}. Create a useful task that you can carry out in the current game and the python script to achieve the task"
         user_message += f"\n{self.planning_addition_for_prompt}"
         messages.append({"role": "user", "content": user_message})
         response = self.llm_factory.call(messages=messages,

@@ -111,6 +111,68 @@ async def create_seed_programs(
 
     return seeded_programs
 
+
+async def get_seed_programs(
+        mcts: ChunkedMCTS,
+        plan_sampler: 'PlanSampler',
+        n_seeds: int = 100,
+) -> List[Program]:
+    existing_rewards = await mcts.db.get_all_program_rewards(version=mcts.version)
+    # filter out rewards < 0
+    existing_rewards = list(filter(lambda x: x >= 0, existing_rewards))
+    default_reward = (max(existing_rewards)-min(existing_rewards))/2 if existing_rewards else 10.0
+    seeded_programs: List[Program] = []
+    instance = mcts.evaluator.instances[0]
+
+    # Get all available scenarios
+    scenarios = [f for f in os.listdir(plan_sampler.starting_scenarios_folder)
+                 if os.path.isdir(os.path.join(plan_sampler.starting_scenarios_folder, f))]
+
+    seeds_per_scenario = n_seeds // len(scenarios)
+    remaining_seeds = n_seeds % len(scenarios)
+
+    for scenario in scenarios:
+        num_samples = seeds_per_scenario + (1 if remaining_seeds > 0 else 0)
+        remaining_seeds -= 1
+
+        for _ in range(num_samples):
+            game_state = plan_sampler.get_game_state(instance, scenario)
+            if not game_state:
+                continue
+
+            objective, response = plan_sampler(instance, game_state)
+
+            if len(objective) < 100:
+                continue
+
+
+
+            conversation = Conversation(messages=[
+                Message(role="system", content=mcts.system_prompt),
+                Message(role="user",
+                        content=f"Inventory: {json.dumps(game_state.inventory.__dict__)}\n\n{PLANNING_ADDITION_PROMPT}"),
+                Message(role="assistant", content=objective)
+            ])
+            messages = conversation.model_dump()['messages']
+            if not objective.strip().startswith('"""'):
+                objective = '"""\n'+objective
+
+            program = Program(
+                id=hash((objective, json.dumps(messages))),
+                code=objective,
+                conversation=conversation,
+                value=default_reward,
+                state=game_state,
+                version=mcts.version,
+                version_description=mcts.version_description,
+                token_usage=response.usage.total_tokens if hasattr(response, 'usage') else None,
+                completion_token_usage=response.usage.completion_tokens if hasattr(response, 'usage') else None,
+                prompt_token_usage=response.usage.prompt_tokens if hasattr(response, 'usage') else None,
+            )
+            seeded_programs.append(program)
+
+    return seeded_programs
+
 async def main():
     # Configuration
     CONFIG = {
@@ -142,6 +204,7 @@ async def main():
     instances = create_factorio_instances()
     for instance in instances:
         instance.speed(10)
+
     initial_state = GameState.from_instance(instances[0])
 
     # Load system prompt

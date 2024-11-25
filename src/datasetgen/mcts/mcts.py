@@ -181,6 +181,7 @@ class MCTS:
                 ])
 
             self.evaluator.set_sampling_status()
+            
             programs = await self._generate_programs_batch(conversation, samples_per_iteration)
 
             if not programs:
