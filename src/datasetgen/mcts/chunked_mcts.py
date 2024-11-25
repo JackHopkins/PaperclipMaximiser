@@ -99,8 +99,8 @@ class ChunkedMCTS(MCTS):
                 instance = self.evaluator.instances[instance_id]
                 instance.reset(current_state)
 
-                if self.logger:
-                    self.logger.update_instance(
+                if self.evaluator.logger:
+                    self.evaluator.logger.update_instance(
                         self.evaluator.instance_to_port[instance_id],
                         program_id=chunk.id,
                         status="executing"
@@ -129,8 +129,8 @@ class ChunkedMCTS(MCTS):
                 # Update state for next chunk
                 current_state = state
 
-                if self.logger:
-                    self.logger.update_instance(
+                if self.evaluator.logger:
+                    self.evaluator.logger.update_instance(
                         self.evaluator.holdout.tcp_port,
                         status="completed",
                         current_reward=holdout_value

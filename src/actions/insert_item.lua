@@ -60,7 +60,7 @@ global.actions.insert_item = function(player_index, insert_item, count, x, y)
                     end
                 end
                 if existing_item and existing_item ~= item_name then
-                    error("Cannot insert " .. item_name .. " - furnace already contains " .. existing_item)
+                    error("\"Cannot insert " .. item_name .. " - furnace already contains " .. existing_item.."\"")
                 end
             end
             -- Check if it's a valid ingredient for any furnace recipe

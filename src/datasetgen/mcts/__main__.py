@@ -116,8 +116,8 @@ async def main():
     CONFIG = {
         'model': "ft:gpt-4o-2024-08-06:paperplane-ai:fact-self-gen-planning:AQzcPI91",
         'prompt_path': "../../prompts/bottoms_up_prompts/finetuning_prompts/system_message_policy_refined.md",
-        'version': 15,
-        'version_desc': "Seeded / Multi-MCTS / No planning prompt in user messages / Step-wise evaluation / Refined system prompt",
+        'version': 16,
+        'version_desc': "Seeded / Multi-MCTS / No planning prompt in user messages / No failures / Step-wise evaluation / Refined system prompt",
         'max_conv_len': 10,
         'logit_bias': { # We add these logit biases to prevent sampling the truncated code of previous messages.
             "15714": -100,  # 'LINE'
@@ -173,13 +173,13 @@ async def main():
     # Generate and save seed programs
     print("Sampling seed scenarios...")
     sampler = PlanSampler(CONFIG['model'], CONFIG['prompt_path'], "../../skills/data_scenarios/starting_scenarios")
-    seeded_programs = await create_seed_programs(parallel_mcts.instance_groups[0].mcts, sampler, n_seeds=3)
+    seeded_programs = await create_seed_programs(parallel_mcts.instance_groups[0].mcts, sampler, n_seeds=5)
     for program in seeded_programs:
         await db_client.create_program(program)
 
     # Run search
     print("Starting MCTS search...")
-    await parallel_mcts.search(n_iterations=500, skip_failures=True)
+    await parallel_mcts.search(n_iterations=500, skip_failures=False)
 
 if __name__ == '__main__':
     asyncio.run(main())

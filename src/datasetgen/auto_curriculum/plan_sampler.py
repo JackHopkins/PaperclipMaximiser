@@ -102,7 +102,10 @@ etc...
         try:
             return objective.split("'''")[1].strip(), response
         except:
-            return objective.split('"""')[2].strip(), response
+            try:
+                return objective.split('"""')[2].strip(), response
+            except:
+                return objective.strip(), response
 
     def get_game_state(self, instance, starting_scenario_path):
         # gets starting scenario details
