@@ -359,6 +359,7 @@ class PlanningMCTS(MCTS):
         # we need to save all the programs but we need to add some meta fields
         objective = plan.task.task
         initial_plan = plan.initial_plan.initial_plan
+        parent_id = None
         for step in plan.steps:
             candidate_step_meta = []
             for candidate_step in step.candidate_language_outputs:
@@ -374,7 +375,9 @@ class PlanningMCTS(MCTS):
             
             program = step.program
             program.meta = meta
+            program.parent_id = parent_id
             self.db.create_program(program)
+            parent_id = program.id
 
             
 
