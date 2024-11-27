@@ -193,8 +193,10 @@ class MCTS:
                 ])
 
             self.evaluator.set_sampling_status()
+            generation_parameters = GenerationParameters(n = samples_per_iteration,
+                                                         model = self.llm.model)
             # Generate multiple programs from same parent
-            programs = await self._generate_programs_batch(conversation, samples_per_iteration)
+            programs = await self._generate_programs_batch(conversation, generation_parameters)
             if not programs:
                 self.evaluator.logger.update_progress()
                 continue
