@@ -137,7 +137,16 @@ class PlanningMCTS(MCTS):
         step.program.parent_id = parent_id
         return step, holdout_value, entity_list
 
-    
+    def get_inventory_dict(self, inventory):
+        inventory_dict = {}
+        for item in inventory:
+            if isinstance(item, tuple):
+                inventory_dict[item[0]] = inventory[item]
+            else:
+                inventory_dict[item] = inventory[item]
+        return inventory_dict
+
+
     async def _get_tasks(self, parent: Program = None, samples_per_iteration: int = 1) -> List[LanguageOutput]:
         start_state = parent.state if parent else self.initial_state # We should make this random as well tbh
         # reset the first instance
@@ -145,7 +154,7 @@ class PlanningMCTS(MCTS):
         # get the mining setup
         mining_setup = get_mining_setup(self.evaluator.instances[0])
         starting_inventory = self.evaluator.instances[0].inspect_inventory()
-        conversation = parent.conversation if parent else Conversation(messages=[
+        conversation = Conversation(messages=[
                 Message(role="system", content=self.system_prompt),
                 Message(role="user",
                         content=f"Your starting inventory is {starting_inventory}. Your initial mining setup is: {mining_setup}. Create a useful task that you can carry out in the current game and the python script to achieve the task")
@@ -155,35 +164,47 @@ class PlanningMCTS(MCTS):
             n=samples_per_iteration,
             stop_sequences=["\n"]
         )
-        tasks = await self._generate_natural_language_batch(conversation, generation_params, meta={"type": "objective_generation", "mining_setup": mining_setup, "starting_inventory": starting_inventory})
+        inventory_dict = self.get_inventory_dict(starting_inventory)
+        game_state_str = GameState.from_instance(self.evaluator.instances[0]).entities
+        tasks = await self._generate_natural_language_batch(conversation, generation_params, meta={"type": "objective_generation",
+                                                                                                   "inventory": inventory_dict,
+                                                                                                   "mining_setup": mining_setup,
+                                                                                                   "game_state": game_state_str})
         task_outputs = []
         for task in tasks:
-            task_string = task.response.lower().replace("sure! the task i will carry out is", "").strip()
+            # get everything until the first newline
+            task_string = task.response.split("\n")[0].strip()
+            # FOR TESTING
+            task_string = "Manually gather 5 iron ore"
+            # END TESTING
+            task_string = task_string.lower().replace("sure! the task i will carry out is", "").strip()
             if "." in task_string:
                 task_string = task_string.split(".")[0]
             task_outputs.append(TaskOutput(task=task_string, language_output=task))
 
                 
-        return tasks, start_state
+        return task_outputs, start_state
 
-    async def generate_plans(self, task_outputs: List[TaskOutput]) -> List[InitialPlanOutput]:
+    async def   generate_plans(self, task_outputs: List[TaskOutput]) -> List[InitialPlanOutput]:
         generation_params = GenerationParameters(
             model = self.executor_model,
             stop_sequences = ["```"]
         )
-        conversations_to_process = [[Message(role="system", content=self.example_plan_system_prompt),
+        conversations_to_process = [Conversation(messages = [Message(role="system", content=self.example_plan_system_prompt),
                 Message(role="user",
-                        content=self.example_plan_user_prompt.format(task = task_output.task))] for task_output in task_outputs]
+                        content=self.example_plan_user_prompt.format(task = task_output.task))]) for task_output in task_outputs]
         
-        initial_plans = [asyncio.ensure_future(self._generate_natural_language_batch(conversation, generation_params)) for conversation in conversations_to_process]
+        initial_plans = [asyncio.ensure_future(self._generate_natural_language_batch(conversation, generation_params, meta={"type": "initial_plan_generation"})) for conversation in conversations_to_process]
+        #initial_plans = [self._generate_natural_language_batch(conversation, generation_params, meta={"type": "initial_plan_generation"}) for conversation in conversations_to_process]
+        
         responses = await asyncio.gather(*initial_plans)
         plan_outputs = {}
         for idx, response in enumerate(responses):
-            initial_plan = response.strip()
+            initial_plan = response[0].response.strip()
             new_line_idx = initial_plan.rfind("\n")
             if new_line_idx != -1:
                 initial_plan = initial_plan[:new_line_idx].strip()
-            initial_plan_output = InitialPlanOutput(initial_plan=initial_plan, language_output=response)
+            initial_plan_output = InitialPlanOutput(initial_plan=initial_plan, language_output=response[0])
             # plan id coincides with instance id it will be evaluated on
             plan_output = PlanOutput(task=task_outputs[idx], initial_plan=initial_plan_output, meta = {"plan_id": idx})
             plan_outputs[idx] = plan_output
@@ -205,19 +226,24 @@ class PlanningMCTS(MCTS):
             instance = self.evaluator.instances[instance_id]
             mining_setup = get_mining_setup(instance)
             starting_inventory = instance.inspect_inventory()
+            starting_inventory_dict = self.get_inventory_dict(starting_inventory)
             log_str = self.format_log_string(plan_output)
             objective = plan_output.task.task
             initial_plan = plan_output.initial_plan.initial_plan
             user_message = self.step_generator_user_prompt.format(mining_setup=mining_setup, starting_inventory=starting_inventory, 
                                                                   logs=log_str, objective=objective, plan=initial_plan)
-            conversations_to_process+=[(Message(role="system", content=self.step_generator_system_prompt),
-                Message(role="user", content=user_message), plan_output.meta["plan_id"])]*self.number_of_steps_for_judge
+            conversations_to_process+=[(Conversation(messages = [Message(role="system", content=self.step_generator_system_prompt),
+                Message(role="user", content=user_message)]), plan_output.meta["plan_id"])]*self.number_of_steps_for_judge
             
-        step_outputs = [asyncio.ensure_future((self._generate_natural_language_batch(conversation[0], generation_params), conversation[1])) for conversation in conversations_to_process]
+        step_outputs = [asyncio.ensure_future(self._generate_natural_language_batch(conversation[0], generation_params, meta = {"type": "next_step_candidates",
+                                                                                                                                 "plan_id": conversation[1],
+                                                                                                                                 "mining_setup": mining_setup,
+                                                                                                                                 "starting_inventory": starting_inventory_dict})) for conversation in conversations_to_process]
         responses = await asyncio.gather(*step_outputs)
         step_output_objects = {}
         for idx, response in enumerate(responses):
-            output, plan_id = response
+            output = response[0]
+            plan_id = output.meta["plan_id"]
             step_output = output.response.strip()
             # first check if the step says it is a success
             # We need to create a new step object
@@ -225,13 +251,14 @@ class PlanningMCTS(MCTS):
                 step_output_objects[plan_id] = Step(candidate_language_outputs = [])
             step_output_objects[plan_id].candidate_language_outputs.append(output)
             if "#output" in step_output.lower() and "#step" not in step_output.lower():
-                step_output = step_output.split("#output")[-2].strip()
+                step_output = step_output.lower().split("#output")[-2].strip()
                 # put the success flag in the plan_output as True
-                plan_output[plan_id].success = True
+                plan_outputs[plan_id].success = True
+                plan_outputs[plan_id].final_output = step_output
                 step_output_objects[plan_id].final_step = step_output
         
         for plan_id, step_output in step_output_objects.items():
-            plan_output[plan_id].steps.append(step_output)
+            plan_outputs[plan_id].steps.append(step_output)
 
         return plan_outputs
     
@@ -244,6 +271,7 @@ class PlanningMCTS(MCTS):
         for instance_id, plan_output in plan_outputs.items():
             if plan_output.success:
                 continue
+            # This should be done more efficiently,this should be gotten from the step to process
             instance = self.evaluator.instances[instance_id]
             mining_setup = get_mining_setup(instance)
             starting_inventory = instance.inspect_inventory()
@@ -257,13 +285,15 @@ class PlanningMCTS(MCTS):
             user_message = self.step_judge_user_prompt.format(objective = objective, starting_inventory=starting_inventory, 
                                                      mining_setup=mining_setup, logs=log_str, plan = initial_plan,
                                                      analysis_step_str = step_candidate_str)
-            conversations_to_process.append(([Message(role="system", content=self.step_judge_system_prompt),
-                Message(role="user", content=user_message)], plan_output.meta["plan_id"]))
+            conversations_to_process.append((Conversation(messages = [Message(role="system", content=self.step_judge_system_prompt),
+                Message(role="user", content=user_message)]), plan_output.meta["plan_id"]))
             
-        step_outputs = [asyncio.ensure_future((self._generate_natural_language_batch(conversation[0], generation_params), conversation[1])) for conversation in conversations_to_process]
+        step_outputs = [asyncio.ensure_future(self._generate_natural_language_batch(conversation[0], generation_params, meta = {"type": "next_step_judge",
+                                                                                                                                 "plan_id": conversation[1]})) for conversation in conversations_to_process]
         responses = await asyncio.gather(*step_outputs)
         for idx, response in enumerate(responses):
-            output, plan_id = response
+            output = response[0]
+            plan_id = output.meta["plan_id"]
             step_output = output.response.strip()
             # add the output to the last step
             plan_outputs[plan_id].steps[-1].judge_language_output_step = output
@@ -298,13 +328,15 @@ class PlanningMCTS(MCTS):
             executor_objective = plan_output.steps[-1].final_step
             user_message = self.step_executor_user_prompt.format(task = executor_objective, starting_inventory=starting_inventory, 
                                                      mining_setup=mining_setup)
-            conversations_to_process.append(([Message(role="system", content=self.step_executor_system_prompt),
-                Message(role="user", content=user_message)], plan_output.meta["plan_id"]))
+            conversations_to_process.append((Conversation(messages = [Message(role="system", content=self.step_executor_system_prompt),
+                Message(role="user", content=user_message)]), plan_output.meta["plan_id"]))
             
-        step_outputs = [asyncio.ensure_future((self._generate_programs_batch(conversation[0], generation_params), conversation[1])) for conversation in conversations_to_process]
+        step_outputs = [asyncio.ensure_future(self._generate_programs_batch(conversation[0], generation_params, meta = {"type": "next_step_program",
+                                                                                                                                 "plan_id": conversation[1]})) for conversation in conversations_to_process]
         responses = await asyncio.gather(*step_outputs)
         for idx, response in enumerate(responses):
-            output, plan_id = response
+            output = response[0]
+            plan_id = output.meta["plan_id"]
             # add the output program to the last step
             plan_outputs[plan_id].steps[-1].program = output
         return plan_outputs
@@ -316,19 +348,23 @@ class PlanningMCTS(MCTS):
 
             tasks, start_state= await self._get_tasks(parent, samples_per_iteration)
             plans = await self.generate_plans(tasks)
-            self.evaluator.set_sampling_status()
             for step_idx in range(self.max_steps_per_objective):
                 if step_idx == 0:
                     # reset the instances
                     for instance_id, instance in enumerate(self.evaluator.instances):
                         instance.reset(start_state)
+                self.evaluator.set_status(f"Getting candidates for step {step_idx}")
                 plans = await self.generate_next_step_candidates(plans)
+                self.evaluator.set_status(f"Judging candidates for step {step_idx}")
                 plans = await self.get_next_step_with_judge(plans)
+                self.evaluator.set_status(f"Generating programs for step {step_idx}")
                 plans = await self.get_next_step_programs(plans)
 
                 # Process programs in parallel
                 eval_futures = []
                 for instance_id, plan_object in plans.items():
+                    if plan_object.success:
+                        continue
                     self.evaluator.instances[instance_id].reset(start_state)
                     latest_program = plan_object.steps[-1].program
                     # logging purposes
@@ -337,7 +373,7 @@ class PlanningMCTS(MCTS):
                     # Create evaluation future for this program
                     # TODO Skip failures ???
                     eval_futures.append(self._process_last_step(
-                        program=latest_program,
+                        plan=plan_object,
                         start_state=start_state,
                         instance_id=instance_id,
                         parent_id=parent.id if parent else None,
@@ -348,7 +384,8 @@ class PlanningMCTS(MCTS):
                 await asyncio.gather(*eval_futures)
                 self.evaluator.logger.update_progress()
             
-            # TODO WE NOW NEED TO SAVE THE WHOLE THING
+            # TODO Need to save the actual objective generation as well as the start program
+            # What about the final output?
             # Save the plans
             for plan in plans.values():
                 if plan.success:
@@ -363,15 +400,21 @@ class PlanningMCTS(MCTS):
         for step in plan.steps:
             candidate_step_meta = []
             for candidate_step in step.candidate_language_outputs:
-                messages = candidate_step.conversation.model_dump()['messages']
+                try:
+                    messages = candidate_step.conversation.model_dump()['messages']
+                except:
+                    messages = candidate_step.conversation.dict()['messages']
                 output = candidate_step.response
                 start_state = step.start_state
                 candidate_step_meta.append({"output": output, "messages": messages,
                                             })
+                mining_setup = candidate_step.meta["mining_setup"]
+                starting_inventory = candidate_step.meta["starting_inventory"]
             judge_messages = step.judge_language_output_step.conversation.model_dump()['messages']
             executor_step = step.final_step
             meta = {"objective": objective, "initial_plan": initial_plan, "candidate_steps": candidate_step_meta,
-                    "judge_messages": judge_messages, "executor_step": executor_step, "start_state": start_state}
+                    "judge_messages": judge_messages, "executor_step": executor_step, "start_state": start_state,
+                    "mining_setup": mining_setup, "starting_inventory": starting_inventory, "final_output": plan.final_output}
             
             program = step.program
             program.meta = meta
@@ -466,19 +509,22 @@ class PlanningMCTS(MCTS):
             )
 
             outputs = []
-            messages = conversation.model_dump()['messages']
+            try:
+                messages = conversation.model_dump()['messages']
+            except:
+                messages = conversation.dict()['messages']
 
             # Process all choices from the response
             if "claude" in generation_params.model:
 
-                str_output = response.choices[0].text
+                str_output = response.content[0].text
                 outputs.append(LanguageOutput(
                         id=hash((str_output, json.dumps(messages))),
                         response=str_output, # I think this could also be multiple
                         conversation=conversation,
-                        token_usage=response.usage.total_tokens if hasattr(response, 'usage') else None,
-                        completion_token_usage=response.usage.completion_tokens if hasattr(response, 'usage') else None,
-                        prompt_token_usage=response.usage.prompt_tokens if hasattr(response, 'usage') else None,
+                        token_usage=response.usage.output_tokens + response.usage.input_tokens if hasattr(response, 'usage') else None,
+                        completion_token_usage=response.usage.output_tokens if hasattr(response, 'usage') else None,
+                        prompt_token_usage=response.usage.input_tokens if hasattr(response, 'usage') else None,
                         version=self.version,
                         version_description=self.version_description,
                         meta=meta
