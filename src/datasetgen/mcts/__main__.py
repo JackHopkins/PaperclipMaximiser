@@ -1,6 +1,3 @@
-import sys
-sys.path.append(r"C:\Users\martb\Documents\paperpclip_max\PaperclipMaximiser\src")
-sys.path.append(r"C:\Users\martb\Documents\paperpclip_max\PaperclipMaximiser")
 
 
 import json
@@ -47,17 +44,9 @@ def create_instance(params: Tuple[str, int, int]) -> FactorioInstance:
     )
 
 
-def get_container_ips() -> List[Tuple[str, int, int]]:
-    """Get IP addresses of running Factorio containers in the local Docker setup."""
-    ips = ["3.239.166.77","34.238.27.2:34197","98.80.186.144:34197","34.201.5.24:34197"]
-    udp_ports = [34197, 34197, 34197, 34197]
-    tcp_ports = [27015, 27015, 27015, 27015]
-    return ips, udp_ports, tcp_ports
-
 def create_parallel_instances() -> List[FactorioInstance]:
     """Create Factorio instances in parallel using ThreadPoolExecutor from local servers"""
-    #ips, udp_ports, tcp_ports = get_local_container_ips()
-    ips, udp_ports, tcp_ports = get_container_ips()
+    ips, udp_ports, tcp_ports = get_local_container_ips()
     params = list(zip(ips, udp_ports, tcp_ports))
 
     with concurrent.futures.ThreadPoolExecutor() as executor:
