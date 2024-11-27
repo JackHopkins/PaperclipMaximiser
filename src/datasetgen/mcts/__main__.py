@@ -1,4 +1,3 @@
-import json
 import os
 import random
 import asyncio
@@ -11,7 +10,6 @@ from rich import print
 
 from datasetgen.auto_curriculum.plan_sampler import PlanSampler
 from datasetgen.mcts.chunked_mcts import ChunkedMCTS
-from datasetgen.mcts.planning_mcts import PlanningMCTS
 from datasetgen.mcts.conversation import Conversation, Message
 from datasetgen.mcts.parallel_mcts import ParallelMCTS
 from datasetgen.mcts.parallel_mcts_config import ParallelMCTSConfig
@@ -115,7 +113,7 @@ async def create_seed_programs(
 
 
 async def get_seed_programs(
-        mcts: PlanningMCTS,
+        mcts: ChunkedMCTS,
         plan_sampler: 'PlanSampler',
         n_seeds: int = 100,
 ) -> List[Program]:
