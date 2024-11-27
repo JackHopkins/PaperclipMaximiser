@@ -18,6 +18,10 @@ class FactorioEvaluator:
         self.logger = FactorioLogger(len(instances))
         self.logger.start()
 
+    def set_status(self, status):
+        for i in range(len(self.instances)):
+            self.logger.update_instance(i, status=status)
+
     def set_sampling_status(self):
         for i in range(len(self.instances)):
             self.logger.update_instance(i, status="sampling")
