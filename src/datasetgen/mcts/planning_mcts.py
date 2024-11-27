@@ -174,9 +174,6 @@ class PlanningMCTS(MCTS):
         for task in tasks:
             # get everything until the first newline
             task_string = task.response.split("\n")[0].strip()
-            # FOR TESTING
-            task_string = "Manually gather 5 iron ore"
-            # END TESTING
             task_string = task_string.lower().replace("sure! the task i will carry out is", "").strip()
             if "." in task_string:
                 task_string = task_string.split(".")[0]
@@ -384,8 +381,6 @@ class PlanningMCTS(MCTS):
                 await asyncio.gather(*eval_futures)
                 self.evaluator.logger.update_progress()
             
-            # TODO Need to save the actual objective generation as well as the start program
-            # What about the final output?
             # Save the plans
             for plan in plans.values():
                 if plan.success:
@@ -438,44 +433,6 @@ class PlanningMCTS(MCTS):
             plan.logs.append(log_str)
             return plan
     
-            last_chunk_id = parent_id
-            program = step.program
-            last_conversation_stage = program.conversation
-
-            for chunk, entities in zip(evaluated_chunks, entity_list):
-                chunk_program = Program(
-                    code=chunk.code,
-                    conversation=program.conversation,
-                    value=chunk.value - (holdout / len(evaluated_chunks)),
-                    raw_reward=chunk.value,
-                    holdout_value=holdout / len(evaluated_chunks),
-                    state=chunk.state,
-                    response=chunk.response,
-                    version=self.version,
-                    version_description=self.version_description,
-                    parent_id=last_chunk_id,
-                    token_usage=program.token_usage // len(evaluated_chunks),
-                    completion_token_usage=program.completion_token_usage // len(evaluated_chunks),
-                    prompt_token_usage=program.prompt_token_usage // len(evaluated_chunks)
-                )
-
-                last_conversation_stage.add_result(
-                    chunk.code,
-                    chunk.value - (holdout / len(evaluated_chunks)),
-                    chunk.response,
-                    chunk.state,
-                    entities
-                )
-
-                chunk_program.id = hash(
-                    (chunk.code, json.dumps(chunk_program.conversation.model_dump()['messages'])))
-                chunk_program.conversation = last_conversation_stage
-
-                if skip_failures and "error" in chunk.response.lower():
-                    break
-
-                created = await self.db.create_program(chunk_program)
-                last_chunk_id = created.id
 
         except Exception as e:
             print(f"Failed to evaluate program on instance {instance_id}: {str(e)}")
