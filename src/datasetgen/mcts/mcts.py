@@ -82,6 +82,7 @@ class MCTS:
     @retry(wait=wait_exponential(multiplier=1, min=4, max=10))
     async def _generate_programs_batch(self, conversation: Conversation, 
                                        generation_params: GenerationParameters,
+                                       meta = {}
                                        ) -> List[Program]:
         """Generate multiple programs in a single API call using 'n' parameter"""
         formatted_messages = self.formatter.to_llm_messages(
@@ -105,7 +106,10 @@ class MCTS:
             )
 
             programs = []
-            messages = conversation.model_dump()['messages']
+            try:
+                messages = conversation.model_dump()['messages']
+            except Exception as e:
+                messages = conversation.dict()['messages']
 
             # Process all choices from the response
             if "claude" in generation_params.model:
@@ -126,6 +130,8 @@ class MCTS:
                         meta = {"text_response": text_response,
                                 "model": generation_params.model}
                     ))
+                    if meta:
+                        programs[0].meta.update(meta)
             else:
                 # Handle OpenAI response format with multiple choices
                 for choice in response.choices:
@@ -147,6 +153,8 @@ class MCTS:
                             meta = {"text_response": text_response,
                                     "model": generation_params.model}
                         ))
+                        if meta:
+                            programs[-1].meta.update(meta)
 
             return programs
 

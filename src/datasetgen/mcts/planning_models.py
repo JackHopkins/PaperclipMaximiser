@@ -16,7 +16,7 @@ class LanguageOutput(BaseModel):
     conversation: Conversation
     parent_id: Optional[int] = None
     state: Optional[GameState] = None
-    meta: Optional[float] = None
+    meta: Optional[dict] = {}
     created_at: datetime = Field(default_factory=datetime.now)
     prompt_token_usage: Optional[int] = None
     completion_token_usage: Optional[int] = None
@@ -47,6 +47,7 @@ class Step(BaseModel):
 class PlanOutput(BaseModel):
     task: TaskOutput
     initial_plan: InitialPlanOutput
+    final_output: str = ""
     steps : list[Step] = []
     logs: Optional[list] = []
     success: bool = False
