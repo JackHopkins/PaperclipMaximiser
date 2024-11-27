@@ -157,7 +157,7 @@ async def main():
 
 
 
-    mcts = PlanningMCTS(llm,
+    mcts = ChunkedMCTS(llm,
                 db_client,
                 evaluator,
                 system_prompt,
