@@ -30,9 +30,7 @@ def is_valid_python(code_string: str) -> bool:
     except SyntaxError:
         return False
 
-def eval_program_with_result_trace(instance, program, track_achievements = False):
-        if track_achievements:
-            starting_production_stats = instance.get_production_stats()
+def eval_program_with_result_trace(instance, program):
         # evaluate the step
         try:
             score, goal, result = instance.eval_with_error(program, timeout=300)
@@ -44,12 +42,7 @@ def eval_program_with_result_trace(instance, program, track_achievements = False
             error = True
         # split result by newlines
         output_list = result.splitlines()
-        if track_achievements:
-            ending_production_stats = instance.get_production_stats()
-            new_entities = get_new_crafted_entities(starting_production_stats, ending_production_stats)
-        else:
-            new_entities = None
-        return output_list, result, error, new_entities
+        return output_list, result, error
 
 def get_mining_setup(instance):
         mining_setup = instance.get_entities()

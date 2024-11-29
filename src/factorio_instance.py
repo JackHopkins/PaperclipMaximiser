@@ -142,7 +142,8 @@ class FactorioInstance:
         # Register the cleanup method to be called on exit
         atexit.register(self.cleanup)
         self.track_output_flows = track_output_flows
-        self.total_production_flows = None
+        self.total_production_flows = {"input": {}, "output": {}} # Stores the total production flows
+        self.dynamic_production_flows = {"input": {}, "output": {}}  # Stores the dynamic production flows
 
     def reset(self, game_state: Optional[GameState]=None):
         for attr in dir(self):
@@ -193,7 +194,7 @@ class FactorioInstance:
 
     def speed(self, speed):
         self.rcon_client.send_command(f'/c game.speed = {speed}')
-        self.game_state._speed = speed
+        self.game_state.speed = speed
 
     def log(self, *arg):
         """
@@ -207,6 +208,63 @@ class FactorioInstance:
 
         print(f"{self.address} log: {repr(arg)}")
         return arg
+    
+    def wait(self, *arg):
+        """
+        Shadows the sleep function to capture dynamic production flows when needed
+        """
+        print("Waiting for", arg)
+        if self.track_output_flows:
+            pre_sleep_production_flows = self.get_production_stats()
+        self.sleep(*arg)
+        if self.track_output_flows:
+            post_sleep_production_flows = self.get_production_stats()
+            # get the difference between the two
+            new_dynamic_production_flows = self.calculate_dynamic_production_flows(pre_sleep_production_flows, post_sleep_production_flows)
+            self.update_dynamic_production_flows(new_dynamic_production_flows)
+        return arg
+
+    def calculate_dynamic_production_flows(self, pre_sleep_production_flows, post_sleep_production_flows):
+        """
+        Calculate the dynamic production flows between two states
+        """
+        dynamic_production_flows = {"input": {}, "output": {}}
+        if not isinstance(pre_sleep_production_flows, dict) or not isinstance(post_sleep_production_flows, dict):
+            return dynamic_production_flows
+        if "input" in pre_sleep_production_flows and "input" in post_sleep_production_flows:
+            for key in post_sleep_production_flows["input"]:
+                if key not in pre_sleep_production_flows["input"]:
+                    dynamic_production_flows["input"][key] = post_sleep_production_flows["input"][key]
+                else:
+                    post_sleep_prod_value = post_sleep_production_flows["input"][key]
+                    pre_sleep_prod_value = pre_sleep_production_flows["input"][key]
+                    if post_sleep_prod_value > pre_sleep_prod_value:
+                        dynamic_production_flows["input"][key] = post_sleep_prod_value - pre_sleep_prod_value
+                    elif post_sleep_prod_value < pre_sleep_prod_value:
+                        # CAN THIS HAPPEN EVER?
+                        continue
+        if "output" in pre_sleep_production_flows and "output" in post_sleep_production_flows:
+            for key in post_sleep_production_flows["output"]:
+                if key not in pre_sleep_production_flows["output"]:
+                    dynamic_production_flows["output"][key] = post_sleep_production_flows["output"][key]
+                else:
+                    post_sleep_prod_value = post_sleep_production_flows["output"][key]
+                    pre_sleep_prod_value = pre_sleep_production_flows["output"][key]
+                    if post_sleep_prod_value > pre_sleep_prod_value:
+                        dynamic_production_flows["output"][key] = post_sleep_prod_value - pre_sleep_prod_value
+                    elif post_sleep_prod_value < pre_sleep_prod_value:
+                        # CAN THIS HAPPEN EVER?
+                        continue
+        return dynamic_production_flows
+
+
+    def update_dynamic_production_flows(self, new_production_flows):
+        for input_output_key, input_output_value in new_production_flows.items():
+            for key, value in input_output_value.items():
+                if key not in self.dynamic_production_flows[input_output_key]:
+                    self.dynamic_production_flows[input_output_key][key] = value
+                else:
+                    self.dynamic_production_flows[input_output_key][key] += value
 
     def get_system_prompt(self) -> str:
         """
@@ -321,13 +379,24 @@ class FactorioInstance:
                     error_lines.append((line_num, lines[line_num - 1].strip()))
         return error_lines
 
-    def _change_print_to_log(self, node):
+    def _override_nodes(self, node):
+        """
+        We override 2 nodes in total
+        change all prints to logs (for logging purposes)
+        change all sleeps to waits (to capture in-game dynamic production flows)
+        """
         if isinstance(node, ast.Expr):
             # check if its print, if it is, then we route to log
             if isinstance(node.value, ast.Call) and isinstance(node.value.func,
                                                                ast.Name) and node.value.func.id == 'print':
                 # change print to log
                 node.value.func.id = 'log'
+            
+            # check if its sleep, if it is, then we route to wait
+            if isinstance(node.value, ast.Call) and isinstance(node.value.func,
+                                                               ast.Name) and node.value.func.id == 'sleep':
+                # change print to log
+                node.value.func.id = 'wait'
 
         elif isinstance(node, ast.If) or isinstance(node, ast.For) or isinstance(node, ast.While):
             for subnode_idx, subnode in enumerate(node.body):
@@ -403,7 +472,7 @@ class FactorioInstance:
         for index, node in enumerate(tree.body):
             self.line_value = index
             try:
-                node = self._change_print_to_log(node)
+                node = self._override_nodes(node)
                 if isinstance(node, ast.FunctionDef):
                     # For function definitions, we need to compile and exec
                     compiled = compile(ast.Module([node], type_ignores=[]), 'file', 'exec')
@@ -484,29 +553,6 @@ class FactorioInstance:
         return score, goal, result_output
     
     
-    def _change_print_to_log(self, node):
-        if isinstance(node, ast.Expr):
-            # check if its print, if it is, then we route to log
-            if isinstance(node.value, ast.Call) and isinstance(node.value.func, ast.Name) and node.value.func.id == 'print':
-                # change print to log
-                node.value.func.id = 'log'
-
-    def _change_print_to_log(self, node):
-        if isinstance(node, ast.Expr):
-            # check if its print, if it is, then we route to log
-            if isinstance(node.value, ast.Call) and isinstance(node.value.func, ast.Name) and node.value.func.id == 'print':
-                # change print to log
-                node.value.func.id = 'log'
-
-        elif isinstance(node, ast.If) or isinstance(node, ast.For) or isinstance(node, ast.While):
-            for subnode_idx, subnode in enumerate(node.body):
-                node.body[subnode_idx] = self._change_print_to_log(subnode)
-            for subnode_idx, subnode in enumerate(node.orelse):
-                node.orelse[subnode_idx] = self._change_print_to_log(subnode)
-        elif isinstance(node, ast.FunctionDef):
-            for subnode_idx, subnode in enumerate(node.body):
-                node.body[subnode_idx] = self._change_print_to_log(subnode)
-        return node
     
     def eval_with_error(self, expr, timeout=60):
         """ Evaluate an expression with a timeout, and return the result without error handling"""
