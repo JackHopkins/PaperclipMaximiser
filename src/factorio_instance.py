@@ -203,7 +203,7 @@ class FactorioInstance:
 
         print(f"{self.address} log: {repr(arg)}")
         return arg
-    
+
     def get_system_prompt(self) -> str:
         """
         Get the system prompt for the Factorio environment.
@@ -318,17 +318,13 @@ class FactorioInstance:
         return error_lines
 
     def _change_print_to_log(self, node):
-        """
-        We override 2 nodes in total
-        change all prints to logs (for logging purposes)
-        """
         if isinstance(node, ast.Expr):
             # check if its print, if it is, then we route to log
             if isinstance(node.value, ast.Call) and isinstance(node.value.func,
                                                                ast.Name) and node.value.func.id == 'print':
                 # change print to log
                 node.value.func.id = 'log'
-            
+
         elif isinstance(node, ast.If) or isinstance(node, ast.For) or isinstance(node, ast.While):
             for subnode_idx, subnode in enumerate(node.body):
                 node.body[subnode_idx] = self._change_print_to_log(subnode)
