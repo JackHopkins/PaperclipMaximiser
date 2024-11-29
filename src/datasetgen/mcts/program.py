@@ -25,7 +25,9 @@ class Program(BaseModel):
     token_usage: Optional[int] = None
     response: Optional[str] = None
     version: int = 1
-    version_description: str = ""
+    version_description: Optional[str] = ""
+    model: str = "gpt-4o"
+    meta: dict = {}
 
     def __repr__(self):
         return self.code
@@ -59,5 +61,6 @@ class Program(BaseModel):
             token_usage=row['token_usage'],
             response=row['response'],
             version=row['version'],
-            version_description=row['version_description']
+            version_description=row['version_description'],
+            meta=row['meta'] if row['meta'] else {},
         )

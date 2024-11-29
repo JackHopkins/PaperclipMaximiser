@@ -2,7 +2,7 @@ import json
 from dataclasses import dataclass, field
 from enum import Enum
 from importlib.metadata import metadata
-from typing import List, Dict, Any, Union
+from typing import List, Dict, Any, Union, Optional
 
 from pydantic import BaseModel, Field
 
@@ -46,6 +46,16 @@ class Message(BaseModel):
     content: str
     metadata: Dict[str, Any] = Field(default_factory=dict)
 
+
+class GenerationParameters(BaseModel):
+    model: str
+    n: int = 1
+    temperature: float = 0.7
+    max_tokens: int = 2048
+    logit_bias: Optional[Dict[str, float]] = None
+    stop_sequences: Optional[List] = None
+    presency_penalty: Optional[float] = 0
+    
 
 class Conversation(BaseModel):
     """Tracks dialogue between LLM and Factorio"""
