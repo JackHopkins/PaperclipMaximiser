@@ -82,8 +82,7 @@ class FactorioInstance:
                  fast=False,
                  tcp_port=27015,
                  inventory={},
-                 cache_scripts=True,
-                 track_output_flows=False
+                 cache_scripts=True
                  ):
 
         self.persistent_vars = {}
@@ -141,10 +140,6 @@ class FactorioInstance:
 
         # Register the cleanup method to be called on exit
         atexit.register(self.cleanup)
-        self.track_output_flows = track_output_flows
-        self.total_production_flows = {"input": {}, "output": {}} # Stores the total production flows
-        self.dynamic_production_flows = {"input": {}, "output": {}}  # Stores the dynamic production flows
-
     def reset(self, game_state: Optional[GameState]=None):
         for attr in dir(self):
             if not callable(getattr(self, attr)) and attr[0] != "_" and attr not in self._static_members:
@@ -209,62 +204,6 @@ class FactorioInstance:
         print(f"{self.address} log: {repr(arg)}")
         return arg
     
-    def wait(self, *arg):
-        """
-        Shadows the sleep function to capture dynamic production flows when needed
-        """
-        print("Waiting for", arg)
-        if self.track_output_flows:
-            pre_sleep_production_flows = self.get_production_stats()
-        self.sleep(*arg)
-        if self.track_output_flows:
-            post_sleep_production_flows = self.get_production_stats()
-            # get the difference between the two
-            new_dynamic_production_flows = self.calculate_dynamic_production_flows(pre_sleep_production_flows, post_sleep_production_flows)
-            self.update_dynamic_production_flows(new_dynamic_production_flows)
-        return arg
-
-    def calculate_dynamic_production_flows(self, pre_sleep_production_flows, post_sleep_production_flows):
-        """
-        Calculate the dynamic production flows between two states
-        """
-        dynamic_production_flows = {"input": {}, "output": {}}
-        if not isinstance(pre_sleep_production_flows, dict) or not isinstance(post_sleep_production_flows, dict):
-            return dynamic_production_flows
-        if "input" in pre_sleep_production_flows and "input" in post_sleep_production_flows:
-            for key in post_sleep_production_flows["input"]:
-                if key not in pre_sleep_production_flows["input"]:
-                    dynamic_production_flows["input"][key] = post_sleep_production_flows["input"][key]
-                else:
-                    post_sleep_prod_value = post_sleep_production_flows["input"][key]
-                    pre_sleep_prod_value = pre_sleep_production_flows["input"][key]
-                    if post_sleep_prod_value > pre_sleep_prod_value:
-                        dynamic_production_flows["input"][key] = post_sleep_prod_value - pre_sleep_prod_value
-                    elif post_sleep_prod_value < pre_sleep_prod_value:
-                        # CAN THIS HAPPEN EVER?
-                        continue
-        if "output" in pre_sleep_production_flows and "output" in post_sleep_production_flows:
-            for key in post_sleep_production_flows["output"]:
-                if key not in pre_sleep_production_flows["output"]:
-                    dynamic_production_flows["output"][key] = post_sleep_production_flows["output"][key]
-                else:
-                    post_sleep_prod_value = post_sleep_production_flows["output"][key]
-                    pre_sleep_prod_value = pre_sleep_production_flows["output"][key]
-                    if post_sleep_prod_value > pre_sleep_prod_value:
-                        dynamic_production_flows["output"][key] = post_sleep_prod_value - pre_sleep_prod_value
-                    elif post_sleep_prod_value < pre_sleep_prod_value:
-                        # CAN THIS HAPPEN EVER?
-                        continue
-        return dynamic_production_flows
-
-
-    def update_dynamic_production_flows(self, new_production_flows):
-        for input_output_key, input_output_value in new_production_flows.items():
-            for key, value in input_output_value.items():
-                if key not in self.dynamic_production_flows[input_output_key]:
-                    self.dynamic_production_flows[input_output_key][key] = value
-                else:
-                    self.dynamic_production_flows[input_output_key][key] += value
 
     def get_system_prompt(self) -> str:
         """
@@ -383,7 +322,6 @@ class FactorioInstance:
         """
         We override 2 nodes in total
         change all prints to logs (for logging purposes)
-        change all sleeps to waits (to capture in-game dynamic production flows)
         """
         if isinstance(node, ast.Expr):
             # check if its print, if it is, then we route to log
@@ -392,11 +330,6 @@ class FactorioInstance:
                 # change print to log
                 node.value.func.id = 'log'
             
-            # check if its sleep, if it is, then we route to wait
-            if isinstance(node.value, ast.Call) and isinstance(node.value.func,
-                                                               ast.Name) and node.value.func.id == 'sleep':
-                # change print to log
-                node.value.func.id = 'wait'
 
         elif isinstance(node, ast.If) or isinstance(node, ast.For) or isinstance(node, ast.While):
             for subnode_idx, subnode in enumerate(node.body):
@@ -509,8 +442,6 @@ class FactorioInstance:
                     pass
 
                 result_output = parse_result_into_str(self.logging_results)
-                if self.track_output_flows:
-                    self.total_production_flows = self.get_production_stats()
                 raise Exception(result_output)
                         #break
 
@@ -548,8 +479,6 @@ class FactorioInstance:
 
         score, goal = self.score()
         result_output = parse_result_into_str(self.logging_results)
-        if self.track_output_flows:
-            self.total_production_flows = self.get_production_stats()
         return score, goal, result_output
     
     
@@ -601,6 +530,12 @@ class FactorioInstance:
         #self.rcon_client.send_command(f'/c game.players[1].print("[img=entity/character][color=orange]" {{"{comment}"}},": ",{args}}})')
         self.rcon_client.send_command(f"[img=entity/character] " + str(comment) + ", ".join(args))
 
+    def _reset_static_achievement_counters(self):
+        self.add_command('/c global.crafted_items = {}', raw=True)
+        self.add_command('/c global.harvested_items = {}', raw=True)
+        self.execute_transaction()
+        
+
     def _reset(self, **kwargs):
 
         self.begin_transaction()
@@ -623,6 +558,7 @@ class FactorioInstance:
         self.add_command("/c game.players[1].force.research_all_technologies()", raw=True)
         self.execute_transaction()
         #self.clear_entities()
+        self._reset_static_achievement_counters()
 
     def _execute_transaction(self) -> Dict[str, Any]:
         start = timer()

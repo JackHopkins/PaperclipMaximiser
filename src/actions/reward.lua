@@ -351,6 +351,8 @@ end
 global.actions.production_stats = function(player)
     local production_diff = {}
     local consumption_diff = {}
+    local harvested_items = {}
+    local crafted_items = {}
     -- Get total production counts for force
     local force = game.forces.player
 
@@ -376,6 +378,8 @@ global.actions.production_stats = function(player)
     end
     return {
         output = consumption_diff,
-        input = production_diff
+        input = production_diff,
+        harvested = harvested_items,
+        crafted = crafted_items
     }
 end

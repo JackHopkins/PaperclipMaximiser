@@ -15,8 +15,7 @@ from datasetgen.mcts.factorio_evaluator import FactorioEvaluator
 from datasetgen.mcts.game_state import GameState
 from datasetgen.mcts.program import Program
 from factorio_instance import FactorioInstance
-from skills.bottoms_up_sampler import eval_program_with_result_trace
-
+from utils import eval_program_with_achievements
 class AchievementEvaluator:
     def __init__(self,
                  instances: List[FactorioInstance],
@@ -201,15 +200,15 @@ if __name__ == "__main__":
                                 tcp_port=27015,
                                 fast=True,
                                 #cache_scripts=False,
-                                inventory={},
-                                track_output_flows=True)
+                                inventory={})
 
     test_string = "pos = nearest(Resource.Stone)\nmove_to(pos)\nharvest_resource(pos, 10)\ncraft_item(Prototype.StoneFurnace, 1)\npos = nearest(Resource.Coal)\nmove_to(pos)\nharvest_resource(pos, 10)\npos = nearest(Resource.IronOre)\nmove_to(pos)\nharvest_resource(pos, 10)\npos = Position(x = 0, y = 0)\nmove_to(pos)\nfurnace = place_entity(Prototype.StoneFurnace, position = pos)\ninsert_item(Prototype.IronOre, furnace, 5)\ninsert_item(Prototype.Coal, furnace, 5)\nsleep(5)\nextract_item(Prototype.IronPlate, furnace.position, 10)"
-    output_list, result, error = eval_program_with_result_trace(instance, test_string)
+    output_list, result, error, achievements = eval_program_with_achievements(instance, test_string)
+    print(achievements)
     test_string = "pos = nearest(Resource.Stone)\nmove_to(pos)\nharvest_resource(pos, 10)\ncraft_item(Prototype.StoneFurnace, 1)\npos = nearest(Resource.Coal)\nmove_to(pos)\nharvest_resource(pos, 10)\npos = nearest(Resource.CopperOre)\nmove_to(pos)\nharvest_resource(pos, 10)\npos = Position(x = 0, y = 0)\nmove_to(pos)\nfurnace = place_entity(Prototype.StoneFurnace, position = pos)\ninsert_item(Prototype.CopperOre, furnace, 5)\ninsert_item(Prototype.Coal, furnace, 5)\nsleep(5)"
-    output_list, result, error = eval_program_with_result_trace(instance, test_string)
+    output_list, result, error, achievements = eval_program_with_achievements(instance, test_string)
+    print(achievements)
     test_string = "pos = nearest(Resource.Stone)\nmove_to(pos)\nharvest_resource(pos, 10)\ncraft_item(Prototype.StoneFurnace, 1)\npos = nearest(Resource.Coal)\nmove_to(pos)\nharvest_resource(pos, 10)\npos = nearest(Resource.CopperOre)\nmove_to(pos)\nharvest_resource(pos, 10)\npos = Position(x = 0, y = 0)\nmove_to(pos)\nfurnace = place_entity(Prototype.StoneFurnace, position = pos)\ninsert_item(Prototype.CopperOre, furnace, 5)\ninsert_item(Prototype.Coal, furnace, 5)\nsleep(5)"
-    output_list, result, error = eval_program_with_result_trace(instance, test_string)
-    print(instance.total_production_flows)
-    print(instance.dynamic_production_flows)
+    output_list, result, error, achievements = eval_program_with_achievements(instance, test_string)
+    print(achievements)
     
