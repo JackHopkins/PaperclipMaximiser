@@ -189,7 +189,7 @@ class FactorioInstance:
 
     def speed(self, speed):
         self.rcon_client.send_command(f'/c game.speed = {speed}')
-        self.game_state.speed = speed
+        self.game_state._speed = speed
 
     def log(self, *arg):
         """
@@ -204,7 +204,6 @@ class FactorioInstance:
         print(f"{self.address} log: {repr(arg)}")
         return arg
     
-
     def get_system_prompt(self) -> str:
         """
         Get the system prompt for the Factorio environment.
@@ -318,7 +317,7 @@ class FactorioInstance:
                     error_lines.append((line_num, lines[line_num - 1].strip()))
         return error_lines
 
-    def _override_nodes(self, node):
+    def _change_print_to_log(self, node):
         """
         We override 2 nodes in total
         change all prints to logs (for logging purposes)
@@ -330,7 +329,6 @@ class FactorioInstance:
                 # change print to log
                 node.value.func.id = 'log'
             
-
         elif isinstance(node, ast.If) or isinstance(node, ast.For) or isinstance(node, ast.While):
             for subnode_idx, subnode in enumerate(node.body):
                 node.body[subnode_idx] = self._change_print_to_log(subnode)
@@ -405,7 +403,7 @@ class FactorioInstance:
         for index, node in enumerate(tree.body):
             self.line_value = index
             try:
-                node = self._override_nodes(node)
+                node = self._change_print_to_log(node)
                 if isinstance(node, ast.FunctionDef):
                     # For function definitions, we need to compile and exec
                     compiled = compile(ast.Module([node], type_ignores=[]), 'file', 'exec')
@@ -480,8 +478,6 @@ class FactorioInstance:
         score, goal = self.score()
         result_output = parse_result_into_str(self.logging_results)
         return score, goal, result_output
-    
-    
     
     def eval_with_error(self, expr, timeout=60):
         """ Evaluate an expression with a timeout, and return the result without error handling"""

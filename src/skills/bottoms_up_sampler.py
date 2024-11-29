@@ -17,11 +17,6 @@ import time
 from skills.skills_db import SkillsDB
 import copy
 
-def get_new_crafted_entities(starting_stats, ending_stats):
-    previous_crafts = starting_stats['output'].keys()
-    new_crafts = ending_stats['output'].keys()
-    new_crafts = [craft for craft in new_crafts if craft not in previous_crafts]
-    return new_crafts
 
 def is_valid_python(code_string: str) -> bool:
     try:
@@ -33,16 +28,12 @@ def is_valid_python(code_string: str) -> bool:
 def eval_program_with_result_trace(instance, program):
         # evaluate the step
         try:
-            score, goal, result = instance.eval_with_error(program, timeout=300)
-            error = False
+            score, goal, result = instance.eval_with_error(program, timeout=20)
         except Exception as e:
-            result = e
-            # get the error message
-            result = str(e)
-            error = True
+            result = f"error: {str(e)}"
         # split result by newlines
         output_list = result.splitlines()
-        return output_list, result, error
+        return output_list, result
 
 def get_mining_setup(instance):
         mining_setup = instance.get_entities()
