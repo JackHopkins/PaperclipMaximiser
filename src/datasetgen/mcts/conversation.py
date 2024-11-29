@@ -4,7 +4,7 @@ from enum import Enum
 from importlib.metadata import metadata
 from typing import List, Dict, Any, Union
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 from datasetgen.mcts.game_state import GameState
 from factorio_entities import Direction as DirectionA, Entity, EntityGroup
@@ -44,12 +44,12 @@ def entity_serializer(obj: Any) -> Dict:
 class Message(BaseModel):
     role: str
     content: str
-    metadata: Dict[str, Any] = field(default_factory=dict)
+    metadata: Dict[str, Any] = Field(default_factory=dict)
 
 
 class Conversation(BaseModel):
     """Tracks dialogue between LLM and Factorio"""
-    messages: List[Message] = field(default_factory=list)
+    messages: List[Message] = Field(default_factory=list)
 
     @classmethod
     def parse_raw(cls, data: Dict[str, Any]) -> 'Conversation':
