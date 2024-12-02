@@ -598,14 +598,20 @@ class ParallelPlanningMCTS:
         for idx, response in enumerate(responses):
             output = response[0]
             plan_id = output.meta["plan_id"]
+            # extra postprocessing step, change all <Step> and <STEP> to <step>
+            # same with <Output> and <OUTPUT>
+            # makes it more robust
+            tags_to_lowercase = ["<Step>", "<STEP>", "<Output>", "<OUTPUT>", "</Step>", "</STEP>", "</Output>", "</OUTPUT>"]
+            for tag in tags_to_lowercase:
+                output.response = output.response.replace(tag, tag.lower())
             step_output = output.response.strip()
             # first check if the step says it is a success
             # We need to create a new step object
             if plan_id not in step_output_objects:
                 step_output_objects[plan_id] = Step(candidate_language_outputs=[])
             step_output_objects[plan_id].candidate_language_outputs.append(output)
-            if "<output>" in step_output.lower() and "<step>" not in step_output.lower():
-                step_output = step_output.lower().split("<output>")[-1].strip()
+            if "<output>" in step_output and "<step>" not in step_output:
+                step_output = step_output.split("<output>")[-1].strip()
                 step_output = step_output.split("</output>")[0].strip()
                 # put the success flag in the plan_output as True
                 plan_outputs[plan_id].success = True
@@ -658,6 +664,12 @@ class ParallelPlanningMCTS:
             output = response[0]
             plan_id = output.meta["plan_id"]
             step_output = output.response.strip()
+            # extra postprocessing step, change all <Step> and <STEP> to <step>
+            # same with <Output> and <OUTPUT>
+            # makes it more robust
+            tags_to_lowercase = ["<Step>", "<STEP>", "<Output>", "<OUTPUT>", "</Step>", "</STEP>", "</Output>", "</OUTPUT>"]
+            for tag in tags_to_lowercase:
+                step_output = step_output.replace(tag, tag.lower())
             # add the output to the last step
             plan_outputs[plan_id].steps[-1].judge_language_output_step = output
             plan_outputs[plan_id].steps[-1].judge_step_str = step_output
@@ -671,7 +683,7 @@ class ParallelPlanningMCTS:
                 step = step_output.split("<output>")[-1].strip()
                 step = step.split("</output>")[0].strip()
             else:
-                # How shouldwe actually handle this?
+                # How should we actually handle this? When it was neither a <step> or a <output>?
                 step = None
             if step:
                 plan_outputs[plan_id].steps[-1].final_step = step
