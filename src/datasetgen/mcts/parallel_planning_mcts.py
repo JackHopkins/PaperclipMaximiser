@@ -604,8 +604,9 @@ class ParallelPlanningMCTS:
             if plan_id not in step_output_objects:
                 step_output_objects[plan_id] = Step(candidate_language_outputs=[])
             step_output_objects[plan_id].candidate_language_outputs.append(output)
-            if "#output" in step_output.lower() and "#step" not in step_output.lower():
-                step_output = step_output.lower().split("#output")[-2].strip()
+            if "<output>" in step_output.lower() and "<step>" not in step_output.lower():
+                step_output = step_output.lower().split("<output>")[-1].strip()
+                step_output = step_output.split("</output>")[0].strip()
                 # put the success flag in the plan_output as True
                 plan_outputs[plan_id].success = True
                 plan_outputs[plan_id].final_output = step_output
@@ -661,12 +662,16 @@ class ParallelPlanningMCTS:
             plan_outputs[plan_id].steps[-1].judge_language_output_step = output
             plan_outputs[plan_id].steps[-1].judge_step_str = step_output
 
-            # split it by #step
-            if "#STEP" in step_output:
-                step = step_output.split("#STEP")[-2].strip()
-            elif "OUTPUT" in step_output:
-                step = step_output.split("OUTPUT")[-1].strip()
+            # split it by <step>
+            # Should we make it lowercase?
+            if "<step>" in step_output:
+                step = step_output.split("<step>")[-1].strip()
+                step = step.split("</step>")[0].strip()
+            elif "<output>" in step_output:
+                step = step_output.split("<output>")[-1].strip()
+                step = step.split("</output>")[0].strip()
             else:
+                # How shouldwe actually handle this?
                 step = None
             if step:
                 plan_outputs[plan_id].steps[-1].final_step = step
