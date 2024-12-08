@@ -612,12 +612,15 @@ class ParallelPlanningMCTS:
             tags_to_lowercase = ["<Step>", "<STEP>", "<Output>", "<OUTPUT>", "</Step>", "</STEP>", "</Output>", "</OUTPUT>"]
             for tag in tags_to_lowercase:
                 output.response = output.response.replace(tag, tag.lower())
+            if not ("<output>" in output.response and "</output>" in output.response) and not (
+                    "<step>" in output.response and "</step>" in output.response):
+                continue
             step_output = output.response.strip()
             # first check if the step says it is a success
             # We need to create a new step object
             if plan_id not in step_output_objects:
                 step_output_objects[plan_id] = Step(candidate_language_outputs=[])
-            step_output_objects[plan_id].candidate_language_outputs.append(output)
+            
             if "<output>" in step_output and "<step>" not in step_output:
                 step_output = step_output.split("<output>")[-1].strip()
                 step_output = step_output.split("</output>")[0].strip()
@@ -625,6 +628,12 @@ class ParallelPlanningMCTS:
                 plan_outputs[plan_id].success = True
                 plan_outputs[plan_id].final_output = step_output
                 step_output_objects[plan_id].final_step = step_output
+            else:
+                parsed_step = step_output.split("<step>")[-1].strip()
+                parsed_step = parsed_step.split("</step>")[0].strip()
+                output.meta["parsed_step"] = parsed_step
+
+            step_output_objects[plan_id].candidate_language_outputs.append(output)
 
         for plan_id, step_output in step_output_objects.items():
             plan_outputs[plan_id].steps.append(step_output)
@@ -650,9 +659,11 @@ class ParallelPlanningMCTS:
             objective = plan_output.task.task
             initial_plan = plan_output.initial_plan.initial_plan
             step_to_process = plan_output.steps[-1].candidate_language_outputs
+            if len(step_to_process) == 0:
+                continue
             step_candidate_str = ""
             for step_idx, step_candidate in enumerate(step_to_process):
-                step_candidate_str += f"Step {step_idx}\n{step_candidate.response}\n\n"
+                step_candidate_str += f"CANDIDATE STEP {step_idx}\n{step_candidate.response}\n\n"
             user_message = self.step_judge_user_prompt.format(objective=objective,
                                                               starting_inventory=starting_inventory,
                                                               mining_setup=mining_setup, logs=log_str,
@@ -672,26 +683,27 @@ class ParallelPlanningMCTS:
             output = response[0]
             plan_id = output.meta["plan_id"]
             step_output = output.response.strip()
-            # extra postprocessing step, change all <Step> and <STEP> to <step>
-            # same with <Output> and <OUTPUT>
+            # extra postprocessing step, change all <CHOICE> and <Choice> to <choice>
             # makes it more robust
-            tags_to_lowercase = ["<Step>", "<STEP>", "<Output>", "<OUTPUT>", "</Step>", "</STEP>", "</Output>", "</OUTPUT>"]
+            tags_to_lowercase = ["<Choice>", "<CHOICE>", "</Choice>", "</CHOICE>"]
             for tag in tags_to_lowercase:
                 step_output = step_output.replace(tag, tag.lower())
             # add the output to the last step
             plan_outputs[plan_id].steps[-1].judge_language_output_step = output
             plan_outputs[plan_id].steps[-1].judge_step_str = step_output
 
-            # split it by <step>
+            # split it by <choice>
             # Should we make it lowercase?
             if "<step>" in step_output:
-                step = step_output.split("<step>")[-1].strip()
-                step = step.split("</step>")[0].strip()
-            elif "<output>" in step_output:
-                step = step_output.split("<output>")[-1].strip()
-                step = step.split("</output>")[0].strip()
+                step_idx = step_output.split("<choice>")[-1].strip()
+                step_idx = step_idx.split("</choice>")[0].strip()
+                try:
+                    step = step_to_process[int(step_idx)]
+                    step = step.meta["parsed_step"]
+                except:
+                    step = None
             else:
-                # How should we actually handle this? When it was neither a <step> or a <output>?
+                # How should we actually handle this? When it wasn't a choice
                 step = None
             if step:
                 plan_outputs[plan_id].steps[-1].final_step = step

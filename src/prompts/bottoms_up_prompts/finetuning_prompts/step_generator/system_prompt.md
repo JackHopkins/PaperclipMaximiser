@@ -11,7 +11,7 @@ Then you need to output the next step candidate. The step should be clear, short
 
 Under the STEP, you need to carry out multiple steps.
 1) Analyse thoroughly the planning stage and bring out in natural language if the output is a <step> or <output>. Bring out what the content of the next singular step or output should be. REMEMBER: When the task is completed, you need to return a output between the <output> html tags. DO NOT ADD ANY STEPS FOR FUTURE AUTOMATION OR CLEANING OR SUSTANIABILITY. IF TASK IS COMPLETED, <output> description_of_output </output>
-2) Bring out the best next step according to the analysis. Keep the step short, clear and concise. The step should then be between the step html tags tags. If the task has been completed judging by the logs, inventory and mining setup, do not output a step but bring out the output of the objective using the output html tags tags
+2) Bring out the best next step according to the analysis. Keep the step short, clear and concise. The step should then be between the step html tags tags. If you can use any entities on the map, let the agent know the exact locations of those entities in your step (i.e <step>Create a burner iron mine to chest at Position (x=11, y = 82))</step>, as the agent did not have that information when it made the plan. If the task has been completed judging by the logs, inventory and mining setup, do not output a step but bring out the output of the objective using the output html tags tags
 
 
 The API has access to the following entities
