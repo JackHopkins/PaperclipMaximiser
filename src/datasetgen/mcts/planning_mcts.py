@@ -123,7 +123,7 @@ class PlanningMCTS(MCTS):
             step.start_state = GameState.from_instance(instance)
             self.evaluator.logger.update_instance(instance_id, status="executing")
 
-            reward, state, response, entities = await self.evaluator._evaluate_single(
+            reward, state, response, entities, achievements = await self.evaluator._evaluate_single(
                 instance_id,
                 step.program,
                 instance
@@ -138,6 +138,7 @@ class PlanningMCTS(MCTS):
 
         holdout_value = await holdout_future
         step.program.value=step.reward - holdout_value
+        step.program.achievements = achievements
         step.program.raw_reward=step.reward
         step.program.holdout_value=holdout_value
         step.program.state = step.end_state
@@ -351,7 +352,7 @@ class PlanningMCTS(MCTS):
     
     async def search(self, n_iterations: int, samples_per_iteration: int, skip_failures: bool = False):
         for iteration in range(n_iterations):
-            parent = await self.db.sample_parent(version=self.version)
+            parent = await self.sampler.sample_parent(version=self.version)
 
             tasks, start_state= await self._get_tasks(parent, samples_per_iteration)
             plans = await self.generate_plans(tasks)
