@@ -14,6 +14,7 @@ from datasetgen.mcts.db_client import DBClient
 from datasetgen.mcts.factorio_evaluator import FactorioEvaluator
 from datasetgen.mcts.grouped_logger import GroupedFactorioLogger
 from datasetgen.mcts.instance_group import InstanceGroup
+from datasetgen.mcts.parallel_mcts_config import ParallelMCTSConfig
 from datasetgen.mcts.planning_mcts import get_mining_setup
 from datasetgen.mcts.planning_models import PlanOutput, TaskOutput, Step, LanguageOutput, InitialPlanOutput
 from datasetgen.mcts.game_state import GameState
@@ -38,7 +39,7 @@ class ParallelPlanningMCTS:
                  instances: List[FactorioInstance],
                  db_client: DBClient,
                  llm_factory: Any,
-                 config: Any,
+                 config: ParallelMCTSConfig,
                  version=26,
                  version_description="",
                  formatter: ConversationFormatter = StructurePreservingFormatter(),
@@ -54,6 +55,7 @@ class ParallelPlanningMCTS:
         """
         self.console = Console()
         self.config = config
+        self.sampler = config.sampler
         self.db_client = db_client
         self.llm = llm_factory
         self.version = version
@@ -135,6 +137,7 @@ class ParallelPlanningMCTS:
             mcts = self.config.mcts_class(
                 llm_factory=self.llm,
                 db_client=self.db_client,
+                sampler=self.sampler,
                 evaluator=evaluator,
                 **self.config.mcts_kwargs
             )
@@ -198,14 +201,14 @@ class ParallelPlanningMCTS:
         try:
             for iteration in range(n_iterations):
 
-                parent = await self.db_client.sample_parent(version=self.version)
+                parent = await self.sampler.sample_parent(version=self.version)
 
                 group.evaluator.set_status(f"Generating tasks")
                 tasks, start_state = await self._get_tasks(group, parent)
 
                 group.evaluator.set_status(f"Generating plans")
                 group.plans = await self.generate_plans(tasks)
-
+                saved_step_ids = []
                 for step_idx in range(self.max_steps_per_objective):
                     if step_idx == 0:
                         # reset the instances
@@ -216,9 +219,13 @@ class ParallelPlanningMCTS:
 
                     for plan in plans:
                         try:
-                            await self.save_step(plan, plan.steps[-1])
+                            # Save the step
+                            step_to_save = plan.steps[-1]
+                            if step_to_save.program.id not in saved_step_ids:
+                                await self.save_step(plan, step_to_save)
+                                saved_step_ids.append(step_to_save.program.id)
                         except Exception as e:
-                            print("Count not save step - possibly missing (in case of skipping errors)")
+                            print("Could not save step - possibly missing (in case of skipping errors)")
 
                     group.evaluator.logger.update_progress()
 
@@ -228,7 +235,7 @@ class ParallelPlanningMCTS:
         finally:
             self.cleanup()
 
-    async def _process_group_step(self, group: PlanningGroup, step_idx: int, skip_failures: bool, start_state: GameState, parent: Program):
+    async def _process_group_step(self, group: PlanningGroup, step_idx: int, skip_failures: bool, start_state: GameState, parent: Program) -> List[PlanOutput]:
         """Process a single step for a group"""
         try:
             # Generate candidates
@@ -245,8 +252,12 @@ class ParallelPlanningMCTS:
 
             # Evaluate programs in parallel across instances
             eval_futures = []
+            completed_plans = []
             for instance_id, (instance, plan) in enumerate(zip(group.active_instances, group.plans.values())):
                 if plan.success:
+                    if plan.steps[-1].program is None:
+                        plan.steps[-1].program = self._create_output_completed_program(plan, parent.id if parent else None)
+                    completed_plans.append(plan)
                     continue
 
                 latest_program = plan.steps[-1].program
@@ -261,7 +272,7 @@ class ParallelPlanningMCTS:
                     skip_failures=skip_failures
                 ))
 
-            return await asyncio.gather(*eval_futures)
+            return await asyncio.gather(*eval_futures) + completed_plans
 
         except Exception as e:
             print(f"Error in group {group.group_id}, step {step_idx}: {str(e)}")
@@ -307,7 +318,7 @@ class ParallelPlanningMCTS:
             step.start_state = GameState.from_instance(instance)
             group.evaluator.logger.update_instance(instance_id, status="executing")
 
-            reward, state, response, entities = await group.evaluator._evaluate_single(
+            reward, state, response, entities, achievements = await group.evaluator._evaluate_single(
                 instance_id,
                 step.program,
                 instance
@@ -327,10 +338,26 @@ class ParallelPlanningMCTS:
         step.program.state = step.end_state
         step.program.response = response
         step.program.parent_id = parent_id
+        step.program.achievements = achievements
 
         return step, holdout_value, entity_list
 
     async def save_step(self, plan: PlanOutput, step: Step):
+        candidate_step_meta = []
+        # first we check if judge has been done on this step
+        # If not, then its the final output step
+        if step.judge_step_str == "":
+            for candidate_step in step.candidate_language_outputs:
+                try:
+                    messages = candidate_step.conversation.model_dump()['messages']
+                except:
+                    messages = candidate_step.conversation.dict()['messages']
+                output = candidate_step.response
+                candidate_step_meta.append({"output": output, "messages": messages,
+                                            })
+            step.program.meta["candidate_steps"] = candidate_step_meta
+            await self.db_client.create_program(step.program)
+            return
         # we need to save all the programs but we need to add some meta fields
         objective = plan.task.task
         initial_plan = plan.initial_plan.initial_plan
@@ -341,7 +368,6 @@ class ParallelPlanningMCTS:
             if next_step.final_step == step.final_step:
                 parent_id = current_step.program.id
 
-        candidate_step_meta = []
         for candidate_step in step.candidate_language_outputs:
             try:
                 messages = candidate_step.conversation.model_dump()['messages']
@@ -353,7 +379,10 @@ class ParallelPlanningMCTS:
                                         })
             mining_setup = candidate_step.meta["mining_setup"]
             starting_inventory = candidate_step.meta["starting_inventory"]
-        judge_messages = step.judge_language_output_step.conversation.model_dump()['messages']
+        try:
+            judge_messages = step.judge_language_output_step.conversation.model_dump()['messages']
+        except:
+            judge_messages = step.judge_language_output_step.conversation.dict()['messages']
         judge_output = step.judge_step_str
         executor_step = step.final_step
         meta = {"objective": objective, 
@@ -383,7 +412,7 @@ class ParallelPlanningMCTS:
                                  group: PlanningGroup,
                                  instance_id: int,
                                  parent_id: Optional[int],
-                                 skip_failures: bool):
+                                 skip_failures: bool) -> PlanOutput:
         try:
             step_to_process = plan.steps[-1]
             step_to_process, holdout, entity_list = await self._evaluate_step(step_to_process, start_state, group, instance_id,
@@ -403,6 +432,22 @@ class ParallelPlanningMCTS:
             # pop the last step from plan
             plan.steps.pop()
             return plan
+        
+    def _create_output_completed_program(self, plan: PlanOutput,
+                                 parent_id: Optional[int]) -> PlanOutput:
+        objective = f"'{plan.task.task}'"
+        python_code = f"print('Objective {objective} has been completed. Now lets prepare the next objective.')"
+        program_parent_id = plan.steps[-2].program.id if len(plan.steps) > 1 else parent_id
+        program = Program(
+                        id=hash((python_code, plan.task.task, program_parent_id)),
+                        code=python_code,
+                        conversation=[],
+                        parent_id=program_parent_id,
+                        version=self.version,
+                        version_description=self.version_description,
+                        meta={"objective": plan.task.task}
+                    )
+        return program
 
     @retry(wait=wait_exponential(multiplier=1, min=4, max=10))
     async def _generate_natural_language_batch(self, conversation: Conversation,
@@ -501,7 +546,7 @@ class ParallelPlanningMCTS:
         conversation = Conversation(messages=[
             Message(role="system", content=self.config.system_prompt),
             Message(role="user",
-                    content=f"Your starting inventory is {starting_inventory}. {mining_setup}. Create an incrementally useful task that you can carry out in the current game, in order to grow your factory's throughput.")
+                    content=f"Your starting inventory is {starting_inventory}. {mining_setup}. Create an incrementally useful task that you can carry out in the current game, in order to grow your factory's _automatic_ throughput.")
         ])
 
         generation_params = GenerationParameters(
@@ -538,7 +583,10 @@ class ParallelPlanningMCTS:
     async def generate_plans(self, task_outputs: List[TaskOutput]) -> List[InitialPlanOutput]:
         generation_params = GenerationParameters(
             model=self.executor_model,
-            stop_sequences=["```"]
+            stop_sequences=["```"],
+            logits={
+                '7032': -100
+            }
         )
         conversations_to_process = [
             Conversation(messages=[Message(role="system", content=self.example_plan_system_prompt),
@@ -645,7 +693,7 @@ class ParallelPlanningMCTS:
         plan_outputs = group.plans
         generation_params = GenerationParameters(
             model=self.planning_model,
-            max_tokens=4096
+            max_tokens=4096,
         )
         conversations_to_process = []
         for instance_id, plan_output in plan_outputs.items():
@@ -718,7 +766,8 @@ class ParallelPlanningMCTS:
         generation_params = GenerationParameters(
             model=self.config.mcts_kwargs['executor_model'],
             temperature=0.5,
-            max_tokens=4096
+            max_tokens=4096,
+            logits={'7032': -100} # 'while' should never be sampled to prevent infinite loops
         )
         conversations_to_process = []
 
