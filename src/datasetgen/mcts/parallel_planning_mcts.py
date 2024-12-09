@@ -395,7 +395,8 @@ class ParallelPlanningMCTS:
                                   "model": step.program.meta["model"]},
                 "mining_setup": mining_setup, 
                 "starting_inventory": starting_inventory,
-                "final_output": plan.final_output}
+                "final_output": plan.final_output,
+                "type": "step"}
 
         program = step.program
         program.meta = meta
@@ -441,11 +442,12 @@ class ParallelPlanningMCTS:
         program = Program(
                         id=hash((python_code, plan.task.task, program_parent_id)),
                         code=python_code,
-                        conversation=[],
+                        conversation=Conversation(messages = []),
                         parent_id=program_parent_id,
                         version=self.version,
                         version_description=self.version_description,
-                        meta={"objective": plan.task.task}
+                        meta={"objective": plan.task.task,
+                              "type": "completed_objective"}
                     )
         return program
 
