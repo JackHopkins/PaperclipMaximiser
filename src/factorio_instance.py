@@ -189,7 +189,7 @@ class FactorioInstance:
 
     def speed(self, speed):
         self.rcon_client.send_command(f'/c game.speed = {speed}')
-        self.game_state._speed = speed
+        self.game_state.speed = speed
 
     def log(self, *arg):
         """
