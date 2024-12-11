@@ -226,7 +226,7 @@ class ChunkedMCTS(MCTS):
                         token_usage=program.token_usage // len(evaluated_chunks),
                         completion_token_usage=program.completion_token_usage // len(evaluated_chunks),
                         prompt_token_usage=program.prompt_token_usage // len(evaluated_chunks),
-                        meta = chunk.meta
+                        meta = chunk.meta,
                         achievements=achievements
                     )
 
