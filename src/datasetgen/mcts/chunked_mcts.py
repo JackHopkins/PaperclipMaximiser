@@ -10,7 +10,7 @@ from datasetgen.mcts.game_state import GameState
 from datasetgen.mcts.mcts import MCTS
 from datasetgen.mcts.program import Program
 from factorio_entities import Entity, EntityGroup
-
+import copy
 
 class ChunkedMCTS(MCTS):
 
@@ -98,7 +98,8 @@ class ChunkedMCTS(MCTS):
             initial_holdout_value, _ = self.evaluator.holdout.score()
 
             # Evaluate each chunk while tracking holdout
-            for chunk in chunks:
+            for chunk_idx, chunk in enumerate(chunks):
+                chunk.meta["chunk_idx"] = chunk_idx
                 # Reset active instance to current state
                 instance = self.evaluator.instances[instance_id]
                 instance.reset(current_state)
@@ -198,13 +199,13 @@ class ChunkedMCTS(MCTS):
             )
 
             last_chunk_id = parent_id
-            last_conversation_stage = program.conversation
+            last_conversation_stage = copy.deepcopy(program.conversation)
 
             for chunk, holdout_value, entities in zip(evaluated_chunks, holdout_values, entity_list):
                 try:
                     chunk_program = Program(
                         code=chunk.code,
-                        conversation=program.conversation,
+                        conversation=last_conversation_stage,
                         value=chunk.value - holdout_value,  # Use per-chunk holdout value
                         raw_reward=chunk.value,
                         holdout_value=holdout_value,

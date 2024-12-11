@@ -1,4 +1,8 @@
 import json
+import sys
+sys.path.append(r"C:\Users\martb\Documents\paperpclip_max\PaperclipMaximiser\src")
+sys.path.append(r"C:\Users\martb\Documents\paperpclip_max\PaperclipMaximiser")
+
 import os
 import random
 import asyncio
@@ -201,7 +205,7 @@ async def main():
         #'model': "ft:gpt-4o-2024-08-06:paperplane-ai:fact-self-gen-planning:AQzcPI91",
         "model": MODEL,
         'prompt_path': "../../prompts/bottoms_up_prompts/finetuning_prompts/system_message_policy_refined.md",
-        'version': 25,
+        'version': 105,
         'version_desc': "Namespace reinit / Seeded / Multi-MCTS / No planning prompt in user messages / Step-wise evaluation / Refined system prompt",
         'max_conv_len': 20,
         'logit_bias': { # We add these logit biases to prevent sampling the truncated code of previous messages.
@@ -238,7 +242,7 @@ async def main():
     # Initialize MCTS
     print("Initializing MCTS...")
     mcts_config = ParallelMCTSConfig(
-        n_parallel=4,
+        n_parallel=1,
         system_prompt=system_prompt,
         initial_state=initial_state,
         mcts_class=ChunkedMCTS,
@@ -283,7 +287,7 @@ async def main():
 
     # Run search
     print("Starting MCTS search...")
-    await parallel_mcts.search(n_iterations=3000, skip_failures=False)
+    await parallel_mcts.search(n_iterations = 33, skip_failures=False)
 
 if __name__ == '__main__':
     asyncio.run(main())
