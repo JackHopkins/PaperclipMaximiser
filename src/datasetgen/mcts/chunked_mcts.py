@@ -91,12 +91,14 @@ class ChunkedMCTS(MCTS):
         current_state = start_state
         holdout_values = []
         entity_list = []
+        achievement_list = []
 
         try:
             # Initialize holdout instance
             self.evaluator.holdout.reset(start_state)
             initial_holdout_value, _ = self.evaluator.holdout.score()
 
+            executed_chunks = []
             # Evaluate each chunk while tracking holdout
             for chunk_idx, chunk in enumerate(chunks):
                 chunk.meta["chunk_idx"] = chunk_idx
@@ -112,17 +114,24 @@ class ChunkedMCTS(MCTS):
                     )
 
                 # Evaluate chunk
-                reward, state, response, entities = await self.evaluator._evaluate_single(
+                reward, state, response, entities, achievements = await self.evaluator._evaluate_single(
                     instance_id,
                     chunk,
                     instance
                 )
+
+                # If there was an error in the chunk, do not continue evaluating. We need to reflect on the issue
+                # and determine how to proceed.
+                if 'error' in response.lower():
+                    break
 
                 # Get holdout value after this chunk
                 holdout_score, _ = self.evaluator.holdout.score()
                 holdout_value = holdout_score - initial_holdout_value
 
                 # Store results
+                executed_chunks.append(chunk)
+                achievement_list.append(achievements)
                 entity_list.append(entities)
                 holdout_values.append(holdout_value)
 
@@ -141,7 +150,7 @@ class ChunkedMCTS(MCTS):
                         current_reward=holdout_value
                     )
 
-            return chunks, holdout_values, entity_list
+            return executed_chunks, holdout_values, entity_list, achievement_list
 
         except Exception as e:
             print(f"Error during chunk evaluation:")
@@ -158,7 +167,7 @@ class ChunkedMCTS(MCTS):
             self.evaluator.logger.update_progress()
 
     async def run_iteration(self, samples_per_iteration, skip_failures):
-        parent = await self.db.sample_parent(version=self.version)
+        parent = await self.sampler.sample_parent(version=self.version)
         start_state = parent.state if parent else self.initial_state
         conversation = parent.conversation if parent else Conversation(messages=[
             Message(role="system", content=self.system_prompt),
@@ -194,14 +203,14 @@ class ChunkedMCTS(MCTS):
                                       parent_id: Optional[int], skip_failures: bool):
         """Process and evaluate a program's chunks with updated holdout calculation"""
         try:
-            evaluated_chunks, holdout_values, entity_list = await self._evaluate_chunks(
+            evaluated_chunks, holdout_values, entity_list, achievement_list = await self._evaluate_chunks(
                 chunks, start_state, instance_id
             )
 
             last_chunk_id = parent_id
             last_conversation_stage = copy.deepcopy(program.conversation)
 
-            for chunk, holdout_value, entities in zip(evaluated_chunks, holdout_values, entity_list):
+            for chunk, holdout_value, entities, achievements in zip(evaluated_chunks, holdout_values, entity_list, achievement_list):
                 try:
                     chunk_program = Program(
                         code=chunk.code,
@@ -218,6 +227,7 @@ class ChunkedMCTS(MCTS):
                         completion_token_usage=program.completion_token_usage // len(evaluated_chunks),
                         prompt_token_usage=program.prompt_token_usage // len(evaluated_chunks),
                         meta = chunk.meta
+                        achievements=achievements
                     )
 
                     last_conversation_stage.add_result(

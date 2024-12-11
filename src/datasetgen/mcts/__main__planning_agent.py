@@ -1,15 +1,13 @@
 import json
 import os
-import statistics
 
 from datasetgen.auto_curriculum.plan_sampler import PlanSampler
-from datasetgen.mcts.chunked_mcts import ChunkedMCTS
-from datasetgen.mcts.grouped_logger import GroupedFactorioLogger
+from datasetgen.mcts.conversation import Conversation, Message
 from datasetgen.mcts.parallel_mcts_config import ParallelMCTSConfig
 from datasetgen.mcts.parallel_planning_mcts import ParallelPlanningMCTS
 from datasetgen.mcts.planning_mcts import PlanningMCTS
-from datasetgen.mcts.conversation import Conversation, Message
 from datasetgen.mcts.program import Program
+from datasetgen.mcts.samplers.kld_achievement_sampler import KLDiversityAchievementSampler
 
 os.environ["FORCE_COLOR"] = "1"
 os.environ["TERM"] = "xterm-256color"
@@ -20,13 +18,10 @@ from typing import Tuple, List
 
 from dotenv import load_dotenv
 from rich import print
-from rich.console import Console
 from cluster.local.cluster_ips import get_local_container_ips
-from datasetgen.mcts.conversation_formatter import StructurePreservingFormatter, PLANNING_ADDITION_PROMPT
+from datasetgen.mcts.conversation_formatter import PLANNING_ADDITION_PROMPT
 from datasetgen.mcts.db_client import DBClient
-from datasetgen.mcts.factorio_evaluator import FactorioEvaluator
 from datasetgen.mcts.game_state import GameState
-from datasetgen.mcts.mcts import MCTS
 from factorio_instance import FactorioInstance
 from llm_factory import LLMFactory
 
@@ -128,7 +123,7 @@ async def get_seed_programs(
     return seeded_programs
 
 async def main():
-    step_executor_model_path = "ft:gpt-4o-2024-08-06:paperplane-ai:fact-instruct-1:ATSVGf4d:ckpt-step-214"
+    step_executor_model_path = "ft:gpt-4o-2024-08-06:paperplane-ai:fact-instruct-1:ATSVGf4d"#:ckpt-step-214"
     planner_model = "claude-3-5-sonnet-20241022"
     objective_model = "ft:gpt-4o-2024-08-06:paperplane-ai:fact-self-gen-planning:AQzcPI91"
     step_executor_prompt_path = r"../../prompts/bottoms_up_prompts/finetuning_prompts/step_supervised"
@@ -139,10 +134,9 @@ async def main():
     objective_model_prompt_path = r"../../prompts/bottoms_up_prompts/finetuning_prompts/system_message_policy_self_gen.md"
     nr_of_seeded_programs = 4
     version = 101
-    version = 30
+    version = 40
     parent_version = 4
-    version_description = "Scratch / Planning MCTS / Errors not saved"
-
+    version_description = "KLD Diversity Sampling / Scratch / Planning MCTS / Errors not saved"
 
 
     # Initialize components
@@ -166,10 +160,13 @@ async def main():
         system_prompt = f.read().format(schema=instances[0].get_system_prompt())
 
     print("Initializing MCTS...")
+    # Sampler
+    sampler = KLDiversityAchievementSampler(db_client)
 
     config = ParallelMCTSConfig(
-        n_parallel=4,
+        n_parallel=8,
         mcts_class=PlanningMCTS,
+        sampler=sampler,
         system_prompt=system_prompt,
         initial_state=initial_state,
         max_steps_per_objective=8,
@@ -194,7 +191,7 @@ async def main():
                 version=version,
                 version_description=version_description)
 
-    sampler = PlanSampler(objective_model, objective_model_prompt_path, starting_scenario_folder)
+    #sampler = PlanSampler(objective_model, objective_model_prompt_path, starting_scenario_folder)
 
     #print("Sampling seed scenarios...")
     #seeded_programs = await get_seed_programs(mcts, sampler, n_seeds=nr_of_seeded_programs)
@@ -203,18 +200,9 @@ async def main():
 
     print("Starting MCTS search...")
     best_programs = await mcts.search(
-        n_iterations=100,
-        skip_failures=True,
+        n_iterations=1000,
+        skip_failures=False,
     )
-
-    print("\nBest programs found:")
-    for i, prog in enumerate(best_programs, 1):
-        print(f"\nProgram {i} (reward: {prog.value:.2f}):")
-        print(f"```python\n{prog.code}\n```")
-        print("\nConversation history:")
-        for msg in prog.conversation.messages:
-            print(f"\n{msg['role'].upper()}:")
-            print(msg['content'])
             
 
 if __name__ == '__main__':
