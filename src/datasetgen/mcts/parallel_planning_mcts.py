@@ -222,7 +222,8 @@ class ParallelPlanningMCTS:
                             # Save the step
                             step_to_save = plan.steps[-1]
                             if step_to_save.program.id not in saved_step_ids:
-                                await self.save_step(plan, step_to_save)
+                                await self.save_step(plan, step_to_save,
+                                                    starting_state_program_id=parent.id if parent else None)
                                 saved_step_ids.append(step_to_save.program.id)
                         except Exception as e:
                             print("Could not save step - possibly missing (in case of skipping errors)")
@@ -326,7 +327,8 @@ class ParallelPlanningMCTS:
             entity_list.append(entities)
             step.end_state = state
             step.reward = reward
-
+            post_production_flows = instance.get_production_stats()
+            step.program.meta["post_production_flows"] = post_production_flows
         except Exception as e:
             print(f"Error during evaluation in group {group.group_id}, instance {instance_id}: {e}")
             raise e
@@ -342,7 +344,7 @@ class ParallelPlanningMCTS:
 
         return step, holdout_value, entity_list
 
-    async def save_step(self, plan: PlanOutput, step: Step):
+    async def save_step(self, plan: PlanOutput, step: Step, starting_state_program_id):
         candidate_step_meta = []
         # first we check if judge has been done on this step
         # If not, then its the final output step
@@ -361,7 +363,7 @@ class ParallelPlanningMCTS:
         # we need to save all the programs but we need to add some meta fields
         objective = plan.task.task
         initial_plan = plan.initial_plan.initial_plan
-        parent_id = None
+        parent_id = starting_state_program_id
 
         # find the step before `step` in the plan to get the `parent_id`
         for current_step, next_step in zip(plan.steps[:-1], plan.steps[1:]):
@@ -385,6 +387,7 @@ class ParallelPlanningMCTS:
             judge_messages = step.judge_language_output_step.conversation.dict()['messages']
         judge_output = step.judge_step_str
         executor_step = step.final_step
+        post_production_flows = step.program.meta["post_production_flows"]
         meta = {"objective": objective, 
                 "initial_plan": initial_plan, 
                 "candidate_steps": candidate_step_meta,
@@ -396,17 +399,15 @@ class ParallelPlanningMCTS:
                 "mining_setup": mining_setup, 
                 "starting_inventory": starting_inventory,
                 "final_output": plan.final_output,
-                "type": "step"}
+                "type": "step",
+                "full_production_flows": post_production_flows,
+                "step_idx": len(plan.steps)}
 
         program = step.program
         program.meta = meta
         program.parent_id = parent_id
         await self.db_client.create_program(program)
         parent_id = program.id
-
-    async def save_plan(self, plan: PlanOutput):
-        for step in plan.steps:
-            await self.save_step(plan, step)
 
     async def _process_last_step(self, plan: PlanOutput,
                                  start_state: GameState,
@@ -548,7 +549,7 @@ class ParallelPlanningMCTS:
         conversation = Conversation(messages=[
             Message(role="system", content=self.config.system_prompt),
             Message(role="user",
-                    content=f"Your starting inventory is {starting_inventory}. {mining_setup}. Create an incrementally useful task that you can carry out in the current game, in order to grow your factory's _automatic_ throughput.")
+                    content=f"Your starting inventory is {starting_inventory}. Your mining setup is {mining_setup}. Create an useful task that is doable in the current game setup given your inventory and mining setup."),
         ])
 
         generation_params = GenerationParameters(
@@ -744,11 +745,12 @@ class ParallelPlanningMCTS:
 
             # split it by <choice>
             # Should we make it lowercase?
-            if "<step>" in step_output:
+            if "<choice>" in step_output:
                 step_idx = step_output.split("<choice>")[-1].strip()
                 step_idx = step_idx.split("</choice>")[0].strip()
                 try:
-                    step = step_to_process[int(step_idx)]
+                    steps_to_choose_from = plan_outputs[plan_id].steps[-1].candidate_language_outputs
+                    step = steps_to_choose_from[int(step_idx)]
                     step = step.meta["parsed_step"]
                 except:
                     step = None
