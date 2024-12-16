@@ -128,7 +128,7 @@ class FactorioEvaluator:
 
             # Executing code
             self.logger.update_instance(tcp_port, status="executing")
-            reward, time, result = instance.eval(program.code, timeout=60)
+            reward, time, result = instance.eval(program.code, timeout=120)
 
             # Capturing immediate resulting state
             self.logger.update_instance(tcp_port, status="capturing state")

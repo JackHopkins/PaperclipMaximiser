@@ -1,3 +1,6 @@
+import sys
+sys.path.append(r"C:\Users\martb\Documents\paperpclip_max\PaperclipMaximiser\src")
+sys.path.append(r"C:\Users\martb\Documents\paperpclip_max\PaperclipMaximiser")
 import json
 import os
 
@@ -123,18 +126,17 @@ async def get_seed_programs(
     return seeded_programs
 
 async def main():
-    step_executor_model_path = "ft:gpt-4o-2024-08-06:paperplane-ai:fact-instruct-1:ATSVGf4d"#:ckpt-step-214"
+    step_executor_model_path = "ft:gpt-4o-2024-08-06:paperplane-ai:fact-instruct-1:ATSVGf4d:ckpt-step-214"#:ckpt-step-214"
     planner_model = "claude-3-5-sonnet-20241022"
     objective_model = "ft:gpt-4o-2024-08-06:paperplane-ai:fact-self-gen-planning:AQzcPI91"
-    step_executor_prompt_path = r"../../prompts/bottoms_up_prompts/finetuning_prompts/step_supervised"
-    step_generator_prompt_path = r"../../prompts/bottoms_up_prompts/finetuning_prompts/step_generator"
-    executor_plan_prompt_path = r"../../prompts/bottoms_up_prompts/finetuning_prompts/executor_plan"
-    step_judge_prompt_path = r"../../prompts/bottoms_up_prompts/finetuning_prompts/step_judge"
+    step_executor_prompt_path = r"src/prompts/bottoms_up_prompts/finetuning_prompts/step_supervised"
+    step_generator_prompt_path = r"src/prompts/bottoms_up_prompts/finetuning_prompts/step_generator"
+    executor_plan_prompt_path = r"src/prompts/bottoms_up_prompts/finetuning_prompts/executor_plan"
+    step_judge_prompt_path = r"src/prompts/bottoms_up_prompts/finetuning_prompts/step_judge"
     starting_scenario_folder = r"../../skills/data_scenarios/starting_scenarios"
-    objective_model_prompt_path = r"../../prompts/bottoms_up_prompts/finetuning_prompts/system_message_policy_self_gen.md"
+    objective_model_prompt_path = r"src/prompts/bottoms_up_prompts/finetuning_prompts/system_message_policy_self_gen.md"
     nr_of_seeded_programs = 4
-    version = 101
-    version = 40
+    version = 120
     parent_version = 4
     version_description = "KLD Diversity Sampling / Scratch / Planning MCTS / Errors not saved"
 
@@ -161,15 +163,15 @@ async def main():
 
     print("Initializing MCTS...")
     # Sampler
-    sampler = KLDiversityAchievementSampler(db_client)
+    sampler = KLDiversityAchievementSampler(db_client, temperature=0.5)
 
     config = ParallelMCTSConfig(
-        n_parallel=8,
+        n_parallel=1,
         mcts_class=PlanningMCTS,
         sampler=sampler,
         system_prompt=system_prompt,
         initial_state=initial_state,
-        max_steps_per_objective=8,
+        max_steps_per_objective=12,
         number_of_steps_for_judge=3,
         mcts_kwargs={
             "planning_model":planner_model,
@@ -200,7 +202,7 @@ async def main():
 
     print("Starting MCTS search...")
     best_programs = await mcts.search(
-        n_iterations=1000,
+        n_iterations=5,
         skip_failures=False,
     )
             

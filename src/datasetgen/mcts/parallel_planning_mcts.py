@@ -223,7 +223,7 @@ class ParallelPlanningMCTS:
                             step_to_save = plan.steps[-1]
                             if step_to_save.program.id not in saved_step_ids:
                                 await self.save_step(plan, step_to_save,
-                                                    starting_state_program_id=parent.id if parent else None)
+                                                    original_parent=parent)
                                 saved_step_ids.append(step_to_save.program.id)
                         except Exception as e:
                             print("Could not save step - possibly missing (in case of skipping errors)")
@@ -344,7 +344,7 @@ class ParallelPlanningMCTS:
 
         return step, holdout_value, entity_list
 
-    async def save_step(self, plan: PlanOutput, step: Step, starting_state_program_id):
+    async def save_step(self, plan: PlanOutput, step: Step, original_parent: Program):
         candidate_step_meta = []
         # first we check if judge has been done on this step
         # If not, then its the final output step
@@ -363,7 +363,7 @@ class ParallelPlanningMCTS:
         # we need to save all the programs but we need to add some meta fields
         objective = plan.task.task
         initial_plan = plan.initial_plan.initial_plan
-        parent_id = starting_state_program_id
+        parent_id = original_parent.id if original_parent else None
 
         # find the step before `step` in the plan to get the `parent_id`
         for current_step, next_step in zip(plan.steps[:-1], plan.steps[1:]):
@@ -401,7 +401,8 @@ class ParallelPlanningMCTS:
                 "final_output": plan.final_output,
                 "type": "step",
                 "full_production_flows": post_production_flows,
-                "step_idx": len(plan.steps)}
+                "step_idx": len(plan.steps),
+                "sampled_state_id": original_parent.id if original_parent else None}
 
         program = step.program
         program.meta = meta
@@ -643,14 +644,16 @@ class ParallelPlanningMCTS:
             conversations_to_process += [(Conversation(
                 messages=[Message(role="system", content=self.step_generator_system_prompt),
                           Message(role="user", content=user_message)]),
-                                          plan_output.meta["plan_id"])] * self.number_of_steps_for_judge
+                                          {"plan_id": plan_output.meta["plan_id"],
+                                           "mining_setup": mining_setup,
+                                           "starting_inventory": starting_inventory_dict})] * self.number_of_steps_for_judge
 
         step_outputs = [asyncio.ensure_future(self._generate_natural_language_batch(conversation[0], generation_params,
                                                                                     meta={
                                                                                         "type": "next_step_candidates",
-                                                                                        "plan_id": conversation[1],
-                                                                                        "mining_setup": mining_setup,
-                                                                                        "starting_inventory": starting_inventory_dict}))
+                                                                                        "plan_id": conversation[1]["plan_id"],
+                                                                                        "mining_setup": conversation[1]["mining_setup"],
+                                                                                        "starting_inventory": conversation[1]["starting_inventory"]}))
                         for conversation in conversations_to_process]
         responses = await asyncio.gather(*step_outputs)
         step_output_objects = {}
