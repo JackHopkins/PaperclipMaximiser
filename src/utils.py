@@ -120,6 +120,34 @@ def eval_program_with_profits(instance, program, profit_config):
                               profit_config = profit_config)
         return output_list, result, error, profits
 
+def get_unified_production_flows(row, program_lookup):
+    meta = row['meta']
+    production_input_output_flows ={"input": {}, "output": {}}
+    current_objective = None
+    while True:
+        if "objective" not in meta:
+            break
+        if meta["objective"] != current_objective:
+            input_flows = meta["full_production_flows"]["input"]
+            output_flows = meta["full_production_flows"]["output"]
+            for item, value in input_flows.items():
+                if item in production_input_output_flows["input"]:
+                    production_input_output_flows["input"][item] += value
+                else:
+                    production_input_output_flows["input"][item] = value
+            for item, value in output_flows.items():
+                if item in production_input_output_flows["output"]:
+                    production_input_output_flows["output"][item] += value
+                else:
+                    production_input_output_flows["output"][item] = value
+            current_objective = meta["objective"]
+
+        parent_id = row["parent_id"]
+        if parent_id is None:
+            break
+        row = program_lookup[parent_id]
+        meta = row['meta']
+    return production_input_output_flows
 
 def get_profits(pre_production_flows, 
                 post_production_flows,
