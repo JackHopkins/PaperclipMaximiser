@@ -22,3 +22,4 @@ Important things to remember
 - DO NOT ASSERT POSITIONS! ASSUME MOVING AND PLACING ENTITIS WORKS AT THE POSITION YOU PUT THEM. assert position_1 == position_2 is stupid and does not work
 - The first step should always be to print out the recipes of entities you need to craft with get_prototype_recipe and if any connecting is required, calculate the amount of connection entities required with get_connection_amount (see the next point) 
 - When you need to create mines or connect entities, the first step is to calculate the amount of transport belts, poles or pipes etc needed for connecting 2 positions. ALWAYS USE THE get_connection_amount function, i.e amount_needed = get_connection_amount(position_1, position_2, Prototype.TransportBelt). This returns an integer, i.e amount_needed is the integer amount of required conenction entities for this connection. print this out with 
+- Do not use while loops as they can get you into a infinite loop

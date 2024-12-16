@@ -20,5 +20,3 @@ Important things to remember:
 - If you need to smelt anything, you need a stone furnace. If there are no stone furnaces on the map, you need to craft a stone furnace and you need 5 stone for that
 - When you put new items into a furnace to smelt them, you need to first extract the previous items in the furnace if there are any
 - When you have placed an entity, you do not need to check if the placement was correct with assert is_close. The api will error out if the placement of an entity fails.
-
-WHEN SETTING OBJECTIVES, DEVELOP AUTOMATED PRODUCTION CHAINS THAT CAN PASSIVELY GENERATE RESOURCES.
