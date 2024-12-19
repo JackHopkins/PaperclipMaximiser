@@ -77,6 +77,7 @@ class ParallelPlanningMCTS:
         # Initialize other attributes from config
         self.max_steps_per_objective = config.max_steps_per_objective
         self.number_of_steps_for_judge = config.number_of_steps_for_judge
+        self.programs_sampled_per_step = config.programs_sampled_per_step
 
 
         self.planning_model = config.mcts_kwargs['planning_model']
@@ -261,7 +262,7 @@ class ParallelPlanningMCTS:
                     completed_plans.append(plan)
                     continue
 
-                latest_program = plan.steps[-1].program
+                latest_program = plan.steps[-1].sampled_programs[-1]
                 group.evaluator.logger.update_instance(instance_id, program_id=latest_program.id, status="evaluating")
 
                 eval_futures.append(self._process_last_step(
@@ -318,22 +319,27 @@ class ParallelPlanningMCTS:
             instance = group.active_instances[instance_id]
             step.start_state = GameState.from_instance(instance)
             group.evaluator.logger.update_instance(instance_id, status="executing")
-
-            reward, state, response, entities, achievements = await group.evaluator._evaluate_single(
-                instance_id,
-                step.program,
-                instance
-            )
+            for program in step.sampled_programs:
+                instance.reset(start_state)
+                reward, state, response, entities, achievements, profits, error = await group.evaluator._evaluate_single(
+                    instance_id,
+                    program,
+                    instance
+                )
+                step.program = program
+                if not error:
+                    break
             entity_list.append(entities)
             step.end_state = state
             step.reward = reward
             post_production_flows = instance.get_production_stats()
             step.program.meta["post_production_flows"] = post_production_flows
+            step.program.meta["profits"] = profits
         except Exception as e:
             print(f"Error during evaluation in group {group.group_id}, instance {instance_id}: {e}")
             raise e
 
-        holdout_value = await holdout_future
+        holdout_value, holdout_profits = await holdout_future
         step.program.value = step.reward - holdout_value
         step.program.raw_reward = step.reward
         step.program.holdout_value = holdout_value
@@ -341,7 +347,7 @@ class ParallelPlanningMCTS:
         step.program.response = response
         step.program.parent_id = parent_id
         step.program.achievements = achievements
-
+        step.program.meta["holdout_profits"] = holdout_profits
         return step, holdout_value, entity_list
 
     async def save_step(self, plan: PlanOutput, step: Step, original_parent: Program):
@@ -550,13 +556,14 @@ class ParallelPlanningMCTS:
         conversation = Conversation(messages=[
             Message(role="system", content=self.config.system_prompt),
             Message(role="user",
-                    content=f"Your starting inventory is {starting_inventory}. Your mining setup is {mining_setup}. Create an useful task that is doable in the current game setup given your inventory and mining setup."),
+                    content=f"Your starting inventory is {starting_inventory}. Your mining setup is {mining_setup}. Create an useful task that you can carry out in the current game state and carry it out. Make the goal ambitious and influential!"),
         ])
 
         generation_params = GenerationParameters(
             model=self.config.mcts_kwargs['objective_model'],
             n=len(group.active_instances),
-            stop_sequences=["\n"]
+            stop_sequences=["\n"],
+            temperature = 1.0
         )
 
         inventory_dict = self.get_inventory_dict(starting_inventory)
@@ -772,9 +779,10 @@ class ParallelPlanningMCTS:
         plan_outputs = group.plans
         generation_params = GenerationParameters(
             model=self.config.mcts_kwargs['executor_model'],
-            temperature=0.5,
+            temperature=0.3,
             max_tokens=4096,
-            logits={'7032': -100} # 'while' should never be sampled to prevent infinite loops
+            logits={'7032': -100}, # 'while' should never be sampled to prevent infinite loops,
+            n = self.programs_sampled_per_step
         )
         conversations_to_process = []
 
@@ -825,7 +833,7 @@ class ParallelPlanningMCTS:
             output = response[0]
             plan_id = output.meta["plan_id"]
             # add the output program to the last step
-            plan_outputs[plan_id].steps[-1].program = output
+            plan_outputs[plan_id].steps[-1].sampled_programs = response
 
         return plan_outputs
 
@@ -915,46 +923,44 @@ class ParallelPlanningMCTS:
 
                 # Handle Claude response format
                 code, text_response = self._extract_code_from_choice(response)
-                if code:
+                programs.append(Program(
+                    id=hash((code, json.dumps(messages))),
+                    code=code,
+                    conversation=conversation,
+                    response=response.message.content,
+                    token_usage=response.usage.total_tokens if hasattr(response, 'usage') else None,
+                    completion_token_usage=response.usage.completion_tokens if hasattr(response, 'usage') else None,
+                    prompt_token_usage=response.usage.prompt_tokens if hasattr(response, 'usage') else None,
+                    version=self.version,
+                    version_description=self.version_description,
+                    meta={"text_response": text_response,
+                          "model": generation_params.model}
+                ))
+                if meta:
+                    programs[0].meta.update(meta)
+            else:
+                # Handle OpenAI response format with multiple choices
+                for choice in response.choices:
+                    code, text_response = self._extract_code_from_choice(choice)
                     programs.append(Program(
                         id=hash((code, json.dumps(messages))),
                         code=code,
                         conversation=conversation,
-                        response=response.message.content,
-                        token_usage=response.usage.total_tokens if hasattr(response, 'usage') else None,
-                        completion_token_usage=response.usage.completion_tokens if hasattr(response, 'usage') else None,
-                        prompt_token_usage=response.usage.prompt_tokens if hasattr(response, 'usage') else None,
+                        response=choice.message.content,
+                        token_usage=response.usage.total_tokens // generation_params.n if hasattr(response,
+                                                                                                  'usage') else None,
+                        completion_token_usage=response.usage.completion_tokens // generation_params.n if hasattr(
+                            response,
+                            'usage') else None,
+                        prompt_token_usage=response.usage.prompt_tokens // generation_params.n if hasattr(response,
+                                                                                                          'usage') else None,
                         version=self.version,
                         version_description=self.version_description,
                         meta={"text_response": text_response,
                               "model": generation_params.model}
                     ))
                     if meta:
-                        programs[0].meta.update(meta)
-            else:
-                # Handle OpenAI response format with multiple choices
-                for choice in response.choices:
-                    code, text_response = self._extract_code_from_choice(choice)
-                    if code:
-                        programs.append(Program(
-                            id=hash((code, json.dumps(messages))),
-                            code=code,
-                            conversation=conversation,
-                            response=choice.message.content,
-                            token_usage=response.usage.total_tokens // generation_params.n if hasattr(response,
-                                                                                                      'usage') else None,
-                            completion_token_usage=response.usage.completion_tokens // generation_params.n if hasattr(
-                                response,
-                                'usage') else None,
-                            prompt_token_usage=response.usage.prompt_tokens // generation_params.n if hasattr(response,
-                                                                                                              'usage') else None,
-                            version=self.version,
-                            version_description=self.version_description,
-                            meta={"text_response": text_response,
-                                  "model": generation_params.model}
-                        ))
-                        if meta:
-                            programs[-1].meta.update(meta)
+                        programs[-1].meta.update(meta)
 
             return programs
 
