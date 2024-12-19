@@ -7,7 +7,7 @@ from datasetgen.mcts.logger import FactorioLogger
 from datasetgen.mcts.program import Program
 from factorio_entities import Entity, EntityGroup
 from factorio_instance import FactorioInstance
-from utils import get_achievements
+from utils import get_achievements, get_profits
 
 
 class FactorioEvaluator:
@@ -158,6 +158,7 @@ class FactorioEvaluator:
 
             post_production_flows = instance.get_production_stats()
             achievements = get_achievements(start_production_flows, post_production_flows)
+            profits = get_profits(start_production_flows, post_production_flows)
 
             group_id = self.port_to_group[tcp_port]
             group = self.logger.groups[group_id]
@@ -175,6 +176,7 @@ class FactorioEvaluator:
                 final_inventory_count=sum([v for k, v in final_inventory.__dict__.items() if v > 0])
             )
 
+            error = False
             if "error" in result.lower() and self.logger:
                 group_id = self.port_to_group[tcp_port]
                 group = self.logger.groups[group_id]
@@ -184,8 +186,9 @@ class FactorioEvaluator:
                     status="error",
                     error_count=instance_metrics.error_count + 1
                 )
+                error = True
 
-            return final_reward, state, result, entities, achievements
+            return final_reward, state, result, entities, achievements, profits, error
 
         except Exception as e:
             print(f"Error in _evaluate_single:")
@@ -210,6 +213,7 @@ class FactorioEvaluator:
     async def _run_holdout(self) -> float:
         """Run holdout instance for same duration as programs"""
         try:
+            initial_production_flows = self.holdout.get_production_stats()
             initial_entities = self.holdout.get_entities()
             start_inventory = self.holdout.inspect_inventory()
 
@@ -235,8 +239,10 @@ class FactorioEvaluator:
                     start_inventory_count=sum([v for k, v in start_inventory.__dict__.items() if v > 0]),
                     final_inventory_count=sum([v for k, v in final_inventory.__dict__.items() if v > 0])
                 )
-
-            return reward - initial_value
+            
+            end_production_flows = self.holdout.get_production_stats()
+            profits = get_profits(initial_production_flows, end_production_flows)
+            return reward - initial_value, profits
         except Exception as e:
             if self.logger:
                 # Update error count using the grouped structure

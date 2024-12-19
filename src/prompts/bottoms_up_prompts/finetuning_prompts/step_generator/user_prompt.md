@@ -5,14 +5,13 @@ Create a automatic iron plate mining setup into a chest
 Map setup
 There are no entities on the map
 Initial inventory
-{{}}
+{{"burner-inserter": 1, "iron-plate": 15}}
 Steps
-Step 1 - <step>Print out the location of the nearest iron patch </step>
-Step 2 - <step>Calculate all the ingredients and print out all the recipes required to craft for 1 burner mining drill, 1 burner inserter, 1 wooden chest, 1 stone furnace and 50 transport belts. Do not craft anything, only print out the requirements </step>
-Step 3 - <step>Gather 87 iron ore, 10 stone and 2 wood </step>
-Step 4 - <step>Smelt 87 iron plates </step>
-Step 5 - <step>Craft for 1 burner mining drill, 1 burner inserter, 1 stone furnace, 1 wooden chest and 50 transport belts </step>
-Step 6 - <step>Create a iron plate mine from a drill at Position(x = 11, y = 12) to a chest 10 spaces away. Check the construct by looking if the chest has iron plates in them </step>
+Step 1 - <step>Calculate all the ingredients and print out all the recipes required to craft for 1 burner mining drill, 1 wooden chest, 1 stone furnace and 50 transport belts. Do not craft anything, only print out the requirements </step>
+Step 2 - <step>Gather 87 iron ore, 10 stone and 6 wood </step>
+Step 3 - <step>Smelt 87 iron plates </step>
+Step 4 - <step>Craft for 1 burner mining drill, 1 stone furnace, 1 wooden chest and 50 transport belts </step>
+Step 5 - <step>Create a iron plate mine from a drill at Position(x = 11, y = 12) to a chest 10 spaces away. Check the construct by looking if the chest has iron plates in them </step>
 <output>An automatic iron plate mine has been created to the drill at Position(x = 11, y = 12) to the chest at Position(x = 5, y = 9) </output>
 
 Global objective

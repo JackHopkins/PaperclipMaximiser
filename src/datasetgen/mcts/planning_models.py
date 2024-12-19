@@ -37,6 +37,7 @@ class Step(BaseModel):
     judge_step_str: str = ""
     final_step: str = ""
     judge_language_output_step: LanguageOutput = None
+    sampled_programs: list[Program] = []
     program: Program = None
     start_state: GameState = None
     end_state: GameState = None

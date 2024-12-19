@@ -61,7 +61,7 @@ GENERAL INSTRUCTIONS
 - You do not need to craft intermediate ingredients when you have the resources and plates required for them. Those will be crafted automatically when you craft the final entities. Look how in the examples the final entities are crafted automatically
 - When the logs have an error in them, it means the task was not successfully fully completed. Analyse the logs and the task and come up with the next step that is useful
 - When you need fuel, take atleast 10 fuel per required entity to be fueled
-- Always take more than needed connection entities to be sure. For instance, if you need 11 transport belts, craft/take 21 to make sure you have enough
+- Always get more than needed connection entities to be sure. For instance, if you need 11 transport belts, craft/take 21 to make sure you have enough. THIS IS VERY IMPORTANT TO ENSURE YOU HAVE ENOUGH ENTITIES FOR CONNECTIONS
 
 
 INSTRUCTIONS FOR CREATING MINES OR CONNECTIONS

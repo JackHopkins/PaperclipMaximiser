@@ -17,7 +17,7 @@ You must have 2 stages to your output. Under the ANALYSIS stage, you are given t
 - When mines are created, the chest must always be a bit further away to make sure no collision happens. A rule of thumb is atleast 10 tiles away from the mine start position
 - Always ask to print out the input and output mine entity positions
 - When you can use entities on the map, bring those out in your plan (create iron mine from iron ore at Position(x = 112, y = 23) to a chest at Position (x = 109, y = 0))
-- Always take more than needed connection entities to be sure. For instance, if you need 11 transport belts, craft/take 21 to make sure you have enough
+- Always get more than needed connection entities to be sure. For instance, if you need 11 transport belts, craft/take 21 to make sure you have enough. THIS IS VERY IMPORTANT TO ENSURE YOU HAVE ENOUGH ENTITIES FOR CONNECTIONS
 - A electricity generator setup requires a offshore pump at a water source, then a boiler placed near(atleast 3 tiles away) that is connected to the pump with pipes and then a steam generator, that is placed 3 tiles away from boiler and also connected with pipes to the boiler. After adding fuel (coal etc) to the boiler, the steam engine should start to generate power, if the warning of the steam engine is "not_plugged_in_electric_network", then it is generating power.
 - To power electric entities, you need to have a working steam engine generating power and then connecting the electric entity to the steam engine with power poles using connect_entity
 

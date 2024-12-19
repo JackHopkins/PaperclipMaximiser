@@ -136,9 +136,9 @@ async def main():
     starting_scenario_folder = r"../../skills/data_scenarios/starting_scenarios"
     objective_model_prompt_path = r"src/prompts/bottoms_up_prompts/finetuning_prompts/system_message_policy_self_gen.md"
     nr_of_seeded_programs = 4
-    version = 120
+    version = 200 # 120 and 121 was the last version before this change
     parent_version = 4
-    version_description = "KLD Diversity Sampling / Scratch / Planning MCTS / Errors not saved"
+    version_description = "Demo"
 
 
     # Initialize components
@@ -171,7 +171,8 @@ async def main():
         sampler=sampler,
         system_prompt=system_prompt,
         initial_state=initial_state,
-        max_steps_per_objective=12,
+        max_steps_per_objective=20,
+        programs_sampled_per_step = 3,
         number_of_steps_for_judge=3,
         mcts_kwargs={
             "planning_model":planner_model,

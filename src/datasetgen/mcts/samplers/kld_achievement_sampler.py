@@ -130,17 +130,17 @@ class KLDiversityAchievementSampler(DBSampler):
         if not input_json:
             return frequencies
 
-        input_flows = input_json.get('input', {})
+        #input_flows = input_json.get('input', {})
         output_flows = input_json.get('output', {})
 
-        for key, value in input_flows.items():
-            try:
-                # Convert value to float for numerical operations
-                freq = float(value)
-                frequencies['input-'+key] = freq
-            except (ValueError, TypeError):
-                # If value can't be converted to float, skip this achievement
-                continue
+        #for key, value in input_flows.items():
+        #    try:
+        #        # Convert value to float for numerical operations
+        #        freq = float(value)
+        #        frequencies['input-'+key] = freq
+        #    except (ValueError, TypeError):
+        #        # If value can't be converted to float, skip this achievement
+        #        continue
 
         for key, value in output_flows.items():
             try:
@@ -165,7 +165,8 @@ class KLDiversityAchievementSampler(DBSampler):
             KL divergence value
         """
         # Get all unique achievement pairs
-        all_pairs = set(p.keys()) | set(q.keys())
+        #all_pairs = set(p.keys()) | set(q.keys())
+        all_pairs = set(p.keys())
 
         # Add smoothing to handle zeros
         epsilon = 1e-10

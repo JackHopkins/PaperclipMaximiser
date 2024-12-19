@@ -151,7 +151,7 @@ def get_unified_production_flows(row, program_lookup):
 
 def get_profits(pre_production_flows, 
                 post_production_flows,
-                profit_config = {"max_static_unit_profit_cap": 5,
+                profit_config = {"max_static_unit_profit_cap": 20,
                                  "dynamic_profit_multiplier": 10}):
         """
         Calculate the dynamic production flows between two states
@@ -163,8 +163,10 @@ def get_profits(pre_production_flows,
             return total_profits
         if "output" not in pre_production_flows or "output" not in post_production_flows:
             return total_profits
-        pre_production_flows["crafted"] = [item for item in pre_production_flows["crafted"].values()]
-        post_production_flows["crafted"] = [item for item in post_production_flows["crafted"].values()]
+        if isinstance(pre_production_flows["crafted"], dict):
+            pre_production_flows["crafted"] = [item for item in pre_production_flows["crafted"].values()]
+        if isinstance(post_production_flows["crafted"], dict):
+            post_production_flows["crafted"] = [item for item in post_production_flows["crafted"].values()]
         new_production_flows = get_new_production_flows(pre_production_flows, post_production_flows)
         # merge the crafted and harvested dicts to one dict
         static_profits, new_production_flows = get_static_profits(new_production_flows, 
@@ -287,8 +289,10 @@ def get_achievements(pre_production_flows, post_production_flows):
         return achievements
 
 def get_updated_static_items(pre_production_flows, post_production_flows):
-    pre_production_flows["crafted"] = [item for item in pre_production_flows["crafted"].values()]
-    post_production_flows["crafted"] = [item for item in post_production_flows["crafted"].values()]
+    if isinstance(pre_production_flows["crafted"], dict):
+        pre_production_flows["crafted"] = [item for item in pre_production_flows["crafted"].values()]
+    if isinstance(post_production_flows["crafted"], dict):
+        post_production_flows["crafted"] = [item for item in post_production_flows["crafted"].values()]
     new_production_flows = get_new_production_flows(pre_production_flows, post_production_flows)
     static_items = new_production_flows["harvested"]
     
