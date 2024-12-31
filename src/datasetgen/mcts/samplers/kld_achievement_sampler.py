@@ -181,6 +181,20 @@ class KLDiversityAchievementSampler(DBSampler):
 
         return kld
 
+
+    @tenacity.retry(
+        retry=retry_if_exception_type((psycopg2.OperationalError, psycopg2.InterfaceError)),
+        wait=wait_exponential(multiplier=1, min=4, max=10)
+    )
+    async def sample_specific_parent(self, id: int = 1, **kwargs) -> Optional[Program]:
+            with self.db_client.get_connection() as conn:
+                with conn.cursor(cursor_factory=DictCursor) as cur:
+                    # Fetch the selected program
+                    cur.execute(f"SELECT * FROM programs WHERE id = {int(id)}")
+
+                    row = cur.fetchone()
+                    return Program.from_row(dict(row)) if row else None
+
     @tenacity.retry(
         retry=retry_if_exception_type((psycopg2.OperationalError, psycopg2.InterfaceError)),
         wait=wait_exponential(multiplier=1, min=4, max=10)

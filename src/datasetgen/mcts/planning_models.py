@@ -26,7 +26,7 @@ class LanguageOutput(BaseModel):
 
 class TaskOutput(BaseModel):
     task: str
-    language_output: LanguageOutput
+    language_output: Optional[LanguageOutput]
 
 class InitialPlanOutput(BaseModel):
     initial_plan: str
@@ -47,7 +47,7 @@ class Step(BaseModel):
 
 class PlanOutput(BaseModel):
     task: TaskOutput
-    initial_plan: InitialPlanOutput
+    initial_plan: Optional[InitialPlanOutput]
     final_output: str = ""
     steps : list[Step] = []
     logs: Optional[list] = []

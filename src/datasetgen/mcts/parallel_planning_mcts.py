@@ -394,6 +394,8 @@ class ParallelPlanningMCTS:
         judge_output = step.judge_step_str
         executor_step = step.final_step
         post_production_flows = step.program.meta["post_production_flows"]
+        node_profit = step.program.meta["profits"]
+        holdout_profit = step.program.meta["holdout_profits"]
         meta = {"objective": objective, 
                 "initial_plan": initial_plan, 
                 "candidate_steps": candidate_step_meta,
@@ -408,7 +410,10 @@ class ParallelPlanningMCTS:
                 "type": "step",
                 "full_production_flows": post_production_flows,
                 "step_idx": len(plan.steps),
-                "sampled_state_id": original_parent.id if original_parent else None}
+                "sampled_state_id": original_parent.id if original_parent else None,
+                "profits": {"node_profit": node_profit,
+                            "holdout_profit": holdout_profit}
+                }
 
         program = step.program
         program.meta = meta

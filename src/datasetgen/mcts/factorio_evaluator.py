@@ -113,6 +113,18 @@ class FactorioEvaluator:
                     )
             raise e
 
+    def _evaluate_for_achievements(self, code: str, instance: FactorioInstance) \
+            -> Tuple[float, GameState, str, List[Union[Entity, EntityGroup]], Dict[str, Dict[str, int]]]:
+        # Get initial state information
+        start_production_flows = instance.get_production_stats()
+        # Executing code
+        reward, time, result = instance.eval(code, timeout=120)
+        post_production_flows = instance.get_production_stats()
+        achievements = get_achievements(start_production_flows, post_production_flows)
+        
+        return result, achievements
+
+
     async def _evaluate_single(self, instance_id: int, program: Program, instance: FactorioInstance) \
             -> Tuple[float, GameState, str, List[Union[Entity, EntityGroup]], Dict[str, Dict[str, int]]]:
         try:
@@ -125,10 +137,10 @@ class FactorioEvaluator:
             start_inventory = instance.inspect_inventory()
             start_production_flows = instance.get_production_stats()
             initial_value, start_time = instance.score()
-
+            code = program.code
             # Executing code
             self.logger.update_instance(tcp_port, status="executing")
-            reward, time, result = instance.eval(program.code, timeout=120)
+            reward, time, result = instance.eval(program.code, timeout=600)
 
             # Capturing immediate resulting state
             self.logger.update_instance(tcp_port, status="capturing state")
