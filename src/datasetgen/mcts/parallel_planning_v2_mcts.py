@@ -27,10 +27,10 @@ logger = logging.basicConfig(level=logging.INFO)
 class TaskConfig:
     """Configuration for a task"""
     def __init__(self,
-                 task_str: str,
+                 task: str,
                  check_for_completion = True,
                  check_dicts = {}):
-        self.task = task_str
+        self.task = task
         self.check_for_completion = check_for_completion
         self.check_dicts = check_dicts
 
@@ -167,7 +167,7 @@ class ParallelPlanningV2MCTS:
                 f"Not enough instances per group (need at least 2, got {instances_per_group})"
             )
 
-    async def search(self, n_iterations: int, task: TaskConfig, skip_failures: bool = False):
+    async def search_supervised(self, n_iterations: int, task: TaskConfig, skip_failures: bool = False):
         """
         Run truly parallel MCTS search across all groups
 
@@ -189,13 +189,16 @@ class ParallelPlanningV2MCTS:
                 search_tasks.append(search_task)
 
             # Wait for ALL groups to complete, allowing them to run simultaneously
-            await asyncio.gather(*search_tasks)
+            results = await asyncio.gather(*search_tasks)
 
         except Exception as e:
             print(f"Error during parallel search: {str(e)}")
             raise
         finally:
             self.cleanup()
+            # make the list of lists into a single list
+            results = [item for sublist in results for item in sublist]
+            return results
 
 
     async def generate_plans(self, task: TaskConfig, nr_of_beams: int) -> List[InitialPlanOutput]:
@@ -215,10 +218,13 @@ class ParallelPlanningV2MCTS:
         Need to check again over what to do mcts exactly
         """
         try:
+            solutions = []
             for iteration in range(n_iterations):
+                solved = 0
+                stop_execution = False
                 #parent = await self.sampler.sample_parent(version=self.version)
-                parent = await self.sampler.sample_specific_parent(id = 81407)
-                #parent = None
+                #parent = await self.sampler.sample_specific_parent(id = 81407)
+                parent = None
                 #group.evaluator.set_status(f"Generating tasks")
                 #tasks, start_state = await self._get_tasks(group, parent)
                 group.plans = await self.generate_plans(task, nr_of_beams=len(group.active_instances))
@@ -238,22 +244,26 @@ class ParallelPlanningV2MCTS:
                             step_to_save = plan.steps[-1]
                             # lets first try to only save the steps that are final
                             if step_to_save.program.id not in saved_step_ids:
-                                await self.save_step(plan, step_to_save,
+                                stop_execution, correct_solution = await self.save_step(plan, step_to_save,
                                                     original_parent=parent)
                                 saved_step_ids.append(step_to_save.program.id)
                         except Exception as e:
                             print("Could not save step - possibly missing (in case of skipping errors)")
-
+                            print(e)
                     group.evaluator.logger.update_progress()
-
+                    if stop_execution:
+                        solved = correct_solution
+                        break
                     if self.beam_unification_steps > 0 and (step_idx +1)%self.beam_unification_steps == 0:
                         group = await self.unify_beams(group, task)
+                solutions.append(solved)
 
         except Exception as e:
             print(f"Error during parallel search: {str(e)}")
             raise
         finally:
             self.cleanup()
+            return solutions
 
 
     async def unify_beams(self, group: PlanningGroupV2, task: TaskConfig):
@@ -355,7 +365,6 @@ class ParallelPlanningV2MCTS:
             for instance_id, (instance, plan) in enumerate(zip(group.active_instances, group.plans.values())):
                 if plan.success:
                     if plan.steps[-1].program is None:
-                        instance = group.evaluator.instances[instance_id]
                         plan.steps[-1].program = self._create_output_completed_program(plan = plan, 
                                                                                        parent_id=parent.id if parent else None,
                                                                                        task=task,
@@ -473,7 +482,7 @@ class ParallelPlanningV2MCTS:
                                             })
             step.program.meta["candidate_steps"] = candidate_step_meta
             await self.db_client.create_program(step.program)
-            return
+            return True, 1 if step.program.meta["checked_result_correct"] else 0
         # we need to save all the programs but we need to add some meta fields
         objective = plan.task.task
         initial_plan = plan.initial_plan.initial_plan if plan.initial_plan else None
@@ -527,7 +536,7 @@ class ParallelPlanningV2MCTS:
         program.meta = meta
         program.parent_id = parent_id
         await self.db_client.create_program(program)
-        parent_id = program.id
+        return False, 0
 
     async def _process_last_step(self, plan: PlanOutput,
                                  start_state: GameState,
@@ -602,7 +611,7 @@ class ParallelPlanningV2MCTS:
                         model = self.model_to_evaluate,
                         meta={"objective": plan.task.task,
                               "type": "completed_objective",
-                              "check_result": check_result,
+                              "checked_result_correct": check_result,
                               "nr_of_steps": len(plan.steps)}
                     )
         return program

@@ -34,7 +34,7 @@ print(f"Mined {{harvested_iron}} iron ore")
 ```
 
 Example task
-Get the copper plates from the chest and craft 5 copper wire
+Get the copper plates from the chest and craft 5 copper cables
 Mining setup
 The following entities are on the map [{{"name": "wooden-chest", "type": Prototype.WoodenChest, "inventory": [("copper-plate", 10)], "position": Position(x = 0, y = 1)}}]
 Initial inventory
@@ -59,9 +59,9 @@ assert copper_plates_in_inventory>=10
 
 """
 Step 3
-Craft the 5 copper wire
+Craft the 5 copper cable
 """
-craft_item(Prototype.CopperWire, 5)
+craft_item(Prototype.CopperCable, 5)
 ```
 
 Example task
@@ -285,6 +285,6 @@ Your initial mining setup is: {mining_setup}.
 Previous tasks that have been carried out
 {game_logs}
 
-Create a python script and a plan that achieves the following task
+Create a step by step plan and a python script that achieves the following task
 {task}
 

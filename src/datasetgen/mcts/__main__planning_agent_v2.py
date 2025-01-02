@@ -31,6 +31,32 @@ from llm_factory import LLMFactory
 load_dotenv()
 
 
+TASKS = {"5_iron_ore": TaskConfig(
+        task="Mine 5 iron ore",
+        check_for_completion=True,
+        check_dicts=[{"task_type": "craft", "item":"iron-ore", "quantity": 5}]),
+    "3_copper_plate": TaskConfig(
+        task="Get 3 copper plates",
+        check_for_completion=True,
+        check_dicts=[{"task_type": "craft", "item":"copper-plate", "quantity": 3}]),
+    "6_electronic_circuits": TaskConfig(
+        task="Get 6 electronic circuits",
+        check_for_completion=True,
+        check_dicts=[{"task_type": "craft", "item":"electronic-circuit", "quantity": 6}]),
+    "one_lab": TaskConfig(
+        task="Craft one lab",
+        check_for_completion=True,
+        check_dicts=[{"task_type": "craft", "item":"lab", "quantity": 1}]),
+    "one_burner_mining_drill": TaskConfig(
+        task="Craft one burner mining drill",
+        check_for_completion=True,
+        check_dicts=[{"task_type": "craft", "item":"burner-mining-drill", "quantity": 1}]),
+    "6_electronic_circuits": TaskConfig(
+        task="Get 6 electronic circuits",
+        check_for_completion=True,
+        check_dicts=[{"task_type": "craft", "item":"electronic-circuit", "quantity": 6}])
+        }
+
 
 def create_instance(params: Tuple[str, int, int]) -> FactorioInstance:
     """Create a single Factorio instance with the given parameters"""
@@ -66,12 +92,14 @@ def create_factorio_instances() -> List[FactorioInstance]:
 async def main():
     model_to_evaluate = "claude-3-5-sonnet-20241022"
     #model_to_evaluate = "meta-llama/Meta-Llama-3.1-405B-Instruct-Turbo"
+    model_to_evaluate = "meta-llama/Llama-3-8b-chat-hf"
+    model_to_evaluate = "meta-llama/Meta-Llama-3.1-70B-Instruct-Turbo"
     step_executor_prompt_path = r"src\prompts\agentic_eval_prompts\planning_v2\step_program_supervised"
     step_generator_prompt_path = r"src\prompts\agentic_eval_prompts\planning_v2\step_generator"
     step_judge_prompt_path = r"src\prompts\agentic_eval_prompts\planning_v2\step_judge"
     beam_judge = r"src\prompts\agentic_eval_prompts\planning_v2\path_judge"
-    version = 301 # 120 and 121 was the last version before this change
-    version_description = "eval_agentic_v3_demo"
+    version = 310 # 120 and 121 was the last version before this change
+    version_description = "eval_agentic_supervised"
 
 
     # Initialize components
@@ -100,10 +128,10 @@ async def main():
         sampler=sampler,
         system_prompt="",
         initial_state=initial_state,
-        max_steps_per_objective=25,
+        max_steps_per_objective=10,
         programs_sampled_per_step = 3,
         number_of_steps_for_judge=3,
-        beam_unification_steps = 5,
+        beam_unification_steps = 3,
         mcts_kwargs={
             "model_to_evaluate":model_to_evaluate,
             "step_executor_prompt_path":step_executor_prompt_path,
@@ -113,28 +141,24 @@ async def main():
             "beam_unification_prompt_path": beam_judge
         }
     )
-    general_task = "create an automatic coal mine into a chest placed 10 spaces away from the drill"
-    general_task = "create an automatic coal mine consisting of 3 burner mining drills"
-    #general_task = "Mine 5 iron ore"
-    task = TaskConfig(
-        task_str=general_task,
-        check_for_completion=True,
-        check_dicts=[{"task_type": "craft", "item":"iron-ore", "quantity": 5}]
-    )
-    #general_task = "Craft 2 burner mining drills"
     mcts = ParallelPlanningV2MCTS(instances,
-                db_client,
-                llm,
-                config,
-                version=version,
-                version_description=version_description)
-
-    print("Starting MCTS search...")
-    best_programs = await mcts.search(
-        n_iterations=3,
-        skip_failures=False,
-        task=task
-    )
+                    db_client,
+                    llm,
+                    config,
+                    version=version,
+                    version_description=version_description)
+    
+    task_handles = ["one_burner_mining_drill"]
+    
+    for task_handle in task_handles:
+        task = TASKS[task_handle]
+        print(f"Starting MCTS search for task {task.task}")
+        results = await mcts.search_supervised(
+            n_iterations=2,
+            skip_failures=False,
+            task=task
+        )
+        print(f"Task: {task.task}, Correct solutions: {sum(results)}, Total solutions: {len(results)}")
             
 
 if __name__ == '__main__':

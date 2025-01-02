@@ -26,7 +26,7 @@ The following entities are on the map [{{"name": "wooden-chest", "inventory": [(
 Initial inventory
 {{}}
 Steps
-Step 1 - <step>Calculate all the ingredients and print out all the recipes required to craft for 5 offshore pumps. Do not craft anything, only print out the requirements </step>
+Step 1 - <step>Calculate all the ingredients and print out all the recipes required to craft for 5 offshore pumps</step>
 Step 2 - <step>Get the 10 iron plates from the chest at Position(x = 0, y = 1)</step>
 Step 3 - <step>Gather 25 iron ore and smelt 25 iron plates</step>
 Step 3 - <step>Craft for 5 offshore pumps </step>
