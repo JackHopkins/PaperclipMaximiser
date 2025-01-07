@@ -116,8 +116,8 @@ iron_ore_to_insert = inspect_inventory()[Resource.IronOre]
 furnace = insert_item(Prototype.IronOre, furnace, iron_ore_to_insert)
 print(f"Inserted {{iron_ore_to_insert}} iron ore into the Stone Furnace")
 
-# Wait for smelting to complete (0.7 seconds per iron ore)
-sleep(iron_ore_to_insert * 0.7)
+# Wait for smelting to complete (3.5 seconds per iron ore)
+sleep(iron_ore_to_insert * 3.5)
 
 # Extract iron plates from the Stone Furnace
 expected_iron_plates = iron_ore_to_insert  # Assuming 1:1 ratio for ore to plate
@@ -127,7 +127,7 @@ for _ in range(max_attempts):
     iron_plates_in_inventory = inspect_inventory()[Prototype.IronPlate]
     if iron_plates_in_inventory >= expected_iron_plates:
         break
-    sleep(5)  # Wait a bit more if not all plates are ready
+    sleep(10)  # Wait a bit more if not all plates are ready
 
 print(f"Extracted {{iron_plates_in_inventory}} iron plates from the Stone Furnace")
 
@@ -193,16 +193,41 @@ Place the burner inserter next to the chest, rotate it and fuel it with 10 coal
 # place the inserter
 # We also get the new inserter entity as the position is relative
 # We use 0 spacing as we want it to be right next to the reference chest position
-chest_inserter = place_entity_next_to(Prototype.BurnerInserter, spacing = 0, direction = direction.UP, reference_position = chest.position)
+chest_inserter = place_entity_next_to(Prototype.BurnerInserter, spacing = 0, direction = Direction.UP, reference_position = chest.position)
 print(f"Placed an inserter at {{chest_inserter.position}} next to the chest")
 # rotate the chest inserter
 # By default inserters take items not put items into entities so we need to rotate them
-chest_inserter = rotate_entity(chest_inserter, direction = direction.DOWN)
+chest_inserter = rotate_entity(chest_inserter, direction = Direction.DOWN)
 print(f"Rotated the inserter to input items into the chest at position {{chest_inserter.position}}")
 # insert the 10 coal
 # We also need to update the entity when we insert into it 
 chest_inserter = insert_item(Prototype.Coal, chest_inserter, 10)
 print(f"Inserted 10 coal into the chest inserter")
+```
+
+Example task
+Print out the center of the nearest iron ore patch
+Mining setup
+There are no entities on the map
+Initial inventory
+{{}}
+```python
+"""
+Step 1: 
+We first need to get the position of the nearest iron patch
+Then we need to get the ResourcePatch 
+"""
+# first get the iron patch position
+iron_patch_position = nearest(Resource.IronOre)
+iron_resource_patch = get_resource_patch(resource = Resource.IronOre, 
+position = iron_patch_position)
+
+"""
+Step 2
+Get the bounding box for iron_resource_patch and print out the centre
+"""
+bounding_box = iron_resource_patch.bounding_box
+print(f"Centre of the iron ore patch is {{bounding_box.center}}")
 ```
 
 Example task
@@ -262,11 +287,11 @@ print(f"Connected the drill at {{drill.position}} with the burner inserter at {{
 
 """
 Step 3: 
-Wait for 10 seconds and check if the chest has iron ore in it
+Wait for 60 in-game seconds and check if the chest has iron ore in it
 After sleeping we first get the chest inventory and then check for ore
 """
-# first sleep for 10 seconds
-sleep(10)
+# first sleep for 60 ingame seconds
+sleep(60)
 # Then we get the new chest entity
 chest = get_entity(Prototype.WoodenChest, position = Position(x = 20, y = 10))
 # get the chest inventory
@@ -280,11 +305,101 @@ print(f"Iron ore has been found in chest at {{chest.position}}. Connection has b
 ```
 
 
+Example task
+Place a offshore-pump at the nearest water source, place a boiler 2 steps away and connect them with pipes
+Mining setup
+There are no entities on the map
+Initial inventory
+{{"offshore-pump": 2, "boiler": 1, "steam-engine": 2, "pipe": 30}}
+```python
+"""
+Step 1: 
+We first need to move to the nearest water source
+Then we need to place the offshore pump
+"""
+water_source = nearest(Resource.Water)
+# move to the water source
+# Place offshore pump near water
+move_to(water_position)
+# Place offshore pump near water
+offshore_pump = place_entity(Prototype.OffshorePump, Direction.DOWN, water_position)
+
+"""
+Step 2: 
+Place boiler next to offshore pump
+Important: The boiler needs to be placed with a spacing of 2 to allow for pipe connections
+"""
+
+boiler = place_entity_next_to(Prototype.Boiler, offshore_pump.position, Direction.DOWN, spacing=2)
+"""
+Step 3: 
+Connect offshore pump to boiler with pipes
+"""
+pipes = connect_entities(offshore_pump, boiler, Prototype.Pipe)
+
+```
+
+
+Example task
+Set the recipe for assembly machine at (Position(x = 20, y = 10)) to iron gear wheels
+Mining setup
+The following entities are on the map [{{"name": "assembling-machine-1", "type": Prototype.AssemblingMachine1, "position": Position(x = 20, y = 10)}}]
+Initial inventory
+{{}}
+```python
+"""
+Step 1: 
+We first need to get the assembling machine entity
+"""
+# First get the assembly machine entity
+assembly_machine = get_entity(Prototype.AssemblingMachine1, Position(x = 20, y = 10))
+
+"""
+Step 2: 
+Set the entity recipe for the assembly machine to iron gear wheels
+"""
+set_entity_recipe(entity = assembly_machine, prototype = Prototype.IronGearWheel)
+print(f"Set the recipe of assembly machine at {{assembly_machine.position}} to Prototype.IronGearWheels")
+
+```
+
+
+
+Some examples of steps for objectives are as follows
+
+Global objective
+Create a mine that automatically smelts iron plates
+Map setup
+There are no entities on the map
+Initial inventory
+{{"burner-inserter": 1, "iron-plate": 15, "burner-mining-drill": 2, "stone-furnace": 2, "transport-belt": 55}}
+Steps
+Step 1 - Print out the location of the iron ore patch and place a furnace 10 tiles away. Print out the location of the furnace
+Step 2 - Put down the burner mining drill on the iron patch at Position(x= 10, y = 10) and fuel the burner mining drill with 30 coal
+Step 3 - Put a burner inserter next to the furnace at Position(x = 20, y = 10) and rotate the burner inserter 180 degrees to face the furnace such that it puts items into the furnace not takes from them. Fuel the furnace and the burner inserter with 10 coal each
+Step 4 - Calculate and print out the amount of connections needed to connect the mining drills (Position(x = 10, y = 10)) drop position with the pickup position of the burner inserter next to the furnace at Position(x = 11, y = 10). Check if you have enough transport belts in inventory
+Step 5 - Connect the mining drills (Position(x = 10, y = 10)) drop position with the pickup position of the burner inserter next to the furnace at Position(x = 11, y = 10). Wait for 30 in-game seconds and check if iron ore is transported to the furnace
+Step 6 - <objective_completed>An automatic iron plate mine has been created to the drill at Position(x = 10, y = 10) to the furnace at Position(x = 20, y = 10) </objective_completed>
+
+Global objective
+Craft 5 offshore pumps
+Map setup
+The following entities are on the map [{{"name": "wooden-chest", "inventory": [("iron-plate", 10)], "position": Position(x = 0, y = 1)}}]
+Initial inventory
+{{}}
+Steps
+Step 1 - Calculate all the ingredients and print out all the recipes required to craft for 5 offshore pumps
+Step 2 - Get the 10 iron plates from the chest at Position(x = 0, y = 1)
+Step 3 - Gather 25 iron ore and smelt 25 iron plates
+Step 3 - Craft 5 offshore pumps
+Step 4 - <objective_completed>5 offshore pumps have been created </objective_completed>
+
+
+Your global objective is
+{task}
 Your starting inventory is {starting_inventory}.
 Your initial mining setup is: {mining_setup}.
 Previous tasks that have been carried out
 {game_logs}
 
-Create a step by step plan and a python script that achieves the following task
-{task}
-
+Create a step by step plan and a python script for the next step that is useful to achieve the global objective
