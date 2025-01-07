@@ -8,13 +8,19 @@ from datasetgen.mcts.program import Program
 from factorio_entities import Entity, EntityGroup
 from factorio_instance import FactorioInstance
 from utils import get_achievements, get_profits
-
+import copy
 
 class FactorioEvaluator:
-    def __init__(self, db_client: DBClient, instances: List[FactorioInstance], value_accrual_time=10, logger=None):
+    def __init__(self, db_client: DBClient, instances: List[FactorioInstance], value_accrual_time=10, logger=None, include_holdout = True):
         self.db = db_client
-        self.instances = instances[:-1]  # Main instances
-        self.holdout = instances[-1]  # Holdout instance
+        self.include_holdout = include_holdout
+        if self.include_holdout:
+            self.instances = instances[:-1]  # Main instances
+            self.holdout = instances[-1]  # Holdout instance
+        else:
+            self.instances = instances
+            self.holdout = None
+
         self.value_accrual_time = value_accrual_time  # Time to accrue value before evaluating
         if not logger:
             self.logger = FactorioLogger(len(instances))
@@ -27,13 +33,14 @@ class FactorioEvaluator:
             i: instance.tcp_port
             for i, instance in enumerate(self.instances)
         }
-        self.instance_to_port[len(self.instances)] = self.holdout.tcp_port  # Add holdout mapping
+        if self.holdout:
+            self.instance_to_port[len(self.instances)] = self.holdout.tcp_port  # Add holdout mapping
 
 
         if logger:
             self.port_to_group = logger.port_to_group
             # Find the group ID for the holdout instance
-            self.holdout_group_id = self.port_to_group[self.holdout.tcp_port]
+            self.holdout_group_id = self.port_to_group[self.holdout.tcp_port] if self.holdout else None
 
     def set_status(self, status):
         for instance in self.instances:
@@ -44,16 +51,18 @@ class FactorioEvaluator:
         if self.logger:
             for instance in self.instances:
                 self.logger.update_instance(instance.tcp_port, status="sampling")
-            # Also update holdout status
-            self.logger.update_instance(self.holdout.tcp_port, status="sampling")
+            if self.holdout:
+                # Also update holdout status
+                self.logger.update_instance(self.holdout.tcp_port, status="sampling")
 
     async def evaluate_batch(self, programs: List[Program], start_state: GameState) -> List[Program]:
         try:
-            # Reset holdout and start its baseline run
-            self.holdout.reset(start_state)
-            if self.logger:
-                self.logger.update_instance(self.holdout.tcp_port, status="running", program_id=None)
-            holdout_future = asyncio.create_task(self._run_holdout())
+            if self.holdout:
+                # Reset holdout and start its baseline run
+                self.holdout.reset(start_state)
+                if self.logger:
+                    self.logger.update_instance(self.holdout.tcp_port, status="running", program_id=None)
+                holdout_future = asyncio.create_task(self._run_holdout())
 
             # Evaluate programs in parallel
             eval_futures = []
@@ -65,10 +74,11 @@ class FactorioEvaluator:
 
             # Wait for all evaluations and holdout
             eval_results = await asyncio.gather(*eval_futures)
-            holdout_value = await holdout_future
+            if self.holdout:
+                holdout_value = await holdout_future
 
             # Update metrics for this group's holdout
-            if self.logger:
+            if self.logger and self.holdout:
                 self.logger.update_instance(
                     self.holdout.tcp_port,
                     status="completed",
@@ -77,14 +87,14 @@ class FactorioEvaluator:
 
             # Update program results
             for i, (program, (raw_reward, state, response, entities, achievements)) in enumerate(zip(programs, eval_results)):
-                relative_reward = raw_reward - holdout_value
+                relative_reward = raw_reward - holdout_value if self.holdout else raw_reward
 
                 if self.logger:
                     self.logger.update_instance(
                         self.instances[i].tcp_port,
                         status="completed",
                         raw_reward=raw_reward,
-                        holdout_value=holdout_value,
+                        holdout_value=holdout_value if self.holdout else -1,
                         relative_reward=relative_reward,
                         total_programs=self.logger.groups[
                                            self.port_to_group[self.instances[i].tcp_port]
@@ -94,7 +104,7 @@ class FactorioEvaluator:
                 program.value = relative_reward
                 program.state = state
                 program.raw_reward = raw_reward
-                program.holdout_value = holdout_value
+                program.holdout_value = holdout_value if self.holdout else -1
                 program.conversation.add_result(program.code, response, score=raw_reward, advantage=relative_reward)
                 program.response = response
                 program.achievements = achievements
@@ -103,7 +113,8 @@ class FactorioEvaluator:
 
         except Exception as e:
             if self.logger:
-                for instance in self.instances + [self.holdout]:
+                instances = self.instances + [self.holdout] if self.holdout else self.instances
+                for instance in instances:
                     self.logger.update_instance(
                         instance.tcp_port,
                         status="error",
@@ -120,9 +131,9 @@ class FactorioEvaluator:
         # Executing code
         reward, time, result = instance.eval(code, timeout=120)
         post_production_flows = instance.get_production_stats()
-        achievements = get_achievements(start_production_flows, post_production_flows)
+        achievements = get_achievements(start_production_flows, copy.deepcopy(post_production_flows))
         
-        return result, achievements
+        return result, achievements, post_production_flows
 
 
     async def _evaluate_single(self, instance_id: int, program: Program, instance: FactorioInstance) \

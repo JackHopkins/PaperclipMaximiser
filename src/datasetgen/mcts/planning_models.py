@@ -35,7 +35,7 @@ class InitialPlanOutput(BaseModel):
 class Step(BaseModel):
     candidate_language_outputs: list[LanguageOutput] = []
     judge_step_str: str = ""
-    final_step: str = ""
+    chosen_step: str = ""
     judge_language_output_step: LanguageOutput = None
     sampled_programs: list[Program] = []
     program: Program = None

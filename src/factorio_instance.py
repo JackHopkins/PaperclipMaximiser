@@ -121,6 +121,7 @@ class FactorioInstance:
         self.Position = Position
         self.EntityStatus = EntityStatus
         self.BoundingBox = BoundingBox
+        self.BeltGroup = BeltGroup
 
         # Statically named directions
         self.UP, self.ABOVE, self.TOP = [Direction.UP]*3

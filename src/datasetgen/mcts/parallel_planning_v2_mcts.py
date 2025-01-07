@@ -20,19 +20,11 @@ from datasetgen.mcts.planning_models import PlanOutput, TaskOutput, Step, Langua
 from datasetgen.mcts.game_state import GameState
 from datasetgen.mcts.program import Program
 from factorio_instance import FactorioInstance
+from results.supervised_results.tasks import TaskConfig
 logger = logging.basicConfig(level=logging.INFO)
 
 
 
-class TaskConfig:
-    """Configuration for a task"""
-    def __init__(self,
-                 task: str,
-                 check_for_completion = True,
-                 check_dicts = {}):
-        self.task = task
-        self.check_for_completion = check_for_completion
-        self.check_dicts = check_dicts
 
 
 

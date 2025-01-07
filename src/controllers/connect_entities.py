@@ -140,6 +140,7 @@ class ConnectEntities(Action):
         :param connection_type: a Pipe, TransportBelt or ElectricPole
         :example connect_entities(source=boiler, target=generator, connection_type=Prototype.Pipe)
         :example connect_entities(source=miner, target=stone_furnace, connection_type=Prototype.TransportBelt)
+        :example connect_entities(source=generator, target=miner, connection_type=Prototype.SmallElectricPole)
         :return: List of entities that were created
         """
         try:
