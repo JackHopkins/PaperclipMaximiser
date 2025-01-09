@@ -8,7 +8,6 @@ The system allows you to:
 - Create and manage multiple Factorio server instances using Docker
 - Automatically connect to and initialize each server instance
 - Configure server settings, ports, and resources for each instance
-- Share mods and scenarios across instances
 
 ## Files
 
@@ -46,7 +45,6 @@ python create_docker_compose_config.py 4
 Each Factorio instance is configured with:
 - Resource limits: 1 CPU core and 1024MB memory
 - Shared scenarios directory
-- Shared mods directory
 - Unique UDP port for game traffic (starting at 34197)
 - Unique TCP port for RCON (starting at 27015)
 
@@ -72,7 +70,6 @@ This script will:
 
 The following directories are mounted in each container:
 - Scenarios: `../scenarios/default_lab_scenario`
-- Mods: `~/Applications/Factorio.app/Contents/Resources/mods`
 
 ## Notes
 

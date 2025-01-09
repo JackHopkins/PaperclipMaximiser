@@ -20,7 +20,6 @@ def generate_compose_config(num_instances: int) -> Dict[str, Any]:
             "environment": [
                 f"SAVES=/opt/factorio/saves",
                 f"CONFIG=/opt/factorio/config",
-                f"MODS=/opt/factorio/mods",
                 f"SCENARIOS=/opt/factorio/scenarios",
                 f"PORT={base_udp_port}",
                 f"RCON_PORT={base_tcp_port}"
@@ -31,11 +30,6 @@ def generate_compose_config(num_instances: int) -> Dict[str, Any]:
                     "source": "../scenarios/default_lab_scenario",
                     "target": "/opt/factorio/scenarios/default_lab_scenario"
                 },
-                {
-                    "type": "bind",
-                    "source": "~/Applications/Factorio.app/Contents/Resources/mods",
-                    "target": "/opt/factorio/mods"
-                }
             ],
             "ports": [
                 f"{base_udp_port + i}:{base_udp_port}/udp",
@@ -57,7 +51,6 @@ def generate_compose_config(num_instances: int) -> Dict[str, Any]:
                 "--server-whitelist /opt/factorio/config/server-whitelist.json",
                 "--use-server-whitelist",
                 "--server-adminlist /opt/factorio/config/server-adminlist.json",
-                "--mod-directory /opt/factorio/mods",
             ]),
             "deploy": {
                 "resources": {

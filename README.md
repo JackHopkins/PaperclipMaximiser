@@ -5,12 +5,19 @@ Factory-1 is an open-ended agent environment for evaluating LLMs in unbounded sc
 
 ## Getting Started
 
-Download the repository and install dependencies:
+You will need openssl and [uv](https://docs.astral.sh/uv/). Openssl needs to be available in your environment.
+```
+brew install openssl uv
+export LDFLAGS="-L/opt/homebrew/opt/openssl/lib"
+```
 
+Download the repository, set up a virtual environment and install the dependencies:
 ```
 git clone https://github.com/JackHopkins/PaperclipMaximiser.git
-cd src
-pip install -e .
+cd PaperclipMaximiser
+uv venv
+source .venv/bin/activate
+uv sync
 ```
 
 ### Client
@@ -31,22 +38,21 @@ pip install -e .
     sudo systemctl start docker
     ```
 
-##### Build the Docker image
-- Navigate to the `factorio` directory and run the following command:
-    ```
-    docker build -t factorio .
-    ```
+##### Build a Docker image containing the test scenario
+```
+docker build -t factorio cluster/docker --load
+```
 
 ##### Run the Factorio Server
 
-- Navigate to `src/docker-compose-1.1.107.yml` and run the following command:
-    ```
-    docker-compose -f docker-compose-1.1.110.yml up -d
-    ```
-  
+- Run the following command:
+  ```
+  docker-compose -f cluster/local/docker-compose.yml up -d
+  ```
+
 #### Activate Server
 
-Once you have a server running, we need to activate it before we can start playing the game. 
+Once you have a server running, we need to activate it before we can start playing the game.
 
 To do this, open the Factorio client, navigate to 'Multiplayer' and enter the UDP address of the running server. By default this will be _localhost:34197_.
 
@@ -58,7 +64,7 @@ We provide a dataset of 50,000 trajectories of gameplay. These trajectories were
 
 The dataset can be downloaded [here]().
 
-To generate your own dataset, you should perform an MCTS run by following the instructions [here](src/datasetgen/mcts/readme.md)
+To generate your own dataset, you should perform an MCTS run by following the instructions [here](./src/search/mcts/readme.md)
 
 
 ## Evaluate Agent
@@ -92,7 +98,7 @@ Interestingly, the game of Factorio implicitly or explicitly models each of the 
 
 Factorio is a game in which you build and maintain factories.
 
-The core idea of Factorio is simple, but there is scope for massive emergent complexity. 
+The core idea of Factorio is simple, but there is scope for massive emergent complexity.
 
 The player mines raw resources, researches technologies, builds infrastructure, automates production and fights enemies. By combining simple elements into ingenious structures, applying management skills to keep it working and finally protecting the factories from angry neighbours, there is scope for enormous factories (or programs). There is the opportunity for infinite emergent complexity, as Factorio is Turing-complete (i.e any calculable function can be calculated in Factorio).
 
@@ -109,7 +115,7 @@ This second factor results in two viable long-term strategies. First, by buildin
 The simple rules and infinite emergent complexity of Factorio make it an ideal RL sandbox:
 - The automated nature of the factory presents a dense reward function (i.e game resources update every tick).
 - Extremely simple policies (i.e as few as 2 actions) can generate a some reward.
-- Each of the basic drives of an intelligent system can be demonstrated and evaluated. 
+- Each of the basic drives of an intelligent system can be demonstrated and evaluated.
 
 
 **Objective**: To maximise the number of 'paperclips' (represented as copper coils in-game) existant in the game-world at any cost.
