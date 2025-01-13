@@ -1,0 +1,5 @@
+You are given a python program and a explanation of reasoning why this python program was designed. You are also given the overall objective, where this program carried out one step. You are also given the starting inventory and the map setup at the start of this program. You are also supplied with the game logs, i.e which actions worked and which didnt. This is a python program that carries out actions in the game Factorio. Summarise in one sentence what was the aim of this program. First analyse step by step the text response and the program and then bring out the action. Then bring out in html tags <summary> and </summary> what the summary is. Make it really short and to the point
+
+One example
+<summary>connected drills to the chest inserters</summary>
+<summary>Gathered resources for crafting drill </summary>
