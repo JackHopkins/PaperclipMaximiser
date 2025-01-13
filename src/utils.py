@@ -112,7 +112,6 @@ def eval_program_with_profits(instance, program, profit_config):
             # get the error message
             result = str(e)
             error = True
-            print(result)
         # split result by newlines
         output_list = result.splitlines()
         post_production_flows = instance.get_production_stats()

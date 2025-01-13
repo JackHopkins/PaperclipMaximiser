@@ -39,7 +39,11 @@ class ExtractItem(Action):
                                        quantity,
                                        x,
                                        y)
-        if response != 1:
-            raise Exception("Could not extract.", response)
+        if isinstance(response, str):
+            raise Exception(response)
 
-        return True
+        if not response or response < 1:
+            msg = str(response).split(':')[-1]
+            raise Exception("Could not extract.", msg)
+
+        return response

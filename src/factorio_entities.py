@@ -1,7 +1,7 @@
 from typing import Tuple, Any, Union, Dict, Set
 from typing import List, Optional
 from enum import Enum
-from pydantic import BaseModel, PrivateAttr
+from pydantic import BaseModel, PrivateAttr, root_validator
 
 
 # This should really live in `factorio_types`, but it's here to prevent a circular import
@@ -11,6 +11,7 @@ class EntityStatus(Enum):
     NO_POWER = "no_power"
     LOW_POWER = "low_power"
     NO_FUEL = "no_fuel"
+    EMPTY = "empty"
     #DISABLED_BY_CONTROL_BEHAVIOR = "disabled_by_control_behavior"
     #OPENED_BY_CIRCUIT_NETWORK = "opened_by_circuit_network"
     #CLOSED_BY_CIRCUIT_NETWORK = "closed_by_circuit_network"
@@ -127,9 +128,30 @@ class Position(BaseModel):
     x: float
     y: float
 
-    def __init(self, x, y):
-        self.x = x
-        self.y = y
+    @classmethod
+    def _parse_positional_args(cls, v):
+        if isinstance(v, tuple) and len(v) == 2:
+            return {'x': v[0], 'y': v[1]}
+        return v
+
+    def __init__(self, *args, **kwargs):
+        if args and kwargs:
+            raise ValueError("Cannot mix positional and keyword arguments")
+
+        if args:
+            if len(args) != 2:
+                raise ValueError("Position requires exactly 2 positional arguments")
+            kwargs = {'x': args[0], 'y': args[1]}
+
+        super().__init__(**kwargs)
+
+    @root_validator(pre=True)
+    def parse_args(cls, values):
+        if isinstance(values, tuple):
+            if len(values) != 2:
+                raise ValueError("Position requires exactly 2 positional arguments when not using keywords")
+            return {'x': values[0], 'y': values[1]}
+        return values
 
     def __add__(self, other) -> 'Position':
         return Position(x=self.x + other.x, y=self.y + other.y)
@@ -142,8 +164,12 @@ class Position(BaseModel):
 
     def above(self) -> 'Position':
         return Position(x=self.x, y=self.y - 1)
+    def up(self) -> 'Position':
+        return self.above()
     def below(self) -> 'Position':
         return Position(x=self.x, y=self.y + 1)
+    def down(self) -> 'Position':
+        return self.below()
     def left(self) -> 'Position':
         return Position(x=self.x - 1, y=self.y)
     def right(self) -> 'Position':
@@ -214,18 +240,6 @@ class Ingredient(BaseModel):
 class Product(Ingredient):
     probability: Optional[float] = 1
 
-"""
-{'name': 'assembling-machine-1', 'position': {'y': 0.5, 'x': 0.5},
- 'direction': 0, 'health': 300, 'energy': 0, 'type': 'assembling-machine', 
- 'status': <EntityStatus.NO_POWER: 'no_power'>, 'warnings': ['not connected to power network', ')'], 
- 'furnace_source': {}, 'furnace_result': {}, 'furnace_modules': {}, 'assembling_machine_input': {}, 
- 'assembling_machine_output': {}, 'assembling_machine_modules': {}, 'lab_input': {}, 'lab_modules': {},
-  'dimensions': {'width': 2.3984375, 'height': 2.3984375}, 'tile_dimensions': {'tile_width': 3, 'tile_height': 3},
-   'recipe': {'name': 'iron-gear-wheel', 'category': 'crafting', 'enabled': True, 'energy': 0.5, 
-   'ingredients': [{'name': 'iron-plate', 'type': 'item', 'amount': 2}], 
-   'products': [{'name': 'iron-gear-wheel', 'type': 'item', 'amount': 1, 'probability': 1}]}}
-"""
-
 class Recipe(BaseModel):
     name: Optional[str]
     ingredients: Optional[List[Ingredient]] = []
@@ -253,6 +267,29 @@ class Entity(BaseModel):
     health: float
     warnings: List[str] = []
     status: EntityStatus = EntityStatus.NORMAL
+
+    def __repr__(self) -> str:
+        # Only includes the fields we  want to present to the agent
+        # Get all instance attributes
+        all_fields = self.__dict__
+        # Filter out private attributes and excluded fields
+        excluded_fields = {'dimensions', 'prototype', 'type'}
+        repr_dict = {}
+
+        for key, value in all_fields.items():
+            # Remove the '_' prefix that pydantic adds to fields
+            clean_key = key.lstrip('_')
+            if clean_key not in excluded_fields and not clean_key.startswith('__'):
+                # Handle enum values specially
+                if isinstance(value, Enum):
+                    repr_dict[clean_key] = value.name
+                else:
+                    if (clean_key == 'warnings' and value) or clean_key != 'warnings': # Don't show empty warnings list
+                        repr_dict[clean_key] = value
+
+        # Convert to string format
+        items = [f"{k}={v!r}" for k, v in repr_dict.items()]
+        return f"\n\t{self.__class__.__name__}({', '.join(items)})"
 
 class Splitter(Entity):
     input_positions: List[Position]
@@ -346,13 +383,16 @@ class EntityGroup(BaseModel):
 class BeltGroup(EntityGroup):
     belts: List[TransportBelt]
     output_positions: List[Position]
+    inventory: Inventory = Inventory()
+    name: str = 'belt-group'
 
     def __repr__(self) -> str:
         belt_summary = f"[{len(self.belts)} belts]"
-        return f"BeltGroup(position={self.position}, input_positions={self.input_positions}, output_positions={self.output_positions}, status={self.status}, belts={belt_summary})"
+        return f"BeltGroup(position={self.position}, input_positions={self.input_positions}, output_positions={self.output_positions}, inventory={self.inventory}, status={self.status}, belts={belt_summary})"
 
 class PipeGroup(EntityGroup):
     pipes: List[Pipe]
+    name: str = 'pipe-group'
 
     def __repr__(self) -> str:
         pipe_summary = f"[{len(self.pipes)} pipes]"
