@@ -206,13 +206,8 @@ async def main():
         #'model': "ft:gpt-4o-2024-08-06:paperplane-ai:fact-self-gen-planning:AQzcPI91",
         "model": MODEL,
         'prompt_path': "../../prompts/bottoms_up_prompts/finetuning_prompts/system_message_policy_refined.md",
-<<<<<<< HEAD:src/datasetgen/mcts/__main__.py
-        'version': 110,
-        'version_desc': "KLD Diversity Sampling / Tick based sleep / Step-wise evaluation",
-=======
         'version': 42,
         'version_desc': "Chunked / KLD Diversity Sampling / Tick based sleep / Step-wise evaluation",
->>>>>>> feature/advantage:src/search/mcts/__main__chunked.py
         'max_conv_len': 30,
         'logit_bias': { # We add these logit biases to prevent sampling the truncated code of previous messages.
             "15714": -100,  # 'LINE'

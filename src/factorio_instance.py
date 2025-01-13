@@ -124,12 +124,9 @@ class FactorioInstance:
         self.EntityStatus = EntityStatus
         self.BoundingBox = BoundingBox
         self.BeltGroup = BeltGroup
-<<<<<<< HEAD
-=======
 
         #
         self.prototype_by_name = prototype_by_name
->>>>>>> feature/advantage
 
         # Statically named directions
         self.UP, self.ABOVE, self.TOP = [Direction.UP]*3
@@ -227,13 +224,8 @@ class FactorioInstance:
         self.execute_transaction()
 
     def speed(self, speed):
-<<<<<<< HEAD
         self.rcon_client.send_command(f'/c game.speed = {speed}')
         self.game_state.speed = speed
-=======
-        response = self.rcon_client.send_command(f'/c game.speed = {speed}')
-        self.game_state._speed = speed
->>>>>>> feature/advantage
 
     def log(self, *arg):
         """

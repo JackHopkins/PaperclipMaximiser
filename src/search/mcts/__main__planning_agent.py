@@ -126,11 +126,7 @@ async def get_seed_programs(
     return seeded_programs
 
 async def main():
-<<<<<<< HEAD:src/datasetgen/mcts/__main__planning_agent.py
     step_executor_model_path = "ft:gpt-4o-2024-08-06:paperplane-ai:fact-instruct-1:ATSVGf4d:ckpt-step-214"#:ckpt-step-214"
-=======
-    step_executor_model_path = "ft:gpt-4o-2024-08-06:paperplane-ai:fact-instruct-1:ATSVGf4d:ckpt-step-214"
->>>>>>> feature/advantage:src/search/mcts/__main__planning_agent.py
     planner_model = "claude-3-5-sonnet-20241022"
     objective_model = "ft:gpt-4o-2024-08-06:paperplane-ai:fact-self-gen-planning:AQzcPI91"
     step_executor_prompt_path = r"src/prompts/bottoms_up_prompts/finetuning_prompts/step_supervised"
@@ -140,12 +136,7 @@ async def main():
     starting_scenario_folder = r"../../skills/data_scenarios/starting_scenarios"
     objective_model_prompt_path = r"src/prompts/bottoms_up_prompts/finetuning_prompts/system_message_policy_self_gen.md"
     nr_of_seeded_programs = 4
-<<<<<<< HEAD:src/datasetgen/mcts/__main__planning_agent.py
     version = 200 # 120 and 121 was the last version before this change
-=======
-    version = 101
-    version = 43
->>>>>>> feature/advantage:src/search/mcts/__main__planning_agent.py
     parent_version = 4
     version_description = "Demo"
 
