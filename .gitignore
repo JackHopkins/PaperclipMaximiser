@@ -38,3 +38,5 @@ client/__pycache__/
 /data/place_next_to_connect/
 /data/refactor/
 /data/refactor2/
+src/skills/expanded_skills/*
+src/skills/ground_truth_skills/*
