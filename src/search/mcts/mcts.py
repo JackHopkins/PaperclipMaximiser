@@ -1,4 +1,5 @@
 import asyncio
+import copy
 import json
 import re
 from asyncio import sleep
@@ -10,7 +11,7 @@ import tenacity
 from tenacity import wait_exponential, retry, retry_if_exception_type
 
 from search.model.conversation import Conversation, Message, GenerationParameters
-from search.mcts.conversation_formatter import ConversationFormatter, DefaultFormatter
+from search.mcts.formatters.conversation_formatter import ConversationFormatter, DefaultFormatter
 from search.db_client import DBClient
 from search.factorio_evaluator import FactorioEvaluator
 from search.model.game_state import GameState
@@ -122,16 +123,19 @@ class MCTS:
                                        meta={}
                                        ) -> List[Program]:
         """Generate multiple programs either through OpenAI's n parameter or parallel calls"""
+        conversation = copy.deepcopy(conversation)
+
+        formatted = await self.formatter.format_conversation(conversation)
         formatted_messages = self.formatter.to_llm_messages(
-            self.formatter.format_conversation(conversation)
+            formatted
         )
-        system_message = formatted_messages[0]
+        #system_message = formatted_messages[0]
 
         # Take the most recent messages up to maximum_lookback, excluding the system message
-        recent_messages = formatted_messages[1:][-self.db.max_conversation_length:]
+        # recent_messages = formatted_messages[1:][-self.db.max_conversation_length:]
 
         # Combine system message with recent messages
-        formatted_messages = [system_message, *recent_messages]
+        #formatted_messages = [system_message, *recent_messages]
 
         try:
             messages = conversation.model_dump()['messages']
@@ -184,8 +188,8 @@ class MCTS:
                     presence_penalty=self.presence_penalty,
                     frequency_penalty=self.frequency_penalty
                 )
-                if 'sonnet' in generation_params.model or 'gemini' in generation_params.model:
-                    await sleep(20 + random()*5) # Sleep with jitter to avoid rate limiting issues
+                if 'sonnet' in generation_params.model or 'gemini' in generation_params.model and len(formatted_messages) > 32:
+                    await sleep(5 + random()*5) # Sleep with jitter to avoid rate limiting issues
                 return response
             except Exception as e:
                 print(f"Single generation failed: {str(e)}")

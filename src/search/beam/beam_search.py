@@ -1,4 +1,5 @@
 import asyncio
+import copy
 import logging
 from enum import Enum
 from math import floor
@@ -16,7 +17,7 @@ from search.model.instance_group import InstanceGroup
 from search.model.conversation import Conversation, Message, GenerationParameters
 from search.model.game_state import GameState
 from search.model.program import Program
-from search.mcts.conversation_formatter import ConversationFormatter, DefaultFormatter
+from search.mcts.formatters.conversation_formatter import ConversationFormatter, DefaultFormatter
 from factorio_instance import FactorioInstance
 
 # Configure logging
@@ -175,6 +176,92 @@ class BeamSearch(MCTS):
         # self._generate_parallel = MCTS._generate_parallel
         # self._create_program = MCTS._create_program
 
+    # async def _generate_programs_batch(self,
+    #                                    conversation: Conversation,
+    #                                    generation_params: GenerationParameters,
+    #                                    meta={}) -> List[Program]:
+    #     """Modified to handle multiple conversations for batch generation"""
+    #     programs = []
+    #     n = generation_params.n
+    #
+    #
+    #     if self._is_model_compatible_with_n_samples(generation_params.model) and hasattr(self.llm, "acall"):
+    #         conversation = copy.deepcopy(conversation)
+    #         formatted = await self.formatter.format_conversation(conversation)
+    #         formatted_messages = self.formatter.to_llm_messages(
+    #             formatted
+    #         )
+    #         try:
+    #             messages = conversation.model_dump()['messages']
+    #         except Exception:
+    #             messages = conversation.dict()['messages']
+    #         # Use OpenAI's native n parameter support
+    #         response = await self.llm.acall(
+    #             messages=formatted_messages,
+    #             n_samples=generation_params.n,
+    #             temperature=generation_params.temperature,
+    #             max_tokens=generation_params.max_tokens,
+    #             logit_bias=generation_params.logit_bias,
+    #             stop_sequences=generation_params.stop_sequences,
+    #             model=generation_params.model,
+    #             presence_penalty=self.presence_penalty,
+    #             frequency_penalty=self.frequency_penalty
+    #         )
+    #         return await self._process_openai_response(response, conversation, generation_params, messages, meta)
+    #     else:
+    #         # Create a separate conversation copy for each potential program
+    #         conversations = [copy.deepcopy(conversation) for _ in range(n)]
+    #         # Process each conversation independently
+    #         for i, conversation in enumerate(conversations[:n]):  # Limit to requested n samples
+    #             formatted = await self.formatter.format_conversation(conversation)
+    #             formatted_messages = self.formatter.to_llm_messages(
+    #                 formatted
+    #             )
+    #             try:
+    #                 messages = conversation.model_dump()['messages']
+    #             except Exception:
+    #                 messages = conversation.dict()['messages']
+    #
+    #             if self._is_model_compatible_with_n_samples(generation_params.model) and hasattr(self.llm, "acall"):
+    #                 # Use OpenAI's native n parameter support
+    #                 response = await self.llm.acall(
+    #                     messages=formatted_messages,
+    #                     n_samples=generation_params.n,
+    #                     temperature=generation_params.temperature,
+    #                     max_tokens=generation_params.max_tokens,
+    #                     logit_bias=generation_params.logit_bias,
+    #                     stop_sequences=generation_params.stop_sequences,
+    #                     model=generation_params.model,
+    #                     presence_penalty=self.presence_penalty,
+    #                     frequency_penalty=self.frequency_penalty
+    #                 )
+    #                 return await self._process_openai_response(response, conversation, generation_params, messages, meta)
+    #             else:
+    #                 # Make parallel calls for other providers
+    #                 #conversation.messages = formatted_messages
+    #                 responses =  await self._generate_parallel(
+    #                     conversation,
+    #                     generation_params,
+    #                     formatted_messages,
+    #                     messages,
+    #                     meta
+    #                 )
+    #
+    #                 for response in responses:
+    #                     if response and self._verify_response_is_python(response):
+    #                         code = self._extract_code_from_choice(response)
+    #                         if code:
+    #                             # Create program with its independent conversation copy
+    #                             program = await self._create_program(
+    #                                 code=code,
+    #                                 conversation=conversation,  # Use the independent conversation for this program
+    #                                 response=response
+    #                             )
+    #                             if program:
+    #                                 programs.append(program)
+    #
+    #         return programs
+    #
     async def evaluate_candidates(self,
                                   state: GameState,
                                   conversation: Conversation,
@@ -219,7 +306,9 @@ class ParallelBeamSearch:
                  config: ParallelBeamConfig,
                  version: int,
                  version_description: str,
-                 current_depth=0):
+                 current_depth=0,
+                 formatter: ConversationFormatter = DefaultFormatter(),):
+
 
         self.console = Console()
         self.config = config
@@ -228,6 +317,7 @@ class ParallelBeamSearch:
         self.version = version
         self.version_description = version_description
         self.current_depth = current_depth
+        self.formatter = formatter
         # Validate instance count
         self._validate_instance_count(len(instances), config.beam_width)
 
@@ -277,6 +367,7 @@ class ParallelBeamSearch:
                 llm_factory=self.llm_factory,
                 db_client=self.db_client,
                 evaluator=evaluator,
+                formatter=self.formatter,
                 system_prompt=self.config.system_prompt,
                 initial_state=self.config.initial_state,
                 version=self.version,
@@ -305,7 +396,7 @@ class ParallelBeamSearch:
     async def _run_beam_iteration(self, n_iterations: int):
         """Run one iteration of parallel beam search"""
         try:
-            for iteration in range(n_iterations*2):
+            for iteration in range(n_iterations*5):
                 logger.info(f"Starting iteration {iteration}")
 
                 # Generate and evaluate candidates in parallel
@@ -326,7 +417,7 @@ class ParallelBeamSearch:
                         parent_id = None
                     else:
                         state = group.current_state
-                        conversation = group.current_conversation
+                        conversation = copy.deepcopy(group.current_conversation)
                         parent_id = group.current_program.id if group.current_program else None
 
                     task = group.beam.evaluate_candidates(
@@ -353,7 +444,7 @@ class ParallelBeamSearch:
                 for group, program in zip(self.beam_groups, best_programs):
                     group.current_program = program
                     group.current_state = program.state
-                    group.current_conversation = program.conversation
+                    group.current_conversation = copy.deepcopy(program.conversation)
 
                     # We need to double it, because in the DBClient, we halve it
                     # in expectation of depth being the full conversation length in the MCTS implementation

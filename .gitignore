@@ -46,3 +46,4 @@ src/skills/ground_truth_skills/*
 /src/datasetgen/mcts/plots/
 /src/search/mcts/runs/
 /data/icons/
+/src/search/beam/summary_cache/

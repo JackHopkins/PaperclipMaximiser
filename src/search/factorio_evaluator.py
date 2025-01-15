@@ -1,4 +1,5 @@
 import asyncio
+import copy
 import pickle
 from typing import List, Tuple, Union, Dict
 
@@ -109,10 +110,13 @@ class FactorioEvaluator:
                 program.value = relative_reward
                 program.state = state
                 program.raw_reward = raw_reward
-                program.holdout_value = holdout_value if self.holdout else -1
-                program.conversation.add_result(program.code, response, score=raw_reward, advantage=relative_reward)
+                #program.holdout_value = holdout_value
+                conversation = copy.deepcopy(program.conversation)
+                conversation.add_result(program.code, response, score=raw_reward, advantage=relative_reward, objectives=program.meta['objectives'] if 'objectives' in program.meta else [])
+                program.conversation = conversation
                 program.response = response
                 program.achievements = achievements
+                program.holdout_value = holdout_value if self.holdout else -1
 
             return programs
 
