@@ -8,19 +8,19 @@ from dataclasses import dataclass
 from rich.console import Console
 from tenacity import retry, wait_exponential
 import copy
-from datasetgen.mcts.conversation import Conversation, GenerationParameters, Message
-from datasetgen.mcts.conversation_formatter import ConversationFormatter, DefaultFormatter, StructurePreservingFormatter
-from datasetgen.mcts.db_client import DBClient
-from datasetgen.mcts.factorio_evaluator import FactorioEvaluator
-from datasetgen.mcts.grouped_logger import GroupedFactorioLogger
-from datasetgen.mcts.instance_group import InstanceGroup
-from datasetgen.mcts.parallel_mcts_config import ParallelMCTSConfig
-from datasetgen.mcts.planning_mcts import get_mining_setup
-from datasetgen.mcts.planning_models import PlanOutput, TaskOutput, Step, LanguageOutput, InitialPlanOutput
-from datasetgen.mcts.game_state import GameState
-from datasetgen.mcts.program import Program
+from search.model.conversation import Conversation, GenerationParameters, Message
+from search.mcts.conversation_formatter import ConversationFormatter, DefaultFormatter, StructurePreservingFormatter
+from search.db_client import DBClient
+from search.factorio_evaluator import FactorioEvaluator
+from search.mcts.grouped_logger import GroupedFactorioLogger
+from search.model.instance_group import InstanceGroup
+from search.mcts.parallel_mcts_config import ParallelMCTSConfig
+from search.mcts.planning_mcts import get_mining_setup
+from search.mcts.planning_models import PlanOutput, TaskOutput, Step, LanguageOutput, InitialPlanOutput
+from search.model.game_state import GameState
+from search.model.program import Program
 from factorio_instance import FactorioInstance
-from results.supervised_results.tasks import TaskConfig
+from supervised_tasks.supervised_results.tasks import TaskConfig
 logger = logging.basicConfig(level=logging.INFO)
 
 
@@ -1038,7 +1038,7 @@ class ParallelPlanningV2MCTS:
                 logit_bias=generation_params.logit_bias,
                 stop_sequences=generation_params.stop_sequences,
                 model=generation_params.model,
-                presency_penalty=generation_params.presency_penalty
+                presence_penalty=generation_params.presence_penalty
             )
 
             programs = []

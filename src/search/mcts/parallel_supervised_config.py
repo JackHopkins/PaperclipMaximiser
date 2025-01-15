@@ -1,6 +1,6 @@
 from typing import Any, Dict, Type
 
-from datasetgen.mcts.game_state import GameState
+from search.model.game_state import GameState
 
 
 class SupervisedExecutorConfig:

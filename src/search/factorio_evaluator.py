@@ -23,7 +23,7 @@ class FactorioEvaluator:
             self.holdout = None
 
         self.value_accrual_time = value_accrual_time  # Time to accrue value before evaluating
-        self.error_penalty = error_penalty  # Penalty for errors during evaluation
+        self.error_penalty = 0  # Penalty for errors during evaluation
 
 
         # Initialize logger if not provided
@@ -159,7 +159,7 @@ class FactorioEvaluator:
             code = program.code
             # Executing code
             self.logger.update_instance(tcp_port, status="executing")
-            reward, time, result = instance.eval(program.code, timeout=600)
+            reward, time, result = instance.eval(code, timeout=600)
 
             # Capturing immediate resulting state
             self.logger.update_instance(tcp_port, status="capturing state")

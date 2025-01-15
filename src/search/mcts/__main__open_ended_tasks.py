@@ -4,14 +4,14 @@ sys.path.append(r"C:\Users\martb\Documents\paperpclip_max\PaperclipMaximiser")
 import json
 import os
 
-from datasetgen.auto_curriculum.plan_sampler import PlanSampler
-from datasetgen.mcts.conversation import Conversation, Message
-from datasetgen.mcts.parallel_supervised_config import SupervisedExecutorConfig
-from datasetgen.mcts.parallel_planning_v2_mcts import ParallelPlanningV2MCTS, TaskConfig
-from datasetgen.mcts.planning_mcts import PlanningMCTS
-from datasetgen.mcts.program import Program
-from datasetgen.mcts.best_of_n_open_ended import BestOfNOpenExecutor
-from datasetgen.mcts.samplers.kld_achievement_sampler import KLDiversityAchievementSampler
+from search.auto_curriculum.plan_sampler import PlanSampler
+from search.model.conversation import Conversation, Message
+from search.mcts.parallel_supervised_config import SupervisedExecutorConfig
+from search.mcts.parallel_planning_v2_mcts import ParallelPlanningV2MCTS, TaskConfig
+from search.mcts.planning_mcts import PlanningMCTS
+from search.model.program import Program
+from search.mcts.best_of_n_open_ended import BestOfNOpenExecutor
+from search.mcts.samplers.kld_achievement_sampler import KLDiversityAchievementSampler
 os.environ["FORCE_COLOR"] = "1"
 os.environ["TERM"] = "xterm-256color"
 
@@ -22,12 +22,12 @@ from typing import Tuple, List
 from dotenv import load_dotenv
 from rich import print
 from cluster.local.cluster_ips import get_local_container_ips
-from datasetgen.mcts.conversation_formatter import PLANNING_ADDITION_PROMPT
-from datasetgen.mcts.db_client import DBClient
-from datasetgen.mcts.game_state import GameState
+from search.mcts.conversation_formatter import PLANNING_ADDITION_PROMPT
+from search.db_client import DBClient
+from search.model.game_state import GameState
 from factorio_instance import FactorioInstance
 from llm_factory import LLMFactory
-from results.supervised_results.tasks import TASKS
+from supervised_tasks.supervised_results.tasks import TASKS
 load_dotenv()
 from datetime import datetime
 import matplotlib.pyplot as plt
@@ -155,10 +155,10 @@ def create_factorio_instances() -> List[FactorioInstance]:
 async def main():
     model_to_evaluate = "claude-3-5-sonnet-20241022"
     #model_to_evaluate = "meta-llama/Meta-Llama-3.1-70B-Instruct-Turbo"
-    #model_to_evaluate = "Qwen/Qwen2.5-72B-Instruct-Turbo"
+    model_to_evaluate = "Qwen/Qwen2.5-72B-Instruct-Turbo"
     #model_to_evaluate = "gpt-4o"
-    result_path = r"src\results\supervised_results"
-    task_types = ["open_ended"]
+    result_path = r"src\supervised_tasks\supervised_results"
+    task_types = ["open_ended_v2"]
     tasks_to_exclude = []
     search_type = "open_ended"
     search_iterations = 1
@@ -194,7 +194,7 @@ async def main():
         model_to_evaluate=model_to_evaluate,
         initial_state=initial_state,
         supervised_kwargs = {"prompt_path": r"src\prompts\supervised_task_prompts\open_ended\action_generator",
-                             "max_steps_per_objective": 10,
+                             "max_steps_per_objective": 16,
                              "beam_unification_steps": 3}),
         "executor": BestOfNOpenExecutor}
         }

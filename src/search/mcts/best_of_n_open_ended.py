@@ -4,17 +4,17 @@ from typing import List, Dict, Optional, Any, Tuple
 import asyncio
 from math import floor
 import logging
-from datasetgen.mcts.db_client import DBClient
-from datasetgen.mcts.supervised_task_executor_abc import SupervisedTaskExecutorABC, PlanningGroupV2
-from datasetgen.mcts.planning_models import PlanOutput, TaskOutput, Step, LanguageOutput, InitialPlanOutput
-from datasetgen.mcts.game_state import GameState
-from datasetgen.mcts.program import Program
+from search.db_client import DBClient
+from search.mcts.supervised_task_executor_abc import SupervisedTaskExecutorABC, PlanningGroupV2
+from search.mcts.planning_models import PlanOutput, TaskOutput, Step, LanguageOutput, InitialPlanOutput
+from search.model.game_state import GameState
+from search.model.program import Program
 from factorio_instance import FactorioInstance
-from results.supervised_results.tasks import OpenEndedTaskConfig
-from datasetgen.mcts.parallel_supervised_config import SupervisedExecutorConfig
-from datasetgen.mcts.conversation import Conversation, GenerationParameters, Message
+from supervised_tasks.supervised_results.tasks import OpenEndedTaskConfig
+from search.mcts.parallel_supervised_config import SupervisedExecutorConfig
+from search.model.conversation import Conversation, GenerationParameters, Message
 from tenacity import retry, wait_exponential
-from datasetgen.mcts.planning_mcts import get_mining_setup
+from search.mcts.planning_mcts import get_mining_setup
 import copy
 logger = logging.basicConfig(level=logging.INFO)
 

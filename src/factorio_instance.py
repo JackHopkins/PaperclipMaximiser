@@ -569,7 +569,7 @@ class FactorioInstance:
                             # Store both original and wrapped version
                             self.persistent_vars[name] = wrap_for_serialization(value)
                             setattr(self, name, value)
-                            print(f"{self.tcp_port}: Stored variable {name} - {type(value)}")
+                            #print(f"{self.tcp_port}: Stored variable {name} - {type(value)}")
 
                     last_successful_state = dict(self.persistent_vars)
 
@@ -752,20 +752,20 @@ class FactorioInstance:
     
     def eval_with_error(self, expr, timeout=60):
         """ Evaluate an expression with a timeout, and return the result without error handling"""
-        # with ThreadPoolExecutor(max_workers=1) as executor:
-        #     future = executor.submit(self._eval_with_timeout, expr)
-        #     score, goal, result = future.result(timeout)
-        #     return score, goal, result
-        def handler(signum, frame):
-            raise TimeoutError()
-
-        signal.signal(signal.SIGALRM, handler)
-        signal.alarm(timeout)
-
-        try:
-            return self._eval_with_timeout(expr)
-        finally:
-            signal.alarm(0)
+        with ThreadPoolExecutor(max_workers=1) as executor:
+            future = executor.submit(self._eval_with_timeout, expr)
+            score, goal, result = future.result(timeout)
+            return score, goal, result
+        #def handler(signum, frame):
+        #    raise TimeoutError()
+#
+        #signal.signal(signal.SIGALRM, handler)
+        #signal.alarm(timeout)
+#
+        #try:
+        #    return self._eval_with_timeout(expr)
+        #finally:
+        #    signal.alarm(0)
 
 
     def eval(self, expr, timeout=60):
