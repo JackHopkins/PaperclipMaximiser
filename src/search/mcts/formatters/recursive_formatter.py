@@ -90,8 +90,20 @@ class RecursiveFormatter(ConversationFormatter):
         if not self.truncate_entity_data or is_recent or message.role in ('assistant', 'system'):
             return message
 
+        #if isinstance(message.content, str):
+        #    new_content = self.entity_data_pattern.sub(': <STALE_ENTITY_DATA_OMITTED/>', message.content)
+        #    if new_content != message.content:
+        #        return Message(
+        #            role=message.role,
+        #            content=new_content,
+        #            metadata=message.metadata
+        #        )
         if isinstance(message.content, str):
-            new_content = self.entity_data_pattern.sub(': <STALE_ENTITY_DATA_OMITTED/>', message.content)
+            if "<entities>" in message.content and "</entities>" in message.content:
+                # replace everything between <entities> and </entities> with <STALE_ENTITY_DATA_OMITTED/>
+                new_content = re.sub(r'<entities>.*?</entities>', '<STALE_ENTITY_DATA_OMITTED/>', message.content, flags=re.DOTALL)
+            else:
+                new_content = message.content
             if new_content != message.content:
                 return Message(
                     role=message.role,

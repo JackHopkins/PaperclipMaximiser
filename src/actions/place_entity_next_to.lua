@@ -258,7 +258,7 @@ global.actions.place_entity_next_to = function(player_index, entity, ref_x, ref_
             table.insert(entity_names, e.name)
         end
         error("\'Cannot place entity at the position " .. serpent.line(new_position) .. " with direction " ..
-              serpent.line(orientation) .. ". Attempting to place next to: "..ref_entity.name..". Nearby entities: " .. serpent.line(entity_names)..
+              serpent.line(orientation) .. ". Attempting to place next to: "..ref_entity.name..". There might be a collision with existing entities or this area cannot be placed on (water). Nearby entities: " .. serpent.line(entity_names)..
                 ". Consider increasing the spacing (".. gap..") or changing the reference position (" .. serpent.line(ref_position) .. ")\'")
     end
 

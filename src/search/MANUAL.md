@@ -2,8 +2,22 @@
 
 ## Core Interaction Patterns
 
-### 0. Material Processing Requirements
-Before crafting any items requiring metal plates, ores MUST be smelted first:
+### 0. Recipe printing
+Before crafting any item, you must print the recipes of said items:
+```python
+# Print recipe for Boiler
+print("Recipe for 3 Boilers:")
+boiler_recipe = get_prototype_recipe(Prototype.Boiler)
+ingredients = boiler_recipe.ingredients
+for ingredient in ingredients:
+    # need to multiply by 3 as we need 3 boilers
+    count = ingredient.count*3
+    print(f"Need: {{count}} {{ingredient.name}} for 3 boilers")
+
+```
+
+### 1. Material Processing Requirements
+Before crafting any items requiring or copper plates, ores MUST be smelted first:
 ```python
 # Wrong:
 # Can't craft directly from ore!
@@ -13,11 +27,18 @@ craft_item(Prototype.IronGearWheel)  # Will fail - needs iron plates, not ore
 # 1. Get ore
 move_to(nearest(Resource.IronOre))
 harvest_resource(nearest(Resource.IronOre), quantity=10)
+print(f"Harvested 10 iron ore")
 
 # 2. Smelt ore into plates
+# move to the position to place the entity
+move_to(position)
 furnace = place_entity(Prototype.StoneFurnace, position=position)
-insert_item(Prototype.Coal, furnace, quantity=5)  # Don't forget fuel
-insert_item(Prototype.IronOre, furnace, quantity=10)
+print(f"Placed the furnace at {furnace.position}")
+
+# we also update the furnace variable by returning it from the function
+# This ensures it doesnt get stale and the inventory updates are represented in the variable
+furnace = insert_item(Prototype.Coal, furnace, quantity=5)  # Don't forget fuel
+furnace = insert_item(Prototype.IronOre, furnace, quantity=10)
 
 # 3. Wait for smelting (with safety timeout)
 for _ in range(30):  # Maximum 30 seconds wait
@@ -26,32 +47,30 @@ for _ in range(30):  # Maximum 30 seconds wait
     sleep(1)
 else:
     raise Exception("Smelting timeout - check fuel and inputs")
-    
+
+# final check for the inventory of furnace
+iron_plates_in_furnace = inspect_inventory(furnace)[Prototype.IronPlate]
+assert iron_plates_in_furnace>=10, "Not enough iron plates in furnace"
+print(f"Smelted 10 iron plates")
 # 4. Now you can craft
 craft_item(Prototype.IronGearWheel)
+print(f"Crafted on gear wheels")
 ```
 
-### 1. Inventory Requirements
+### 2. Inventory Requirements
 Before placing any entity, ensure it exists in the inventory. Many beginners miss this crucial step:
 ```python
 # Wrong:
 drill = place_entity(Prototype.BurnerMiningDrill, position=position)  # Will fail if not in inventory!
 
 # Correct:
-# First check recipe and craft if needed
-recipe = get_prototype_recipe(Prototype.BurnerMiningDrill)
-craft_item(Prototype.BurnerMiningDrill)  # Only after ensuring materials available
+inventory = inspect_inventory()
+burner_drills_in_inventry = inventory[Prototype.BurnerMiningDrill]
+assert burner_drills_in_inventry > 0, "No drills in inventory 
+# move to the position to place the entity
+move_to(position)
 drill = place_entity(Prototype.BurnerMiningDrill, position=position)
-
-# Even better - use a helper function:
-def ensure_craftable(prototype, quantity=1):
-    recipe = get_prototype_recipe(prototype)
-    inventory = inspect_inventory()
-    if inventory.get(prototype, 0) < quantity:
-        craft_item(prototype, quantity)
-        
-ensure_craftable(Prototype.BurnerMiningDrill)
-drill = place_entity(Prototype.BurnerMiningDrill, position=position)
+print(f"Placed drill at {drill.position}")
 ```
 
 You can inspect your own inventory, or the inventory of an entity:
@@ -61,7 +80,10 @@ player_inv = inspect_inventory()
 iron_plates = player_inv[Prototype.IronPlate]
 
 # Check entity inventory
+# move to the position to place the entity
+move_to(pos)
 furnace = place_entity(Prototype.StoneFurnace, position=pos)
+print(f"Placed furnace at {furnace.position}")
 furnace_inv = inspect_inventory(furnace)
 coal_in_furnace = furnace_inv[Prototype.Coal]
 ```
@@ -71,6 +93,7 @@ Before any entity placement or interaction, you must first move to the target lo
 ```python
 # Always locate resources first
 resource_position = nearest(Resource.Coal)
+print(f"Found iron at {resource_position}")
 move_to(resource_position)  # Must move before placing/interacting
 ```
 
@@ -82,6 +105,7 @@ Entities must be placed in a valid location after moving there:
 # Basic placement pattern
 move_to(target_position) 
 entity = place_entity(Prototype.Entity, position=target_position)
+print(f"Placed entity at {entity.position}")
 ```
 
 #### Using place_entity_next_to
@@ -98,6 +122,8 @@ Key parameters:
 
 ```python
 # Basic usage
+# move to the position to place the entity
+move_to(drill_position)
 ref_entity = place_entity(Prototype.BurnerMiningDrill, position=drill_position)
 connected_entity = place_entity_next_to(
     Prototype.Inserter,
@@ -105,21 +131,49 @@ connected_entity = place_entity_next_to(
     direction=Direction.UP,
     spacing=0
 )
+print(f"Placed entity at {connected_entity.position}")
 ```
 
 #### Common Patterns and Use Cases
 
-1. **Mining to Furnace Setup**
+1. **Mining to a target entity Setup**
 ```python
-# Place drill on ore patch
-drill = place_entity(Prototype.BurnerMiningDrill, position=ore_position)
-# Place furnace next to drill's output
-furnace = place_entity_next_to(
-    Prototype.StoneFurnace,
-    reference_position=drill.drop_position,  # Use drop_position for output-connected entities
-    direction=Direction.DOWN,
-    spacing=0
-)
+# move to the position to place the entity
+move_to(iron_ore_position)
+# Place drill on iron_ore patch
+drill = place_entity(Prototype.BurnerMiningDrill, position=iron_ore_position)
+
+# Place a chest 10 spaces away
+# Can also use furnaces if want to get plates
+target_position = Position(x = drill.position.x + 10, y = drill.position.y + 10)
+# move to the position to place the entity
+move_to(target_position)
+target_chest = place_entity(Prototype.WoodenChest, position=target_position)
+
+# place a inserter next to the target chest
+target_insterter = place_entity_next_to(Prototype.BurnerInserter, 
+                                        reference_position=target_chest.position,
+                                        direction = Direction.UP)
+# WE ALWAYS NEED TO ROTATE INSERTERS TO PUT ITEMS INTO THE TARGET ENTITY
+# BY DEFAULT THEY TAKE ITEMS FROM THE ENTITY THEY ARE PLACED NEXT TO
+target_insterter = rotate_entity(target_insterter, Direction.DOWN)
+
+# finally need to cnnect the drop position of the drill to the pickup position of target_inserter
+belt = connect_entities(drill.drop_position, target_insterter.pickup_position, 
+    Prototype.TransportBelt)
+
+# wait for 10 seconds to check if the target entity has ore
+sleep(10)
+# Then we get the new updated chest entity
+chest = get_entity(Prototype.WoodenChest, position = target_chest.position)
+# get the chest inventory
+chest_inventory = inspect_inventory(chest)
+# get the iron ore amount
+# We use Resource.IronOre as iron ore is not a prototype but a resource
+iron_ore_in_chest = chest_inventory[Resource.IronOre]
+print(f"Found {iron_ore_in_chest} ore in chest")
+assert iron_ore_in_chest>0, "No iron ore found in chest, connection doesnt work"
+
 ```
 
 2. **Power Infrastructure**
@@ -131,20 +185,23 @@ Power typically involves:
 -> Electrical Poles connecting to consumers
 
 ```python
+# move to the position to place the entity
+move_to(water_position)
 # Connect water pump to boiler to steam engine
 offshore_pump = place_entity(Prototype.OffshorePump, position=water_position)
 boiler = place_entity_next_to(
     Prototype.Boiler,
     reference_position=offshore_pump.position,
     direction=Direction.UP,
-    spacing=2  # Extra space for pipes
+    spacing=3  # Extra space for pipes
 )
 steam_engine = place_entity_next_to(
     Prototype.SteamEngine,
     reference_position=boiler.position,
     direction=Direction.RIGHT,
-    spacing=2
+    spacing=3
 )
+print(f"Placed steam engine at {steam_engine.position}")
 ```
 
 #### Special Considerations
@@ -170,6 +227,7 @@ assert entity.position.is_close(expected_position, tolerance=1)
 3. **Drop Positions**
 - Use `drop_position` when connecting output of one entity to another:
 ```python
+
 miner = place_entity(Prototype.BurnerMiningDrill, position=ore_position)
 belt = place_entity_next_to(
     Prototype.TransportBelt,
@@ -181,25 +239,12 @@ belt = place_entity_next_to(
 4. **Spacing Guidelines**
 - Use 0 spacing for flush connections
 - Use 1 spacing for entities that need space for inserters between them
-- Use 2+ spacing for power setups (boiler to steam engine) or where you need extra space for pipes or belts.
+- Use 3+ spacing for power setups (boiler to steam engine) or where you need extra space for pipes or belts.
 
-5. **Position Validation**
-- Always verify placement with assertions in critical setups:
-```python
-furnace = place_entity_next_to(Prototype.StoneFurnace, reference_position)
-assert furnace, "Failed to place furnace"
-assert furnace.position.is_close(expected_position, tolerance=1), \
-    f"Furnace misplaced. Expected {expected_position}, got {furnace.position}"
-```
 
-6. **Position Handling**
+5. **Position Handling**
 The Position class provides helpful methods for working with coordinates:
 ```python
-# Check if positions are approximately equal
-pos1 = Position(x=1.0, y=1.0)
-pos2 = Position(x=1.1, y=0.9)
-assert pos1.is_close(pos2, tolerance=0.2)
-
 # Position arithmetic
 new_pos = pos1 + Position(x=2, y=0)  # Move right 2 units
 ```
@@ -208,22 +253,40 @@ new_pos = pos1 + Position(x=2, y=0)  # Move right 2 units
 When building chains of entities, follow this pattern:
 1. Place primary producer (e.g., mining drill)
 2. Place destination entity (e.g., furnace)
-3. Place connectors (e.g., inserters, belts, pipes)
-4. Add fuel/resources
+3. Place inserters if required
+4. Place connectors (e.g.belts, pipes)
+5. Add fuel/resources
 
 ```python
-# Example mining-to-furnace chain
+# Example mining-plate-to-chest chain
+# get iron ore location
+ore_position = nearest(Resource.IronOre)
 move_to(ore_position)
 drill = place_entity(Prototype.BurnerMiningDrill, position=ore_position)
 furnace = place_entity_next_to(Prototype.StoneFurnace, 
     reference_position=drill.drop_position,
     direction=Direction.RIGHT)
+
+# Always fuel burner entities after placement
+# we also update the drill variable by returning it from the function
+# This ensures it doesnt get stale and the inventory updates are represented in the variable
+furnace = insert_item(Prototype.Coal, furnace, quantity=20)
+
+# Place inserter next to furnace to input to the chest
+# No need to rotate as it needs to take from furnace
 inserter = place_entity_next_to(Prototype.BurnerInserter,
-    reference_position=drill.position,
+    reference_position=furnace.position,
     direction=Direction.RIGHT)
 
 # Always fuel burner entities after placement
-insert_item(Prototype.Coal, drill, quantity=5)
+# we also update the drill variable by returning it from the function
+# This ensures it doesnt get stale and the inventory updates are represented in the variable
+drill = insert_item(Prototype.Coal, drill, quantity=29)
+
+# Put chest to the right of inserter
+target_chest = place_entity_next_to(Prototype.WoodenChest,
+    reference_position=inserter.position,
+    direction=Direction.RIGHT)
 ```
 
 ### 5. Power Systems
@@ -236,17 +299,41 @@ Power systems follow a specific order:
 ```python
 # Power system pattern
 move_to(water_position)
+# first place offshore pump on the water system
 offshore_pump = place_entity(Prototype.OffshorePump, position=water_position)
+
+# Then place the boiler next to the offshore pump 
+# use a spacing of atlest 3 as the entities are large and otherwise won't fit
 boiler = place_entity_next_to(Prototype.Boiler, 
     reference_position=offshore_pump.position,
-    spacing=2)
+    spacing=3)
+
+# Finally we need to place the steam engine next to the boiler
+# Using the spacing of 3 again
 steam_engine = place_entity_next_to(Prototype.SteamEngine,
     reference_position=boiler.position,
-    spacing=2)
+    spacing=3)
 
 # Connect entities in order
 water_pipes = connect_entities(offshore_pump, boiler, Prototype.Pipe)
 steam_pipes = connect_entities(boiler, steam_engine, Prototype.Pipe)
+
+# check that the steam engine is generating power
+assert steam_engine.energy > 0, f"Steam engine is not generating power"
+
+# To power electric mining drills or assembling machines, the engine needs to be connected with electricpoles
+# for example, if one exists in Position(x = 1, y = 19), we first get the entity
+assembling_machine = get_entity(Prototype.AssemblingMachine1, position = Position(x = 1, y = 19))
+
+# We then connect
+connect_entities(assembling_machine.position, steam_engine.position, Prototype.SmallElectricPole)
+# wait for 10 seconds to power up
+sleep(10)
+# check that the power was successful
+# first refresh entity
+assembling_machine = get_entity(Prototype.AssemblingMachine1, position = Position(x = 1, y = 19))
+# check for power
+assert assembling_machine.energy > 0, f"assembling machine is not getting"
 ```
 
 ### 6. Belt Systems
@@ -254,16 +341,25 @@ When creating belt systems:
 1. Establish source
 2. Place destination
 3. Connect with belts
-4. Add inserters at transfer points
+NB: ALWAYS USE INSERTERS TO INSERT ITEMS INTO DESTINATION
 
 ```python
+source_position = nearest(Resource.Coal)
 # Belt system pattern
 move_to(source_position)
 source = place_entity(Prototype.BurnerMiningDrill, position=source_position)
-destination = place_entity_next_to(Prototype.Chest, 
+# put destination 10 spaces away
+destination_chest = place_entity_next_to(Prototype.Chest, 
     reference_position=source.position,
-    direction=Direction.RIGHT)
-belt = connect_entities(source.drop_position, destination.position, 
+    direction=Direction.RIGHT, spacing = 10)
+# add inserter
+destination_inserter = place_entity_next_to(Prototype.BurnerInserter, 
+    reference_position=destination_chest.position,
+    direction=Direction.LEFT)
+# rotate inserter as by default the inserter takes items from the entity it is placed next to
+# We want it to put items into chest
+destination_inserter = rotate_entity(destination_inserter, Direction.RIGHT)  # Face inserter toward drill
+belt = connect_entities(source.drop_position, destination_inserter.pickup_position, 
     Prototype.TransportBelt)
 ```
 
@@ -287,6 +383,50 @@ valid_position = nearest_buildable(
     bounding_box=drill_layout
 )
 ```
+
+### 8. Using assembling machines
+To create automatic item crafting mines (copper cable, electronic circuits etc), you need to use a assembling machine that automatically crafts the entities.
+To use assembling machines for automatic crafting mines, you need to power them and set their recipe
+The recipe will be set to the entity the machine needs to craft
+You also need to add inserters that input crafting ingredients into the machine and inserters that take the crafted item out of the machine
+
+```python
+# Assume there's an assembling machine at Position(x = 2, y = -19) and a steam engine generating power at Position(x = -10, y = 0)
+
+# first get the assembling machine and steam engine entities
+assembling_machine = get_entity(Prototype.AssemblingMachine1, position = Position(x = 2, y = -19))
+steam_engine = get_entity(Prototype.SteamEngine, position = Position(x = -10, y = 0))
+
+# connect the steam engine and assembling machine with power poles to power the assembling machine
+connect_entities(assembling_machine.position, steam_engine.position, Prototype.SmallElectricPole)
+# wait for 10 sec to assure assembling machine is powered
+sleep(10)
+# update the assembling machine entity
+assembling_machine = get_entity(Prototype.AssemblingMachine1, position = Position(x = 2, y = -19))
+assert assembling_machine.energy>0, "Assembling machine is not powered"
+
+# set the recipe for assembling machine to iron gear wheels
+set_entity_recipe(entity = assembly_machine, prototype = Prototype.CopperCable)
+print(f"Set the recipe of assembly machine at {{assembly_machine.position}} to Prototype.CopperCable")
+
+# add inserter that inputs ingredients that will be crafted to the target entity
+ingredient_input_inserter = place_entity_next_to(
+    Prototype.BurnerInserter, 
+    assembling_machine.position,
+    direction=Direction.UP
+)
+rotate_entity(ingredient_input_inserter, Direction.DOWN)  # Face inserter towards the assembling machine
+
+# add inserter that takes the cables away
+
+# add inserter that inputs ingredients that will be crafted to the target entity
+output_inserter = place_entity_next_to(
+    Prototype.BurnerInserter, 
+    assembling_machine.position,
+    direction=Direction.LEFT
+)
+```
+
 
 #### Key Features
 1. **Resource Requirements**: Automatically considers entity placement requirements (e.g., miners must be on ore patches)
@@ -378,11 +518,7 @@ if can_place_entity(Prototype.StoneFurnace, position=position):
     furnace = place_entity(Prototype.StoneFurnace, position=position)
 ```
 
-# Manual
-
-[Previous sections remain the same...]
-
-### 8. Self-Fueling Mining Systems
+### Self-Fueling Mining Systems
 
 Self-fueling mining systems are essential for automating resource collection, particularly for coal mining. These systems use the mined coal to power themselves, creating a sustainable loop.
 
@@ -412,7 +548,9 @@ belts = connect_entities(
 )
 
 # 5. Bootstrap system with initial fuel
-insert_item(Prototype.Coal, drill, quantity=5)
+# we also update the drill variable by returning it from the function
+# This ensures it doesnt get stale and the inventory updates are represented in the variable
+drill = insert_item(Prototype.Coal, drill, quantity=20)
 ```
 
 #### Multi-Drill Self-Fueling Systems
@@ -493,7 +631,9 @@ For larger operations, you can create systems with multiple drills sharing a com
     )
     
     # 4. Bootstrap the system
-    insert_item(Prototype.Coal, drills[0], quantity=10)
+    # we also update the drill variable by returning it from the function
+    # This ensures it doesnt get stale and the inventory updates are represented in the variable
+    drills[0] = insert_item(Prototype.Coal, drills[0], quantity=10)
 ```
 
 #### Best Practices for Self-Fueling Systems
@@ -542,6 +682,8 @@ For larger operations, you can create systems with multiple drills sharing a com
        chest.position,
        direction=Direction.UP
    )
+   # rotate inserter to put items into the chest
+   inserter = rotate_entity(inserter, Direction.DOWN)
    ```
 
 #### Common Patterns
@@ -578,6 +720,17 @@ For larger operations, you can create systems with multiple drills sharing a com
    - Verify all connections
    - Check entity rotation
 
+4. **Logging**
+   - Log your actions as you go along
+   - Make sure to log placing or interactions with the map that give information about your environment
+   - Log all unknown information as that will be seen in the future steps and used for debugging or planning
+
+5. **Outdated variables**
+   - Always update your variables you want to use to ensure the variable state is not outdated
+   - Whenever you use insert_item, make sure to override the input entity with the return
+   - Always use inspect_inventory to get the inventories, as that gets the latest inventory
+   - Regularly update your variables using entity = get_entity(Prototype.X, entity.position)
+
 
 ## Common Antipatterns to Avoid
 
@@ -595,12 +748,14 @@ entity = place_entity(Prototype.Entity, position=position)
 ```python
 # Wrong:
 inserter = place_entity(Prototype.Inserter, position=position)
-drill = place_entity(Prototype.BurnerMiningDrill, position=drill_position)
+chest = place_entity(Prototype.WoodenChest, position=chest_position)
 
 # Correct:
-drill = place_entity(Prototype.BurnerMiningDrill, position=drill_position)
+# move to the position to place the entity
+move_to(chest_position)
+chest = place_entity(Prototype.WoodenChest, position=chest_position)
 inserter = place_entity_next_to(Prototype.Inserter, 
-    reference_position=drill.position)
+    reference_position=chest.position)
 ```
 
 3. **Unfueled Burner Entities**
@@ -611,7 +766,10 @@ drill = place_entity(Prototype.BurnerMiningDrill, position=position)
 
 # Correct:
 drill = place_entity(Prototype.BurnerMiningDrill, position=position)
-insert_item(Prototype.Coal, drill, quantity=5)
+
+# we also update the drill variable by returning it from the function
+# This ensures it doesnt get stale and the inventory updates are represented in the variable
+drill = insert_item(Prototype.Coal, drill, quantity=20)
 ```
 
 ## Best Practices
@@ -627,23 +785,17 @@ coal_patch = get_resource_patch(Resource.Coal, nearest(Resource.Coal))
 - Verify inventory contains entity before attempting placement
 - Craft required entities and materials before starting construction
 - Check recipe requirements recursively for complex entities
+- Always print the recipes to know what are the dependencies
 - Use `place_entity_next_to()` instead of manual position calculations
 - Maintain consistent spacing patterns for similar entity types
 
-3. **Connection Validation**
-- Verify connections after placing them
-- Check entity status for expected states
-```python
-entities = get_entities({Prototype.TransportBelt}, position)
-assert len(entities) > 0, "Belt connection failed"
-```
 
-4. **Resource Management**
+3. **Resource Management**
 - Pre-calculate resource requirements
 - Verify inventory contents before placement
 - Use consistent fuel quantities for similar entity types
 
-5. **Error Handling**
+4. **Error Handling**
 - Always check return values from placement functions
 - Verify entity states after important operations
 - Clean up partially constructed systems on failure
@@ -665,17 +817,23 @@ def smelt_ore(ore_type: Prototype, position: Position, quantity: int, timeout: i
         Prototype.CopperOre: Prototype.CopperPlate,
     }[ore_type]
     
+    # move to the position to place the entity
+    move_to(position)
     # Place and fuel furnace
     furnace = place_entity(Prototype.StoneFurnace, position=position)
-    insert_item(Prototype.Coal, furnace, quantity=max(5, quantity // 2))
-    insert_item(ore_type, furnace, quantity=quantity)
+    print(f"placed a furnace at {furnace.position}")
+    # we also update the furnace variable by returning it from the function
+    # This ensures it doesnt get stale and the inventory updates are represented in the variable
+    furnace = insert_item(Prototype.Coal, furnace, quantity=max(5, quantity // 2))
+    furnacec = insert_item(ore_type, furnace, quantity=quantity)
     
     # Wait for smelting with timeout
     for _ in range(timeout):
         plates = inspect_inventory(furnace)[plate_type]
         if plates >= quantity:
             return extract_item(plate_type, furnace.position, quantity)
-        sleep(1)
+        sleep(5)
+        
     raise Exception(f"Smelting timeout after {timeout}s")
 
 def ensure_crafting_materials(recipe: Recipe, quantity: int = 1) -> bool:
@@ -713,6 +871,8 @@ def setup_smelting_array(ore_position: Position, num_furnaces: int = 5) -> List[
     """
     # Build mining drill
     ensure_craftable(Prototype.BurnerMiningDrill)
+    # move to the position to place the entity
+    move_to(ore_position)
     drill = place_entity(Prototype.BurnerMiningDrill, position=ore_position)
     
     # Build furnace line

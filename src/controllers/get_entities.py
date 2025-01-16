@@ -11,9 +11,9 @@ class GetEntities(Action):
     def __init__(self, connection, game_state):
         super().__init__(connection, game_state)
 
-    def __call__(self, entities: Set[Prototype] = set(), position: Position = None, radius: int = 1000) -> List[Entity]:
+    def __call__(self, entities: Set[Prototype] = set(), position: Position = None, radius: int = 1000) -> List[Union[Entity, str]]:
         """
-        Get entities within a radius of a given position.
+        Get entities within a radius of a given position. The first and last itemns in the list are specialised string tags for parsing
         :param position: Position to search around. Can be a Position object or "player" for player's position.
         :param radius: Radius to search within.
         :param entities: Set of entity prototypes to filter by. If empty, all entities are returned.
@@ -80,7 +80,7 @@ class GetEntities(Action):
 
             belt_groups = agglomerate_groupable_entities(belt_list)
             entities_list.extend(belt_groups)
-
+            entities_list = ["<entities>"] + entities_list + ["</entities>"]
             return entities_list
 
         except Exception as e:

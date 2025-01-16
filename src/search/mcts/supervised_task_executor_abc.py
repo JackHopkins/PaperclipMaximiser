@@ -9,7 +9,7 @@ from rich.console import Console
 from tenacity import retry, wait_exponential
 import copy
 from search.model.conversation import Conversation, GenerationParameters, Message
-from search.mcts.conversation_formatter import ConversationFormatter, DefaultFormatter, StructurePreservingFormatter
+from search.mcts.formatters.conversation_formatter import ConversationFormatter, DefaultFormatter, StructurePreservingFormatter
 from search.db_client import DBClient
 from search.factorio_evaluator import FactorioEvaluator
 from search.mcts.grouped_logger import GroupedFactorioLogger
@@ -500,8 +500,11 @@ class SupervisedTaskExecutorABC(ABC):
                                        meta={}
                                        ) -> List[Program]:
         """Generate multiple programs in a single API call using 'n' parameter"""
+        conversation = copy.deepcopy(conversation)
+
+        formatted = await self.formatter.format_conversation(conversation)
         formatted_messages = self.formatter.to_llm_messages(
-            self.formatter.format_conversation(conversation)
+            formatted
         )
         if "claude" in generation_params.model:
             assert generation_params.n == 1, "Number of samples must be 1 for Claude"
