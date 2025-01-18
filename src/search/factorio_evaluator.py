@@ -187,8 +187,11 @@ class FactorioEvaluator:
             get_entities_code = 'print(f"Updated entities on the map: {get_entities()}")'
             if start_entities != entities and 'error' not in result.lower() and get_entities_code not in program.code and "<entities>" not in result:
                 program.code += f'\n{get_entities_code}\n'
-                result += "\n"+str(len(program.code.split('\n')))+f': (\'Updated entities on the map: {entities}\',)'
+                result += "\n"+str(len(program.code.split('\n')))+f': (\'Entities on the map after the current step: {entities}\',)'
 
+            if "error" in result.lower():
+                result += f'(\'Current inventory: {final_inventory}\',)'
+                result += f'(\'Entities on the map after the current step: {entities}\',)'
             self.logger.update_instance(tcp_port, status=f"accruing value ({self.value_accrual_time}s)")
             await asyncio.sleep(self.value_accrual_time)
 

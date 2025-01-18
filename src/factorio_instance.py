@@ -123,6 +123,7 @@ class FactorioInstance:
         self.Position = Position
         self.EntityStatus = EntityStatus
         self.BoundingBox = BoundingBox
+        self.BuildingBox = BuildingBox
         self.BeltGroup = BeltGroup
 
         #

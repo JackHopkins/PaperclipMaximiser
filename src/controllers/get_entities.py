@@ -80,7 +80,9 @@ class GetEntities(Action):
 
             belt_groups = agglomerate_groupable_entities(belt_list)
             entities_list.extend(belt_groups)
-            entities_list = ["<entities>"] + entities_list + ["</entities>"]
+            # add tags if entities were not supplied
+            if len(entities) == 0:
+                entities_list = ["<entities>"] + entities_list + ["</entities>"]
             return entities_list
 
         except Exception as e:

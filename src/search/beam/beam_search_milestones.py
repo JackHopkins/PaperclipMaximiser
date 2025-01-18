@@ -176,7 +176,7 @@ class MilestonesBeamSearchExecutor(SupervisedTaskExecutorABC):
         generation_params = GenerationParameters(
             model=self.model_to_evaluate,
             max_tokens=4096,
-            temperature = 0.7
+            temperature = 0.3
         )
         conversations_to_process = []
         start_states = {}
@@ -197,7 +197,12 @@ class MilestonesBeamSearchExecutor(SupervisedTaskExecutorABC):
             system_message += f"\n\nOBJECTIVE\n\nThe factory you MUST create as follows\nOBJECTIVE: {task.task}."
             conversation = Conversation(messages=[Message(role="system", content=system_message)])
             for step in steps:
-                assistant_message = Message(role = "assistant", content=step.program.code)
+                assistant_str = step.program.meta["text_response"] if step.program.meta.get("text_response", None) else ""
+                if assistant_str:
+                    assistant_str += f"\n```python\n{step.program.code}```"
+                else:
+                    assistant_str = f"```python\n{step.program.code}```"
+                assistant_message = Message(role = "assistant", content=assistant_str)
                 user_message = Message(role = "user", content=step.program.response)
                 conversation.messages += [assistant_message, user_message]
             conversations_to_process += [(conversation,
@@ -373,7 +378,8 @@ class MilestonesBeamSearchExecutor(SupervisedTaskExecutorABC):
             plan.steps[-1].program.meta["holdout_achievements"] = achievements
             throughput_entity = task.throughput_entity
             throughput = achievements["dynamic"].get(throughput_entity, 0)
-            throughput_str = f"Current throughput of {throughput_entity}: {throughput} created per 60 seconds"
+            #throughput_str = f"Current throughput of {throughput_entity}: {throughput} created per 60 seconds"
+            throughput_str = f"Here is the current througphut of your factory: {achievements['dynamic']} created per 60 seconds"
             plan.steps[-1].program.response += f"\n{throughput_str}"
             return plan
 

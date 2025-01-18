@@ -141,17 +141,33 @@ SYSTEM_PROMPT = \
 
     To play the game, consider the conversation history to better understand the changes that are happening to the environment and your inventory. 
     
-    Think extensively step-by-step (in Python docstrings / comments ONLY) to first plan your algorithm, reasoning over available entities and your inventory, before writing clean code to execute it. Everything you write MUST be valid Python - either as code or as docstring comments. Any text that is not syntactically valid Python will be rejected.
+    Follow this structure: The first stage is PLANNING: Think extensively step-by-step in natural language to first plan your next step, reasoning over available entities and your inventory.
     
+    In the planning stage, follow this structure: 1) Was there an error? If yes, then what was the problem 2) What is the best next step that is of reasonable size, 3) What actions do I need to take for this step 
+    
+    The second stage is POLICY: create the python policy that carries out the steps you want in the game. Your policy MUST be between two python tags: ```python create_policy_here```
+
+    For example: "I should move to position 0, 0 ```python move_to(Position(x=0, y=0))```"
+    
+    IMPORTANT: Always create small and modular policies that are easy to debug. For instance, if you want to create a resource mine, policy 1) Put down drill line, policy 2) Put down furnace line with inserters, policy 3) Connect drill line with furnace line and check that the factory works
+
+    Small and modular policies are easy to carry out, debug when they arent working and understand. They also allow you to make small changes to the factory without breaking the entire system.
+
+    Always log the important areas when using small policies as this will help to use this information when creating the next policy
+
     Use assert statements to self-verify your beliefs against the environment, with specific and parameterised assertion messages.
     
     You must create a factory that automatically creates a target entity. You are given the entity for which you need to create a factory for. You are also given the target throughput that the factory must achieve
     
-    You must first think step-by-step and identify the next useful step for creating the factory. After each step the throughput of the factory is evaluated during 60 seconds of worktime and the results are supplied to you in the response. If you have achieved the target throughput, make sure to fuel the factory and make small improvements but do not break the factory.
+    After each step the throughput of the factory is evaluated during 60 seconds of worktime and the results are supplied to you in the response. If you have achieved the target throughput, make sure to fuel the factory and make small improvements but do not break the factory.
     
-    Always consider the most useful next step for the factory the user requires. Think what entities are needed for the step, what entities exist in the game (in different entity inventories or in your inventory), what entities are you missing for the task.
+    Create small steps that are easily executed and will get you close to your goal. Do not create large steps as they will likely error out
     
-    DON'T REPEAT YOUR PREVIOUS STEPS - just continue from where you left off to build the largest automated system possible. If there was a error previously, do not repeat your last lines - as this will alter the game state unnecessarily. Fix errors as they occur.
+    If you dont know what an entity is for in the map, assume it is part of a working automatic structure. Be careful not to break any working automatic structures
+
+    Think what entities are needed for the step, what entities exist in the game (in different entity inventories or in your inventory), what entities are you missing for the task.
+    
+    DON'T REPEAT YOUR PREVIOUS STEPS - just continue from where you left off. Take into account what was the lasdt action that was executed and continue from there. If there was a error previously, do not repeat your last lines - as this will alter the game state unnecessarily. Fix errors as they occur.
     
     Do not encapsulate your code in a function - just write it as if you were typing directly into the Python interpreter. NEVER write <LINES X-Y CUT/> - as this is a processing step applied to the conversational history - it represents code.
     
@@ -185,7 +201,7 @@ Focus on what they attempted to achieve, any errors that occurred, and the outco
 Provide specific tips and successful patterns that you see in the code, and any examples that you can provide.
 """
 
-with open("src\search\MANUAL.md", "r") as f:
+with open("src\search\MANUAL_short_bbox.md", "r") as f:
     MANUAL = f.read()
 
 
@@ -220,15 +236,15 @@ async def main():
     initial_state = GameState.from_instance(instances[0])
 
     model_to_evaluate = "claude-3-5-sonnet-20241022"
-    #model_to_evaluate = "meta-llama/Meta-Llama-3.1-70B-Instruct-Turbo"
+    #model_to_evaluate = "meta-llama/Llama-3.3-70B-Instruct-Turbo"
     #model_to_evaluate = "Qwen/Qwen2.5-72B-Instruct-Turbo"
     #model_to_evaluate = "gpt-4o"
-    version = 330 # 120 and 121 was the last version before this change
+    version = 332 # 120 and 121 was the last version before this change
     llm_factory = LLMFactory(model=model_to_evaluate)
     version_description = "eval_agentic_supervised"
 
     result_path = r"src\supervised_tasks\supervised_results"
-    task_types = ["iron_mine_thresholds_scratch"]
+    task_types = ["copper_plate_thresholds_placement"]
     tasks_to_exclude = []
     search_type = "beam_supervised"
     search_iterations = 1
@@ -245,7 +261,7 @@ async def main():
         model_to_evaluate=model_to_evaluate,
         initial_state=initial_state,
         supervised_kwargs = {
-                             "max_steps_per_objective": 32,
+                             "max_steps_per_objective": 16,
                              #"beam_unification_steps": 1,
                              "system_prompt": prompt}),
         "executor": MilestonesBeamSearchExecutor}

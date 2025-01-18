@@ -162,6 +162,10 @@ class Position(BaseModel):
     def is_close(self, a: 'Position', tolerance: float = 0.5) -> bool:
         return abs(self.x - a.x) < tolerance and abs(self.y - a.y) < tolerance
 
+    def distance(self, a: 'Position') -> float:
+        # calculates the euclidean distance between two points
+        return ((self.x - a.x) ** 2 + (self.y - a.y) ** 2) ** 0.5
+
     def above(self) -> 'Position':
         return Position(x=self.x, y=self.y - 1)
     def up(self) -> 'Position':
@@ -214,6 +218,10 @@ class BoundingBox(BaseModel):
     left_top: Position
     right_bottom: Position
     center: Position
+
+class BuildingBox(BaseModel):
+    height: int
+    width: int
 
 
 class ResourcePatch(BaseModel):
