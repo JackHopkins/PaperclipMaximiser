@@ -22,7 +22,7 @@ class OpenEndedTaskConfig:
         self.starting_inventory = starting_inventory
 
 PLACEMENT_STARTING_INVENTORY = {"coal": 500, "burner-mining-drill": 10, "wooden-chest": 10, "burner-inserter": 10, "transport-belt": 200,
-                                "stone-furnace": 5, "pipe": 10, "boiler": 4, "offshore-pump": 3, "steam-engine": 2,
+                                "stone-furnace": 10, "pipe": 10, "boiler": 4, "offshore-pump": 3, "steam-engine": 2,
                                 "iron-gear-wheel": 22, "iron-plate": 19, "copper-plate": 52, "electronic-circuit": 99,
                                 "iron-ore": 62, "stone": 50, "electric-mining-drill": 10, "small-electric-pole": 200, "pipe": 100,
                                 "assembling-machine-1": 5}
@@ -332,7 +332,7 @@ TASKS = {"simple_crafting":{
                                         #throughput_entity="copper-plate",
                                         #starting_inventory=PLACEMENT_STARTING_INVENTORY),
                                         "copper_plate_mine_64_placement": OpenEndedTaskConfig(
-                                        task="Create an automatic iron ore mine that produces 64 copper plates per 60 ingame seconds. Useful information for this task: One burner mining drill mines 15 resources and one electric mining drill mines 30 resources per 60 ingame seconds.",
+                                        task="Create an automatic iron ore mine that creates 64 copper plates per 60 ingame seconds. Useful information for this task: One burner mining drill mines 15 resources and one electric mining drill mines 30 resources per 60 ingame seconds. One stone furnace smelts 18 copper plates per 60 ingame seconds",
                                         throughput_entity="copper-plate",
                                         starting_inventory=PLACEMENT_STARTING_INVENTORY),
                                         #"coal_mine_128": TaskConfig(

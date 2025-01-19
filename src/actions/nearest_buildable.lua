@@ -124,7 +124,7 @@ global.actions.nearest_buildable = function(player_index, entity_name, bounding_
         local segment_length = 1
         local segment_passed = 0
         local direction = 0  -- 0: right, 1: down, 2: left, 3: up
-        local MAX_RADIUS = 50
+        local MAX_RADIUS = 30
 
         while max(abs(dx), abs(dy)) <= MAX_RADIUS do
             local current_pos = {

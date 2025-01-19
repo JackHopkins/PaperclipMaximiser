@@ -201,7 +201,7 @@ Focus on what they attempted to achieve, any errors that occurred, and the outco
 Provide specific tips and successful patterns that you see in the code, and any examples that you can provide.
 """
 
-with open("src\search\MANUAL_short_bbox.md", "r") as f:
+with open("src\search\MANUAL_simple_bbox.md", "r") as f:
     MANUAL = f.read()
 
 
