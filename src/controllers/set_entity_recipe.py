@@ -13,12 +13,12 @@ class SetEntityRecipe(Action):
 
     def __call__(self, entity: Entity, prototype: Prototype,
                 # **kwargs
-                 ) -> bool:
+                 ) -> Entity:
         """
         Sets the recipe of an given entity.
         :param entity: Entity to set recipe
         :param recipe: Recipe to set
-        :return: True if recipe was set successfully
+        :return: Entity that had its recipe set
         """
 
         x, y = entity.position.x, entity.position.y
@@ -35,7 +35,7 @@ class SetEntityRecipe(Action):
         response, elapsed = self.execute(PLAYER, name, x, y)
 
         if not isinstance(response, dict):
-            raise Exception(f"Could not set recipe to {name}", response)
+            raise Exception(f"Could not set recipe to {name}"+str(response).split(":")[-1].strip())
 
         cleaned_response = self.clean_response(response)
 

@@ -1,3 +1,2 @@
-local player = game.get_player(arg1)
-player.teleport({x=arg2, y=arg3})
-rcon.print(player.position)
+game.players[arg1].teleport({arg2, arg3})
+rcon.print(1)

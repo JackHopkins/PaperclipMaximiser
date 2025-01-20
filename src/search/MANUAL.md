@@ -544,7 +544,7 @@ if can_place_entity(Prototype.StoneFurnace, position=position):
     furnace = place_entity(Prototype.StoneFurnace, position=position)
 ```
 
-### Self-Fueling Mining Systems
+### 8. Self-Fueling Mining Systems
 
 Self-fueling mining systems are essential for automating resource collection, particularly for coal mining. These systems use the mined coal to power themselves, creating a sustainable loop.
 
@@ -835,6 +835,7 @@ coal_patch = get_resource_patch(Resource.Coal, nearest(Resource.Coal))
 
 Creating reusable utility functions is essential for maintaining clean and reliable factory code. Here are some key patterns:
 
+**Note** These are for illustration purposes only, and will not be accessible when you play. You must define your own functions as you go.
 ### 1. Resource Processing Functions
 ```python
 def smelt_ore(ore_type: Prototype, position: Position, quantity: int, timeout: int = 30) -> int:

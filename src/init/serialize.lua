@@ -1,7 +1,9 @@
 -- Library for serializing items in Factorio
 -- Based on code from playerManager and trainTeleports
 
-global.utils = {}
+if not global.utils then
+    global.utils = {}
+end
 
 local function version_to_table(version)
 	local t = {}
@@ -525,12 +527,13 @@ function add_burner_inventory(serialized, burner)
 end
 
 function get_entity_direction(entity, direction)
-	game.print("Getting direction: " .. entity .. " with direction: " .. direction)
 
 	-- If direction is nil then return north
 	if direction == nil then
 		return defines.direction.north
 	end
+	game.print("Getting direction: " .. entity .. " with direction: " .. direction)
+
 
 	local prototype = game.entity_prototypes[entity]
 	-- if prototype is nil (e.g because the entity is a ghost or player character) then return the direction as is
@@ -636,7 +639,7 @@ function get_inverse_entity_direction(entity, factorio_direction)
 			return -1
 		end
 	else
-		game.print("Returning direction: " .. math.floor(factorio_direction / 2) .. ', '.. factorio_direction)
+		--game.print("Returning direction: " .. math.floor(factorio_direction / 2) .. ', '.. factorio_direction)
 		-- For other entity types, convert Factorio's direction to 0-3 range
 		return factorio_direction
 	end
@@ -896,8 +899,10 @@ global.utils.serialize_entity = function(entity)
 		end
 		--create_beam_point_with_direction(game.players[1], entity.direction , {x = x, y = y})
 		serialized.output_position = {x = x, y = y}
+		serialized.position = {x = entity.position.x, y = entity.position.y}
 		--serialized.inventory = entity.get_transport_line(1).get_contents()
-			-- Get contents from both lines
+
+		-- Get contents from both lines
 		local line1 = entity.get_transport_line(1)
 		local line2 = entity.get_transport_line(2)
 
@@ -912,6 +917,9 @@ global.utils.serialize_entity = function(entity)
 		serialized.inventory = {}
 		local line1_contents = line1.get_contents()
 		local line2_contents = line2.get_contents()
+
+		serialized.is_terminus = #entity.belt_neighbours["outputs"] == 0
+		serialized.is_source = #entity.belt_neighbours["inputs"] == 0
 
 		for item_name, count in pairs(line1_contents) do
 			serialized.inventory[item_name] = (serialized.inventory[item_name] or 0) + count
@@ -1076,6 +1084,8 @@ global.utils.serialize_entity = function(entity)
 			x = entity.drop_position.x,
 			y = entity.drop_position.y
 		}
+		serialized.drop_position.x = math.round(serialized.drop_position.x * 2 ) / 2
+		serialized.drop_position.y = math.round(serialized.drop_position.y * 2 ) / 2
 		game.print("Mining drill drop position: " .. serpent.line(serialized.drop_position))
 		local burner = entity.burner
 		if burner then
@@ -1165,7 +1175,7 @@ global.utils.serialize_entity = function(entity)
 	end
 
 	serialized.direction = get_inverse_entity_direction(entity.name, entity.direction) --api_direction_map[entity.direction]
-
+	serialized.electric_network_id = entity.electric_network_id
     -- Post-process connection points if they exist
     if serialized.connection_points then
         local filtered_points = {}

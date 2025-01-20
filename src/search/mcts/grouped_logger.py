@@ -45,7 +45,7 @@ class InstanceMetrics:
 class GroupedFactorioLogger:
     """Logger that displays instances grouped by their MCTS parallel groups"""
 
-    def __init__(self, n_groups: int, instances_per_group: int, holdout_exists: bool = True):
+    def __init__(self, n_groups: int, instances_per_group: int, base_port = 27015, holdout_exists: bool = True):
         self.console = Console()
         self.layout = Layout()
         self.groups: Dict[int, InstanceGroupMetrics] = {}
@@ -65,7 +65,6 @@ class GroupedFactorioLogger:
         self.progress_task = None
 
         # Initialize metrics for each group and their instances
-        base_port = 27015
         current_port = base_port
 
         for group_id in range(n_groups):

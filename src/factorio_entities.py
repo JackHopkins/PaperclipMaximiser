@@ -117,6 +117,12 @@ class Inventory(BaseModel):
     def __len__(self) -> int:
         return len(self.__dict__)
 
+    def keys(self):
+        return self.__dict__.keys()
+
+    def values(self):
+        return self.__dict__.values()
+
 
 class Direction(Enum):
     UP = NORTH = 0
@@ -165,19 +171,23 @@ class Position(BaseModel):
     def distance(self, a: 'Position') -> float:
         # calculates the euclidean distance between two points
         return ((self.x - a.x) ** 2 + (self.y - a.y) ** 2) ** 0.5
-
-    def above(self) -> 'Position':
-        return Position(x=self.x, y=self.y - 1)
-    def up(self) -> 'Position':
-        return self.above()
-    def below(self) -> 'Position':
-        return Position(x=self.x, y=self.y + 1)
-    def down(self) -> 'Position':
-        return self.below()
-    def left(self) -> 'Position':
-        return Position(x=self.x - 1, y=self.y)
-    def right(self) -> 'Position':
-        return Position(x=self.x + 1, y=self.y)
+    
+    def _modifier(self, args):
+        if len(args) > 0 and isinstance(args[0], int):
+            return args[0]
+        return 1
+    def above(self, *args) -> 'Position':
+        return Position(x=self.x, y=self.y - self._modifier(args))
+    def up(self, *args) -> 'Position':
+        return self.above(args)
+    def below(self, *args) -> 'Position':
+        return Position(x=self.x, y=self.y + self._modifier(args))
+    def down(self, *args) -> 'Position':
+        return self.below(args)
+    def left(self, *args) -> 'Position':
+        return Position(x=self.x - self._modifier(args), y=self.y)
+    def right(self, *args) -> 'Position':
+        return Position(x=self.x + self._modifier(args), y=self.y)
     def __eq__(self, other) -> bool:
         if not isinstance(other, Position):
             return NotImplemented
@@ -239,7 +249,6 @@ class TileDimensions(BaseModel):
     tile_width: float
     tile_height: float
 
-
 class Ingredient(BaseModel):
     name: str
     count: Optional[int] = 1
@@ -280,20 +289,25 @@ class Entity(BaseModel):
         # Only includes the fields we  want to present to the agent
         # Get all instance attributes
         all_fields = self.__dict__
+
         # Filter out private attributes and excluded fields
-        excluded_fields = {'dimensions', 'prototype', 'type'}
+        excluded_fields = {'dimensions', 'prototype', 'type', 'health'}
+        rename_fields = {}#'tile_dimensions': 'size'}
         repr_dict = {}
 
         for key, value in all_fields.items():
             # Remove the '_' prefix that pydantic adds to fields
             clean_key = key.lstrip('_')
             if clean_key not in excluded_fields and not clean_key.startswith('__'):
+                if clean_key in rename_fields.keys():
+                    clean_key = rename_fields[clean_key]
                 # Handle enum values specially
                 if isinstance(value, Enum):
                     repr_dict[clean_key] = value.name
                 else:
                     if (clean_key == 'warnings' and value) or clean_key != 'warnings': # Don't show empty warnings list
                         repr_dict[clean_key] = value
+
 
         # Convert to string format
         items = [f"{k}={v!r}" for k, v in repr_dict.items()]
@@ -308,6 +322,8 @@ class TransportBelt(Entity):
     input_position: Position
     output_position: Position
     inventory: Inventory = Inventory()
+    is_terminus: bool = False
+    is_source: bool = False
 
 class EnergySource(BaseModel):
     buffer_capacity: str
@@ -330,7 +346,6 @@ class MiningDrill(Entity):
 
 class BurnerInserter(Inserter, BurnerType):
     pass
-
 
 class BurnerMiningDrill(MiningDrill, BurnerType):
     pass
@@ -367,7 +382,11 @@ class Generator(FluidHandler):
 class OffshorePump(FluidHandler):
     pass
     #fluid_box: Optional[Union[dict,list]] = []
+class ElectricityPole(Entity):
+    electric_network_id: int
 
+    def __hash__(self):
+        return self.electric_network_id
 
 class Furnace(Entity, BurnerType):
     furnace_source: Inventory = Inventory()
@@ -384,24 +403,41 @@ class Pipe(Entity):
     pass
 
 class EntityGroup(BaseModel):
-    input_positions: List[Position]
-    position: Position
     status: EntityStatus = EntityStatus.NORMAL
 
-class BeltGroup(EntityGroup):
+class DirectedEntityGroup(EntityGroup):
+    position: Position
+
+class BeltGroup(DirectedEntityGroup):
     belts: List[TransportBelt]
-    output_positions: List[Position]
+    inputs: List[Entity]
+    outputs: List[Entity]
     inventory: Inventory = Inventory()
     name: str = 'belt-group'
 
     def __repr__(self) -> str:
         belt_summary = f"[{len(self.belts)} belts]"
-        return f"BeltGroup(position={self.position}, input_positions={self.input_positions}, output_positions={self.output_positions}, inventory={self.inventory}, status={self.status}, belts={belt_summary})"
+        return f"BeltGroup(position={self.position}, input_positions={self.inputs}, output_positions={self.outputs}, inventory={self.inventory}, status={self.status}, belts={belt_summary})"
 
-class PipeGroup(EntityGroup):
+class PipeGroup(DirectedEntityGroup):
     pipes: List[Pipe]
     name: str = 'pipe-group'
 
     def __repr__(self) -> str:
         pipe_summary = f"[{len(self.pipes)} pipes]"
-        return f"PipeGroup(position={self.position}, input_positions={self.input_positions}, status={self.status}, pipes={pipe_summary})"
+        return f"PipeGroup(position={self.position}, status={self.status}, pipes={pipe_summary})"
+
+class ElectricityGroup(EntityGroup):
+    name: str = 'electricity-group'
+    poles: List[ElectricityPole]
+    electric_network_id: int
+
+    def __repr__(self) -> str:
+        positions = [f"(x={p.position.x},y={p.position.y})" for p in self.poles]
+        if len(positions) > 6:
+            positions = positions[:3] + ['...'] + positions[-3:]
+        pole_summary = f"[{','.join(positions)}]"
+        return f"ElectricityGroup(id={self.electric_network_id}, poles={pole_summary})"
+
+    def __hash__(self):
+        return self.name+str(self.electric_network_id)
