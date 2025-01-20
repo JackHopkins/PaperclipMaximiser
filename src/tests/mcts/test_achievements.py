@@ -291,7 +291,9 @@ def test_achievements_11():
         output_list, result, error, achievements = eval_program_with_achievements(instance, test_string_1)
 
         #test_string_1 = '# Get the drill positions\ndrill1 = get_entity(Prototype.BurnerMiningDrill, Position(x=-13.5, y=25.5))\ndrill2 = get_entity(Prototype.BurnerMiningDrill, Position(x=-14.5, y=21.5))\ndrill3 = get_entity(Prototype.BurnerMiningDrill, Position(x=-17.5, y=26.5))\n\n# Place chest about 10 spaces away from the middle drill\nmove_to(Position(x=-3.5, y=22.5))\ncollection_chest = place_entity(Prototype.WoodenChest, position=Position(x=-3.5, y=22.5))\nprint(f"Placed collection chest at {collection_chest.position}")\n\n# Place inserter next to chest\nchest_inserter = place_entity_next_to(\n    Prototype.BurnerInserter,\n    reference_position=collection_chest.position,\n    direction=Direction.LEFT,\n    spacing=0\n)\n# Rotate inserter to put items into chest\nchest_inserter = rotate_entity(chest_inserter, Direction.RIGHT)\nprint(f"Placed chest inserter at {chest_inserter.position}")\n\n# Add fuel to inserter\nchest_inserter = insert_item(Prototype.Coal, chest_inserter, quantity=50)\n\n# Connect all drills to the inserter\'s pickup position using transport belts\nfor drill in [drill1, drill2, drill3]:\n    belts = connect_entities(\n        drill.drop_position,\n        chest_inserter.pickup_position,\n        Prototype.TransportBelt\n    )\n    print(f"Connected drill at {drill.position} to collection system")'
-        test_string_1 = '# Get the drill positions\ndrill1 = get_entity(Prototype.BurnerMiningDrill, Position(x=-13, y=25))\ndrill2 = get_entity(Prototype.BurnerMiningDrill, Position(x=-13 ,y=23))\ndrill3 = get_entity(Prototype.BurnerMiningDrill, Position(x=-13 ,y=21))\n\n# Place chest about 10 spaces away from the middle drill\nmove_to(Position(x=-3.5, y=22.5))\ncollection_chest = place_entity(Prototype.WoodenChest, position=Position(x=-3, y=22.5))\nprint(f"Placed collection chest at {collection_chest.position}")\n\n# Place inserter next to chest\nchest_inserter = place_entity_next_to(\n    Prototype.BurnerInserter,\n    reference_position=collection_chest.position,\n    direction=Direction.LEFT,\n    spacing=0\n)\n# Rotate inserter to put items into chest\nchest_inserter = rotate_entity(chest_inserter, Direction.RIGHT)\nprint(f"Placed chest inserter at {chest_inserter.position}")\n\ncollection_chest2 = place_entity(Prototype.WoodenChest, position=Position(x=-3, y=18))\nprint(f"Placed collection chest at {collection_chest2.position}")\n\n# Place inserter next to chest\nchest_inserter2 = place_entity_next_to(\n    Prototype.BurnerInserter,\n    reference_position=collection_chest2.position,\n    direction=Direction.LEFT,\n    spacing=0\n)\n# Rotate inserter to put items into chest\nchest_inserter2 = rotate_entity(chest_inserter2, Direction.RIGHT)\nprint(f"Placed chest inserter at {chest_inserter2.position}")\n\ncollection_chest3 = place_entity(Prototype.WoodenChest, position=Position(x=-3, y=28))\nprint(f"Placed collection chest at {collection_chest3.position}")\n\n# Place inserter next to chest\nchest_inserter3 = place_entity_next_to(\n    Prototype.BurnerInserter,\n    reference_position=collection_chest3.position,\n    direction=Direction.LEFT,\n    spacing=0\n)\n# Rotate inserter to put items into chest\nchest_inserter3 = rotate_entity(chest_inserter3, Direction.RIGHT)\nprint(f"Placed chest inserter at {chest_inserter3.position}")\n\n# Add fuel to inserter\nchest_inserter = insert_item(Prototype.Coal, chest_inserter, quantity=50)\n# connect the first drill to the connection system\nmain_connection= connect_entities(drill2.drop_position,chest_inserter2.pickup_position, Prototype.TransportBelt)\n# extend connection\nmain_connection = connect_entities(main_connection[0],chest_inserter.pickup_position ,Prototype.TransportBelt)'
+        #test_string_1 = '# Get the drill positions\ndrill1 = get_entity(Prototype.BurnerMiningDrill, Position(x=-13, y=25))\ndrill2 = get_entity(Prototype.BurnerMiningDrill, Position(x=-13 ,y=23))\ndrill3 = get_entity(Prototype.BurnerMiningDrill, Position(x=-13 ,y=21))\n\n# Place chest about 10 spaces away from the middle drill\nmove_to(Position(x=-3.5, y=22.5))\ncollection_chest = place_entity(Prototype.WoodenChest, position=Position(x=-3, y=22.5))\nprint(f"Placed collection chest at {collection_chest.position}")\n\n# Place inserter next to chest\nchest_inserter = place_entity_next_to(\n    Prototype.BurnerInserter,\n    reference_position=collection_chest.position,\n    direction=Direction.LEFT,\n    spacing=0\n)\n# Rotate inserter to put items into chest\nchest_inserter = rotate_entity(chest_inserter, Direction.RIGHT)\nprint(f"Placed chest inserter at {chest_inserter.position}")\n\ncollection_chest2 = place_entity(Prototype.WoodenChest, position=Position(x=-3, y=18))\nprint(f"Placed collection chest at {collection_chest2.position}")\n\n# Place inserter next to chest\nchest_inserter2 = place_entity_next_to(\n    Prototype.BurnerInserter,\n    reference_position=collection_chest2.position,\n    direction=Direction.LEFT,\n    spacing=0\n)\n# Rotate inserter to put items into chest\nchest_inserter2 = rotate_entity(chest_inserter2, Direction.RIGHT)\nprint(f"Placed chest inserter at {chest_inserter2.position}")\n\ncollection_chest3 = place_entity(Prototype.WoodenChest, position=Position(x=-3, y=28))\nprint(f"Placed collection chest at {collection_chest3.position}")\n\n# Place inserter next to chest\nchest_inserter3 = place_entity_next_to(\n    Prototype.BurnerInserter,\n    reference_position=collection_chest3.position,\n    direction=Direction.LEFT,\n    spacing=0\n)\n# Rotate inserter to put items into chest\nchest_inserter3 = rotate_entity(chest_inserter3, Direction.RIGHT)\nprint(f"Placed chest inserter at {chest_inserter3.position}")\n\n# Add fuel to inserter\nchest_inserter = insert_item(Prototype.Coal, chest_inserter, quantity=50)\n# connect the first drill to the connection system\nmain_connection= connect_entities(drill2.drop_position,chest_inserter2.pickup_position, Prototype.TransportBelt)\n# extend connection\nmain_connection = connect_entities(main_connection[0],chest_inserter.pickup_position ,Prototype.TransportBelt)\nprint(main_connection)'
+        test_string_1 = '# Get the drill positions\ndrill1 = get_entity(Prototype.BurnerMiningDrill, Position(x=-13, y=25))\ndrill2 = get_entity(Prototype.BurnerMiningDrill, Position(x=-13 ,y=23))\ndrill3 = get_entity(Prototype.BurnerMiningDrill, Position(x=-13 ,y=21))\n\n# Place chest about 10 spaces away from the middle drill\nmove_to(Position(x=-3.5, y=22.5))\ncollection_chest = place_entity(Prototype.WoodenChest, position=Position(x=-3, y=22.5))\nprint(f"Placed collection chest at {collection_chest.position}")\n\n# Place inserter next to chest\nchest_inserter = place_entity_next_to(\n    Prototype.BurnerInserter,\n    reference_position=collection_chest.position,\n    direction=Direction.LEFT,\n    spacing=0\n)\n# Rotate inserter to put items into chest\nchest_inserter = rotate_entity(chest_inserter, Direction.RIGHT)\nprint(f"Placed chest inserter at {chest_inserter.position}")\n\ncollection_chest2 = place_entity(Prototype.WoodenChest, position=Position(x=-3, y=18))\nprint(f"Placed collection chest at {collection_chest2.position}")\n\n# Place inserter next to chest\nchest_inserter2 = place_entity_next_to(\n    Prototype.BurnerInserter,\n    reference_position=collection_chest2.position,\n    direction=Direction.LEFT,\n    spacing=0\n)\n# Rotate inserter to put items into chest\nchest_inserter2 = rotate_entity(chest_inserter2, Direction.RIGHT)\nprint(f"Placed chest inserter at {chest_inserter2.position}")\n\ncollection_chest3 = place_entity(Prototype.WoodenChest, position=Position(x=-3, y=28))\nprint(f"Placed collection chest at {collection_chest3.position}")\n\n# Place inserter next to chest\nchest_inserter3 = place_entity_next_to(\n    Prototype.BurnerInserter,\n    reference_position=collection_chest3.position,\n    direction=Direction.LEFT,\n    spacing=0\n)\n# Rotate inserter to put items into chest\nchest_inserter3 = rotate_entity(chest_inserter3, Direction.RIGHT)\nprint(f"Placed chest inserter at {chest_inserter3.position}")\n\n# Add fuel to inserter\nchest_inserter = insert_item(Prototype.Coal, chest_inserter, quantity=50)\n# connect the first drill to the connection system\nmain_connection= connect_entities(drill2.drop_position,chest_inserter2.pickup_position, Prototype.TransportBelt)\nprint(main_connection)\n# extend connection\nmain_connection = connect_entities(main_connection[0],chest_inserter.pickup_position ,Prototype.TransportBelt)\nprint(main_connection)'
+        
         #test_string_1 = '# Get the drill positions\ndrill1 = get_entity(Prototype.BurnerMiningDrill, Position(x=-13, y=25))\ndrill2 = get_entity(Prototype.BurnerMiningDrill, Position(x=-13 ,y=23))\ndrill3 = get_entity(Prototype.BurnerMiningDrill, Position(x=-13 ,y=21))\n\n# Place chest about 10 spaces away from the middle drill\nmove_to(Position(x=-3.5, y=22.5))\ncollection_chest = place_entity(Prototype.WoodenChest, position=Position(x=-3.5, y=22.5))\nprint(f"Placed collection chest at {collection_chest.position}")\n\n# Place inserter next to chest\nchest_inserter = place_entity_next_to(\n    Prototype.BurnerInserter,\n    reference_position=collection_chest.position,\n    direction=Direction.LEFT,\n    spacing=0\n)\n# Rotate inserter to put items into chest\nchest_inserter = rotate_entity(chest_inserter, Direction.RIGHT)\nprint(f"Placed chest inserter at {chest_inserter.position}")\n\n# Add fuel to inserter\nchest_inserter = insert_item(Prototype.Coal, chest_inserter, quantity=50)\n# connect the first drill to the connection system\nmain_connection= connect_entities(drill1.drop_position,chest_inserter.pickup_position, Prototype.TransportBelt)'
         
         output_list, result, error, achievements = eval_program_with_achievements(instance, test_string_1)
@@ -429,6 +431,81 @@ def test_achievements_17():
         test_string_1 = 'move_to(Position(x=-11.5, y=21.5))\nplace_entity(Prototype.BurnerInserter, position = Position(x=-11.5, y=21.5))\npickup_entity(Prototype.BurnerInserter, Position(x=-11.5, y=21.5))'
         output_list, result, error, achievements = eval_program_with_achievements(instance, test_string_1)
         print("asda")
+
+
+def test_achievements_18():
+        PLACEMENT_STARTING_INVENTORY = {"coal": 200, "burner-mining-drill": 10, "wooden-chest": 10, "burner-inserter": 10, "transport-belt": 200,
+                                "stone-furnace": 5, "pipe": 10, "boiler": 4, "offshore-pump": 3, "steam-engine": 2,
+                                "iron-gear-wheel": 22, "iron-plate": 19, "copper-plate": 52, "electronic-circuit": 99,
+                                "iron-ore": 62, "stone": 50, "electric-mining-drill": 10, "small-electric-pole": 200, "pipe": 100,
+                                "assembling-machine-1": 5}
+        instance = FactorioInstance(address='localhost',
+                                bounding_box=200,
+                                tcp_port=27015,
+                                fast=True,
+                                #cache_scripts=False,
+                                inventory=PLACEMENT_STARTING_INVENTORY) 
+
+
+        test_string_1 = 'for i in range(10):\n    if i < 5:\n        j = 0\n        while j < 3:\n            j +=1\n            if j == 2:\n                try:\n                    int("asd")\n                except:\n                    print("fucked")\n                    continue\n            print(j)\n        print(f"first lower loop for {i}")\n    else:        print(f"second lower loop for {i}")\n    print(f"Placed inserter {i}")'
+        output_list, result, error, achievements = eval_program_with_achievements(instance, test_string_1)
+
+
+
+def test_achievements_19():
+        PLACEMENT_STARTING_INVENTORY = {"coal": 200, "burner-mining-drill": 10, "wooden-chest": 10, "burner-inserter": 10, "transport-belt": 200,
+                                "stone-furnace": 5, "pipe": 10, "boiler": 4, "offshore-pump": 3, "steam-engine": 2,
+                                "iron-gear-wheel": 22, "iron-plate": 19, "copper-plate": 52, "electronic-circuit": 99,
+                                "iron-ore": 62, "stone": 50, "electric-mining-drill": 10, "small-electric-pole": 200, "pipe": 100,
+                                "assembling-machine-1": 5}
+        instance = FactorioInstance(address='localhost',
+                                bounding_box=200,
+                                tcp_port=27015,
+                                fast=True,
+                                #cache_scripts=False,
+                                inventory=PLACEMENT_STARTING_INVENTORY) 
+
+
+        test_string_1 = 'belts = connect_entities(Position(x = 10, y = -9), Position(x = 0, y = 0), Prototype.TransportBelt)\nprint(belts)'
+        output_list, result, error, achievements = eval_program_with_achievements(instance, test_string_1)
+
+def test_achievements_20():
+        PLACEMENT_STARTING_INVENTORY = {"coal": 200, "burner-mining-drill": 10, "wooden-chest": 10, "burner-inserter": 10, "transport-belt": 200,
+                                "stone-furnace": 5, "pipe": 10, "boiler": 4, "offshore-pump": 3, "steam-engine": 2,
+                                "iron-gear-wheel": 22, "iron-plate": 19, "copper-plate": 52, "electronic-circuit": 99,
+                                "iron-ore": 62, "stone": 50, "electric-mining-drill": 10, "small-electric-pole": 200, "pipe": 100,
+                                "assembling-machine-1": 5}
+        instance = FactorioInstance(address='localhost',
+                                bounding_box=200,
+                                tcp_port=27015,
+                                fast=True,
+                                #cache_scripts=False,
+                                inventory=PLACEMENT_STARTING_INVENTORY) 
+
+
+        test_string_1 = 'belts = connect_entities(Position(x = 10, y = -9), Position(x = 0, y = 0), Prototype.TransportBelt)\nprint(belts)'
+        output_list, result, error, achievements = eval_program_with_achievements(instance, test_string_1)
+
+
+def test_achievements_20():
+        PLACEMENT_STARTING_INVENTORY = {"coal": 200, "burner-mining-drill": 10, "wooden-chest": 10, "burner-inserter": 10, "transport-belt": 200,
+                                "stone-furnace": 5, "pipe": 10, "boiler": 4, "offshore-pump": 3, "steam-engine": 2,
+                                "iron-gear-wheel": 22, "iron-plate": 19, "copper-plate": 52, "electronic-circuit": 99,
+                                "iron-ore": 62, "stone": 50, "electric-mining-drill": 10, "small-electric-pole": 200, "pipe": 100,
+                                "assembling-machine-1": 5}
+        instance = FactorioInstance(address='localhost',
+                                bounding_box=200,
+                                tcp_port=27015,
+                                fast=True,
+                                #cache_scripts=False,
+                                inventory=PLACEMENT_STARTING_INVENTORY) 
+
+
+        test_string_1 = 'water_position = nearest(Resource.Water)\nmove_to(water_position)\noffshore_pump = place_entity(Prototype.OffshorePump, position=water_position)\nprint(offshore_pump)\nboiler = place_entity_next_to(Prototype.Boiler,reference_position=offshore_pump.position,spacing=3)\nboiler = insert_item(Prototype.Coal, boiler, 10)\nsteam_engine = place_entity_next_to(Prototype.SteamEngine,reference_position=boiler.position, spacing=3)\nprint(f"Placed steam_engine at {steam_engine.position}") # Position(x=4, y = -21)\nwater_pipes = connect_entities(offshore_pump, boiler, Prototype.Pipe)\nsteam_pipes = connect_entities(boiler, steam_engine, Prototype.Pipe)\nsleep(5)\nprint(steam_engine)\noutp = connect_entities(steam_engine.position, Position(x = 4, y = -20), Prototype.SmallElectricPole)\nprint(get_entities())'
+        output_list, result, error, achievements = eval_program_with_achievements(instance, test_string_1)
+        print("asda")
+
+
 if __name__ == '__main__':
     #unittest.main()
-    test_achievements_17()
+    test_achievements_20()

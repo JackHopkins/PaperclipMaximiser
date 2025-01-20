@@ -49,7 +49,7 @@ class NearestBuildable(Action):
                 "left_top": {"x": 0, "y": 0},
                 "right_bottom": {"x": dx, "y": dy}
             }
-        # make all the values integeres
+        # make all the values integers
         center_position = {"x": math.ceil(center_position.x + 0.5), "y": math.ceil(center_position.y + 0.5)}
 
 
