@@ -64,7 +64,7 @@ class MilestonesBeamSearchExecutor(SupervisedTaskExecutorABC):
             instance.reset(start_state)
             # plan id coincides with instance id it will be evaluated on
             plan_output = PlanOutput(task=TaskOutput(task=task.task), meta={"plan_id": idx})
-            entities = instance.get_entities()
+            entities = instance.namespace.get_entities()
             output = f"1: ('Inventory: {start_state.inventory}')\n2: ('Entities on the map: {entities}')"
             first_dummy_program = Program(code="print(f'Inventory: {inspect_inventory()}')\n"
                                                               "print(f'Entities: {get_entities()}')\n", 
@@ -188,7 +188,7 @@ class MilestonesBeamSearchExecutor(SupervisedTaskExecutorABC):
             starting_state = GameState.from_instance(instance)
             start_states[instance_id] = starting_state
             mining_setup = get_mining_setup(instance)
-            starting_inventory = instance.inspect_inventory()
+            starting_inventory = instance.namespace.inspect_inventory()
             starting_inventory_dict = self.get_inventory_dict(starting_inventory)
             
             
@@ -282,7 +282,7 @@ class MilestonesBeamSearchExecutor(SupervisedTaskExecutorABC):
             for program in step.sampled_programs:
                 # reset the instance to the start state
                 instance.reset(step.start_state)
-                reward, state, response, entities, achievements, profits, error = await group.evaluator._evaluate_single(
+                final_reward, state, result, entities, achievements, ticks, error = await group.evaluator._evaluate_single(
                     instance_id,
                     program,
                     instance
@@ -296,17 +296,17 @@ class MilestonesBeamSearchExecutor(SupervisedTaskExecutorABC):
                     break
             entity_list.append(entities)
             step.end_state = state
-            step.reward = reward
-            post_production_flows = instance.get_production_stats()
+            step.reward = final_reward
+            post_production_flows = instance.namespace.get_production_stats()
             step.program.meta["post_production_flows"] = post_production_flows
-            step.program.meta["profits"] = profits
+            step.program.meta["profits"] = -1
         except Exception as e:
             print(f"Error during evaluation in group {group.group_id}, instance {instance_id}: {e}")
             raise e
 
         step.program.raw_reward = step.reward
         step.program.state = step.end_state
-        step.program.response = response
+        step.program.response = result
         step.program.parent_id = parent_id
         step.program.achievements = achievements
         return step, entity_list

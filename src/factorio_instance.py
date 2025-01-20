@@ -688,7 +688,7 @@ class FactorioInstance:
         #     score, goal, result = future.result(timeout)
         #     return score, goal, result
         with ThreadPoolExecutor(max_workers=1) as executor:
-            future = executor.submit(self._eval_with_timeout, expr)
+            future = executor.submit(self.namespace.eval_with_timeout, expr)
             score, goal, result = future.result(timeout)
             return score, goal, result
 

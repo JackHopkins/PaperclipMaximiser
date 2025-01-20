@@ -137,10 +137,10 @@ class FactorioEvaluator:
     def _evaluate_for_achievements(self, code: str, instance: FactorioInstance) \
             -> Tuple[float, GameState, str, List[Union[Entity, EntityGroup]], Dict[str, Dict[str, int]]]:
         # Get initial state information
-        start_production_flows = instance.get_production_stats()
+        start_production_flows = instance.namespace.get_production_stats()
         # Executing code
         reward, time, result = instance.eval(code, timeout=120)
-        post_production_flows = instance.get_production_stats()
+        post_production_flows = instance.namespace.get_production_stats()
         achievements = get_achievements(start_production_flows, copy.deepcopy(post_production_flows))
         
         return result, achievements, post_production_flows
@@ -157,10 +157,10 @@ class FactorioEvaluator:
         try:
             # Get initial state information
             self.logger.update_instance(tcp_port, status="starting value")
-            start_entities = instance.get_entities()
-            start_inventory = instance.inspect_inventory()
-            start_production_flows = instance.get_production_stats()
-            initial_value, start_time = instance.score()
+            start_entities = instance.namespace.get_entities()
+            start_inventory = instance.namespace.inspect_inventory()
+            start_production_flows = instance.namespace.get_production_stats()
+            initial_value, start_time = instance.namespace.score()
             code = program.code
             # Executing code
             self.logger.update_instance(tcp_port, status="executing")

@@ -53,6 +53,9 @@ iron_plates_in_furnace = inspect_inventory(furnace)[Prototype.IronPlate]
 assert iron_plates_in_furnace>=10, "Not enough iron plates in furnace"
 print(f"Smelted 10 iron plates")
 # extract the plates from the furnace
+# make sure to first move to the furnace pos as we cant extract from a distance
+move_to(furnace.position)
+# extract the plates
 extract_item(Prototype.IronPlate, furnace.position, 10)
 # assert we have 10 plates in players inventory
 assert inspect_inventory()[Prototype.IronPlate] >=10, f"Not enough plates in inventory"
@@ -451,7 +454,7 @@ belt = connect_entities(source.drop_position, destination_inserter.pickup_positi
     Prototype.TransportBelt)
 print(f"connected source and destionation with {belt}")
 ```
-### 7. Many-to-One Belt Systems
+### 7. Many-to-One Connections
 When you need to connect multiple sources to a single target with transport belts
 1. Establish sources and target
 2. Create the main connection by connecting one source to the target with transport belts
@@ -483,6 +486,25 @@ for source in secondary_sources:
     print(f"Extended main connection: {main_connection}")
 print(f"Final connection after connecting all sources to target: {main_connection}")
 ```
+
+When you want to connect entities to existing power pole groups, similar rules apply
+```python
+# create the main connection
+main_power_connection = connect_entities(steam_engine, 
+                                    drill_1,
+                                    Prototype.SmallElectricPole)
+# Print out the whole connection for logs
+# as main_connection is a list of ElectricityGroup, we print out the whole list
+print(f"Created the main connection: {main_connection}")
+
+# connect the secondary source to the main power connection
+# Use the first ElectricityGroup from the main connection to connect to
+# Also override the main_power_connection to get the newest ElectricityGroups
+main_power_connection = connect_entities(drill_2, 
+                                main_connection[0],
+                                Prototype.SmallElectricPole)
+```
+
 
 ### 8. Using assembling machines
 To create automatic item crafting mines (copper cable, electronic circuits etc), you need to use a assembling machine that automatically crafts the entities.

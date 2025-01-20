@@ -157,7 +157,7 @@ SYSTEM_PROMPT = \
 
     Use assert statements to self-verify your beliefs against the environment, with specific and parameterised assertion messages.
     
-    You must create a factory that automatically creates a target entity. You are given the entity for which you need to create a factory for. You are also given the target throughput that the factory must achieve
+    You must create an AUTOMATIC factory that automatically creates a target entity by itself. You are given the entity for which you need to create a factory for. You are also given the target throughput that the factory must achieve
     
     After each step the throughput of the factory is evaluated during 60 seconds of worktime and the results are supplied to you in the response. If you have achieved the target throughput, make sure to fuel the factory and make small improvements but do not break the factory.
     

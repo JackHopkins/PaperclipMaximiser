@@ -361,7 +361,7 @@ class FactorioNamespace:
                     value = eval_dict[name]
                     self.persistent_vars[name] = wrap_for_serialization(value)
                     setattr(self, name, value)
-                    print(f"{self.tcp_port}: Stored variable {name} - {type(value)}")
+                    #print(f"{self.tcp_port}: Stored variable {name} - {type(value)}")
 
             return True
 
