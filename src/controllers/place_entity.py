@@ -22,7 +22,7 @@ class PlaceObject(Action):
                  entity: Prototype,
                  direction: Direction = Direction.UP,
                  position: Position = Position(x=0, y=0),
-                 exact: bool = False,
+                 exact: bool = True,
                  #relative=False
                  ) -> Entity:
         """
@@ -34,7 +34,8 @@ class PlaceObject(Action):
         :example stone_furnace = place_entity(Prototype.StoneFurnace, Direction.UP, Position(x=0, y=0))
         :return: Entity object
         """
-
+        if entity ==  Prototype.OffshorePump:
+            exact = False
         #if not isinstance(entity, Prototype):
         #    raise ValueError("The first argument must be a Prototype object")
 

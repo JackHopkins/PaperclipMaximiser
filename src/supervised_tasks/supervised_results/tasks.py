@@ -296,15 +296,14 @@ TASKS = {"simple_crafting":{
                                         #task="Create an automatic iron ore mine that produces 32 iron ore per 60 ingame seconds. Useful information for this task: One burner mining drill mines 15 resources and one electric mining drill mines 30 resources per 60 ingame seconds.",
                                         #throughput_entity="iron-ore",
                                         #starting_inventory=PLACEMENT_STARTING_INVENTORY),
-                                        "iron_mine_64_placement": OpenEndedTaskConfig(
-                                        task="Create an automatic iron ore mine that produces 64 iron ore per 60 ingame seconds. Useful information for this task: One burner mining drill mines 15 resources and one electric mining drill mines 30 resources per 60 ingame seconds.",
+                                        #"iron_mine_64_placement": OpenEndedTaskConfig(
+                                        #task="Create an automatic iron ore mine that produces 64 iron ore per 60 ingame seconds. Useful information for this task: One burner mining drill mines 15 resources and one electric mining drill mines 30 resources per 60 ingame seconds.",
+                                        #throughput_entity="iron-ore",
+                                        #starting_inventory=PLACEMENT_STARTING_INVENTORY),
+                                        "iron_mine_128_placement": OpenEndedTaskConfig(
+                                        task="Create an automatic iron ore mine that produces 128 iron ore per 60 ingame seconds. Useful information for this task: One burner mining drill mines 15 resources and one electric mining drill mines 30 resources per 60 ingame seconds.",
                                         throughput_entity="iron-ore",
                                         starting_inventory=PLACEMENT_STARTING_INVENTORY),
-                                        #"coal_mine_128": TaskConfig(
-                                        #task="Create an automatic coal mine that produces 128 coal per 60 ingame seconds. Useful information for this task: One burner mining drill mines 15 resources and one electric mining drill mines 30 resources per 60 ingame seconds.",
-                                        #check_for_completion=True,
-                                        #check_dicts=[{"task_type": "dynamic", "item":"coal", "quantity": 128}],
-                                        #starting_inventory=PLACEMENT_STARTING_INVENTORY),
         },
         "iron_mine_thresholds_scratch": {
                                         #"iron_mine_1_scratch": OpenEndedTaskConfig(

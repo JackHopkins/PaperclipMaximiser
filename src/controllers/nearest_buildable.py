@@ -31,6 +31,8 @@ class NearestBuildable(Action):
         :return: A dictionary containing the center position of the buildable area, width and height margins
             left_top - The top left position of the buildable area
             right_bottom - The bottom right position of the buildable area
+            left_bottom - The bottom left position of the buildable area
+            right_top - The top right position of the buildable area
         """
         if not isinstance(entity, Prototype):
             raise Exception("'nearest_buildable' requires the Prototype of the desired entity as the first argument")
@@ -52,7 +54,7 @@ class NearestBuildable(Action):
 
         MARGIN = 0
         dx = building_box.width -1  # Theres a bug somewhere in lua but I can't find it. Workaround for now
-        dy = building_box.height
+        dy = building_box.height - 1 # Theres a bug somewhere in lua but I can't find it. Workaround for now
         dx = dx + MARGIN
         dy = dy + MARGIN
         bb_data = {
@@ -76,6 +78,20 @@ class NearestBuildable(Action):
         #    return Position(x=response['x'], y=response['y'])
         #else:
         #    return Position(x=response['x']-dx, y=response['y']-dy)
-        return {"left_top": Position(x=response['x'], y=response['y']),
-                "right_bottom": Position(x=response['x']+dx -1, # Bug somewhere in lua. Workaround for now
-                                          y=response['y']+dy)}
+
+        response_x = math.floor(response['x'] + 0.5) - 1 # some shady math here
+        response_y = math.floor(response['y'] - 0.5)  # some shady math here
+
+        #response_x = response['x']
+        #response_y = response['y']
+
+        return {"left_top": Position(x=response_x, y=response_y), # Bug somewhere in lua. Workaround for now
+                "right_bottom": Position(x=response_x+dx, # Bug somewhere in lua. Workaround for now
+                                          y=response_y+dy),
+                "left_bottom": Position(x=response_x, y=response_y+dy),
+                "right_top": Position(x=response_x + dx, y=response_y)}
+        #return {"left_top": Position(x=response['x'] - 1, y=response['y']), # Bug somewhere in lua. Workaround for now
+        #        "right_bottom": Position(x=response['x']+dx -1, # Bug somewhere in lua. Workaround for now
+        #                                  y=response['y']+dy),
+        #        "left_bottom": Position(x=response['x'] - 1, y=response['y']+dy),
+        #        "right_top": Position(x=response['x'] + dx - 1, y=response['y'])}

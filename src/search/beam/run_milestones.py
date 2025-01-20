@@ -201,7 +201,7 @@ Focus on what they attempted to achieve, any errors that occurred, and the outco
 Provide specific tips and successful patterns that you see in the code, and any examples that you can provide.
 """
 
-with open("src\search\MANUAL_simple_bbox.md", "r") as f:
+with open("src\search\MANUAL_short.md", "r") as f:
     MANUAL = f.read()
 
 
@@ -244,7 +244,7 @@ async def main():
     version_description = "eval_agentic_supervised"
 
     result_path = r"src\supervised_tasks\supervised_results"
-    task_types = ["copper_plate_thresholds_placement"]
+    task_types = ["iron_mine_thresholds"]
     tasks_to_exclude = []
     search_type = "beam_supervised"
     search_iterations = 1

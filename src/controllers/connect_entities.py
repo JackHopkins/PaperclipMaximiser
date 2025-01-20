@@ -357,7 +357,6 @@ class ConnectEntities(Action):
                             else:
                                 warnings = [warnings]
                             value['warnings'] = warnings
-                            print("asd")
                         entity = metaclass(prototype=connection_type, **value)
 
                         if entity.prototype == Prototype.TransportBelt or entity.prototype == Prototype.Pipe:
