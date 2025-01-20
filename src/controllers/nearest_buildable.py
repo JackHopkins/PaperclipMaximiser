@@ -37,31 +37,20 @@ class NearestBuildable(Action):
         if not isinstance(entity, Prototype):
             raise Exception("'nearest_buildable' requires the Prototype of the desired entity as the first argument")
 
-        # Convert bounding box to relative coordinates if provided
-        #bb_data = None
-        #dx, dy = 0, 0
-        #if bounding_box:
-        #    dx = bounding_box.left_top.x# if bounding_box.left_top.x < 0 else 0
-        #    dy = bounding_box.left_top.y# if bounding_box.left_top.y < 0 else 0
-        #    MARGIN = 1
-#
-        #    bb_data = {
-        #        "left_top": {"x": bounding_box.left_top.x-dx, "y": bounding_box.left_top.y-dy},
-        #        "right_bottom": {"x": bounding_box.right_bottom.x-dx+MARGIN*2, "y": bounding_box.right_bottom.y-dy+MARGIN*2},
-        #        "center": {"x": bounding_box.center.x-dx, "y": bounding_box.center.y-dy}
-        #    }
+
 
 
         MARGIN = 0
-        dx = building_box.width -1  # Theres a bug somewhere in lua but I can't find it. Workaround for now
-        dy = building_box.height - 1 # Theres a bug somewhere in lua but I can't find it. Workaround for now
+        dx = building_box.width
+        dy = building_box.height  
         dx = dx + MARGIN
         dy = dy + MARGIN
         bb_data = {
                 "left_top": {"x": 0, "y": 0},
                 "right_bottom": {"x": dx, "y": dy}
             }
-        center_position = {"x": center_position.x, "y": center_position.y}
+        # make all the values integeres
+        center_position = {"x": math.ceil(center_position.x + 0.5), "y": math.ceil(center_position.y + 0.5)}
 
 
         response, time_elapsed = self.execute(PLAYER, entity.value[0], bb_data, center_position)
@@ -69,29 +58,11 @@ class NearestBuildable(Action):
         if isinstance(response, str):
             raise Exception(f"No viable place to put {str(entity)} near the centre position {center_position} with this BuildingBox size found on the map. Either decrease the size of the BuildingBox or use multiple smaller BuildingBoxes")
 
-        # if not self.game_state.last_observed_player_location:
-        #     self.game_state.last_observed_player_location = self.game_state.player_location
-        #
-        # else:
-        # return (math.floor(response['x']), math.floor(response['y']))
-        #if not bounding_box:
-        #    return Position(x=response['x'], y=response['y'])
-        #else:
-        #    return Position(x=response['x']-dx, y=response['y']-dy)
+        response_x = response['x']
+        response_y = response['y']
 
-        response_x = math.floor(response['x'] + 0.5) - 1 # some shady math here
-        response_y = math.floor(response['y'] - 0.5)  # some shady math here
-
-        #response_x = response['x']
-        #response_y = response['y']
-
-        return {"left_top": Position(x=response_x, y=response_y), # Bug somewhere in lua. Workaround for now
-                "right_bottom": Position(x=response_x+dx, # Bug somewhere in lua. Workaround for now
-                                          y=response_y+dy),
-                "left_bottom": Position(x=response_x, y=response_y+dy),
-                "right_top": Position(x=response_x + dx, y=response_y)}
-        #return {"left_top": Position(x=response['x'] - 1, y=response['y']), # Bug somewhere in lua. Workaround for now
-        #        "right_bottom": Position(x=response['x']+dx -1, # Bug somewhere in lua. Workaround for now
-        #                                  y=response['y']+dy),
-        #        "left_bottom": Position(x=response['x'] - 1, y=response['y']+dy),
-        #        "right_top": Position(x=response['x'] + dx - 1, y=response['y'])}
+        return {"left_top": Position(x=response_x, y=response_y),
+                "right_bottom": Position(x=response_x+dx-1,
+                                          y=response_y+dy-1),
+                "left_bottom": Position(x=response_x, y=response_y+dy-1),
+                "right_top": Position(x=response_x + dx-1, y=response_y)}
