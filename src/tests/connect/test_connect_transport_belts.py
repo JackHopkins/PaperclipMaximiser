@@ -25,7 +25,7 @@ def game(instance):
     }
     instance.speed(10)
     instance.reset()
-    yield instance
+    yield instance.namespace
     instance.speed(10)
     #instance.reset()
 
@@ -109,7 +109,7 @@ def test_multiple_inserter_connections(game):
         )
 
         # Clean up for next iteration
-        game.reset()
+        game.instance.reset()
 
 def test_inserter_pickup_positions(game):
 
@@ -385,7 +385,7 @@ def test_connecting_transport_belts_around_sharp_edges2(game):
 
         assert len(belts) == 1, "Failed to connect transport belts around the water patch"
 
-        game.reset()
+        game.instance.reset()
 
 
 def test_connect_belt_groups_horizontally(game):
@@ -511,5 +511,25 @@ def test_connect_belts_with_end_rotation(game):
     # extend connection
     main_connection2 = game.connect_entities(main_connection[0], chest_inserter.pickup_position, Prototype.TransportBelt)
 
-    ticks_elapsed = game.get_elapsed_ticks()
+    ticks_elapsed = game.instance.get_elapsed_ticks()
     assert len(main_connection2[0].belts) == 24
+
+def test_connect_belt_small(game):
+    # Use available transport belts to route iron plates from furnaces to a central location:
+    belt_start_position = Position(x=0.0, y=1.0)  # Position near the first furnace
+    belt_end_position = Position(x=4.0, y=3.0)  # Position leading to an assembly area
+
+    # Lay out the transport belt along the planned path:
+    try:
+        game.connect_entities(belt_start_position, belt_end_position, Prototype.TransportBelt)
+        print(f"Transport Belts laid from {belt_start_position} to {belt_end_position}.")
+    except Exception as e:
+        print(f"Failed to lay Transport Belts: {e}")
+
+    ### Final Assessment:
+
+    # Validate current setup as you prepare for the next logical extension, moving towards enhancement opportunities once research and resource bottlenecks ease.
+
+    # Check the current status:
+    entities_current = game.get_entities()
+    pass

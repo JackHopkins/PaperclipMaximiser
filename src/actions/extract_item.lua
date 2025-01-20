@@ -1,55 +1,182 @@
+-- Helper function to check all possible inventories of an entity
+local function get_entity_item_count(entity, item_name)
+    local inventory_types = {
+        defines.inventory.chest,
+        defines.inventory.furnace_source,
+        defines.inventory.furnace_result,
+        defines.inventory.assembling_machine_input,
+        defines.inventory.assembling_machine_output,
+        defines.inventory.fuel,
+        defines.inventory.burnt_result,
+        defines.inventory.reactor_source,
+        defines.inventory.reactor_result,
+        defines.inventory.lab_input,
+        defines.inventory.lab_source,
+        defines.inventory.mining_drill_input,
+        defines.inventory.item_main,  -- For cargo wagons
+        defines.inventory.robot_cargo,
+        defines.inventory.robot_repair,
+        defines.inventory.car_trunk,
+        defines.inventory.car_fuel,
+        defines.inventory.roboport_material,
+        defines.inventory.roboport_robot,
+        defines.inventory.storage_tank,
+        defines.inventory.artillery_turret_ammo,
+        defines.inventory.turret_ammo,
+        defines.inventory.beacon_modules,
+        defines.inventory.character_main,
+        defines.inventory.character_guns,
+        defines.inventory.character_ammo,
+        defines.inventory.character_armor,
+        defines.inventory.character_vehicle,
+        defines.inventory.character_trash
+    }
+
+    local total_count = 0
+    for _, inv_type in ipairs(inventory_types) do
+        local inventory = entity.get_inventory(inv_type)
+        if inventory then
+            total_count = total_count + entity.get_item_count(item_name)
+        end
+    end
+    return total_count
+end
+
+-- Helper function to remove items from any valid inventory
+local function remove_items_from_entity(entity, stack)
+    local inventory_types = {
+        defines.inventory.chest,
+        defines.inventory.furnace_source,
+        defines.inventory.furnace_result,
+        defines.inventory.assembling_machine_input,
+        defines.inventory.assembling_machine_output,
+        defines.inventory.fuel,
+        defines.inventory.burnt_result,
+        defines.inventory.reactor_source,
+        defines.inventory.reactor_result,
+        defines.inventory.lab_input,
+        defines.inventory.lab_source,
+        defines.inventory.mining_drill_input,
+        defines.inventory.item_main,
+        defines.inventory.robot_cargo,
+        defines.inventory.robot_repair,
+        defines.inventory.car_trunk,
+        defines.inventory.car_fuel,
+        defines.inventory.roboport_material,
+        defines.inventory.roboport_robot,
+        defines.inventory.storage_tank,
+        defines.inventory.artillery_turret_ammo,
+        defines.inventory.turret_ammo,
+        defines.inventory.beacon_modules,
+        defines.inventory.character_main,
+        defines.inventory.character_guns,
+        defines.inventory.character_ammo,
+        defines.inventory.character_armor,
+        defines.inventory.character_vehicle,
+        defines.inventory.character_trash
+    }
+
+    local items_remaining = stack.count
+    local total_removed = 0
+
+    for _, inv_type in ipairs(inventory_types) do
+        if items_remaining <= 0 then
+            break
+        end
+
+        local inventory = entity.get_inventory(inv_type)
+        if inventory then
+            local current_stack = {name = stack.name, count = items_remaining}
+            local removed = entity.remove_item(current_stack)
+            total_removed = total_removed + removed
+            items_remaining = items_remaining - removed
+        end
+    end
+
+    return total_removed
+end
+
 global.actions.extract_item = function(player_index, extract_item, count, x, y)
     local player = game.get_player(player_index)
     local position = {x=x, y=y}
     local surface = player.surface
 
-    local stack = {name=extract_item, count=count}
+    -- First validate the request
+    if count <= 0 then
+        error("\"Invalid count: must be greater than 0\"")
+    end
 
+    -- Find all entities in range
+    local search_radius = 10
+    local area = {{position.x - search_radius, position.y - search_radius},
+                  {position.x + search_radius, position.y + search_radius}}
+
+    local buildings = surface.find_entities_filtered{
+        area = area
+    }
+
+    -- Find the closest building with the item we want
     local closest_distance = math.huge
     local closest_entity = nil
-    local area = {{position.x - 10, position.y - 10}, {position.x + 10, position.y + 10}}
-    local buildings = surface.find_entities_filtered{area = area}
+    local found_any_items = false
 
-    -- Find the closest building
     for _, building in ipairs(buildings) do
-        if building.get_inventory(defines.inventory.chest) ~= nil and building.name ~= 'character' then
-            local distance = ((position.x - building.position.x) ^ 2 + (position.y - building.position.y) ^ 2) ^ 0.5
-            if distance < closest_distance then
-                closest_distance = distance
-                closest_entity = building
+        if building.name ~= 'character' then
+            local item_count = get_entity_item_count(building, extract_item)
+            if item_count > 0 then
+                found_any_items = true
+                local distance = ((position.x - building.position.x) ^ 2 +
+                                (position.y - building.position.y) ^ 2) ^ 0.5
+                if distance < closest_distance then
+                    closest_distance = distance
+                    closest_entity = building
+                end
             end
         end
     end
 
-    if closest_entity == nil then
-        error("\"Could not find a nearby entity to extract from.\"")
+    -- Error handling in priority order
+    if #buildings == 0 then
+        error("\"Could not find any entities in range\"")
     end
 
-    -- If we can find an entity to extract from near the player's x, y position
-    local closest_entity_count = closest_entity.get_item_count(extract_item)
-
-    if closest_entity_count == 0 then
-        error('No item to extract')
+    if closest_distance > search_radius then
+        error("\"Entity too far away. Move closer.\"")
     end
 
-    -- Throw an error if the entity is too far away from the player
-    if closest_distance > 10 then
-        error('Entity too far away. Move closer.')
+    if not found_any_items then
+        error("\"No " .. extract_item .. " found in any nearby entities\"")
     end
 
-    -- Extract items
-    local number_extracted = closest_entity.remove_item(stack)
-
-    -- If nothing was extracted
-    if number_extracted == 0 then
-        error('No item extracted')
+    if not closest_entity then
+        error("\"Could not find a valid entity with " .. extract_item .. "\"")
     end
 
-    stack.count = number_extracted
+    -- Calculate how many items we can actually extract
+    local available_count = get_entity_item_count(closest_entity, extract_item)
+    local extract_count = math.min(count, available_count)
 
-    game.print("Extracted "..number_extracted)
-    -- Insert the extracted items directly into the player's inventory
-    player.insert(stack)
+    -- Create the stack for extraction
+    local stack = {name=extract_item, count=extract_count}
 
-    return number_extracted
+    -- Attempt the extraction
+    local number_extracted = remove_items_from_entity(closest_entity, stack)
+
+    if number_extracted > 0 then
+        -- Insert items into player inventory
+        local inserted = player.insert(stack)
+
+        -- If we couldn't insert all items, put them back in the container
+        if inserted < number_extracted then
+            stack.count = number_extracted - inserted
+            closest_entity.insert(stack)
+            number_extracted = inserted
+        end
+
+        game.print("Extracted " .. number_extracted .. " " .. extract_item)
+        return number_extracted
+    else
+        -- This should rarely happen given our prior checks
+        error("\"Failed to extract " .. extract_item .. "\"")
+    end
 end

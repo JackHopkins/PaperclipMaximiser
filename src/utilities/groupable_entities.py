@@ -2,7 +2,7 @@ from collections import defaultdict
 from typing import List
 
 from factorio_entities import TransportBelt, BeltGroup, Position, Entity, EntityGroup, PipeGroup, Inventory, \
-    EntityStatus
+    EntityStatus, Pipe, ElectricityGroup
 from factorio_instance import Direction
 from factorio_types import Prototype
 
@@ -25,7 +25,7 @@ def _deduplicate_entities(entities: List[Entity]) -> List[Entity]:
 def _construct_group(entities: List[Entity],
                      prototype: Prototype,
                      position: Position) -> EntityGroup:
-    if prototype == Prototype.TransportBelt or entities[0].prototype == Prototype.TransportBelt:
+    if prototype == Prototype.TransportBelt or isinstance(entities[0], TransportBelt):
         inputs = [c for c in entities if c.is_source]
         outputs = [c for c in entities if c.is_terminus]
         inventory = Inventory()
@@ -50,10 +50,12 @@ def _construct_group(entities: List[Entity],
                          outputs=outputs,
                          status = status,
                          position=position)
-    elif prototype == Prototype.Pipe or entities[0].prototype == Prototype.Pipe:
+    elif prototype == Prototype.Pipe or isinstance(entities[0], Pipe):
         entities = _deduplicate_entities(entities)
         return PipeGroup(pipes=entities,
                          position=position)
+    elif prototype in (Prototype.SmallElectricPole, Prototype.BigElectricPole, Prototype.MediumElectricPole):
+        return ElectricityGroup(electric_network_id=entities[0].electric_network_id, poles=list(set(entities)))
 
 
 
@@ -222,7 +224,7 @@ def should_merge_groups(group1, group2, prototype):
 
     return False
 
-def agglomerate_groupable_entities(connected_entities: List[Entity]) -> List[BeltGroup]:
+def agglomerate_groupable_entities(connected_entities: List[Entity]) -> List[EntityGroup]:
     """
     Group contiguous transport belts into BeltGroup objects.
 
@@ -240,6 +242,21 @@ def agglomerate_groupable_entities(connected_entities: List[Entity]) -> List[Bel
 
     if isinstance(connected_entities[0], Entity):
         prototype = connected_entities[0].prototype
+
+    if prototype in (Prototype.SmallElectricPole, Prototype.BigElectricPole, Prototype.MediumElectricPole):
+        electricity_ids = {}
+
+        for entity in connected_entities:
+            if entity.electric_network_id in electricity_ids:
+                electricity_ids[entity.electric_network_id].append(entity)
+            else:
+                electricity_ids[entity.electric_network_id] = [entity]
+
+        return [_construct_group(
+            entities=entities,
+            prototype=prototype,
+            position=entities[0].position
+        ) for entities in electricity_ids.values()]
 
     return [_construct_group(
         entities=connected_entities,

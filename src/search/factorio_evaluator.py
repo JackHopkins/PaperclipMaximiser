@@ -110,6 +110,7 @@ class FactorioEvaluator:
                 program.value = relative_reward
                 program.state = state
                 program.raw_reward = raw_reward
+                program.ticks = ticks
                 #program.holdout_value = holdout_value
                 conversation = copy.deepcopy(program.conversation)
                 conversation.add_result(program.code, response, score=raw_reward, advantage=relative_reward, objectives=program.meta['objectives'] if 'objectives' in program.meta else [])
@@ -146,7 +147,7 @@ class FactorioEvaluator:
 
 
     async def _evaluate_single(self, instance_id: int, program: Program, instance: FactorioInstance) \
-            -> Tuple[float, GameState, str, List[Union[Entity, EntityGroup]], Dict[str, Dict[str, int]]]:
+            -> Tuple[float, GameState, str, List[Union[Entity, EntityGroup]], Dict[str, Dict[str, int]], int]:
         try:
             # Convert instance_id to TCP port
             tcp_port = self.instance_to_port[instance_id]
@@ -172,13 +173,19 @@ class FactorioEvaluator:
             # Get the namespace variables in a human readable format for debugging purposes
             vars = pickle.loads(state.namespace)
 
-            entities = instance.get_entities()
-            final_inventory = instance.inspect_inventory()
+            self.logger.update_instance(tcp_port, status=f"accruing value ({self.value_accrual_time}s)")
+            await asyncio.sleep(self.value_accrual_time)
+
+            entities = instance.namespace.get_entities()
+            final_inventory = instance.namespace.inspect_inventory()
 
             # Check to see if the inventories are different
-            # If so, we put a hint in the code and result
+            # If so, we manually put a hint in the generated code and result from the game
             get_inventory_code = 'print(f"Current inventory: {inspect_inventory()}")'
-            if start_inventory != final_inventory and 'error' not in result.lower() and get_inventory_code not in program.code:
+            if (start_inventory.__dict__ != final_inventory.__dict__
+                    and 'error' not in result.lower()
+                    and get_inventory_code not in program.code
+                    and 'inspect_inventory()' not in program.code):
                 program.code += f'\n{get_inventory_code}'
                 result += f'\n'+str(len(program.code.split('\n')))+f': (\'Current inventory: {final_inventory}\',)'
 
@@ -195,10 +202,11 @@ class FactorioEvaluator:
             self.logger.update_instance(tcp_port, status=f"accruing value ({self.value_accrual_time}s)")
             await asyncio.sleep(self.value_accrual_time)
 
-            score, _ = instance.score()
+            score, _ = instance.namespace.score()
             final_reward = score - initial_value
+            ticks = instance.get_elapsed_ticks()
 
-            post_production_flows = instance.get_production_stats()
+            post_production_flows = instance.namespace.get_production_stats()
             achievements = get_achievements(start_production_flows, post_production_flows)
             profits = get_profits(start_production_flows, post_production_flows)
 
@@ -230,7 +238,7 @@ class FactorioEvaluator:
                 )
                 error = True
 
-            return final_reward, state, result, entities, achievements, profits, error
+            return final_reward, state, result, entities, achievements, ticks, error
 
         except Exception as e:
             print(f"Error in _evaluate_single:")
