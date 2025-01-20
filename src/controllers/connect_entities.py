@@ -132,7 +132,6 @@ class ConnectEntities(Action):
         :param connection_type: a Pipe, TransportBelt or ElectricPole
         :example connect_entities(source=boiler, target=generator, connection_type=Prototype.Pipe)
         :example connect_entities(source=miner, target=stone_furnace, connection_type=Prototype.TransportBelt)
-        :example connect_entities(source=generator, target=miner, connection_type=Prototype.SmallElectricPole)
         :return: List of entities that were created
         """
         try:
@@ -148,7 +147,7 @@ class ConnectEntities(Action):
 
             if isinstance(source, BeltGroup):
                 source_entity = source
-                source_position = Position(x=source_entity.output_positions[0].x, y=source_entity.output_positions[0].y)
+                source_position = Position(x=source_entity.output_position.x, y=source_entity.output_position.y)
             elif isinstance(source, Entity) or isinstance(source, EntityGroup):
                 source_entity = source
                 source_position = Position(x=source_entity.position.x, y=source_entity.position.y)

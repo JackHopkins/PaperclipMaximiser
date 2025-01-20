@@ -5,7 +5,7 @@ from factorio_entities import Position, Entity, BeltGroup, TransportBelt
 from factorio_instance import PLAYER
 from factorio_types import Prototype
 from utilities.groupable_entities import agglomerate_groupable_entities
-
+import time
 
 class GetEntities(Action):
     def __init__(self, connection, game_state):
@@ -20,6 +20,8 @@ class GetEntities(Action):
         :return: List of Entity objects
         """
         try:
+            # add a 1 second sleep for the entities to update as this command is instantaneous
+            time.sleep(1)
             if not isinstance(position, Position) and position is not None:
                 raise ValueError("The second argument must be a Position object")
 

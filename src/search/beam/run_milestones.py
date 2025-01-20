@@ -244,13 +244,13 @@ async def main():
     version_description = "eval_agentic_supervised"
 
     result_path = r"src\supervised_tasks\supervised_results"
-    task_types = ["iron_mine_thresholds"]
+    task_types = ["electronic_circuit_thresholds_placement"]
     tasks_to_exclude = []
     search_type = "beam_supervised"
     search_iterations = 1
 
     formatter = RecursiveFormatter(
-        chunk_size=16,
+        chunk_size=32,
         llm_factory=llm_factory,
         cache_dir='./summary_cache',
         summary_instructions=HISTORY_SUMMARIZATION_INSTRUCTIONS
@@ -261,7 +261,7 @@ async def main():
         model_to_evaluate=model_to_evaluate,
         initial_state=initial_state,
         supervised_kwargs = {
-                             "max_steps_per_objective": 16,
+                             "max_steps_per_objective": 32,
                              #"beam_unification_steps": 1,
                              "system_prompt": prompt}),
         "executor": MilestonesBeamSearchExecutor}
