@@ -1,4 +1,4 @@
-from typing import Tuple, Union
+from typing import Tuple, Union, Optional
 
 import numpy as np
 from scipy import ndimage
@@ -20,7 +20,7 @@ class GetResourcePatch(Action):
                  position: Position,
                  radius: int = 10,
                  #relative=False
-                 ) -> Union[ResourcePatch, None]:
+                 ) -> Optional[ResourcePatch]:
         """
         Get the resource patch at position (x, y) if it exists in the radius.
         if radius is set to 0, it will only check the exact position for this resource patch.

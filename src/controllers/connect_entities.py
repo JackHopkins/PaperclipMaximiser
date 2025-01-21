@@ -318,7 +318,7 @@ class ConnectEntities(Action):
                                                      number_of_connection_prototype)
                     if not isinstance(response, dict) and response != "Passed":
                         raise Exception(
-                            f"Error with connecting entities: Could not fully connect {connection_prototype} from {(source_position)} to {(target_position)}.",
+                            f"Error with connecting entities - Could not fully connect {connection_prototype} from {(source_position)} to {(target_position)}.",
                             response.lstrip())
 
                 except Exception as e:
@@ -353,7 +353,7 @@ class ConnectEntities(Action):
                                                  dry_run,
                                                  number_of_connection_prototype)
             if not isinstance(response, dict) and response != "Passed":
-                raise Exception(f"Error with connecting entities: Could not connect {connection_prototype} from {(source_position)} to {(target_position)}.", response.lstrip())
+                raise Exception(f"Error with connecting entities - Could not connect {connection_prototype} from {(source_position)} to {(target_position)}.", response.lstrip())
 
             if dry_run:
                 return {"number_of_entities_required": response["number_of_entities"],
