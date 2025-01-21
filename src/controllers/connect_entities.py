@@ -9,7 +9,7 @@ from typing import Tuple, List, Union
 
 from controllers.get_entities import GetEntities
 from controllers.get_entity import GetEntity
-from controllers.get_path import GetPath
+from controllers._get_path import GetPath
 from controllers.pickup_entity import PickupEntity
 from controllers.request_path import RequestPath
 from controllers.rotate_entity import RotateEntity
@@ -318,8 +318,7 @@ class ConnectEntities(Action):
                                                      number_of_connection_prototype)
                     if not isinstance(response, dict) and response != "Passed":
                         raise Exception(
-                            f"Error with connecting entities - Could not fully connect {connection_prototype} from {(source_position)} to {(target_position)}.",
-                            response.lstrip())
+                            f"Error with connecting entities - Could not fully connect {connection_prototype} from {(source_position)} to {(target_position)}. {self.get_error_message(response.lstrip())}")
 
                 except Exception as e:
                     # But accept allowing paths through own entities if it fails
@@ -353,7 +352,7 @@ class ConnectEntities(Action):
                                                  dry_run,
                                                  number_of_connection_prototype)
             if not isinstance(response, dict) and response != "Passed":
-                raise Exception(f"Error with connecting entities - Could not connect {connection_prototype} from {(source_position)} to {(target_position)}.", response.lstrip())
+                raise Exception(f"Error with connecting entities - Could not connect {connection_prototype} from {(source_position)} to {(target_position)}. {self.get_error_message(response.lstrip())}")
 
             if dry_run:
                 return {"number_of_entities_required": response["number_of_entities"],

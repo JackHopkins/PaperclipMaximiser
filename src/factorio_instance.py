@@ -159,7 +159,7 @@ class FactorioInstance:
                                                                dict) else self.initial_inventory.__dict__)
             # Reset the technologies
             if not self.all_technologies_researched:
-                self._load_research_state(ResearchState(
+                self.namespace._load_research_state(ResearchState(
                     technologies={},
                     research_progress=0,
                     current_research=None,
@@ -764,6 +764,7 @@ class FactorioInstance:
         self.add_command('/c global.alerts = {}', raw=True)
         self.add_command('/c game.reset_game_state()', raw=True)
         self.add_command('/c global.actions.reset_production_stats()', raw=True)
+        self.add_command(f'/c global.actions.regenerate_resources({PLAYER})', raw=True)
         #self.add_command('/c script.on_nth_tick(nil)', raw=True) # Remove all dangling event handlers
         self.add_command('clear_inventory', PLAYER)
         self.add_command('reset_position', PLAYER, 0, 0)
