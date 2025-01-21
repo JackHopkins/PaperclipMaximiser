@@ -270,7 +270,7 @@ class Recipe(BaseModel):
 class BurnerType(BaseModel):
     class Config:
         arbitrary_types_allowed = True
-    fuel: Inventory = Inventory()
+    fuel: Inventory = Inventory() # Use this to check the fuel levels of the entity
 
 
 class Entity(BaseModel):

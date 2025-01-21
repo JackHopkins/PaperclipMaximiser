@@ -506,6 +506,27 @@ def test_achievements_20():
         print("asda")
 
 
+def test_achievements_21():
+        PLACEMENT_STARTING_INVENTORY = {"coal": 200, "burner-mining-drill": 10, "wooden-chest": 10, "burner-inserter": 10, "transport-belt": 200,
+                                "stone-furnace": 5, "pipe": 10, "boiler": 4, "offshore-pump": 3, "steam-engine": 2,
+                                "iron-gear-wheel": 22, "iron-plate": 19, "copper-plate": 52, "electronic-circuit": 99,
+                                "iron-ore": 62, "stone": 50, "electric-mining-drill": 10, "small-electric-pole": 200, "pipe": 100,
+                                "assembling-machine-1": 5}
+        instance = FactorioInstance(address='localhost',
+                                bounding_box=200,
+                                tcp_port=27015,
+                                fast=True,
+                                #cache_scripts=False,
+                                inventory=PLACEMENT_STARTING_INVENTORY) 
+
+        test_string_1 = 'move_to(Position(x = 0, y = 0))\nprint(can_place_entity(Prototype.Boiler, position=Position(x = 0, y = 0)))'
+        output_list, result, error, achievements = eval_program_with_achievements(instance, test_string_1)
+
+        test_string_1 = '# Power system pattern\nwater_position = nearest(Resource.Water)\nmove_to(water_position)\n# first place offshore pump on the water system\noffshore_pump = place_entity(Prototype.OffshorePump, position=water_position)\nprint(f"Placed offshore pump at {offshore_pump.position}")\n# Then place the boiler close to the offshore pump\n# IMPORTANT: We need to be careful as there is water nearby which is unplaceable,\n# We do not know where the water is so we will use can_place_entity for safety\n# We will also need to be atleast 6 tiles away as the entities are large and otherwise wont have room for connections\n# construct 6 potential positions for the boiler, each 6 tiles away from offshore pump\npotential_positions = [Position(x = offshore_pump.position.x+6, y = offshore_pump.position.y),Position(x = offshore_pump.position.x-6, y = offshore_pump.position.y),Position(x = offshore_pump.position.x, y = offshore_pump.position.y+6),Position(x = offshore_pump.position.x, y = offshore_pump.position.y-6)]\nboiler_placed = False # variable to check if boiler was placed\nfor boiler_position in potential_positions:\n    if can_place_entity(Prototype.Boiler, position=boiler_position):\n        # place the boiler\n        boiler = place_entity(Prototype.Boiler, position=boiler_position)\n        boiler_placed = True\n        print(f"Placed boiler at {boiler_position}")\n        break\nassert boiler_placed, f"Could not find a safe tile to place boiler close to offshore pump 6 spaces away. Consider enlargening the grid"\n# add coal to boiler to start the power generation\nboiler = insert_item(Prototype.Coal, boiler, 10)\n# Finally we need to place the steam engine close to the boiler\n# IMPORTANT: We again need to be safe and use can_place_entity with a tile size of 6\npotential_positions = [Position(x = boiler.position.x+6, y = boiler.position.y),Position(x = boiler.position.x-6, y = boiler.position.y),Position(x = boiler.position.x, y = boiler.position.y+6), Position(x = boiler.position.x, y = boiler.position.y-6)]\nsteam_engine_placed = False # variable to check if boiler was placed\nfor steam_engine_position in potential_positions:\n    move_to(steam_engine_position)\n    if can_place_entity(Prototype.SteamEngine, position=steam_engine_position):\n        # place the steam engine\n        steam_engine = place_entity(Prototype.SteamEngine,position=steam_engine_position)\n        # update the variable\n        steam_engine_placed = True\n        print(f"Placed steam_engine at {steam_engine.position}")\n        break\nassert steam_engine_placed, f"Could not find a safe tile to place steam_engine 6 spaces away from boiler. Consider enlargening the grid"'
+        output_list, result, error, achievements = eval_program_with_achievements(instance, test_string_1)
+        print("asda")
+
+
 if __name__ == '__main__':
     #unittest.main()
-    test_achievements_20()
+    test_achievements_21()

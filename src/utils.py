@@ -256,10 +256,10 @@ def get_dynamic_profits(new_production_flows, price_list, dynamic_profit_multipl
     return dynamic_profits
 
 def eval_program_with_achievements(instance, program):
-        pre_production_flows = instance.get_production_stats()
+        pre_production_flows = instance.namespace.get_production_stats()
         # evaluate the step
         try:
-            score, goal, result = instance.eval_with_error(program, timeout=300)
+            score, goal, result = instance.eval(program, timeout=300)
             error = False
         except Exception as e:
             result = e
@@ -268,7 +268,7 @@ def eval_program_with_achievements(instance, program):
             error = True
         # split result by newlines
         output_list = result.splitlines()
-        post_production_flows = instance.get_production_stats()
+        post_production_flows = instance.namespace.get_production_stats()
         achievements = get_achievements(pre_production_flows, post_production_flows)
         return output_list, result, error, achievements
 

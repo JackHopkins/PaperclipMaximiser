@@ -133,17 +133,21 @@ class LLMFactory:
             )
         
         elif "o1-mini" in model_to_use:
-            client = AsyncOpenAI(api_key=os.getenv("OPENAI_API_KEY"))
-            # replace `max_tokens` with `max_completion_tokens` for OpenAI API
-            if "max_tokens" in kwargs:
-                kwargs.pop("max_tokens")
-
-            return await client.chat.completions.create(
-                *args,
-                n=self.beam,
-                **kwargs,
-                stream=False
-            )
+            try:
+                messages = kwargs.get('messages', None)
+                messages[0]['role'] = "user"
+                client = AsyncOpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+                output = await client.chat.completions.create(
+                    model=model_to_use,
+                    max_completion_tokens=kwargs.get('max_tokens', 256),
+                    #temperature=kwargs.get('temperature', 0.3),
+                    messages=messages,
+                    #n=kwargs.get('n_samples', None),
+                    stream=False)
+            except Exception as e:
+                print(e)
+                raise
+            return output
         else:
             client = AsyncOpenAI(api_key=os.getenv("OPENAI_API_KEY"))
             assert "messages" in kwargs, "You must provide a list of messages to the model."
