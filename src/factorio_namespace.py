@@ -3,6 +3,7 @@ import builtins
 import math
 import pickle
 import traceback
+from typing import Optional, Union, List, Dict, Tuple, Set
 
 from factorio_entities import Position, Direction, EntityStatus, BoundingBox, BeltGroup, Recipe, BuildingBox
 from factorio_types import Prototype, Resource, Technology, prototype_by_name
@@ -71,6 +72,8 @@ class FactorioNamespace:
         self.Technology = Technology
         self.Recipe = Recipe
 
+        # TODO - We need to add all entity objects to the namespace, e.g 'Chest'
+
         self.prototype_by_name = prototype_by_name
 
         # Statically named directions
@@ -89,6 +92,17 @@ class FactorioNamespace:
         self.ceil = math.ceil
         self.abs = abs  # built-in abs function
         self.pow = pow  # built-in pow function
+
+        # Type hints
+        self.Optional = Optional
+        self.Union = Union
+        self.List = List
+        self.Dict = Dict
+        self.Tuple = Tuple
+        self.Set = Set
+
+
+        # Python built-ins
 
         # Add all the members of this class as static members so they can be accessed by the agent program.
         self._static_members = [attr for attr in dir(self)
@@ -497,8 +511,8 @@ class FactorioNamespace:
                 if last_successful_state is not None:
                     self.persistent_vars = last_successful_state.copy()
 
-                if self._sequential_exception_count >= self.max_sequential_exception_count:
-                    break
+                #if self._sequential_exception_count >= self.max_sequential_exception_count:
+                break
 
             eval_dict.update(self.persistent_vars)
 
