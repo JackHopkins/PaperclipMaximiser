@@ -13,6 +13,7 @@ from search.mcts.parallel_supervised_config import SupervisedExecutorConfig
 import json
 
 from search.mcts.formatters.recursive_formatter import RecursiveFormatter
+from search.mcts.formatters.recursive_report_formatter import RecursiveReportFormatter
 from search.model.game_state import GameState
 import matplotlib.pyplot as plt
 import numpy as np
@@ -188,15 +189,6 @@ OBSERVATION_SPACE = \
     This response indicates that `print(get_entities())` was called at line 78 to get state of the entities on the map. There are four stone furnaces, two of which are working and two of which have no ingredients to smelt. Non-working entities can be determined by checking the `warnings` and `status` fields.
    """
 
-HISTORY_SUMMARIZATION_INSTRUCTIONS = \
-"""
-Review the code interaction an agent has written with the Factorio REPL Environment and provide a report. 
-
-Focus on what they attempted to achieve, any errors that occurred, and the outcomes of their actions.
-
-Provide specific tips and successful patterns that you see in the code, and any examples that you can provide.
-"""
-
 with open("src\search\MANUAL_short.md", "r") as f:
     MANUAL = f.read()
 
@@ -245,11 +237,10 @@ async def main():
     search_type = "beam_supervised"
     search_iterations = 1
 
-    formatter = RecursiveFormatter(
+    formatter = RecursiveReportFormatter(
         chunk_size=32,
         llm_factory=llm_factory,
-        cache_dir='./summary_cache',
-        summary_instructions=HISTORY_SUMMARIZATION_INSTRUCTIONS
+        cache_dir='./summary_cache'
     )
 
     configs = {"beam_supervised": {"config": SupervisedExecutorConfig(
