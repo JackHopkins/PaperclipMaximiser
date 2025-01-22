@@ -37,7 +37,11 @@ global.actions.craft_item = function(player_index, entity, count)
     local function can_craft_recipe(player, recipe_name)
         local recipe = player.force.recipes[recipe_name]
         if not recipe then
+<<<<<<< HEAD
             return false, "recipe for " .. recipe_name .. " doesn't exist, it is a raw resource that must be gathered first"
+=======
+            return false, "recipe "..recipe_name.." doesn't exist, it is a raw resource that must be gathered first"
+>>>>>>> feature/tick_tracking
         end
         if not recipe.enabled then
             local required_tech = get_required_technology(recipe_name, player.force)

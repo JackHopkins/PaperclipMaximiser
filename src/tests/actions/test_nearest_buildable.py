@@ -121,7 +121,7 @@ def test_nearest_buildable_multiple_entities(game):
     # iterate from left to right
     for i in range(0, 3):
         pos = Position(x=top_left.x + 3*i, y=top_left.y)
-        game.move_to(npos)
+        game.move_to(pos)
         # Place entity at found position to ensure next search finds different spot
         game.place_entity(Prototype.ElectricMiningDrill, position=pos, exact=True)
         positions.append(pos)

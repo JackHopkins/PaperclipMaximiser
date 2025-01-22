@@ -159,7 +159,7 @@ class FactorioInstance:
                                                                dict) else self.initial_inventory.__dict__)
             # Reset the technologies
             if not self.all_technologies_researched:
-                self._load_research_state(ResearchState(
+                self.namespace._load_research_state(ResearchState(
                     technologies={},
                     research_progress=0,
                     current_research=None,
@@ -252,7 +252,7 @@ class FactorioInstance:
             filter(lambda x: not x.startswith("import") and not x.startswith("from"), type_definitions.split("\n"))))
         type_definitions = type_definitions.replace("\n\n\n", "\n").replace("\n\n", "\n").strip()
         # get everything from and including class Prototype(enum.Enum):
-        type_definitions = type_definitions[type_definitions.index("class Prototype(enum.Enum):"):]
+        type_definitions = type_definitions[type_definitions.index("class Prototype(enum.Enum"):]
         # entity_definitions = load_definitions(f'{execution_path}/factorio_entities.py')
         entity_definitions = parse_file_for_structure(f'{execution_path}/factorio_entities.py')
         brief = f"```types\n{type_definitions}\n```\n```objects\n{entity_definitions}\n```\n```tools\n{schema}\n```"
@@ -758,6 +758,7 @@ class FactorioInstance:
         self.add_command('/c global.alerts = {}', raw=True)
         self.add_command('/c game.reset_game_state()', raw=True)
         self.add_command('/c global.actions.reset_production_stats()', raw=True)
+        self.add_command(f'/c global.actions.regenerate_resources({PLAYER})', raw=True)
         #self.add_command('/c script.on_nth_tick(nil)', raw=True) # Remove all dangling event handlers
         self.add_command('clear_inventory', PLAYER)
         self.add_command('reset_position', PLAYER, 0, 0)

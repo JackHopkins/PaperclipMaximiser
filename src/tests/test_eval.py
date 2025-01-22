@@ -75,6 +75,17 @@ def test_math():
     score, goal, result = instance.eval_with_error("print(sqrt(100))", timeout=60)
     assert "10" in result
 
+def test_name_error():
+    instance = FactorioInstance(address='localhost',
+                                bounding_box=200,
+                                tcp_port=27015,
+                                fast=True,
+                                # cache_scripts=False,
+                                inventory={})
+
+    score, goal, result = instance.eval_with_error("an_existing_variable=10\nprint(none_existing_variable)", timeout=60)
+    assert "an_existing_variable" in result
+
 def test_sleep():
     instance = FactorioInstance(address='localhost',
                                 bounding_box=200,
@@ -85,6 +96,19 @@ def test_sleep():
 
     score, goal, result = instance.eval_with_error("time.sleep(10)", timeout=60)
     assert "10" in result
+
+def test_prototype_attribute_error():
+    instance = FactorioInstance(address='localhost',
+                                bounding_box=200,
+                                tcp_port=27015,
+                                fast=True,
+                                # cache_scripts=False,
+                                inventory={})
+
+    score, goal, result = instance.eval_with_error("print(Prototype.AssemblingMachine)", timeout=60)
+    assert "AssemblingMachine1" in result
+
+
 
 
 def test_exceptions():

@@ -1,3 +1,5 @@
+import argparse
+
 from llm_factory import LLMFactory
 from search.beam.beam_search import ParallelBeamSearch, ParallelBeamConfig
 
@@ -21,14 +23,14 @@ def create_factorio_instances() -> List[FactorioInstance]:
     def init_instance(params: Tuple[str, int, int]) -> FactorioInstance:
         ip, udp_port, tcp_port = params
         return FactorioInstance(address=ip, tcp_port=tcp_port, bounding_box=200,
-                                fast=True, cache_scripts=False, inventory={})
+                                fast=True, cache_scripts=False, inventory={}, all_technologies_researched=False)
 
     ips, udp_ports, tcp_ports = get_local_container_ips()
     with concurrent.futures.ThreadPoolExecutor() as executor:
         return list(executor.map(init_instance, zip(ips, udp_ports, tcp_ports)))
 
 
-SYSTEM_PROMPT = \
+SYSTEM_PROMPT_OLD = \
     """
     You are an agent designed to operate within FactoryEnv, a novel evaluation framework built on the game Factorio, with capabilities in long-horizon planning, spatial reasoning, and systematic automation. 
     
@@ -53,6 +55,41 @@ SYSTEM_PROMPT = \
     You are now ready to begin playing FactoryEnv! Good luck!
     """
 
+SYSTEM_PROMPT = \
+"""
+You are an agent designed to operate within FactoryEnv, a novel evaluation framework built on the game Factorio, with capabilities in long-horizon planning, spatial reasoning, and systematic automation. 
+
+You interact with the environment through Python program synthesis, using any of the API's 28 core methods below.
+
+The environment behaves like an interactive shell, with the user responses representing the STDOUT of the REPL, and your messages acting as the Python programs to be executed. 
+
+To play the game, consider the conversation history to better understand the changes that are happening to the environment and your inventory. You must identify the best and most useful and profitable next step in the game that advances you in the game and carry it out. Fix errors as they occur, and set yourself NEW objectives when you finish your existing one.
+
+Follow this structure: The first stage is PLANNING: Think extensively step-by-step in natural language to first plan your next step, reasoning over available entities and your inventory.
+
+In the planning stage, follow this structure: 1) Was there an error? If yes, then what was the problem 2) What is the best and most useful next step that is of reasonable size, 3) What actions do I need to take for this step 
+
+The second stage is POLICY: create the python policy that carries out the steps you want in the game. Your policy MUST be between two python tags like this: ```python\nYOUR_POLICY_HERE\n```
+
+For example: "I should move to position 0, 0 ```python move_to(Position(x=0, y=0))```"
+
+IMPORTANT: Always create small and modular policies that are easy to debug. Small and modular policies are easy to carry out, debug when they arent working and understand. They also allow you to make small changes to the factory without breaking the entire system.
+
+Always log the important areas when using small policies as this will help to use this information when creating the next policy
+
+Use assert statements to self-verify your beliefs against the environment, with specific and parameterised assertion messages.
+
+If you dont know what an entity is for in the map, assume it is part of a working automatic structure. Be careful not to break any working automatic structures
+
+Think what entities are needed for the step, what entities exist in the game (in different entity inventories or in your inventory), what entities are you missing for the task.
+
+DON'T REPEAT YOUR PREVIOUS STEPS - just continue from where you left off. Take into account what was the lasdt action that was executed and continue from there. If there was a error previously, do not repeat your last lines - as this will alter the game state unnecessarily. Fix errors as they occur.
+
+Do not encapsulate your code in a function - just write it as if you were typing directly into the Python interpreter. NEVER write <LINES X-Y CUT/> - as this is a processing step applied to the conversational history - it represents code.
+
+You are now ready to begin playing FactoryEnv! Good luck!
+"""
+
 OBSERVATION_SPACE = \
    """
    You observe the STDOUT and STDERR of your program.
@@ -71,7 +108,7 @@ OBSERVATION_SPACE = \
     This response indicates that `print(get_entities())` was called at line 78 to get state of the entities on the map. There are four stone furnaces, two of which are working and two of which have no ingredients to smelt. Non-working entities can be determined by checking the `warnings` and `status` fields.
    """
 
-with open("../MANUAL.md", "r") as f:
+with open("../MANUAL_short.md", "r") as f:
     MANUAL = f.read()
 
 HISTORY_SUMMARIZATION_INSTRUCTIONS = \
@@ -122,11 +159,44 @@ async def main():
     prompt = SYSTEM_PROMPT + '\n\n' + API_SCHEMA + '\n\nObservations:\n' + OBSERVATION_SPACE + '\n\n' + MANUAL + '\n```'
     initial_state = GameState.from_instance(instances[0])
 
+    # Add argument parsing for version
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--resume-version', type=int, help='Version to resume from')
+    args = parser.parse_args()
+    resume_version = 453 #args.resume_version
+
+    # Get version to use
+    # Get version to use
+    if resume_version is not None:
+        version_to_use = resume_version
+        if not await db_client.version_exists(version_to_use):
+            print(f"Version {version_to_use} does not exist in database")
+            return
+
+        # Get beam heads for resuming
+        beam_width = 4  # Should match config
+        resume_heads = await db_client.get_beam_heads(version_to_use, beam_width)
+        if not resume_heads:
+            print(f"No valid beam heads found for version {version_to_use}")
+            return
+
+        # Use states from beam heads
+        resume_states = [prog.state for prog in resume_heads]
+
+        # Ensure all depths are the same for the beam heads
+        depth = resume_heads[0].depth
+        for prog in resume_heads:
+            assert prog.depth == depth, "All beam head depths must be the same in order to resume."
+
+        current_depth = depth
+    else:
+        version_to_use = await db_client.get_largest_version() + 1
+        resume_states = None
+        resume_heads = None
+        current_depth = 0
 
 
-    for model in ['gpt-4o', 'claude-3-5-sonnet-20241022']:#['gemini-2.0-flash-exp']: #['gpt-4o-mini']:#['deepseek-chat']:#['gemini-2.0-flash-exp']: #['meta-llama/Llama-3.3-70B-Instruct-Turbo']:#['gemini-2.0-flash-exp']:#['gpt-4o']:#['claude-3-5-sonnet-20241022']:
-        # Get largest version from DB for initialisation purposes. If no versions exist, start at 0.
-        largest_version_to_date = await db_client.get_largest_version()
+    for model in ['gpt-4o', 'deepseek-chat', 'meta-llama/Llama-3.3-70B-Instruct-Turbo', 'gpt-4-turbo']: #[ 'gpt-4o', 'claude-3-5-sonnet-20241022', 'gpt-4o-mini']:#['gemini-2.0-flash-exp']: #['gpt-4o-mini']:#['deepseek-chat']:#['gemini-2.0-flash-exp']: #['meta-llama/Llama-3.3-70B-Instruct-Turbo']:#['gemini-2.0-flash-exp']:#['gpt-4o']:#['claude-3-5-sonnet-20241022']:
 
         config = ParallelBeamConfig(
             beam_width=4,  # 4 parallel groups = beam width of 4
@@ -135,13 +205,13 @@ async def main():
             initial_state=initial_state,
             model=model,
             beam_kwargs={
-                'error_penalty': 10,
+                'error_penalty': 0,
                 #'frequency_penalty': 0.25
             }
         )
         #model = 'claude-3-5-sonnet-20241022'
         #model = 'gpt-4o'
-        current_depth = 0#await db_client.get_largest_depth_in_version(largest_version_to_date)
+        #current_depth = 0#await db_client.get_largest_depth_in_version(largest_version_to_date)
 
         llm_factory = LLMFactory(model=model)
 
@@ -158,15 +228,20 @@ async def main():
             db_client=db_client,
             llm_factory=llm_factory,
             config=config,
-            version=largest_version_to_date+1,
+            version=version_to_use,
             version_description=f"model:{model}\ntype:beam",
             current_depth=current_depth,
             formatter=formatter,
-            base_port=instances[0].tcp_port
+            base_port=instances[0].tcp_port,
+            resume_version=resume_version,
+            resume_heads=resume_heads
         )
 
+        if resume_version:
+            await parallel_beam._verify_version_compatibility()
+
         # Run search
-        await parallel_beam.search(n_iterations=256)
+        await parallel_beam.search(n_iterations=512)
 
 
 if __name__ == '__main__':

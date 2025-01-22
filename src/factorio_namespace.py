@@ -3,7 +3,10 @@ import builtins
 import math
 import pickle
 import traceback
+from difflib import get_close_matches
+from typing import Optional, Union, List, Dict, Tuple, Set
 
+from exceptions.hinting_name_error import HintingNameError, get_value_type_str
 from factorio_entities import Position, Direction, EntityStatus, BoundingBox, BeltGroup, Recipe, BuildingBox
 from factorio_types import Prototype, Resource, Technology, prototype_by_name
 from search.model.game_state import SerializableFunction, wrap_for_serialization, GameState, \
@@ -71,6 +74,8 @@ class FactorioNamespace:
         self.Technology = Technology
         self.Recipe = Recipe
 
+        # TODO - We need to add all entity objects to the namespace, e.g 'Chest'
+
         self.prototype_by_name = prototype_by_name
 
         # Statically named directions
@@ -89,6 +94,17 @@ class FactorioNamespace:
         self.ceil = math.ceil
         self.abs = abs  # built-in abs function
         self.pow = pow  # built-in pow function
+
+        # Type hints
+        self.Optional = Optional
+        self.Union = Union
+        self.List = List
+        self.Dict = Dict
+        self.Tuple = Tuple
+        self.Set = Set
+
+
+        # Python built-ins
 
         # Add all the members of this class as static members so they can be accessed by the agent program.
         self._static_members = [attr for attr in dir(self)
@@ -160,6 +176,34 @@ class FactorioNamespace:
         else:
             print(f"{self.tcp_port}: {repr(arg)}")
         return None  # Return None instead of the args
+
+    def _get_suggestions_from_name_error(self, eval_dict, error_msg) -> List[Tuple[str, str]]:
+        var_name = error_msg.split("'")[1]
+
+        # Get available variables from both eval_dict and class attributes
+        available_vars = {}
+
+        # Add variables from eval_dict with their types
+        for name, value in eval_dict.items():
+            if not name.startswith('_'):
+                available_vars[name] = value
+
+        # Add class attributes
+        for name in dir(self):
+            if not name.startswith('_'):
+                available_vars[name] = getattr(self, name)
+
+        # Get close matches using difflib
+        matches = get_close_matches(var_name, available_vars.keys(), n=3, cutoff=0.6)
+
+        # Create suggestions with type information
+        suggestions = []
+        for match in matches:
+            value = available_vars[match]
+            type_hint = get_value_type_str(value)
+            suggestions.append((match, type_hint))
+
+        return suggestions
 
     def _extract_error_lines(self, expr, traceback_str):
         lines = expr.splitlines()
@@ -477,8 +521,8 @@ class FactorioNamespace:
                 node = self._change_print_to_log(node)
                 self.execute_node(node, eval_dict)
                 last_successful_state = dict(self.persistent_vars)
+            except (Exception, NameError) as e:
 
-            except Exception as e:
                 had_error = True
                 self._sequential_exception_count += 1
                 error_traceback = traceback.format_exc()
@@ -490,15 +534,22 @@ class FactorioNamespace:
                     for line_num, line_content in error_lines:
                         error_message += f"  Line {line_num}: {line_content}\n"
                 error_type = error_traceback.strip().split('\n')[-1]
-                error_message += f"\n{error_type}"
+
+                if isinstance(e, NameError) and "name '" in str(e) and "' is not defined" in str(e):
+                    suggestions = [f"{sug} ({_type})" for sug, _type in self._get_suggestions_from_name_error(eval_dict, str(e))]
+                    error_message += f"\n{error_type}"
+                    if suggestions:
+                        error_message+=f"\nDid you mean one of these?\n{suggestions}"
+                else:
+                    error_message += f"\n{error_type}"
 
                 self.log(error_message)
 
                 if last_successful_state is not None:
                     self.persistent_vars = last_successful_state.copy()
 
-                if self._sequential_exception_count >= self.max_sequential_exception_count:
-                    break
+                #if self._sequential_exception_count >= self.max_sequential_exception_count:
+                break
 
             eval_dict.update(self.persistent_vars)
 

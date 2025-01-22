@@ -1,3 +1,28 @@
+local function validate_mining_drill_placement(surface, position, entity_name)
+    -- Check if the entity is a mining drill
+    local prototype = game.entity_prototypes[entity_name]
+    if prototype.type ~= "mining-drill" then
+        return true
+    end
+
+    -- Get the mining area
+    local mining_area = prototype.collision_box
+    local area = {
+        {position.x + mining_area.left_top.x, position.y + mining_area.left_top.y},
+        {position.x + mining_area.right_bottom.x, position.y + mining_area.right_bottom.y}
+    }
+
+    -- Check for resources in the mining area
+    local resources = surface.find_entities_filtered({
+        area = area,
+        type = "resource"
+    })
+
+    -- For mining drills, we need at least one valid resource
+    return #resources > 0
+end
+
+
 global.actions.place_entity_next_to = function(player_index, entity, ref_x, ref_y, direction, gap)
     local player = game.get_player(player_index)
     local ref_position = {x = ref_x, y = ref_y}
@@ -205,8 +230,16 @@ global.actions.place_entity_next_to = function(player_index, entity, ref_x, ref_
     -- Check for player collision and move player if necessary
     local entity_prototype = game.entity_prototypes[entity]
     local entity_box = entity_prototype.collision_box
-    local entity_width = math.abs(entity_box.right_bottom.x - entity_box.left_top.x)
-    local entity_height = math.abs(entity_box.right_bottom.y - entity_box.left_top.y)
+    local entity_width = 1
+    local entity_height = 1
+    if orientation == defines.direction.north or orientation == defines.direction.south then
+        entity_width = math.abs(entity_box.right_bottom.x - entity_box.left_top.x)
+        entity_height = math.abs(entity_box.right_bottom.y - entity_box.left_top.y)
+    else
+        entity_height = math.abs(entity_box.right_bottom.x - entity_box.left_top.x)
+        entity_width = math.abs(entity_box.right_bottom.y - entity_box.left_top.y)
+    end
+
 
     local target_area = {
         {new_position.x - entity_width / 2, new_position.y - entity_height / 2},
@@ -233,6 +266,37 @@ global.actions.place_entity_next_to = function(player_index, entity, ref_x, ref_
 
     -- First clean up any items-on-ground at the target position
     local area = {{new_position.x - entity_width / 2, new_position.y - entity_height / 2}, {new_position.x + entity_width / 2, new_position.y + entity_height / 2}}
+
+    -- Show bounding box
+    rendering.draw_rectangle({
+        color = {r = 0, g = 1, b = 0},
+        filled = false,
+        left_top = area[1],
+        right_bottom = area[2],
+        surface = player.surface,
+        players = {player},
+        time_to_live = 60000
+    })
+    rendering.draw_circle({
+        color = {r = 1, g = 0, b = 0},
+        radius = 0.2,
+        filled = true,
+        target = new_position,
+        surface = player.surface,
+        players = {player},
+        time_to_live = 60000
+    })
+    rendering.draw_circle({
+        color = {r = 0, g = 0, b = 1},
+        radius = 0.2,
+        filled = true,
+        target = ref_position,
+        surface = player.surface,
+        players = {player},
+        time_to_live = 60000
+    })
+
+
     local items = player.surface.find_entities_filtered{
         area = area,
         type = "item-on-ground"
@@ -241,25 +305,48 @@ global.actions.place_entity_next_to = function(player_index, entity, ref_x, ref_
         item.destroy()
     end
 
+    global.utils.avoid_entity(player_index, entity, new_position, orientation)
     local can_build = player.surface.can_place_entity({
         name = entity,
         position = new_position,
         direction = orientation,
         force = player.force
     })
-    can_build = true
-    -- Modify the error message in the can_build check
-    if not can_build then
+    if can_build then
+        can_build = validate_mining_drill_placement(player.surface, new_position, entity)
+        if not can_build then
+            error("Cannot place mining drill - no resources found in mining area")
+        end
+    else
         --local area = {{new_position.x - 0.5, new_position.y - 0.5}, {new_position.x + 0.5, new_position.y + 0.5}}
         local entities = player.surface.find_entities_filtered{area = area, type = {"beam", "resource", "player"}, invert=true}
-        local entity_names = {}
+        local blocker_names = {}
         for _, e in ipairs(entities) do
             game.print(e.type)
-            table.insert(entity_names, e.name.."("..serpent.line(e.position)..")")
+            table.insert(blocker_names, e.name.."("..serpent.line(e.position)..")")
         end
+        game.print(serpent.line(blocker_names))
+
+        local tree = player.surface.find_entities_filtered{area = area, type = {"tree"}}
+        for _, e in ipairs(tree) do
+            game.print(e.type)
+            table.insert(blocker_names, e.name.."("..serpent.line(e.position)..")")
+        end
+        local tiles = player.surface.find_tiles_filtered{area = area, name={"water", "deepwater", "water-green", "deepwater-green", "water-shallow", "water-mud"}}
+        if #tiles > 0 then
+            for _, e in ipairs(tiles) do
+                -- if e.name is not in blocker_names, we should add item
+                if not table_contains(blocker_names, e.name.."("..serpent.line(e.position)..")") then
+                    table.insert(blocker_names, e.name.."("..serpent.line(e.position)..")")
+                end
+            end
+        end
+        game.print(serpent.line(blocker_names))
+
         error("\'Cannot place entity at the position " .. serpent.line(new_position) .. " with the current direction" ..
-              ". Attempting to place next to: "..ref_entity.name..". There might be a collision with existing entities or this area cannot be placed on (water). Nearby entities that might be blocking the placement: " .. serpent.line(entity_names)..
+              ". Attempting to place next to: "..ref_entity.name..". There might be a collision with existing entities or this area cannot be placed on (water). Nearby entities that might be blocking the placement - " .. serpent.line(blocker_names) ..
                 ". Consider increasing the spacing (".. gap.."), changing the direction or changing the reference position (" .. serpent.line(ref_position) .. ")\'")
+
     end
 
     local new_entity = player.surface.create_entity({
