@@ -898,12 +898,7 @@ Policy 2: Put down the single chest that is the end of the line
    - Verify all connections
    - Check entity rotation
 
-4. **Logging**
-   - Log your actions as you go along
-   - Make sure to log placing or interactions with the map that give information about your environment
-   - Log all unknown information as that will be seen in the future steps and used for debugging or planning
-
-5. **Outdated variables**
+4. **Outdated variables**
    - Always update your variables you want to use to ensure the variable state is not outdated
    - Whenever you use insert_item, make sure to override the input entity with the return
    - Always use inspect_inventory to get the inventories, as that gets the latest inventory
@@ -979,10 +974,11 @@ copper_ore = get_resource_patch(Resource.CopperOre, nearest(Resource.Coal))
 
 5. **Logging**
 - Always log what you have done in detail
-- Include the entities you have created with their positions and what theis their purpose
+- Log all unknown information as that will be seen in the future steps and used for debugging or planning
+- Make sure to log placing entities with placement positions or interactions with the map that give information about your environment
 - When entities are part of automatic structures, include what resource or ingredient that automatic structure creates 
 - When connecting structures with automatic belts, include the reason for connection and what you are connecting
-- IMPORTANT: Include the intention if entities in your print statements. This will be used later to generate a summary so for the summary to be accurate you need to say what the entities are for
+- IMPORTANT: Include the intention of entities in your print statements. This will be used later to generate a summary so for the summary to be accurate you need to say what the entities are for
 
 ## INSTRUCTIONS WHEN CREATING STRUCTURES
 - When a entity has status "WAITING_FOR_SPACE_IN_DESTINATION", it means the there is no space in the drop position. For instance, a mining drill will have status WAITING_FOR_SPACE_IN_DESTINATION when the entities it mines are not being properly collected by a furnace or a chest or transported away from drop position with transport belts
