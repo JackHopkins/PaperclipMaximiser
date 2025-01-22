@@ -229,6 +229,7 @@ class ConnectEntities(Action):
 
 
             if isinstance(target_entity, BeltGroup):
+                #target_position = target_entity.inputs[0].input_position
                 belts = target_entity.belts
                 belt_positions = [belt.position for belt in belts]
                 # get the nearest belt to the source entity

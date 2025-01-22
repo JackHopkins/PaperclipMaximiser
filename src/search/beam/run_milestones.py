@@ -238,7 +238,7 @@ async def main():
     model_to_evaluate = "claude-3-5-sonnet-20241022"
     model_to_evaluate = "meta-llama/Llama-3.3-70B-Instruct-Turbo"
     #model_to_evaluate = "Qwen/Qwen2.5-72B-Instruct-Turbo"
-    #model_to_evaluate = "gpt-4o"
+    model_to_evaluate = "gpt-4o"
     #model_to_evaluate = 'gpt-4o-mini-2024-07-18'
     #model_to_evaluate = "o1-mini-2024-09-12"
     #model_to_evaluate = 'deepseek-chat'
@@ -247,7 +247,7 @@ async def main():
     version_description = "eval_agentic_supervised"
 
     result_path = r"src\supervised_tasks\supervised_results"
-    task_types = ["copper_plate_thresholds_scratch"]
+    task_types = ["copper_plate_thresholds_placement"]
     tasks_to_exclude = []
     search_type = "beam_supervised"
     search_iterations = 1
