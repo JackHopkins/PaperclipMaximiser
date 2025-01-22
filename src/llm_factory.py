@@ -98,8 +98,8 @@ class LLMFactory:
                 n=kwargs.get('n_samples', None),
                 stop=kwargs.get('stop_sequences', None),
                 stream=False,
-                presence_penalty=kwargs.get('presence_penalty', None),
-                frequency_penalty=kwargs.get('frequency_penalty', None),
+                #presence_penalty=kwargs.get('presence_penalty', None),
+                #frequency_penalty=kwargs.get('frequency_penalty', None),
             )
             return response
 

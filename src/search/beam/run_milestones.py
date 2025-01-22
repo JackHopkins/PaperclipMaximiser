@@ -145,7 +145,7 @@ SYSTEM_PROMPT = \
     
     In the planning stage, follow this structure: 1) Was there an error? If yes, then what was the problem 2) What is the best next step that is of reasonable size, 3) What actions do I need to take for this step 
     
-    The second stage is POLICY: create the python policy that carries out the steps you want in the game. Your policy MUST be between two python tags: ```python create_policy_here```
+    The second stage is POLICY: create the python policy that carries out the steps you want in the game. Your policy MUST be between two python tags like this: ```python\nYOUR_POLICY_HERE\n```
 
     For example: "I should move to position 0, 0 ```python move_to(Position(x=0, y=0))```"
     
@@ -236,33 +236,42 @@ async def main():
     initial_state = GameState.from_instance(instances[0])
 
     model_to_evaluate = "claude-3-5-sonnet-20241022"
-    #model_to_evaluate = "meta-llama/Llama-3.3-70B-Instruct-Turbo"
+    model_to_evaluate = "meta-llama/Llama-3.3-70B-Instruct-Turbo"
     #model_to_evaluate = "Qwen/Qwen2.5-72B-Instruct-Turbo"
     #model_to_evaluate = "gpt-4o"
+    #model_to_evaluate = 'gpt-4o-mini-2024-07-18'
     #model_to_evaluate = "o1-mini-2024-09-12"
+    #model_to_evaluate = 'deepseek-chat'
     version = 332 # 120 and 121 was the last version before this change
     llm_factory = LLMFactory(model=model_to_evaluate)
     version_description = "eval_agentic_supervised"
 
     result_path = r"src\supervised_tasks\supervised_results"
-    task_types = ["copper_plate_thresholds_placement"]
+    task_types = ["copper_plate_thresholds_scratch"]
     tasks_to_exclude = []
     search_type = "beam_supervised"
     search_iterations = 1
 
+    #formatter = RecursiveFormatter(
+    #    chunk_size=32,
+    #    llm_factory=llm_factory,
+    #    cache_dir='./summary_cache',
+    #    summary_instructions=HISTORY_SUMMARIZATION_INSTRUCTIONS
+    #)
+
     formatter = RecursiveFormatter(
-        chunk_size=32,
+        chunk_size=128,
         llm_factory=llm_factory,
         cache_dir='./summary_cache',
-        summary_instructions=HISTORY_SUMMARIZATION_INSTRUCTIONS
+        summary_instructions=HISTORY_SUMMARIZATION_INSTRUCTIONS,
+        summarize_history=False
     )
-
     configs = {"beam_supervised": {"config": SupervisedExecutorConfig(
         n_parallel=1,
         model_to_evaluate=model_to_evaluate,
         initial_state=initial_state,
         supervised_kwargs = {
-                             "max_steps_per_objective": 16,
+                             "max_steps_per_objective": 32,
                              #"beam_unification_steps": 1,
                              "system_prompt": prompt}),
         "executor": MilestonesBeamSearchExecutor}

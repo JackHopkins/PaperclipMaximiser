@@ -479,9 +479,14 @@ NB: NEVER CONNECT MULTIPLE ENTITIES DIRECTLY TO THE SAME TARGET
 You always need to create one main connection and then connect additional entities to the main connection line with transport belts
 
 Example: Connecting multiple source inserters to one target inserter
-Assume we have source_inserter_1, source_inserter_2, source_inserter_3 burner inserter variables as sources
-Also assume we have target_inserter burner inserter variable as the target
+Assume we have source_inserter_1, source_inserter_2, source_inserter_3 burner inserter variables as sources on the map at positions Position(x = 1, y = 2), Position(x = 3, y = 2) and Position(x = 5, y = 2)
+Also assume we have target_inserter burner inserter variable as the target on the map at Position(x = 10, y = 28)
 ```python
+# get the inserter variables
+source_inserter_1 = get_entity(Prototype.BurnerInserter, Position(x = 1, y = 2))
+source_inserter_2 = get_entity(Prototype.BurnerInserter, Position(x = 3, y = 2))
+source_inserter_3 = get_entity(Prototype.BurnerInserter, Position(x = 5, y = 2))
+target_inserter = get_entity(Prototype.BurnerInserter, Position(x = 10, y = 28))
 # log your general idea what you will do next
 print(f"I will create a connection from the inserters at [{source_inserter_1.position}, {source_inserter_2.position}, {source_inserter_3.position}] to the inserter at {target_inserter.position}")
 # create the main connection
@@ -506,7 +511,11 @@ print(f"Final connection after connecting all inserters to target: {main_connect
 ```
 
 When you want to connect entities to existing power pole groups, similar rules apply
+Assume in this example there is a steam engine at Position(x = 1, y = 2) and the drill is at Position(x = 10, y = 28)
 ```python
+# get the variables
+steam_engine = get_entity(Prototype.SteamEngine, Position(x = 1, y = 2))
+drill_1 = get_entity(Prototype.ElectricMiningDrill, Position(x = 10, y = 28))
 # create the main connection
 main_power_connection = connect_entities(steam_engine, 
                                     drill_1,

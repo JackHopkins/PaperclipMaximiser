@@ -527,6 +527,79 @@ def test_achievements_21():
         print("asda")
 
 
+
+def test_achievements_22():
+        PLACEMENT_STARTING_INVENTORY = {"coal": 200, "burner-mining-drill": 10, "wooden-chest": 10, "burner-inserter": 10, "transport-belt": 200,
+                                "stone-furnace": 5, "pipe": 10, "boiler": 4, "offshore-pump": 3, "steam-engine": 2,
+                                "iron-gear-wheel": 22, "iron-plate": 19, "copper-plate": 52, "electronic-circuit": 99,
+                                "iron-ore": 62, "stone": 50, "electric-mining-drill": 10, "small-electric-pole": 200, "pipe": 100,
+                                "assembling-machine-1": 5}
+        instance = FactorioInstance(address='localhost',
+                                bounding_box=200,
+                                tcp_port=27015,
+                                fast=True,
+                                #cache_scripts=False,
+                                inventory=PLACEMENT_STARTING_INVENTORY) 
+
+        test_string_1 = '# Locate the nearest copper ore patch\ncopper_ore_position = nearest(Resource.CopperOre)\nprint(f"Located copper ore patch at {copper_ore_position}")\n\n# Define the BuildingBox for the drills. ElectricMiningDrill has 3x3 dimensions.\nbuilding_box = BuildingBox(width=3, height=3)\n\n# Get the nearest buildable area around the copper_ore_position\nbuildable_coordinates = nearest_buildable(Prototype.ElectricMiningDrill, building_box, copper_ore_position)\n\n# Place two electric mining drills on the copper ore patch\n# Start from the leftmost position of the buildable area\nleft_top = buildable_coordinates["left_top"]\n\n# Move to the position to place the first drill\nmove_to(left_top)\ndrill_1 = place_entity(Prototype.ElectricMiningDrill, position=left_top)\nprint(f"Placed first ElectricMiningDrill at {drill_1.position} to mine copper ore")\n\n# Place the second drill next to the first one\ndrill_2_position = left_top + Position(x=3, y=0)  # Move 3 tiles to the right\nmove_to(drill_2_position)\ndrill_2 = place_entity(Prototype.ElectricMiningDrill, position=drill_2_position)\nprint(f"Placed second ElectricMiningDrill at {drill_2.position} to mine copper ore")\n\n# Set up a power source for the drills\n# Locate the nearest water source for the offshore pump\nwater_position = nearest(Resource.Water)\nprint(f"Located water source at {water_position}")\n\n# Move to the water position and place the offshore pump\nmove_to(water_position)\noffshore_pump = place_entity(Prototype.OffshorePump, position=water_position)\nprint(f"Placed OffshorePump at {offshore_pump.position} to get water")\n\n# Place a boiler close to the offshore pump\n# Ensure there is enough space for connections\nboiler_position = Position(x=offshore_pump.position.x + 4, y=offshore_pump.position.y)\nmove_to(boiler_position)\nboiler = place_entity(Prototype.Boiler, position=boiler_position)\nprint(f"Placed Boiler at {boiler.position} to generate steam")\n\n# Insert coal into the boiler to start generating steam\nboiler = insert_item(Prototype.Coal, boiler, quantity=20)\n\n# Place a steam engine close to the boiler\nsteam_engine_position = Position(x=boiler.position.x + 4, y=boiler.position.y)\nmove_to(steam_engine_position)\nsteam_engine = place_entity(Prototype.SteamEngine, position=steam_engine_position)\nprint(f"Placed SteamEngine at {steam_engine.position} to generate electricity")\n\n# Connect the offshore pump to the boiler with pipes\nwater_pipes = connect_entities(offshore_pump, boiler, Prototype.Pipe)\nprint(f"Connected OffshorePump at {offshore_pump.position} to Boiler at {boiler.position} with pipes {water_pipes}")\n\n# Connect the boiler to the steam engine with pipes\nsteam_pipes = connect_entities(boiler, steam_engine, Prototype.Pipe)'
+        output_list, result, error, achievements = eval_program_with_achievements(instance, test_string_1)
+
+
+def test_achievements_24():
+        PLACEMENT_STARTING_INVENTORY = {"coal": 200, "burner-mining-drill": 10, "wooden-chest": 10, "burner-inserter": 10, "transport-belt": 200,
+                                "stone-furnace": 5, "pipe": 10, "boiler": 4, "offshore-pump": 3, "steam-engine": 2,
+                                "iron-gear-wheel": 22, "iron-plate": 19, "copper-plate": 52, "electronic-circuit": 99,
+                                "iron-ore": 62, "stone": 50, "electric-mining-drill": 10, "small-electric-pole": 200, "pipe": 100,
+                                "assembling-machine-1": 5}
+        PLACEMENT_STARTING_INVENTORY = {"iron-plate": 19}
+        instance = FactorioInstance(address='localhost',
+                                bounding_box=200,
+                                tcp_port=27015,
+                                fast=True,
+                                #cache_scripts=False,
+                                inventory=PLACEMENT_STARTING_INVENTORY) 
+
+        test_string_1 = 'craft_item(Prototype.BurnerMiningDrill, quantity=1)'
+        output_list, result, error, achievements = eval_program_with_achievements(instance, test_string_1)
+
+
+def test_achievements_24():
+        PLACEMENT_STARTING_INVENTORY = {"coal": 200, "burner-mining-drill": 10, "wooden-chest": 10, "burner-inserter": 10, "transport-belt": 200,
+                                "stone-furnace": 5, "pipe": 10, "boiler": 4, "offshore-pump": 3, "steam-engine": 2,
+                                "iron-gear-wheel": 22, "iron-plate": 19, "copper-plate": 52, "electronic-circuit": 99,
+                                "iron-ore": 62, "stone": 50, "electric-mining-drill": 10, "small-electric-pole": 200, "pipe": 100,
+                                "assembling-machine-1": 5}
+        instance = FactorioInstance(address='localhost',
+                                bounding_box=200,
+                                tcp_port=27015,
+                                fast=True,
+                                #cache_scripts=False,
+                                inventory=PLACEMENT_STARTING_INVENTORY) 
+
+        test_string_1 = '# Place storage chest at end of main belt\nstorage_pos = Position(x=-8.5, y=30.5)\nmove_to(storage_pos)\nstorage_chest = place_entity(Prototype.WoodenChest, position=storage_pos)\nprint(f"Placed storage chest at {storage_pos}")\n\n# Connect main belt to storage chest\nbelt_end = Position(x=-10.5, y=30.5)\nconnect_entities(belt_end, storage_pos, Prototype.TransportBelt)\nprint(f"Connected main belt at {belt_end} to storage chest at {storage_pos}")\n\n# Verify ore flow to storage chest\nsleep(10)\nstorage_chest = get_entity(Prototype.WoodenChest, storage_pos)\nstorage_inv = inspect_inventory(storage_chest)'
+        #test_string_1 = '# Place storage chest at end of main belt\nstorage_pos = Position(x=-8.5, y=30.5)\nmove_to(storage_pos)\nstorage_chest = place_entity(Prototype.WoodenChest, position=storage_pos)\nprint(f"Placed storage chest at {storage_pos}")\nstorage_chest = get_entity(Prototype.WoodenChest, storage_pos)\nstorage_inv = inspect_inventory(storage_chest)\nassert storage_inv[Prototype.IronOre] > 0, "Ore not reaching storage chest"\nprint(f"Storage chest now has {storage_inv[Prototype.IronOre]} iron ore")\n\n# Final system verification\nprint(f"Current throughput: {production_stats()}")\nprint(f"Current inventory: {inspect_inventory()}")\nprint(f"Updated entities on the map: {get_entities()}")'
+        
+        output_list, result, error, achievements = eval_program_with_achievements(instance, test_string_1)
+        print("asda")
+
+def test_achievements_25():
+        PLACEMENT_STARTING_INVENTORY = {"coal": 200, "burner-mining-drill": 10, "wooden-chest": 10, "burner-inserter": 10, "transport-belt": 200,
+                                "stone-furnace": 5, "pipe": 10, "boiler": 4, "offshore-pump": 3, "steam-engine": 2,
+                                "iron-gear-wheel": 22, "iron-plate": 19, "copper-plate": 52, "electronic-circuit": 99,
+                                "iron-ore": 62, "stone": 50, "electric-mining-drill": 10, "small-electric-pole": 200, "pipe": 100,
+                                "assembling-machine-1": 5}
+        instance = FactorioInstance(address='localhost',
+                                bounding_box=200,
+                                tcp_port=27015,
+                                fast=True,
+                                #cache_scripts=False,
+                                inventory=PLACEMENT_STARTING_INVENTORY) 
+
+        test_string_1 = 'nearest(Resource.Water)'
+        #test_string_1 = '# Place storage chest at end of main belt\nstorage_pos = Position(x=-8.5, y=30.5)\nmove_to(storage_pos)\nstorage_chest = place_entity(Prototype.WoodenChest, position=storage_pos)\nprint(f"Placed storage chest at {storage_pos}")\nstorage_chest = get_entity(Prototype.WoodenChest, storage_pos)\nstorage_inv = inspect_inventory(storage_chest)\nassert storage_inv[Prototype.IronOre] > 0, "Ore not reaching storage chest"\nprint(f"Storage chest now has {storage_inv[Prototype.IronOre]} iron ore")\n\n# Final system verification\nprint(f"Current throughput: {production_stats()}")\nprint(f"Current inventory: {inspect_inventory()}")\nprint(f"Updated entities on the map: {get_entities()}")'
+        
+        output_list, result, error, achievements = eval_program_with_achievements(instance, test_string_1)
+        print("asda")
 if __name__ == '__main__':
     #unittest.main()
-    test_achievements_21()
+    test_achievements_25()
