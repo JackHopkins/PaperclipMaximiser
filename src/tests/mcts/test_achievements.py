@@ -623,6 +623,25 @@ def test_achievements_26():
         
         output_list, result, error, achievements = eval_program_with_achievements(instance, test_string_1)
         print("asda")
+
+
+def test_achievements_27():
+        PLACEMENT_STARTING_INVENTORY = {"coal": 200, "burner-mining-drill": 10, "wooden-chest": 10, "burner-inserter": 10, "transport-belt": 200,
+                                "stone-furnace": 5, "pipe": 10, "boiler": 4, "offshore-pump": 3, "steam-engine": 2,
+                                "iron-gear-wheel": 22, "iron-plate": 19, "copper-plate": 52, "electronic-circuit": 99,
+                                "iron-ore": 62, "stone": 50, "electric-mining-drill": 10, "small-electric-pole": 200, "pipe": 100,
+                                "assembling-machine-1": 5}
+        instance = FactorioInstance(address='localhost',
+                                bounding_box=200,
+                                tcp_port=27015,
+                                fast=True,
+                                #cache_scripts=False,
+                                inventory=PLACEMENT_STARTING_INVENTORY) 
+
+        test_string_1 = '# Locate the nearest copper ore patch\ncopper_ore_position = nearest(Resource.CopperOre)\nprint(f"Found copper ore at {copper_ore_position}")\n\n# Define the BuildingBox for the drill line\n# ElectricMiningDrill has dimensions 3x3\n# We need 2 drills so width is 3*2, height is 4 (3 for drill, 1 for furnace)\nbuilding_box = BuildingBox(width=3*2, height=4)\n\n# Get the nearest buildable area around the copper_ore_position\nbuildable_coordinates = nearest_buildable(Prototype.ElectricMiningDrill, building_box, copper_ore_position)\n\n# Place the first electric mining drill\ndrill_1_position = buildable_coordinates["left_top"]\nmove_to(drill_1_position)\ndrill_1 = place_entity(Prototype.ElectricMiningDrill, position=drill_1_position, direction=Direction.DOWN)\nprint(f"Placed ElectricMiningDrill at {drill_1.position} to mine copper ore")\n\n# Place the second electric mining drill next to the first one\ndrill_2_position = drill_1_position.right()\nmove_to(drill_2_position)\ndrill_2 = place_entity(Prototype.ElectricMiningDrill, position=drill_2_position, direction=Direction.DOWN)'
+         
+        output_list, result, error, achievements = eval_program_with_achievements(instance, test_string_1)
+        print("asda")
 if __name__ == '__main__':
     #unittest.main()
-    test_achievements_26()
+    test_achievements_27()

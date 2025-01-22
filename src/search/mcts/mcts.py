@@ -238,18 +238,11 @@ class MCTS:
             total_tokens = input_tokens + output_tokens
 
         try:
-<<<<<<< HEAD
-            code, text_response = self._extract_code_from_choice(choice)
-        except Exception as e:
-            print(f"Failed to extract code from choice: {str(e)}")
-            code = None
-=======
             code, text_response = self.parser.extract_code(choice)
         except Exception as e:
             print(f"Failed to extract code from choice: {str(e)}")
             code = None
 
->>>>>>> feature/tick_tracking
         if not code:
             return None
 
