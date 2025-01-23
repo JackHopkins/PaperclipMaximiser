@@ -108,14 +108,13 @@ class RecursiveReportFormatter(ConversationFormatter):
                 return None
         return None
 
-    def _save_summary_cache(self, chunk_hash: str, summary: Message):
+    def _save_summary_cache(self, chunk_hash: str, summary: str):
         """Save a generated summary to the cache."""
         cache_path = self._get_cache_path(chunk_hash)
         try:
             with open(cache_path, 'w') as f:
                 json.dump({
-                    'content': summary.content,
-                    'summary_range': summary.metadata['summary_range']
+                    'content': summary
                 }, f)
         except Exception as e:
             print(f"Error saving summary cache: {e}")
@@ -125,18 +124,19 @@ class RecursiveReportFormatter(ConversationFormatter):
         Truncate entity data in message content if enabled and message is not recent.
         Returns a new Message instance with modified content if truncation occurred.
         """
-        if not self.truncate_entity_data or is_recent or message.role in ('assistant', 'system'):
+        if not self.truncate_entity_data or message.role in ('assistant', 'system'):
             return message
-
         if isinstance(message.content, str):
-            new_content = self.entity_data_pattern.sub(': <STALE_ENTITY_DATA_OMITTED/>', message.content)
-            if new_content != message.content:
-                new_content = f"Step {message_index} execution log\n{new_content}"
-                return Message(
-                    role=message.role,
-                    content=new_content,
-                    metadata=message.metadata
-                )
+            if is_recent:
+                new_content = message.content
+            else:
+                new_content = self.entity_data_pattern.sub(': <STALE_ENTITY_DATA_OMITTED/>', message.content)
+            new_content = f"Step {message_index} execution log\n{new_content}"
+            return Message(
+                role=message.role,
+                content=new_content,
+                metadata=message.metadata
+            )
 
         return message
 
@@ -192,7 +192,7 @@ class RecursiveReportFormatter(ConversationFormatter):
         """
         messages = conversation.messages
         # Handle base cases
-        if len(messages) <= self.chunk_size + 1: # account for system message
+        if len(messages) <= self.chunk_size: # account for system message
             return [self._truncate_entity_data(msg, is_recent=(i >= len(messages) - 1), message_index = int((i - 1)/2))
                     for i, msg in enumerate(messages)]
 
@@ -203,7 +203,7 @@ class RecursiveReportFormatter(ConversationFormatter):
             messages = messages[1:]
         
         formatted = [
-                self._truncate_entity_data(msg, is_recent=(i >= len(messages) - 1), message_index = int((i - 1)/2))
+                self._truncate_entity_data(msg, is_recent=(i >= len(messages) - 1), message_index = int(i/2))
                 for i, msg in enumerate(messages)
             ]
 
@@ -213,27 +213,31 @@ class RecursiveReportFormatter(ConversationFormatter):
             user_messages_per_chunk = int(self.chunk_size/2)
             if len(messages) % self.chunk_size == 0:
                 nr_of_user_messages_in_report = ((nr_of_user_messages // user_messages_per_chunk) - 1) * user_messages_per_chunk
-                user_messages = [x.content for x in messages if x.role == "user"]
+                user_messages = [x.content for x in formatted if x.role == "user"]
                 user_messages_in_report = user_messages[:nr_of_user_messages_in_report]
                 new_user_messages = user_messages[nr_of_user_messages_in_report:]
-                messages_hash = self._get_chunk_hash(user_messages_in_report)
-                report = self._load_cached_summary(messages_hash)
-                historical_report = await self._generate_summary(new_user_messages, previous_report=report, last_summary_step = user_messages_in_report)
+                if nr_of_user_messages_in_report > 0:
+                    
+                    messages_hash = self._get_chunk_hash(user_messages_in_report)
+                    report = self._load_cached_summary(messages_hash)
+                else:
+                    report = ""
+                historical_report = await self._generate_summary(new_user_messages, previous_report=report, last_summary_step = nr_of_user_messages_in_report)
                 new_messages = user_messages_in_report + new_user_messages
                 new_hash = self._get_chunk_hash(new_messages)
                 self._save_summary_cache(new_hash, historical_report)
+                nr_of_user_messages_in_report += len(new_user_messages)
             else:
                 nr_of_user_messages_in_report = ((nr_of_user_messages // user_messages_per_chunk)) * user_messages_per_chunk
-                user_messages = [x.content for x in messages if x.role == "user"]
+                user_messages = [x.content for x in formatted if x.role == "user"]
                 user_messages_in_report = user_messages[:nr_of_user_messages_in_report]
-                new_user_messages = user_messages[nr_of_user_messages_in_report:]
                 messages_hash = self._get_chunk_hash(user_messages_in_report)
                 historical_report = self._load_cached_summary(messages_hash)
 
             formatted = formatted[-self.chunk_size:]
 
             if system_message:
-                system_message += f"Historical report of actions and observations until step {nr_of_user_messages_in_report}\n\n{historical_report}\n\n"
+                system_message.content += f"\n\nHistorical report of actions and observations until step {nr_of_user_messages_in_report-1}\n\n{historical_report}\n\n"
                 formatted = [system_message] + formatted
         else:
             formatted = formatted[-self.chunk_size:]

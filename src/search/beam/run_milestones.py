@@ -17,6 +17,7 @@ from search.mcts.parallel_supervised_config import SupervisedExecutorConfig
 import json
 
 from search.mcts.formatters.recursive_formatter import RecursiveFormatter
+from search.mcts.formatters.recursive_report_formatter import RecursiveReportFormatter
 from search.model.game_state import GameState
 import matplotlib.pyplot as plt
 import numpy as np
@@ -130,8 +131,7 @@ def create_factorio_instances() -> List[FactorioInstance]:
 
 
 SYSTEM_PROMPT = \
-    """
-    You are an agent designed to operate within FactoryEnv, a novel evaluation framework built on the game Factorio, with capabilities in long-horizon planning, spatial reasoning, and systematic automation. 
+    """You are an agent designed to operate within FactoryEnv, a novel evaluation framework built on the game Factorio, with capabilities in long-horizon planning, spatial reasoning, and systematic automation. 
     
     You interact with the environment through Python program synthesis, using any of the API's 28 core methods below.
     
@@ -171,12 +171,10 @@ SYSTEM_PROMPT = \
     
     Do not encapsulate your code in a function - just write it as if you were typing directly into the Python interpreter. NEVER write <LINES X-Y CUT/> - as this is a processing step applied to the conversational history - it represents code.
     
-    You are now ready to begin playing FactoryEnv! Good luck!
-    """
+    You are now ready to begin playing FactoryEnv! Good luck!"""
 
 OBSERVATION_SPACE = \
-   """
-   You observe the STDOUT and STDERR of your program.
+   """You observe the STDOUT and STDERR of your program.
    
     ```stderr
     Error: 1: ("Initial Inventory: {'stone-furnace': 2, 'coal': 50, 'stone': 1610, 'iron-ore': 50, 'iron-gear-wheel': 31}",)
@@ -189,17 +187,7 @@ OBSERVATION_SPACE = \
     78: ('Entities on the map: [Furnace(fuel={'coal': 49}, name='stone-furnace', position=Position(x=0.0, y=0.0), direction=<Direction.UP: 0>, energy=1600.0, tile_dimensions=TileDimensions(tile_width=2.0, tile_height=2.0), health=200.0, warnings=[], status=<EntityStatus.WORKING: 'working'>, furnace_source={'iron-ore': 12}, furnace_result={'iron-plate': 27}), Furnace(fuel={'coal': 49}, name='stone-furnace', position=Position(x=2.0, y=0.0), direction=<Direction.UP: 0>, energy=1600.0, tile_dimensions=TileDimensions(tile_width=2.0, tile_height=2.0), health=200.0, warnings=[], status=<EntityStatus.WORKING: 'working'>, furnace_source={'iron-ore': 12}, furnace_result={'iron-plate': 25}), Furnace(fuel={'coal': 23}, name='stone-furnace', position=Position(x=4.0, y=4.0), direction=<Direction.UP: 0>, energy=1600.0, tile_dimensions=TileDimensions(tile_width=2.0, tile_height=2.0), health=200.0, warnings=['no ingredients to smelt'], status=<EntityStatus.NO_INGREDIENTS: 'no_ingredients'>, furnace_source={}, furnace_result={'iron-plate': 20}), Furnace(fuel={'coal': 23}, name='stone-furnace', position=Position(x=6.0, y=4.0), direction=<Direction.UP: 0>, energy=1600.0, tile_dimensions=TileDimensions(tile_width=2.0, tile_height=2.0), health=200.0, warnings=['no ingredients to smelt'], status=<EntityStatus.NO_INGREDIENTS: 'no_ingredients'>, furnace_source={}, furnace_result={'iron-plate': 20})]',)
     ```
     
-    This response indicates that `print(get_entities())` was called at line 78 to get state of the entities on the map. There are four stone furnaces, two of which are working and two of which have no ingredients to smelt. Non-working entities can be determined by checking the `warnings` and `status` fields.
-   """
-
-HISTORY_SUMMARIZATION_INSTRUCTIONS = \
-"""
-Review the code interaction an agent has written with the Factorio REPL Environment and provide a report. 
-
-Focus on what they attempted to achieve, any errors that occurred, and the outcomes of their actions.
-
-Provide specific tips and successful patterns that you see in the code, and any examples that you can provide.
-"""
+    This response indicates that `print(get_entities())` was called at line 78 to get state of the entities on the map. There are four stone furnaces, two of which are working and two of which have no ingredients to smelt. Non-working entities can be determined by checking the `warnings` and `status` fields."""
 
 with open("src\search\MANUAL_short.md", "r") as f:
     MANUAL = f.read()
@@ -239,7 +227,7 @@ async def main():
     model_to_evaluate = "meta-llama/Llama-3.3-70B-Instruct-Turbo"
     #model_to_evaluate = "Qwen/Qwen2.5-72B-Instruct-Turbo"
     model_to_evaluate = "gpt-4o"
-    #model_to_evaluate = 'gpt-4o-mini-2024-07-18'
+    model_to_evaluate = 'gpt-4o-mini-2024-07-18'
     #model_to_evaluate = "o1-mini-2024-09-12"
     #model_to_evaluate = 'deepseek-chat'
     version = 332 # 120 and 121 was the last version before this change
@@ -247,7 +235,7 @@ async def main():
     version_description = "eval_agentic_supervised"
 
     result_path = r"src\supervised_tasks\supervised_results"
-    task_types = ["copper_plate_thresholds_placement"]
+    task_types = ["iron_mine_thresholds"]
     tasks_to_exclude = []
     search_type = "beam_supervised"
     search_iterations = 1
@@ -259,19 +247,17 @@ async def main():
     #    summary_instructions=HISTORY_SUMMARIZATION_INSTRUCTIONS
     #)
 
-    formatter = RecursiveFormatter(
+    formatter = RecursiveReportFormatter(
         chunk_size=128,
         llm_factory=llm_factory,
         cache_dir='./summary_cache',
-        summary_instructions=HISTORY_SUMMARIZATION_INSTRUCTIONS,
-        summarize_history=False
     )
     configs = {"beam_supervised": {"config": SupervisedExecutorConfig(
         n_parallel=1,
         model_to_evaluate=model_to_evaluate,
         initial_state=initial_state,
         supervised_kwargs = {
-                             "max_steps_per_objective": 32,
+                             "max_steps_per_objective": 16,
                              #"beam_unification_steps": 1,
                              "system_prompt": prompt}),
         "executor": MilestonesBeamSearchExecutor}

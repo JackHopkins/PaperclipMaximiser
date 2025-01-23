@@ -642,6 +642,26 @@ def test_achievements_27():
          
         output_list, result, error, achievements = eval_program_with_achievements(instance, test_string_1)
         print("asda")
+
+
+def test_achievements_28():
+        PLACEMENT_STARTING_INVENTORY = {"coal": 200, "burner-mining-drill": 10, "wooden-chest": 10, "burner-inserter": 10, "transport-belt": 200,
+                                "stone-furnace": 5, "pipe": 10, "boiler": 4, "offshore-pump": 3, "steam-engine": 2,
+                                "iron-gear-wheel": 22, "iron-plate": 19, "copper-plate": 52, "electronic-circuit": 99,
+                                "iron-ore": 62, "stone": 50, "electric-mining-drill": 10, "small-electric-pole": 200, "pipe": 100,
+                                "assembling-machine-1": 5}
+        instance = FactorioInstance(address='localhost',
+                                bounding_box=200,
+                                tcp_port=27015,
+                                fast=True,
+                                #cache_scripts=False,
+                                inventory=PLACEMENT_STARTING_INVENTORY) 
+
+        test_string_1 = 'water_position = nearest(Resource.Water)\nmove_to(water_position)\noffshore_pump = place_entity(Prototype.OffshorePump, position=water_position)\nprint(offshore_pump)\nbbox = BuildingBox(height = 6, width = 6)\ncoords = nearest_buildable(Prototype.Boiler,bbox,offshore_pump.position)\ntop_left_coord = coords["left_top"]\ncenter = Position(top_left_coord.x +3, top_left_coord.y +3)\nboiler = place_entity(Prototype.Boiler, position = center)\nbbox = BuildingBox(height = 7, width = 7)\ncoords = nearest_buildable(Prototype.SteamEngine,bbox,boiler.position)\ntop_left_coord = coords["left_top"]\ncenter = Position(top_left_coord.x +3, top_left_coord.y +3)\nmove_to(center)\nsteam_engine = place_entity(Prototype.SteamEngine, position = center)\nwater_pipes = connect_entities(offshore_pump, boiler, Prototype.Pipe)\nsteam_pipes = connect_entities(boiler, steam_engine, Prototype.Pipe)'
+        
+        output_list, result, error, achievements = eval_program_with_achievements(instance, test_string_1)
+        print("asda")
+
 if __name__ == '__main__':
     #unittest.main()
-    test_achievements_27()
+    test_achievements_28()

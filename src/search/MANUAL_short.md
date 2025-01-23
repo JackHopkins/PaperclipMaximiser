@@ -195,7 +195,7 @@ Power typically involves:
 -> Water Source + OffshorePump
 -> Boiler (burning coal)
 -> SteamEngine
-NB: Use atleast spacing of 4 to ensure there is enough room for pipes
+NB: Use atleast spacing of 3 to ensure there is enough room for pipes
 IMPORTANT: We also need to be very careful and check where we can place boiler and steam engine as they cannot be on water
 ```python
 # log your general idea what you will do next
@@ -207,44 +207,35 @@ offshore_pump = place_entity(Prototype.OffshorePump, position=water_position)
 print(f"Placed offshore pump to get water at {offshore_pump.position}")
 # Then place the boiler close to the offshore pump
 # IMPORTANT: We need to be careful as there is water nearby which is unplaceable,
-# We do not know where the water is so we will use can_place_entity for safety
-# We will also need to be atleast 4 tiles away as the entities are large and otherwise won't have room for connections
-# construct 4 potential positions for the boiler, each 4 tiles away from offshore pump
-potential_positions = [Position(x = offshore_pump.position.x+4, y = offshore_pump.position.y),
-                        Position(x = offshore_pump.position.x-4, y = offshore_pump.position.y),
-                        Position(x = offshore_pump.position.x, y = offshore_pump.position.y+4),
-                        Position(x = offshore_pump.position.x, y = offshore_pump.position.y-4)]
-boiler_placed = False # variable to check if boiler was placed
-for boiler_position in potential_positions:
-    if can_place_entity(Prototype.Boiler, position=boiler_position):
-        # place the boiler
-        boiler = place_entity(Prototype.Boiler, 
-            position=boiler_position)
-            # update the variable
-            boiler_placed = True
-            print(f"Placed boiler to generate steam at {boiler.position}. This will be connected to the offshore pump at {offshore_pump.position}")
-            break
-assert boiler_placed, f"Could not find a safe tile to place boiler close to offshore pump at {offshore_pump.position} 4 spaces away. Consider enlargening the grid"
+# We do not know where the water is so we will use nearest_buildable for safety and place the entity at the center of the boundingbox
+# We will also need to be atleast 3 tiles away from the offshore-pump as the entities are large and otherwise won't have room for connections. Therefore the nearest_buildable buildingbox will have width and length of 7 so the center is 3 tiles away from all borders
+bbox = BuildingBox(height = 7, width = 7)
+coords = nearest_buildable(Prototype.Boiler,bbox,offshore_pump.position)
+# get the top left coordinate
+top_left_coord = coords["left_top"]
+# get the centre coordinate by adding 3 to x and y coordinates (we add 3 to y as the y coordinates are inverted in Factorio)
+center = Position(top_left_coord.x +3, top_left_coord.y +3)
+# place the boiler at the centre coordinate
+boiler = place_entity(Prototype.Boiler, position = center)
+print(f"Placed boiler to generate steam at {boiler.position}. This will be connected to the offshore pump at {offshore_pump.position}")
 # add coal to boiler to start the power generation
 boiler = insert_item(Prototype.Coal, boiler, 10)
-# Finally we need to place the steam engine close to the boiler
-# IMPORTANT: We again need to be safe and use can_place_entity with a tile size of 4
 
-potential_positions = [Position(x = boiler.position.x+4, y = boiler.position.y),
-                        Position(x = boiler.position.x-4, y = boiler.position.y),
-                        Position(x = boiler.position.x, y = boiler.position.y+4),
-                        Position(x = boiler.position.x, y = boiler.position.y-4)]
-steam_engine_placed = False # variable to check if boiler was placed
-for steam_engine_position in potential_positions:
-    if can_place_entity(Prototype.SteamEngine, position=steam_engine_position):
-        # place the steam engine
-        steam_engine = place_entity(Prototype.SteamEngine, 
-            position=steam_engine_position)
-            # update the variable
-            steam_engine_placed = True
-            print(f"Placed steam_engine to generate electricity at {steam_engine.position}. This will be connected to the boiler at {boiler.position} to generate electricity")
-            break
-assert steam_engine_placed, f"Could not find a safe tile to place steam_engine 4 spaces away from boiler at position {boiler.position}. Consider enlargening the grid"
+
+# Finally we need to place the steam engine close to the boiler
+# IMPORTANT: We again need to create a buildingbox with a height and length of 7 to be safe
+bbox = BuildingBox(height = 7, width = 7)
+coords = nearest_buildable(Prototype.SteamEngine,bbox,boiler.position)
+# get the top left coordinate
+top_left_coord = coords["left_top"]
+# get the centre coordinate by adding 3 to x and y coordinates (we add 3 to y as the y coordinates are inverted in Factorio)
+center = Position(top_left_coord.x + 3, top_left_coord.y + 3)
+# move to the centre coordinate
+move_to(center)
+# place the steam engine on the centre coordinate
+steam_engine = place_entity(Prototype.SteamEngine, position = center)
+
+print(f"Placed steam_engine to generate electricity at {steam_engine.position}. This will be connected to the boiler at {boiler.position} to generate electricity")
 
 # Connect entities in order
 water_pipes = connect_entities(offshore_pump, boiler, Prototype.Pipe)
