@@ -30,7 +30,7 @@ def test_move_to(game):
 
 def test_move_to_bug(game):
     # Get stone for stone furnace
-    game.move_to(game.nearest(Resource.Stone))
+    position = game.move_to(game.nearest(Resource.Stone))
     game.harvest_resource(game.nearest(Resource.Stone), quantity=5)
 
     # Check if we got the stone
@@ -106,7 +106,7 @@ def test_long_way(game):
 if __name__ == '__main__':
     factorio = FactorioInstance(address='localhost',
                             bounding_box=200,
-                            tcp_port=27015,
+                            tcp_port=27000,
                             cache_scripts=True,
                             fast=True,
                             inventory={

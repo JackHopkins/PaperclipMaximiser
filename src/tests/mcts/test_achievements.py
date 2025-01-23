@@ -9,7 +9,7 @@ from search.model.game_state import GameState
 def test_achievements():
         instance = FactorioInstance(address='localhost',
                                 bounding_box=200,
-                                tcp_port=27015,
+                                tcp_port=27000,
                                 fast=True,
                                 #cache_scripts=False,
                                 inventory={})
