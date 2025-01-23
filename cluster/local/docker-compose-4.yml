@@ -1,11 +1,11 @@
 services:
   factorio_0:
     command: /opt/factorio/bin/x64/factorio --start-server-load-scenario default_lab_scenario
-      --port 34197 --server-settings /opt/factorio/config/server-settings.json --map-gen-settings
-      /opt/factorio/config/map-gen-settings.json --map-settings /opt/factorio/config/map-settings.json
-      --server-banlist /opt/factorio/config/server-banlist.json --rcon-port 27015
-      --rcon-password "factorio" --server-whitelist /opt/factorio/config/server-whitelist.json
-      --use-server-whitelist --server-adminlist /opt/factorio/config/server-adminlist.json
+      --port 34197 --server-settings /factorio/config/server-settings.json --map-gen-settings
+      /factorio/config/map-gen-settings.json --map-settings /factorio/config/map-settings.json
+      --server-banlist /factorio/config/server-banlist.json --rcon-port 27015
+      --rcon-password "factorio" --server-whitelist /factorio/config/server-whitelist.json
+      --use-server-whitelist --server-adminlist /factorio/config/server-adminlist.json
       --mod-directory /opt/factorio/mods
     deploy:
       resources:
@@ -14,10 +14,10 @@ services:
           memory: 1024m
     entrypoint: []
     environment:
-    - SAVES=/opt/factorio/saves
-    - CONFIG=/opt/factorio/config
+    - SAVES=/factorio/saves
+    - CONFIG=/factorio/config
     - MODS=/opt/factorio/mods
-    - SCENARIOS=/opt/factorio/scenarios
+    - SCENARIOS=/factorio/scenarios
     - PORT=34197
     - RCON_PORT=27015
     image: factorio:latest
@@ -29,18 +29,18 @@ services:
     user: factorio
     volumes:
     - source: ../scenarios/default_lab_scenario
-      target: /opt/factorio/scenarios/default_lab_scenario
+      target: /factorio/scenarios/default_lab_scenario
       type: bind
-    - source: ~/Applications/Factorio.app/Contents/Resources/mods
+    - source: C:\Users\martb\AppData\Roaming\Factorio\mods
       target: /opt/factorio/mods
       type: bind
   factorio_1:
     command: /opt/factorio/bin/x64/factorio --start-server-load-scenario default_lab_scenario
-      --port 34197 --server-settings /opt/factorio/config/server-settings.json --map-gen-settings
-      /opt/factorio/config/map-gen-settings.json --map-settings /opt/factorio/config/map-settings.json
-      --server-banlist /opt/factorio/config/server-banlist.json --rcon-port 27015
-      --rcon-password "factorio" --server-whitelist /opt/factorio/config/server-whitelist.json
-      --use-server-whitelist --server-adminlist /opt/factorio/config/server-adminlist.json
+      --port 34197 --server-settings /factorio/config/server-settings.json --map-gen-settings
+      /factorio/config/map-gen-settings.json --map-settings /factorio/config/map-settings.json
+      --server-banlist /factorio/config/server-banlist.json --rcon-port 27015
+      --rcon-password "factorio" --server-whitelist /factorio/config/server-whitelist.json
+      --use-server-whitelist --server-adminlist /factorio/config/server-adminlist.json
       --mod-directory /opt/factorio/mods
     deploy:
       resources:
@@ -49,10 +49,10 @@ services:
           memory: 1024m
     entrypoint: []
     environment:
-    - SAVES=/opt/factorio/saves
-    - CONFIG=/opt/factorio/config
+    - SAVES=/factorio/saves
+    - CONFIG=/factorio/config
     - MODS=/opt/factorio/mods
-    - SCENARIOS=/opt/factorio/scenarios
+    - SCENARIOS=/factorio/scenarios
     - PORT=34197
     - RCON_PORT=27015
     image: factorio:latest
@@ -64,18 +64,18 @@ services:
     user: factorio
     volumes:
     - source: ../scenarios/default_lab_scenario
-      target: /opt/factorio/scenarios/default_lab_scenario
+      target: /factorio/scenarios/default_lab_scenario
       type: bind
-    - source: ~/Applications/Factorio.app/Contents/Resources/mods
+    - source: C:\Users\martb\AppData\Roaming\Factorio\mods
       target: /opt/factorio/mods
       type: bind
   factorio_2:
     command: /opt/factorio/bin/x64/factorio --start-server-load-scenario default_lab_scenario
-      --port 34197 --server-settings /opt/factorio/config/server-settings.json --map-gen-settings
-      /opt/factorio/config/map-gen-settings.json --map-settings /opt/factorio/config/map-settings.json
-      --server-banlist /opt/factorio/config/server-banlist.json --rcon-port 27015
-      --rcon-password "factorio" --server-whitelist /opt/factorio/config/server-whitelist.json
-      --use-server-whitelist --server-adminlist /opt/factorio/config/server-adminlist.json
+      --port 34197 --server-settings /factorio/config/server-settings.json --map-gen-settings
+      /factorio/config/map-gen-settings.json --map-settings /factorio/config/map-settings.json
+      --server-banlist /factorio/config/server-banlist.json --rcon-port 27015
+      --rcon-password "factorio" --server-whitelist /factorio/config/server-whitelist.json
+      --use-server-whitelist --server-adminlist /factorio/config/server-adminlist.json
       --mod-directory /opt/factorio/mods
     deploy:
       resources:
@@ -84,10 +84,10 @@ services:
           memory: 1024m
     entrypoint: []
     environment:
-    - SAVES=/opt/factorio/saves
-    - CONFIG=/opt/factorio/config
+    - SAVES=/factorio/saves
+    - CONFIG=/factorio/config
     - MODS=/opt/factorio/mods
-    - SCENARIOS=/opt/factorio/scenarios
+    - SCENARIOS=/factorio/scenarios
     - PORT=34197
     - RCON_PORT=27015
     image: factorio:latest
@@ -99,18 +99,18 @@ services:
     user: factorio
     volumes:
     - source: ../scenarios/default_lab_scenario
-      target: /opt/factorio/scenarios/default_lab_scenario
+      target: /factorio/scenarios/default_lab_scenario
       type: bind
-    - source: ~/Applications/Factorio.app/Contents/Resources/mods
+    - source: C:\Users\martb\AppData\Roaming\Factorio\mods
       target: /opt/factorio/mods
       type: bind
   factorio_3:
     command: /opt/factorio/bin/x64/factorio --start-server-load-scenario default_lab_scenario
-      --port 34197 --server-settings /opt/factorio/config/server-settings.json --map-gen-settings
-      /opt/factorio/config/map-gen-settings.json --map-settings /opt/factorio/config/map-settings.json
-      --server-banlist /opt/factorio/config/server-banlist.json --rcon-port 27015
-      --rcon-password "factorio" --server-whitelist /opt/factorio/config/server-whitelist.json
-      --use-server-whitelist --server-adminlist /opt/factorio/config/server-adminlist.json
+      --port 34197 --server-settings /factorio/config/server-settings.json --map-gen-settings
+      /factorio/config/map-gen-settings.json --map-settings /factorio/config/map-settings.json
+      --server-banlist /factorio/config/server-banlist.json --rcon-port 27015
+      --rcon-password "factorio" --server-whitelist /factorio/config/server-whitelist.json
+      --use-server-whitelist --server-adminlist /factorio/config/server-adminlist.json
       --mod-directory /opt/factorio/mods
     deploy:
       resources:
@@ -119,10 +119,10 @@ services:
           memory: 1024m
     entrypoint: []
     environment:
-    - SAVES=/opt/factorio/saves
-    - CONFIG=/opt/factorio/config
+    - SAVES=/factorio/saves
+    - CONFIG=/factorio/config
     - MODS=/opt/factorio/mods
-    - SCENARIOS=/opt/factorio/scenarios
+    - SCENARIOS=/factorio/scenarios
     - PORT=34197
     - RCON_PORT=27015
     image: factorio:latest
@@ -134,8 +134,8 @@ services:
     user: factorio
     volumes:
     - source: ../scenarios/default_lab_scenario
-      target: /opt/factorio/scenarios/default_lab_scenario
+      target: /factorio/scenarios/default_lab_scenario
       type: bind
-    - source: ~/Applications/Factorio.app/Contents/Resources/mods
+    - source: C:\Users\martb\AppData\Roaming\Factorio\mods
       target: /opt/factorio/mods
       type: bind
