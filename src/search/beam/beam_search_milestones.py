@@ -176,7 +176,7 @@ class MilestonesBeamSearchExecutor(SupervisedTaskExecutorABC):
         generation_params = GenerationParameters(
             model=self.model_to_evaluate,
             max_tokens=4096,
-            temperature = 0.3
+            temperature = 0.5
         )
         conversations_to_process = []
         start_states = {}

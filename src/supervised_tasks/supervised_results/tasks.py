@@ -306,12 +306,12 @@ TASKS = {"simple_crafting":{
                                         #starting_inventory=PLACEMENT_STARTING_INVENTORY),
         },
         "iron_mine_thresholds_scratch": {
-                                        #"iron_mine_1_scratch": OpenEndedTaskConfig(
-                                        #task="Create an automatic iron ore mine that produces 1 iron ore per 60 ingame seconds. Useful information for this task: One burner mining drill mines 15 resources and one electric mining drill mines 30 resources per 60 ingame seconds.",
-                                        #throughput_entity="iron-ore"),
-                                        "iron_mine_32_scratch": OpenEndedTaskConfig(
-                                        task="Create an automatic iron ore mine that produces 32 iron ore per 60 ingame seconds. Useful information for this task: One burner mining drill mines 15 resources and one electric mining drill mines 30 resources per 60 ingame seconds.",
+                                        "iron_mine_1_scratch": OpenEndedTaskConfig(
+                                        task="Create an automatic iron ore mine that produces 1 iron ore per 60 ingame seconds. Useful information for this task: One burner mining drill mines 15 resources and one electric mining drill mines 30 resources per 60 ingame seconds.",
                                         throughput_entity="iron-ore"),
+                                        #"iron_mine_32_scratch": OpenEndedTaskConfig(
+                                        #task="Create an automatic iron ore mine that produces 32 iron ore per 60 ingame seconds. Useful information for this task: One burner mining drill mines 15 resources and one electric mining drill mines 30 resources per 60 ingame seconds.",
+                                        #throughput_entity="iron-ore"),
                                         #"iron_mine_64_scratch": OpenEndedTaskConfig(
                                         #task="Create an automatic iron ore mine that produces 64 iron ore per 60 ingame seconds. Useful information for this task: One burner mining drill mines 15 resources and one electric mining drill mines 30 resources per 60 ingame seconds.",
                                         #throughput_entity="iron-ore"),
@@ -339,12 +339,12 @@ TASKS = {"simple_crafting":{
                                         #starting_inventory=PLACEMENT_STARTING_INVENTORY),
         },
         "copper_plate_thresholds_scratch": {
-                                        "copper_plate_mine_1": OpenEndedTaskConfig(
-                                        task="Create an automatic copper plate mine that produces 1 copper plates per 60 ingame seconds. Useful information for this task: One burner mining drill mines 15 resources and one electric mining drill mines 30 resources per 60 ingame seconds. One stone furnace smelts 18 copper plates per 60 ingame seconds",
-                                        throughput_entity="copper-plate"),
-                                        #"copper_plate_mine_32": OpenEndedTaskConfig(
-                                        #task="Create an automatic copper plate mine that produces 32 copper plates per 60 ingame seconds. Useful information for this task: One burner mining drill mines 15 resources and one electric mining drill mines 30 resources per 60 ingame seconds. One stone furnace smelts 18 copper plates per 60 ingame seconds",
+                                        #"copper_plate_mine_1": OpenEndedTaskConfig(
+                                        #task="Create an automatic copper plate mine that produces 1 copper plates per 60 ingame seconds. Useful information for this task: One burner mining drill mines 15 resources and one electric mining drill mines 30 resources per 60 ingame seconds. One stone furnace smelts 18 copper plates per 60 ingame seconds",
                                         #throughput_entity="copper-plate"),
+                                        "copper_plate_mine_32": OpenEndedTaskConfig(
+                                        task="Create an automatic copper plate mine that produces 32 copper plates per 60 ingame seconds. Useful information for this task: One burner mining drill mines 15 resources and one electric mining drill mines 30 resources per 60 ingame seconds. One stone furnace smelts 18 copper plates per 60 ingame seconds",
+                                        throughput_entity="copper-plate"),
                                         #"copper_plate_mine_64": OpenEndedTaskConfig(
                                         #task="Create an automatic iron ore mine that produces 64 copper plates per 60 ingame seconds. Useful information for this task: One burner mining drill mines 15 resources and one electric mining drill mines 30 resources per 60 ingame seconds.",
                                         #throughput_entity="copper-plate",
