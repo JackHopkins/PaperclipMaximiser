@@ -662,6 +662,57 @@ def test_achievements_28():
         output_list, result, error, achievements = eval_program_with_achievements(instance, test_string_1)
         print("asda")
 
+def test_achievements_29():
+        PLACEMENT_STARTING_INVENTORY = {"coal": 200, "burner-mining-drill": 10, "wooden-chest": 10, "burner-inserter": 10, "transport-belt": 200,
+                                "stone-furnace": 5, "pipe": 10, "boiler": 4, "offshore-pump": 3, "steam-engine": 2,
+                                "iron-gear-wheel": 22, "iron-plate": 19, "copper-plate": 52, "electronic-circuit": 99,
+                                "iron-ore": 62, "stone": 50, "electric-mining-drill": 10, "small-electric-pole": 200, "pipe": 100,
+                                "assembling-machine-1": 5}
+        instance = FactorioInstance(address='localhost',
+                                bounding_box=200,
+                                tcp_port=27015,
+                                fast=True,
+                                #cache_scripts=False,
+                                inventory=PLACEMENT_STARTING_INVENTORY) 
+
+        test_string_1 = 'belts = connect_entities(Position(x = 10, y = -9), Position(x = -19, y = 22), Prototype.TransportBelt)\nprint(belts)\nprint(belts[0].belts)\npickup_entity(Prototype.TransportBelt, Position(x=-14.5, y=17.5))'
+
+        test_string_1 = 'belts = connect_entities(Position(x = 1, y = -1), Position(x = -2, y = 0), Prototype.TransportBelt)\nprint(belts)\nprint(belts[0].belts)\npickup_entity(Prototype.TransportBelt, Position(x=1.5, y=0.5))'
+
+        test_string_1 = 'belts = connect_entities(Position(x = 1, y = -1), Position(x = -2, y = 0), Prototype.TransportBelt)\nprint(belts)\nprint(belts[0].belts)\nfor belt in belts[0].belts:\n    pickup_entity(Prototype.TransportBelt, belt.position)\n    print(f"Pickup belt at {belt.position}")'
+        test_string_1 = 'belts = connect_entities(Position(x = 1, y = -1), Position(x = -2, y = 0), Prototype.TransportBelt)\nprint(len(belts[0].belts))\nprint(belts[0].belts)\nfor belt in belts[0].belts:\n    pickup_entity(Prototype.TransportBelt, belt.position)\n    print(f"Pickup belt at {belt.position}")'
+
+        test_string_1 = 'belts = connect_entities(Position(x = 1, y = -1), Position(x = -2, y = 0), Prototype.TransportBelt)\nbelts_in_beltgroup = [x.position for x in belts[0].belts]\nprint(len(belts_in_beltgroup))\nprint(belts_in_beltgroup)\nfor i, specific_belt in enumerate(belts_in_beltgroup):\n    pickup_entity(Prototype.TransportBelt, specific_belt)\n    print(i)\nprint(f"done")'
+
+        test_string_1 = 'belts = connect_entities(Position(x = 1, y = -1), Position(x = -2, y = 0), Prototype.TransportBelt)\nbelts_in_beltgroup = [x.position for x in belts[0].belts]\nprint(len(belts_in_beltgroup))\nprint(belts_in_beltgroup)\nfor i, specific_belt in enumerate(belts_in_beltgroup):\n    pickup_entity(Prototype.TransportBelt, specific_belt)\n    print(i)\nprint(f"done")'
+        
+        test_string_1 = 'belts = connect_entities(Position(x = 1, y = -1), Position(x = -2, y = 0), Prototype.TransportBelt)\nbelts_in_beltgroup = [x.position for x in belts[0].belts]\nprint(len(belts_in_beltgroup))\nprint(belts_in_beltgroup)\npickup_entity(Prototype.BeltGroup, belts[0].position)'
+        
+        #test_string_1 = 'belts = connect_entities(Position(x = 1, y = -1), Position(x = -2, y = 0), Prototype.Pipe)\nprint(belts)\nprint(belts[0].pipes)\nfor belt in belts[0].pipes:\n    pickup_entity(Prototype.Pipe, belt.position)\n    print(f"Pickup belt at {belt.position}")'
+
+        output_list, result, error, achievements = eval_program_with_achievements(instance, test_string_1)
+        print("asda")
+
+
+def test_achievements_30():
+        PLACEMENT_STARTING_INVENTORY = {"coal": 200, "burner-mining-drill": 10, "wooden-chest": 10, "burner-inserter": 10, "transport-belt": 200,
+                                "stone-furnace": 5, "pipe": 10, "boiler": 4, "offshore-pump": 3, "steam-engine": 2,
+                                "iron-gear-wheel": 22, "iron-plate": 19, "copper-plate": 52, "electronic-circuit": 99,
+                                "iron-ore": 62, "stone": 50, "electric-mining-drill": 10, "small-electric-pole": 200, "pipe": 100,
+                                "assembling-machine-1": 5}
+        instance = FactorioInstance(address='localhost',
+                                bounding_box=200,
+                                tcp_port=27015,
+                                fast=True,
+                                #cache_scripts=False,
+                                inventory=PLACEMENT_STARTING_INVENTORY) 
+
+        test_string_1 = 'steam_engine_pos = Position(x=-8.5, y=10.5)\nboiler_pos = Position(x=-8.5, y=5.5)\nwater_pos = nearest(Resource.Water)\nmove_to(water_pos)\noffshore_pump = place_entity(Prototype.OffshorePump,position = water_pos)\nprint(offshore_pump)\nmove_to(boiler_pos)\nboiler =  place_entity(Prototype.Boiler, position = boiler_pos)\ninsert_item(Prototype.Coal, boiler, 20)\nwater_pipes = connect_entities(offshore_pump, boiler, Prototype.Pipe)\nassert len(water_pipes) == 1\nmove_to(steam_engine_pos)\nengine = place_entity(Prototype.SteamEngine, position = steam_engine_pos)\nsteam_pipes = connect_entities(boiler, engine, Prototype.Pipe)\nassert len(steam_pipes) ==1\nengine=get_entity(Prototype.SteamEngine, engine.position)\nassert engine.energy > 0'
+        #test_string_1 = 'belts = connect_entities(Position(x = 1, y = -1), Position(x = -2, y = 0), Prototype.Pipe)\nprint(belts)\nprint(belts[0].pipes)\nfor belt in belts[0].pipes:\n    pickup_entity(Prototype.Pipe, belt.position)\n    print(f"Pickup belt at {belt.position}")'
+
+        output_list, result, error, achievements = eval_program_with_achievements(instance, test_string_1)
+        print("asda")
 if __name__ == '__main__':
+        
     #unittest.main()
-    test_achievements_28()
+    test_achievements_30()

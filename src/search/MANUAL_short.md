@@ -589,7 +589,7 @@ print(f"Placed a inserter at {output_inserter.position} that takes away copper c
 #### Common Patterns
 
 1. **Mining Setup**:
-Example: Create a plate mining line
+Example: Create a copper plate mining line with 3 drills
 ```python
 # log your general idea what you will do next
 print(f"I will create a single line of 3 drills to mine copper ore")

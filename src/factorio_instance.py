@@ -29,6 +29,8 @@ from src.factorio_rcon_utils import _lua2python
 from src.rcon.factorio_rcon import RCONClient
 from utilities.controller_loader import load_schema, load_definitions, parse_file_for_structure
 from vocabulary import Vocabulary
+from concurrent.futures import ThreadPoolExecutor
+
 
 CHUNK_SIZE = 32
 MAX_SAMPLES = 5000

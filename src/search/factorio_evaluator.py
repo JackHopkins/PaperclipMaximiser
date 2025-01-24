@@ -145,10 +145,10 @@ class FactorioEvaluator:
     def _evaluate_for_achievements(self, code: str, instance: FactorioInstance) \
             -> Tuple[float, GameState, str, List[Union[Entity, EntityGroup]], Dict[str, Dict[str, int]]]:
         # Get initial state information
-        start_production_flows = instance.namespace.get_production_stats()
+        start_production_flows = instance.namespace._get_production_stats()
         # Executing code
         reward, time, result = instance.eval(code, timeout=120)
-        post_production_flows = instance.namespace.get_production_stats()
+        post_production_flows = instance.namespace._get_production_stats()
         achievements = get_achievements(start_production_flows, copy.deepcopy(post_production_flows))
         
         return result, achievements, post_production_flows
@@ -190,7 +190,7 @@ class FactorioEvaluator:
             # Check to see if the inventories are different
             # If so, we manually put a hint in the generated code and result from the game
             get_inventory_code = 'print(f"Current inventory {inspect_inventory()}")'
-            if (start_inventory.__dict__ != final_inventory.__dict__
+            if (start_inventory != final_inventory
                     and 'error' not in result.lower()
                     and get_inventory_code not in program.code
                     and 'inspect_inventory()' not in program.code):
@@ -230,8 +230,8 @@ class FactorioEvaluator:
                 final_entities=len(entities),
                 start_entities=len(start_entities),
                 total_programs=instance_metrics.total_programs + 1,
-                start_inventory_count=sum([v for k, v in start_inventory.__dict__.items() if v > 0]),
-                final_inventory_count=sum([v for k, v in final_inventory.__dict__.items() if v > 0])
+                start_inventory_count=sum([v for k, v in start_inventory.items() if v > 0]),
+                final_inventory_count=sum([v for k, v in final_inventory.items() if v > 0])
             )
 
             error = False
@@ -294,8 +294,8 @@ class FactorioEvaluator:
                     final_entities=len(entities),
                     start_entities=len(initial_entities),
                     total_programs=holdout_metrics.total_programs + 1,
-                    start_inventory_count=sum([v for k, v in start_inventory.__dict__.items() if v > 0]),
-                    final_inventory_count=sum([v for k, v in final_inventory.__dict__.items() if v > 0])
+                    start_inventory_count=sum([v for k, v in start_inventory.items() if v > 0]),
+                    final_inventory_count=sum([v for k, v in final_inventory.items() if v > 0])
                 )
             
             end_production_flows = self.holdout.get_production_stats()
