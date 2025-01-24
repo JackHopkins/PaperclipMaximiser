@@ -14,7 +14,7 @@ class GetEntities(Action):
 
     def __call__(self, entities: Union[Set[Prototype], Prototype] = set(), position: Position = None, radius: int = 1000) -> List[Entity]:
         """
-        Get entities within a radius of a given position. The first and last itemns in the list are specialised string tags for parsing
+        Get entities within a radius of a given position.
         :param position: Position to search around. Can be a Position object or "player" for player's position.
         :param radius: Radius to search within.
         :return: Found entities
@@ -100,10 +100,6 @@ class GetEntities(Action):
             [entities_list.remove(belt) for belt in belts]
             entities_list.extend(group)
 
-            # add tags if entities were not supplied
-            if len(entities) == 0:
-                entities_list = ["<entities>"] + entities_list + ["</entities>"]
-                
             return entities_list
 
         except Exception as e:

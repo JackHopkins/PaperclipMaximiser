@@ -223,11 +223,11 @@ async def main():
     prompt = SYSTEM_PROMPT + '\n\n' + API_SCHEMA + '\n\nObservations:\n' + OBSERVATION_SPACE + '\n\n' + MANUAL + '\n```'
     initial_state = GameState.from_instance(instances[0])
 
-    model_to_evaluate = "claude-3-5-sonnet-20241022"
-    model_to_evaluate = "meta-llama/Llama-3.3-70B-Instruct-Turbo"
+    #model_to_evaluate = "claude-3-5-sonnet-20241022"
+    #model_to_evaluate = "meta-llama/Llama-3.3-70B-Instruct-Turbo"
     #model_to_evaluate = "Qwen/Qwen2.5-72B-Instruct-Turbo"
-    #model_to_evaluate = "gpt-4o"
-    model_to_evaluate = 'gpt-4o-mini-2024-07-18'
+    model_to_evaluate = "gpt-4o"
+    #model_to_evaluate = 'gpt-4o-mini-2024-07-18'
     #model_to_evaluate = "o1-mini-2024-09-12"
     #model_to_evaluate = 'deepseek-chat'
     version = 332 # 120 and 121 was the last version before this change
@@ -235,7 +235,7 @@ async def main():
     version_description = "eval_agentic_supervised"
 
     result_path = r"src\supervised_tasks\supervised_results"
-    task_types = ["iron_mine_thresholds_scratch"]
+    task_types = ["iron_mine_thresholds"]
     tasks_to_exclude = []
     search_type = "beam_supervised"
     search_iterations = 1
@@ -248,7 +248,7 @@ async def main():
     #)
 
     formatter = RecursiveReportFormatter(
-        chunk_size=128,
+        chunk_size=8,
         llm_factory=llm_factory,
         cache_dir='./summary_cache',
     )
@@ -257,7 +257,7 @@ async def main():
         model_to_evaluate=model_to_evaluate,
         initial_state=initial_state,
         supervised_kwargs = {
-                             "max_steps_per_objective": 32,
+                             "max_steps_per_objective": 16,
                              #"beam_unification_steps": 1,
                              "system_prompt": prompt}),
         "executor": MilestonesBeamSearchExecutor}
