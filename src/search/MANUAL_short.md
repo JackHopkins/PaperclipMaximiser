@@ -106,7 +106,7 @@ move_to(resource_position)  # Must move before placing/interacting
 
 ### 5. Entity Placement Prerequisites
 
-#### Basic Entity Placement and Removal
+#### Basic Entity Placement
 Entities must be placed in a valid location after moving there:
 Include logs for what the entity is placed for
 ```python
@@ -116,7 +116,31 @@ entity = place_entity(Prototype.Entity, position=target_position)
 print(f"Placed entity at {entity.position} to do X")
 ```
 
-Entities can be picked up from the map into your inventory using the `pickup_entity` method.
+#### Basic Entity Removal
+Entities can be picked up with pickup_entity
+```python
+# Basic entity picking up pattern
+move_to(target_position) 
+pickup_entity(Prototype.Entity, position=target_position)
+```
+The same can be done for beltgroups or pipegroups
+In those cases you need to loop through the belts or pipes and pick them up separately
+Example with beltgroups
+```python
+# Place the example groups
+starting_pos = Position(x = 0, y = 12)
+ending_pos = Position(x = 0, y = 8)
+# create the beltgroup
+belts = connect_entity(starting_pos, ending_pos, Prototype.TransportBelt)
+# as connect entities returns a list of beltgroups, we pick up the first beltgroups in this example
+beltgroup_to_be_picked_up = belts[0]
+# loop through the belts to pick them up separately
+for belt in beltgroup_to_be_picked_up.belts:
+    # pick the belt up
+    pickup_entity(Prototype.TransportBelt, position=belt.position)
+```
+The same can be done for pipegroups, use the pipegroup.pipes to loop through the pipes
+
 
 #### Using place_entity_next_to
 The `place_entity_next_to` method is crucial for building organized factory layouts. It handles:
