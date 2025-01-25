@@ -236,13 +236,13 @@ print(f"Placed offshore pump to get water at {offshore_pump.position}")
 # Then place the boiler close to the offshore pump
 # IMPORTANT: We need to be careful as there is water nearby which is unplaceable,
 # We do not know where the water is so we will use nearest_buildable for safety and place the entity at the center of the boundingbox
-# We will also need to be atleast 3 tiles away from the offshore-pump as the entities are large and otherwise won't have room for connections. Therefore the nearest_buildable buildingbox will have width and length of 7 so the center is 3 tiles away from all borders
-bbox = BuildingBox(height = 7, width = 7)
+# We will also need to be atleast 4 tiles away from the offshore-pump as the entities are large and otherwise won't have room for connections. Therefore the nearest_buildable buildingbox will have width and length of 9 so the center is 4 tiles away from all borders
+bbox = BuildingBox(height = 9, width = 9)
 coords = nearest_buildable(Prototype.Boiler,bbox,offshore_pump.position)
 # get the top left coordinate
 top_left_coord = coords.left_top
-# get the centre coordinate by adding 3 to x and y coordinates (we add 3 to y as the y coordinates are inverted in Factorio)
-center = Position(top_left_coord.x +3, top_left_coord.y +3)
+# get the centre coordinate by adding 4 to x and y coordinates (we add 4 to y as the y coordinates are inverted in Factorio)
+center = Position(top_left_coord.x +4, top_left_coord.y +4)
 # place the boiler at the centre coordinate
 boiler = place_entity(Prototype.Boiler, position = center)
 print(f"Placed boiler to generate steam at {boiler.position}. This will be connected to the offshore pump at {offshore_pump.position}")
@@ -251,13 +251,13 @@ boiler = insert_item(Prototype.Coal, boiler, 10)
 
 
 # Finally we need to place the steam engine close to the boiler
-# IMPORTANT: We again need to create a buildingbox with a height and length of 7 to be safe
-bbox = BuildingBox(height = 7, width = 7)
+# IMPORTANT: We again need to create a buildingbox with a height and length of 9 to be safe
+bbox = BuildingBox(height = 9, width = 9)
 coords = nearest_buildable(Prototype.SteamEngine,bbox,boiler.position)
 # get the top left coordinate
 top_left_coord = coords.left_top
-# get the centre coordinate by adding 3 to x and y coordinates (we add 3 to y as the y coordinates are inverted in Factorio)
-center = Position(top_left_coord.x + 3, top_left_coord.y + 3)
+# get the centre coordinate by adding 4 to x and y coordinates (we add 4 to y as the y coordinates are inverted in Factorio)
+center = Position(top_left_coord.x + 4, top_left_coord.y + 4)
 # move to the centre coordinate
 move_to(center)
 # place the steam engine on the centre coordinate

@@ -143,7 +143,9 @@ SYSTEM_PROMPT = \
     
     Follow this structure: The first stage is PLANNING: Think extensively step-by-step in natural language to first plan your next step, reasoning over available entities and your inventory.
     
-    In the planning stage, follow this structure: 1) Was there an error? If yes, then what was the problem 2) What is the best next step that is of reasonable size, 3) What actions do I need to take for this step 
+    In the planning stage, follow this structure: 1) Was there an error? If yes, then what was the problem 2) Analysing your previous steps, what is the best next step that is of reasonable size, 3) What actions do I need to take for this step 
+    
+    When you see errors, try out different solutions. Do not repeat the same solution as that is likely going to fail again.
     
     The second stage is POLICY: create the python policy that carries out the steps you want in the game. Your policy MUST be between two python tags like this: ```python\nYOUR_POLICY_HERE\n```
 
@@ -226,16 +228,16 @@ async def main():
     #model_to_evaluate = "claude-3-5-sonnet-20241022"
     #model_to_evaluate = "meta-llama/Llama-3.3-70B-Instruct-Turbo"
     #model_to_evaluate = "Qwen/Qwen2.5-72B-Instruct-Turbo"
-    model_to_evaluate = "gpt-4o"
-    #model_to_evaluate = 'gpt-4o-mini-2024-07-18'
+    #model_to_evaluate = "gpt-4o"
+    model_to_evaluate = 'gpt-4o-mini-2024-07-18'
     #model_to_evaluate = "o1-mini-2024-09-12"
-    #model_to_evaluate = 'deepseek-chat'
+    model_to_evaluate = 'deepseek-chat'
     version = 332 # 120 and 121 was the last version before this change
     llm_factory = LLMFactory(model=model_to_evaluate)
     version_description = "eval_agentic_supervised"
 
     result_path = r"src\supervised_tasks\supervised_results"
-    task_types = ["iron_mine_thresholds"]
+    task_types = ["copper_plate_thresholds_placement"]
     tasks_to_exclude = []
     search_type = "beam_supervised"
     search_iterations = 1
@@ -248,7 +250,7 @@ async def main():
     #)
 
     formatter = RecursiveReportFormatter(
-        chunk_size=8,
+        chunk_size=128,
         llm_factory=llm_factory,
         cache_dir='./summary_cache',
     )
