@@ -236,7 +236,7 @@ print(f"Placed offshore pump to get water at {offshore_pump.position}")
 # Then place the boiler close to the offshore pump
 # IMPORTANT: We need to be careful as there is water nearby which is unplaceable,
 # We do not know where the water is so we will use nearest_buildable for safety and place the entity at the center of the boundingbox
-# We will also need to be atleast 4 tiles away from the offshore-pump as the entities are large and otherwise won't have room for connections. Therefore the nearest_buildable buildingbox will have width and length of 9 so the center is 4 tiles away from all borders
+# We will also need to be atleast 4 tiles away from the offshore-pump as the boilers dimensions are 2x3 and otherwise won't have room for connections. Therefore the nearest_buildable buildingbox will have width and length of 9 so the center is 4 tiles away from all borders
 bbox = BuildingBox(height = 9, width = 9)
 coords = nearest_buildable(Prototype.Boiler,bbox,offshore_pump.position)
 # get the top left coordinate
@@ -251,7 +251,7 @@ boiler = insert_item(Prototype.Coal, boiler, 10)
 
 
 # Finally we need to place the steam engine close to the boiler
-# IMPORTANT: We again need to create a buildingbox with a height and length of 9 to be safe
+# IMPORTANT: We again need to create a buildingbox with a height and length of 9 to be safe as steam engine has is 3x5 dimensions
 bbox = BuildingBox(height = 9, width = 9)
 coords = nearest_buildable(Prototype.SteamEngine,bbox,boiler.position)
 # get the top left coordinate
@@ -1005,3 +1005,4 @@ copper_ore = get_resource_patch(Resource.CopperOre, nearest(Resource.CopperOre))
 - When a entity has status "WAITING_FOR_SPACE_IN_DESTINATION", it means the there is no space in the drop position. For instance, a mining drill will have status WAITING_FOR_SPACE_IN_DESTINATION when the entities it mines are not being properly collected by a furnace or a chest or transported away from drop position with transport belts
 - Make sure to always put enough fuel into all entities that require fuel. It's easy to mine more coal, so it's better to insert in abundance 
 - Keep it simple! Minimise the usage of transport belts if you don't need them. Use chests and furnaces to catch the ore directly from drills
+- Inserters put items into entities or take items away from entities. You need to add inserters when items need to be automatically put into entities like chests, assembling machines, furnaces, boilers etc. The only exception is you can put a furance or a chest directly at drills drop position, that catches the ore directly

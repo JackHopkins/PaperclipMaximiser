@@ -250,7 +250,7 @@ async def main():
     #)
 
     formatter = RecursiveReportFormatter(
-        chunk_size=128,
+        chunk_size=4,
         llm_factory=llm_factory,
         cache_dir='./summary_cache',
     )
