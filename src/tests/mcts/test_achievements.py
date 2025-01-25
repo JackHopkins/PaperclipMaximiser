@@ -828,6 +828,26 @@ def test_achievements_35():
         score, goal, result = instance.eval_with_error(test_string_1, 300)
         
         print("asda")
+
+
+
+def test_achievements_35():
+        PLACEMENT_STARTING_INVENTORY = {"coal": 200, "burner-mining-drill": 10, "wooden-chest": 10, "burner-inserter": 10, "transport-belt": 200,
+                                "stone-furnace": 5, "pipe": 10, "boiler": 4, "offshore-pump": 3, "steam-engine": 2,
+                                "iron-gear-wheel": 22, "iron-plate": 19, "copper-plate": 52, "electronic-circuit": 99,
+                                "iron-ore": 62, "stone": 50, "electric-mining-drill": 10, "small-electric-pole": 200, "pipe": 100,
+                                "assembling-machine-1": 5}
+        instance = FactorioInstance(address='localhost',
+                                bounding_box=200,
+                                tcp_port=27015,
+                                fast=True,
+                                #cache_scripts=False,
+                                inventory=PLACEMENT_STARTING_INVENTORY) 
+
+        test_string_1 = '# Find water source for power system\nwater_pos = Position(x=-10.5, y=-0.5)\nprint(f"Found water source at {water_pos}")\n\n# Place offshore pump\nmove_to(water_pos)\noffshore_pump = place_entity(Prototype.OffshorePump, position=water_pos)\nprint(f"Placed offshore pump at {offshore_pump.position}")\nboiler_pos = Position(x=-8.5, y=0.0)\nmove_to(boiler_pos)\nboiler = place_entity(Prototype.Boiler, position=boiler_pos)\nprint(f"Placed boiler at {boiler.position}")\nengine_pos = Position(x=-6.5, y=0.5)\nmove_to(engine_pos)\nsteam_engine = place_entity(Prototype.SteamEngine, position=engine_pos)\nprint(f"Placed steam engine at {steam_engine.position}")\n# Connect offshore pump to boiler with pipes\npump_to_boiler = connect_entities(offshore_pump.position, boiler.position, Prototype.Pipe)\nprint(f"Connected offshore pump to boiler with pipes: {pump_to_boiler}")\n\n# Connect boiler to steam engine with pipes\nboiler_to_engine = connect_entities(boiler.position, steam_engine.position, Prototype.Pipe)\nprint(f"Connected boiler to steam engine with pipes: {boiler_to_engine}")'
+        output_list, result, error, achievements = eval_program_with_achievements(instance, test_string_1)
+
+        print("asda")
 if __name__ == '__main__':
         
     #unittest.main()
