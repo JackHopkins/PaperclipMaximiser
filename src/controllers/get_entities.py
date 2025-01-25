@@ -12,7 +12,7 @@ class GetEntities(Action):
     def __init__(self, connection, game_state):
         super().__init__(connection, game_state)
 
-    def __call__(self, entities: Union[Set[Prototype], Prototype] = set(), position: Position = None, radius: int = 1000) -> List[Entity]:
+    def __call__(self, entities: Union[Set[Prototype], Prototype] = set(), position: Position = None, radius: float = 1000) -> List[Entity]:
         """
         Get entities within a radius of a given position.
         :param position: Position to search around. Can be a Position object or "player" for player's position.
