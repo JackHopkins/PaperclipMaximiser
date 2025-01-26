@@ -226,9 +226,9 @@ async def main():
     initial_state = GameState.from_instance(instances[0])
 
     #model_to_evaluate = "claude-3-5-sonnet-20241022"
-    #model_to_evaluate = "meta-llama/Llama-3.3-70B-Instruct-Turbo"
+    model_to_evaluate = "meta-llama/Llama-3.3-70B-Instruct-Turbo"
     #model_to_evaluate = "Qwen/Qwen2.5-72B-Instruct-Turbo"
-    model_to_evaluate = "gpt-4o"
+    #model_to_evaluate = "gpt-4o"
     #model_to_evaluate = 'gpt-4o-mini-2024-07-18'
     #model_to_evaluate = "o1-mini-2024-09-12"
     #model_to_evaluate = 'deepseek-chat'
@@ -250,7 +250,7 @@ async def main():
     #)
 
     formatter = RecursiveReportFormatter(
-        chunk_size=4,
+        chunk_size=128,
         llm_factory=llm_factory,
         cache_dir='./summary_cache',
     )
