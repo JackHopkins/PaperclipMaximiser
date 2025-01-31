@@ -93,7 +93,7 @@ This response indicates that an error has occurred at line 10, and that all prec
 This response indicates that `print(get_entities())` was called at line 78 to get state of the entities on the map. There are four stone furnaces, two of which are working and two of which have no ingredients to smelt. Non-working entities can be determined by checking the `warnings` and `status` fields.
 """
 
-with open("../MANUAL_short.md", "r") as f:
+with open("../../prompts/MANUAL.md", "r") as f:
     MANUAL = f.read()
 
 HISTORY_SUMMARIZATION_INSTRUCTIONS = \

@@ -17,7 +17,7 @@ from search.model.game_state import GameState
 import matplotlib.pyplot as plt
 import numpy as np
 from datetime import datetime
-from supervised_tasks.supervised_results.tasks import TASKS
+from src.supervised_tasks.tasks import TASKS
 
 
 os.environ.update({"FORCE_COLOR": "1", "TERM": "xterm-256color"})
@@ -31,8 +31,6 @@ def plot_throughput_timeseries_mean(input_data, file_path, task):
         for key, value in input_data.items():
             values = [x["holdout_achievements"]["dynamic"].get(f"{throughput_entity}", 0) for x in value]
             data[key] = values
-        
-
         # Convert the data into a numpy array for easier calculation
         values = np.array(list(data.values()))
 
@@ -197,7 +195,7 @@ Focus on what they attempted to achieve, any errors that occurred, and the outco
 Provide specific tips and successful patterns that you see in the code, and any examples that you can provide.
 """
 
-with open("src\search\MANUAL_short.md", "r") as f:
+with open("src\prompts\MANUAL.md", "r") as f:
     MANUAL = f.read()
 
 
@@ -239,7 +237,7 @@ async def main():
     llm_factory = LLMFactory(model=model_to_evaluate)
     version_description = "eval_agentic_supervised"
 
-    result_path = r"src\supervised_tasks\supervised_results"
+    result_path = r"C:\Users\martb\Documents\paperpclip_max\supervised_results"
     task_types = ["electronic_circuit_thresholds_placement"]
     tasks_to_exclude = []
     search_type = "beam_supervised"

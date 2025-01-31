@@ -40,7 +40,7 @@ class ObjectiveMCTS(MCTS):
                  logit_bias=[],
                  presence_penalty=0,
                  frequency_penalty=0,
-                 objective_model: str = "ft:gpt-4o-mini-2024-07-18:paperplane-ai:plans-tree:AcZ8gHSo"
+                 objective_model: str = ""
                  ):
         self.logit_bias = logit_bias
         self.objective_tree_sampler = ObjectiveTreeSampler(LLMFactory(model=objective_model))
