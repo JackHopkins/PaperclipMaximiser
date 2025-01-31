@@ -410,6 +410,24 @@ TASKS = {"simple_crafting":{
                                         #check_for_completion=True,
                                         #check_dicts=[{"task_type": "dynamic", "item":"coal", "quantity": 128}],
                                         #starting_inventory=PLACEMENT_STARTING_INVENTORY),
+        },
+        "electronic_circuit_thresholds_scratch": {
+                                        "electronic_circuit_mine_scratch_1": OpenEndedTaskConfig(
+                                        task="Create an automatic electronic circuit factory that produces 1 electronic circuit per 60 ingame seconds. Useful information for this task: One burner mining drill mines 15 resources and one electric mining drill mines 30 resources per 60 ingame seconds.  One stone furnace smelts 18 iron plates per 60 ingame seconds and one assembling machine crafts 60 electronic-circuits per 60 ingame seconds",
+                                        throughput_entity="electronic-circuit"),
+                                        #"iron-gear-wheel_mine_placement_32": OpenEndedTaskConfig(
+                                        #task="Create an automatic iron gear wheel factory that produces 32 iron gear wheel per 60 ingame seconds. Useful information for this task: One burner mining drill mines 15 resources and one electric mining drill mines 30 resources per 60 ingame seconds.  One stone furnace smelts 18 iron plates per 60 ingame seconds and one assembling machine crafts 60 iron gear wheel per 60 ingame seconds",
+                                        #throughput_entity="iron-gear-wheel",
+                                        #starting_inventory=PLACEMENT_STARTING_INVENTORY),
+                                        #"copper_plate_mine_64": OpenEndedTaskConfig(
+                                        #task="Create an automatic iron ore mine that produces 64 copper plates per 60 ingame seconds. Useful information for this task: One burner mining drill mines 15 resources and one electric mining drill mines 30 resources per 60 ingame seconds.",
+                                        #throughput_entity="copper-plate",
+                                        #starting_inventory=PLACEMENT_STARTING_INVENTORY),
+                                        #"coal_mine_128": TaskConfig(
+                                        #task="Create an automatic coal mine that produces 128 coal per 60 ingame seconds. Useful information for this task: One burner mining drill mines 15 resources and one electric mining drill mines 30 resources per 60 ingame seconds.",
+                                        #check_for_completion=True,
+                                        #check_dicts=[{"task_type": "dynamic", "item":"coal", "quantity": 128}],
+                                        #starting_inventory=PLACEMENT_STARTING_INVENTORY),
         }
 
         }

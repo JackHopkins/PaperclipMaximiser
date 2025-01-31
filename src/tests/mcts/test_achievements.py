@@ -962,8 +962,57 @@ def test_achievements_39():
         output_list, result, error, achievements = eval_program_with_achievements(instance, test_string_1)
 
         print("asda")
+
+
+def test_achievements_40(): # For appendix
+        PLACEMENT_STARTING_INVENTORY = {"coal": 200, "burner-mining-drill": 10, "wooden-chest": 10, "burner-inserter": 10, "transport-belt": 200,
+                                "stone-furnace": 5, "pipe": 10, "boiler": 4, "offshore-pump": 3, "steam-engine": 2,
+                                "iron-gear-wheel": 22, "iron-plate": 19, "copper-plate": 52, "electronic-circuit": 99,
+                                "iron-ore": 62, "stone": 50, "electric-mining-drill": 10, "small-electric-pole": 200, "pipe": 100,
+                                "assembling-machine-1": 5}
+        instance = FactorioInstance(address='localhost',
+                                bounding_box=200,
+                                tcp_port=27015,
+                                fast=True,
+                                #cache_scripts=False,
+                                inventory=PLACEMENT_STARTING_INVENTORY) 
+
+        test_string_1 = 'water_pos = nearest(Resource.Water)\nprint(f"Found water source at {water_pos}")\n\n# Place offshore pump\nmove_to(water_pos)\noffshore_pump = place_entity(Prototype.OffshorePump, position=water_pos)\nprint(f"Placed offshore pump at {offshore_pump.position}")\n\nboiler = place_entity_next_to(Prototype.Boiler, reference_position=offshore_pump.position, spacing = 4, direction = Direction.RIGHT)\nprint(f"Placed boiler at {boiler.position}")\nsteam_engine = place_entity_next_to(Prototype.SteamEngine, reference_position=boiler.position, spacing = 5, direction = Direction.RIGHT)\nprint(f"Placed steam engine at {steam_engine.position}")\n# Connect offshore pump to boiler with pipes\npump_to_boiler = connect_entities(offshore_pump.position, boiler.position, Prototype.Pipe)\nprint(f"Connected offshore pump to boiler with pipes: {pump_to_boiler}")\n\n# Connect boiler to steam engine with pipes\nboiler_to_engine = connect_entities(boiler.position, steam_engine.position, Prototype.Pipe)\nprint(f"Connected boiler to steam engine with pipes: {boiler_to_engine}")\nprint(f"Current inventory {inspect_inventory()}")\nprint(f"Updated entities on the map: {get_entities()}")\n'
+        output_list, result, error, achievements = eval_program_with_achievements(instance, test_string_1)
+
+        test_string_1 = 'iron_pos = nearest(Resource.IronOre)\nmove_to(iron_pos)\ndrill = place_entity(Prototype.ElectricMiningDrill, position = iron_pos)\nprint(f"Put a drill to mine iron at {drill.position}")\nsteam_engine = get_entity(Prototype.SteamEngine, position = Position(x = 3.5, y=-0.5))\npoles = connect_entities(steam_engine,drill,Prototype.SmallElectricPole)\nprint(f"Used poles {poles} to power drill at {drill.position}")\nprint(f"Current inventory {inspect_inventory()}")\nprint(f"Updated entities on the map: {get_entities()}")\n'
+        output_list, result, error, achievements = eval_program_with_achievements(instance, test_string_1)
+        print(f"asd")
+
+
+def test_achievements_41(): # DEMO
+        PLACEMENT_STARTING_INVENTORY = {"coal": 500, "burner-mining-drill": 10, "wooden-chest": 10, "burner-inserter": 10, "transport-belt": 200,
+                                "stone-furnace": 5, "pipe": 10, "boiler": 4, "offshore-pump": 3, "steam-engine": 2,
+                                "iron-gear-wheel": 22, "iron-plate": 19, "copper-plate": 52, "electronic-circuit": 99,
+                                "iron-ore": 62, "stone": 50, "electric-mining-drill": 10, "small-electric-pole": 200, "pipe": 100,
+                                "assembling-machine-1": 5}
+        instance = FactorioInstance(address='localhost',
+                                bounding_box=200,
+                                tcp_port=27015,
+                                fast=True,
+                                #cache_scripts=False,
+                                inventory=PLACEMENT_STARTING_INVENTORY) 
+
+        test_string_1 = '# Find iron ore patch and get position\niron_pos = nearest(Resource.IronOre)\nprint(f"Found iron ore at {iron_pos}")\n\n# Define building box for drill (2x2) plus furnace (2x2)\nbuilding_box = BuildingBox(width=2, height=4)\n\n# Get buildable area\nbuildable_coords = nearest_buildable(Prototype.BurnerMiningDrill, building_box, iron_pos)\ndrill_pos = buildable_coords.left_top\n\n# Place drill\nmove_to(drill_pos)\ndrill = place_entity(Prototype.BurnerMiningDrill, position=drill_pos, direction=Direction.DOWN)\nprint(f"Placed drill at {drill.position}")\n\n# Place furnace at drop position\nfurnace = place_entity(Prototype.StoneFurnace, position=drill.drop_position)\nprint(f"Placed furnace at {furnace.position}")\n\n# Add coal to drill\ndrill = insert_item(Prototype.Coal, drill, quantity=50)\nprint(f"Added coal to drill")\nprint(f"Current inventory: {inspect_inventory()}")\nprint(f"Updated entities on the map: {get_entities()}")\n'
+        output_list, result, error, achievements = eval_program_with_achievements(instance, test_string_1)
+
+        test_string_1 = '# Get current entities\ndrill = get_entity(Prototype.BurnerMiningDrill, Position(x=-13.0, y=22.0))\nfurnace = get_entity(Prototype.StoneFurnace, Position(x=-12.0, y=24.0))\n\n# Add coal to furnace\nfurnace = insert_item(Prototype.Coal, furnace, quantity=50)\nprint(f"Added coal to furnace")\n\n# Place inserter between drill and furnace\ninserter = place_entity_next_to(\n    Prototype.BurnerInserter,\n    reference_position=furnace.position,\n    direction=Direction.DOWN,\n    spacing=0\n)\nprint(f"Placed inserter at {inserter.position}")\n\n# Add coal to inserter\ninserter = insert_item(Prototype.Coal, inserter, quantity=50)\nprint(f"Added coal to inserter")\n\n# Log current state\nprint(f"Current inventory: {inspect_inventory()}")\nprint(f"Updated entities: {get_entities()}")'
+        output_list, result, error, achievements = eval_program_with_achievements(instance, test_string_1)
+        print(f"asd")
+
+        test_string_1 = '# Find water and setup power\nwater_pos = nearest(Resource.Water)\nprint(f"Found water at {water_pos}")\n\n# Place offshore pump\nmove_to(water_pos)\npump = place_entity(Prototype.OffshorePump, position=water_pos)\nprint(f"Placed pump at {pump.position}")\n\n# Place boiler with spacing of 3 to ensure room for pipes\nboiler = place_entity_next_to(\n    Prototype.Boiler,\n    reference_position=pump.position,\n    direction=Direction.LEFT,\n    spacing=3\n)\nprint(f"Placed boiler at {boiler.position}")\n\n# Add coal to boiler\nboiler = insert_item(Prototype.Coal, boiler, quantity=50)\n\n# Place steam engine with spacing of 3\nengine = place_entity_next_to(\n    Prototype.SteamEngine,\n    reference_position=boiler.position,\n    direction=Direction.DOWN,\n    spacing=3\n)\nprint(f"Placed steam engine at {engine.position}")\n\n# Connect pump to boiler to steam engine with pipes\nconnect_entities(pump, boiler, Prototype.Pipe)\nconnect_entities(boiler, engine, Prototype.Pipe)\n\n# Place assembling machine 10 spaces away from furnace\nfurnace = get_entity(Prototype.StoneFurnace, Position(x=-12.0, y=24.0))\ntarget_pos = Position(x=furnace.position.x + 10, y=furnace.position.y)\n\n# Define building box for assembling machine (3x3) plus inserter (1x1)\nbuilding_box = BuildingBox(width=4, height=3)\nbuildable_coords = nearest_buildable(Prototype.AssemblingMachine1, building_box, target_pos)\n\n# Place assembling machine\nmove_to(buildable_coords.left_top)\nassembler = place_entity(Prototype.AssemblingMachine1, position=buildable_coords.left_top)\nprint(f"Placed assembling machine at {assembler.position}")\n\n# Connect power with electric poles\nconnect_entities(engine.position, assembler.position, Prototype.SmallElectricPole)\n\n# Set recipe for iron gear wheels\nset_entity_recipe(assembler, Prototype.IronGearWheel)\n\nprint(f"Current entities: {get_entities()}")\nprint(f"Current inventory: {inspect_inventory()}")'
+        output_list, result, error, achievements = eval_program_with_achievements(instance, test_string_1)
+
+        test_string_1 = '# Get current entities\nfurnace = get_entity(Prototype.StoneFurnace, Position(x=-12.0, y=24.0))\nassembler = get_entity(Prototype.AssemblingMachine1, Position(x=3.5, y=29.5))\n\n# Place inserter next to furnace to take out plates\nfurnace_output_inserter = place_entity_next_to(\n    Prototype.BurnerInserter,\n    reference_position=furnace.position,\n    direction=Direction.RIGHT,\n    spacing=0\n)\nprint(f"Placed furnace output inserter at {furnace_output_inserter.position}")\n\n# Add coal to inserter\nfurnace_output_inserter = insert_item(Prototype.Coal, furnace_output_inserter, quantity=50)\n\n# Place inserter next to assembling machine to input plates\nassembler_input_inserter = place_entity_next_to(\n    Prototype.BurnerInserter,\n    reference_position=assembler.position,\n    direction=Direction.DOWN,\n    spacing=0\n)\nprint(f"Placed assembler input inserter at {assembler_input_inserter.position}")\n\n# Rotate assembler input inserter to face assembler\nassembler_input_inserter = rotate_entity(assembler_input_inserter, Direction.UP)\n\n# Add coal to inserter\nassembler_input_inserter = insert_item(Prototype.Coal, assembler_input_inserter, quantity=50)\n\n# Connect the two inserters with transport belt\nbelts = connect_entities(\n    furnace_output_inserter.drop_position,\n    assembler_input_inserter.pickup_position,\n    Prototype.TransportBelt\n)\nprint(f"Connected inserters with transport belts")\n\n# Add output inserter for iron gear wheels\noutput_inserter = place_entity_next_to(\n    Prototype.BurnerInserter,\n    reference_position=assembler.position,\n    direction=Direction.DOWN,\n    spacing=0\n)\nprint(f"Placed output inserter at {output_inserter.position}")\n\n# Add coal to output inserter\noutput_inserter = insert_item(Prototype.Coal, output_inserter, quantity=50)\n\n# Place chest to collect gear wheels\nchest = place_entity_next_to(\n    Prototype.WoodenChest,\n    reference_position=output_inserter.position,\n    direction=Direction.DOWN,\n    spacing=0\n)\nprint(f"Placed collection chest at {chest.position}")\n\nprint(f"Current entities: {get_entities()}")\nprint(f"Current inventory: {inspect_inventory()}")'
+        output_list, result, error, achievements = eval_program_with_achievements(instance, test_string_1)
+        print(f"asd")
 if __name__ == '__main__':
         
     #unittest.main()
-    test_achievements_39()
+    test_achievements_41()
     #test_achievements_38()

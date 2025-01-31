@@ -1001,7 +1001,7 @@ copper_ore = get_resource_patch(Resource.CopperOre, nearest(Resource.CopperOre))
 - When connecting structures with automatic belts, include the reason for connection and what you are connecting
 - IMPORTANT: Include the intention of entities in your print statements. This will be used later to generate a summary so for the summary to be accurate you need to say what the entities are for
 
-## INSTRUCTIONS WHEN CREATING STRUCTURES
+## TIPS WHEN CREATING STRUCTURES
 - When a entity has status "WAITING_FOR_SPACE_IN_DESTINATION", it means the there is no space in the drop position. For instance, a mining drill will have status WAITING_FOR_SPACE_IN_DESTINATION when the entities it mines are not being properly collected by a furnace or a chest or transported away from drop position with transport belts
 - Make sure to always put enough fuel into all entities that require fuel. It's easy to mine more coal, so it's better to insert in abundance 
 - Keep it simple! Minimise the usage of transport belts if you don't need them. Use chests and furnaces to catch the ore directly from drills

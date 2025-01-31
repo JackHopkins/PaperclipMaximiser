@@ -1,3 +1,7 @@
+import sys
+sys.path.append(r"C:\Users\martb\Documents\paperpclip_max\PaperclipMaximiser\src")
+sys.path.append(r"C:\Users\martb\Documents\paperpclip_max\PaperclipMaximiser")
+
 import asyncio
 import sys
 from abc import ABC, abstractmethod
@@ -960,11 +964,11 @@ async def main():
             # 460: 'gpt-4o-mini@4',
             # 459: 'claude@4',
             # 458: 'gpt4o@4',
-            464: 'llama-70b3@4',
-            465: 'gpt-4o-mini@4',
-            466: 'gpt4o@4',
-            467: 'deepseek-3@4',
-            468: 'claude@4',
+            486: 'llama-70b3@4',
+            487: 'gpt-4o-mini@4',
+            488: 'gpt4o@4',
+            489: 'deepseek-3@4',
+            490: 'claude@4',
 
         }
 

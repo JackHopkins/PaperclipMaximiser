@@ -345,7 +345,29 @@ class DBClient:
                     })
                 return output_dicts
         
-    
+
+    def get_programs_by_ids(self, ids = []):
+        with self.get_connection() as conn:
+            with conn.cursor(cursor_factory=DictCursor) as cur:
+                
+                sql_query = "SELECT value, code, conversation_json, response, meta, version, id, parent_id, holdout_value FROM programs"
+                sql_query  += f" WHERE id IN ({','.join([str(i) for i in ids])})"
+                cur.execute(sql_query)
+                results = cur.fetchall()
+                output_dicts = []
+                for row in results:
+                    output_dicts.append({
+                        'reward': row[0] if row[0] is not None else 0,
+                        'code': row[1],
+                        'conversation': row[2],
+                        'response': row[3] if row[3] is not None else "",
+                        'meta': row[4],
+                        'version': row[5],
+                        "id": row[6],
+                        "parent_id": row[7],
+                        "holdout_value": row[8] if row[8] is not None else 0
+                    })
+                return output_dicts
     @tenacity.retry(retry=retry_if_exception_type((psycopg2.OperationalError, psycopg2.InterfaceError)),
                     wait=wait_random_exponential(multiplier=1, min=4, max=10))
     async def get_parent_visit_stats(self, version: int = None) -> Dict[str, float]:

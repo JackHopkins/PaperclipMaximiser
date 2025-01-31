@@ -169,7 +169,7 @@ SYSTEM_PROMPT = \
 
     Think what entities are needed for the step, what entities exist in the game (in different entity inventories or in your inventory), what entities are you missing for the task.
     
-    DON'T REPEAT YOUR PREVIOUS STEPS - just continue from where you left off. Take into account what was the lasdt action that was executed and continue from there. If there was a error previously, do not repeat your last lines - as this will alter the game state unnecessarily. Fix errors as they occur.
+    DON'T REPEAT YOUR PREVIOUS STEPS - just continue from where you left off. Take into account what was the last action that was executed and continue from there. If there was a error previously, do not repeat your last lines - as this will alter the game state unnecessarily. Fix errors as they occur.
     
     Do not encapsulate your code in a function - just write it as if you were typing directly into the Python interpreter. NEVER write <LINES X-Y CUT/> - as this is a processing step applied to the conversational history - it represents code.
     
@@ -229,7 +229,7 @@ async def main():
     model_to_evaluate = "meta-llama/Llama-3.3-70B-Instruct-Turbo"
     #model_to_evaluate = "Qwen/Qwen2.5-72B-Instruct-Turbo"
     #model_to_evaluate = "gpt-4o"
-    #model_to_evaluate = 'gpt-4o-mini-2024-07-18'
+    model_to_evaluate = 'gpt-4o-mini-2024-07-18'
     #model_to_evaluate = "o1-mini-2024-09-12"
     #model_to_evaluate = 'deepseek-chat'
     version = 332 # 120 and 121 was the last version before this change
@@ -237,7 +237,7 @@ async def main():
     version_description = "eval_agentic_supervised"
 
     result_path = r"src\supervised_tasks\supervised_results"
-    task_types = ["copper_plate_thresholds_placement"]
+    task_types = ["iron_gear_wheel_thresholds_placement"]
     tasks_to_exclude = []
     search_type = "beam_supervised"
     search_iterations = 1
