@@ -163,19 +163,12 @@ async def main():
     resume_version = args.resume_version if args.resume_version else None #450
 
     # List of models to run in parallel
-    # model_configs = [
-    #     {"model": "meta-llama/Llama-3.3-70B-Instruct-Turbo", "resume_version": 464},
-    #     {"model": "gpt-4o-mini", "resume_version": 465},
-    #     {"model": "gpt-4o", "resume_version": 466},
-    #     {"model": "deepseek-chat", "resume_version": 467},
-    #     {"model": "claude-3-5-sonnet-20241022", "resume_version": 468}
-    # ]
     model_configs = [
-        #{"model": "meta-llama/Llama-3.3-70B-Instruct-Turbo", "resume_version": 469},
-        #{"model": "gpt-4o-mini", "resume_version": 470},
+        {"model": "meta-llama/Llama-3.3-70B-Instruct-Turbo", "resume_version": 469},
+        {"model": "gpt-4o-mini", "resume_version": 470},
         {"model": "gpt-4o", "resume_version": 471},
         #{"model": "deepseek-chat", "resume_version": 472},
-        #{"model": "claude-3-5-sonnet-20241022", "resume_version": 473},
+        {"model": "claude-3-5-sonnet-20241022", "resume_version": 473},
     ]
 
     parser = argparse.ArgumentParser()

@@ -76,6 +76,6 @@ If you are running multiple servers (via docker compose), you will need to activ
 ## Usage
 
 ### Running experiments
-Open play experiments can be run with `src\search\beam\run_open_play.py' and lab-play experiments can be run with 
-`src\search\beam\run_lab_play.py'.
+Open play experiments can be run with `src\search\beam\run_open_play.py` and lab-play experiments can be run with 
+`src\search\beam\run_lab_play.py`.
 To minimise local storage requirements, open-play experiments require the skills_db to be initialised as the last depth states are sampled from the database
