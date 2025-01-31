@@ -10,7 +10,7 @@ from venv import logger
 from search.auto_curriculum.curricula import CurriculumStrategy, RecipeBasedCurriculum
 from search.auto_curriculum.model_evaluator import ModelEvaluator
 from factorio_instance import FactorioInstance
-from skills.bottoms_up_sampler import eval_program_with_result_trace, get_mining_setup
+from search.auto_curriculum.dataset_utils import eval_program_with_result_trace, get_mining_setup
 from prompts import TASK_GENERATION_PROMPT, USER_TASK_PROMPT, RECENT_TASK_HISTORY_PROMPT
 
 

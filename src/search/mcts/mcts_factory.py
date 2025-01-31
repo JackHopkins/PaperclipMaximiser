@@ -120,12 +120,12 @@ class BaseConfig:
 @dataclass
 class PlanningConfig(BaseConfig):
     planning_model: str = "claude-3-5-sonnet-20241022"
-    executor_model: str = "ft:gpt-4o-2024-08-06:paperplane-ai:fact-instruct-1:ATSVGf4d:ckpt-step-214"
-    objective_model: str = "ft:gpt-4o-2024-08-06:paperplane-ai:fact-self-gen-planning:AQzcPI91"
-    step_executor_prompt_path: Path = Path("../../prompts/bottoms_up_prompts/finetuning_prompts/step_supervised")
-    step_generator_prompt_path: Path = Path("../../prompts/bottoms_up_prompts/finetuning_prompts/step_generator")
-    step_judge_prompt_path: Path = Path("../../prompts/bottoms_up_prompts/finetuning_prompts/step_judge")
-    example_plan_prompt_path: Path = Path("../../prompts/bottoms_up_prompts/finetuning_prompts/executor_plan")
+    executor_model: str = ""
+    objective_model: str = ""
+    step_executor_prompt_path: Path = Path("")
+    step_generator_prompt_path: Path = Path("")
+    step_judge_prompt_path: Path = Path("")
+    example_plan_prompt_path: Path = Path("")
     max_steps_per_objective: int = 8
     number_of_steps_for_judge: int = 3
     n_parallel: int = 8
@@ -147,7 +147,7 @@ class ChunkedConfig(BaseConfig):
 
 @dataclass
 class ObjectiveConfig(ChunkedConfig):
-    objective_model: str = "ft:gpt-4o-mini-2024-07-18:paperplane-ai:plans-tree:AcZ8gHSo"
+    objective_model: str = ""
 
 
 def _get_sampler(sampler_type: SamplerType,
@@ -373,17 +373,17 @@ class MCTSFactory:
         # Planning-specific arguments
         parser.add_argument('--planning-model', default="claude-3-5-sonnet-20241022")
         parser.add_argument('--executor-model',
-                            default="ft:gpt-4o-2024-08-06:paperplane-ai:fact-instruct-1:ATSVGf4d:ckpt-step-214")
+                            default="")
         parser.add_argument('--objective-model',
-                            default="ft:gpt-4o-2024-08-06:paperplane-ai:fact-self-gen-planning:AQzcPI91")
+                            default="")
         parser.add_argument('--step-executor-prompt-path',
-                            default="../../prompts/bottoms_up_prompts/finetuning_prompts/step_supervised")
+                            default="")
         parser.add_argument('--step-generator-prompt-path',
-                            default="../../prompts/bottoms_up_prompts/finetuning_prompts/step_generator")
+                            default="")
         parser.add_argument('--step-judge-prompt-path',
-                            default="../../prompts/bottoms_up_prompts/finetuning_prompts/step_judge")
+                            default="")
         parser.add_argument('--example-plan-prompt-path',
-                            default="../../prompts/bottoms_up_prompts/finetuning_prompts/executor_plan")
+                            default="")
 
         args = parser.parse_args()
         mcts_type = MCTSType(args.type)
@@ -471,7 +471,6 @@ class MCTSFactory:
                     'meta-llama/Meta-Llama-3.3-8B-Instruct-Turbo',
                     'Qwen/Qwen2.5-7B-Instruct-Turbo',
                     'Qwen/Qwen2.5-72B-Instruct-Turbo',
-                    'ft:gpt-4o-mini-2024-07-18:paperplane-ai:mcts-pruned-masked:AYIViDdb'
                 ],
                 instruction='Model to use for program synthesis.'
             ).ask()
@@ -513,12 +512,12 @@ class MCTSFactory:
                 ).ask(),
                 executor_model=questionary.text(
                     "Executor model:",
-                    default="ft:gpt-4o-2024-08-06:paperplane-ai:fact-instruct-1:ATSVGf4d:ckpt-step-214",
+                    default="",
                     instruction="The model that samples programs."
                 ).ask(),
                 objective_model=questionary.text(
                     "Objective model:",
-                    default="ft:gpt-4o-2024-08-06:paperplane-ai:fact-self-gen-planning:AQzcPI91",
+                    default="",
                     instruction="The model that generates new objectives."
                 ).ask(),
                 max_steps_per_objective=int(questionary.text(
@@ -536,7 +535,7 @@ class MCTSFactory:
                 **base_config,
                 objective_model=questionary.text(
                     "Objective model:",
-                    default="ft:gpt-4o-mini-2024-07-18:paperplane-ai:plans-tree:AcZ8gHSo",
+                    default="",
                     instruction="The model that samples objectives."
                 ).ask()
             )

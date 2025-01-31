@@ -177,7 +177,7 @@ class FactorioInstance:
 
     def speed(self, speed):
         response = self.rcon_client.send_command(f'/c game.speed = {speed}')
-        self.game_state._speed = speed
+        self.game_state.speed = speed
 
     def get_elapsed_ticks(self):
         response = self.rcon_client.send_command(f'/c rcon.print(global.elapsed_ticks or 0)')

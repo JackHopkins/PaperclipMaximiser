@@ -10,7 +10,7 @@ from search.mcts.planning_models import PlanOutput, TaskOutput, Step, LanguageOu
 from search.model.game_state import GameState
 from search.model.program import Program
 from factorio_instance import FactorioInstance
-from supervised_tasks.supervised_results.tasks import OpenEndedTaskConfig
+from supervised_tasks.tasks import OpenEndedTaskConfig
 from search.mcts.parallel_supervised_config import SupervisedExecutorConfig
 from search.model.conversation import Conversation, GenerationParameters, Message
 from tenacity import retry, wait_exponential

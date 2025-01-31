@@ -116,27 +116,3 @@ etc...
         game_state = GameState.from_instance(instance)
         return game_state
 
-
-
-# if __name__ == "__main__":
-#         prompt_path = "../../prompts/bottoms_up_prompts/finetuning_prompts/system_message_policy_self_gen.md"
-#         model_path = "ft:gpt-4o-2024-08-06:paperplane-ai:fact-self-gen-planning:AQzcPI91"
-#         starting_scenario_folder = "../../skills/data_scenarios/starting_scenarios"
-#         sampler = PlanSampler(model_path, prompt_path, starting_scenario_folder)
-#         starting_scenario = "ft_random_chest_furnace_placement_with_mining_entities"
-#         instance = FactorioInstance(address='localhost',
-#                                     bounding_box=200,
-#                                     tcp_port=27015,
-#                                     fast=True,
-#                                     #cache_scripts=False,
-#                                     inventory={})
-#
-#         game_state = sampler.get_game_state(instance, starting_scenario)
-#         objective = sampler(instance, game_state)
-#
-#         program = Program(code=objective,
-#                           conversation=Conversation(messages=[]),
-#                           value=10,
-#                           raw_reward=10,
-#                           response="")
-#         pass

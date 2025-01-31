@@ -107,7 +107,7 @@ class ObjectiveTreeSampler:
             max_tokens=128,
             logit_bias={'808': -5, '28052': -5, '27': -5},
             stop_sequences=['\n'],
-            model="ft:gpt-4o-mini-2024-07-18:paperplane-ai:plans-tree:AcZ8gHSo",
+            model="",
             presence_penalty=0,
             frequency_penalty=0.1
         )
@@ -115,7 +115,7 @@ class ObjectiveTreeSampler:
 
 
 async def main():
-    llm_factory = LLMFactory(model="ft:gpt-4o-mini-2024-07-18:paperplane-ai:plans-tree:AcZ8gHSo")
+    llm_factory = LLMFactory(model="")
     sampler = ObjectiveTreeSampler(llm_factory)
     objectives = await sampler.sample_tree(['1. Set up a basic smelting operation', '2. Optimize furnace layout'], number=1)
 

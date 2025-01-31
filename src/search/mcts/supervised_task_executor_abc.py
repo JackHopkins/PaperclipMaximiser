@@ -20,7 +20,7 @@ from search.mcts.planning_models import PlanOutput, TaskOutput, Step, LanguageOu
 from search.model.game_state import GameState
 from search.model.program import Program
 from factorio_instance import FactorioInstance
-from supervised_tasks.supervised_results.tasks import TaskConfig
+from supervised_tasks.tasks import TaskConfig
 logger = logging.basicConfig(level=logging.INFO)
 from abc import ABC, abstractmethod
 
@@ -66,8 +66,7 @@ class SupervisedTaskExecutorABC(ABC):
         instances_per_group = floor(len(instances) / config.n_parallel)
         self.logger = GroupedFactorioLogger(
             n_groups=config.n_parallel,
-            instances_per_group=instances_per_group,
-            holdout_exists=False
+            instances_per_group=instances_per_group
 
         )
         self.logger.start()
@@ -105,8 +104,7 @@ class SupervisedTaskExecutorABC(ABC):
                 db_client=self.db_client,
                 instances=group_instances,
                 value_accrual_time=3,
-                logger=self.logger,
-                include_holdout=False
+                logger=self.logger
             )
 
             groups.append(PlanningGroupV2(

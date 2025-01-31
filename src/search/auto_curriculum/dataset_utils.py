@@ -1,7 +1,24 @@
 import os
-from skills.bottoms_up_sampler import eval_program_with_result_trace, get_mining_setup
 import json
 import numpy as np
+
+def eval_program_with_result_trace(instance, program):
+        # evaluate the step
+        try:
+            score, goal, result = instance.eval_with_error(program, timeout=20)
+        except Exception as e:
+            result = f"error: {str(e)}"
+        # split result by newlines
+        output_list = result.splitlines()
+        return output_list, result
+
+def get_mining_setup(instance):
+        mining_setup = instance.get_entities()
+        if len(mining_setup) == 0:
+            mining_setup = "There are no entities on the map"
+        else:
+            mining_setup = f"The following entities are on the map and can be used: {mining_setup}"
+        return mining_setup
 
 def instantiate_the_map(input_scenario, instance, starting_scenarios_folder):
         instance.reset()

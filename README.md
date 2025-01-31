@@ -1,6 +1,6 @@
-# Factory-1
+# Factorio Learning Environment 
 
-Factory-1 is an open-ended agent environment for evaluating LLMs in unbounded scenarios in Factorio, a sandbox game centred on automation and exponential resource production.
+Factorio Learning Environment is an open-ended agent environment for evaluating LLMs in unbounded scenarios in Factorio, a sandbox game centred on automation and exponential resource production.
 
 
 ## Getting Started
@@ -8,7 +8,7 @@ Factory-1 is an open-ended agent environment for evaluating LLMs in unbounded sc
 Download the repository and install dependencies:
 
 ```
-git clone https://github.com/JackHopkins/PaperclipMaximiser.git
+git clone https://github.com/ANONYMOUS
 cd src
 pip install -e .
 ```
