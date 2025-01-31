@@ -229,15 +229,18 @@ async def main():
     prompt = SYSTEM_PROMPT + '\n\n' + API_SCHEMA + '\n\nObservations:\n' + OBSERVATION_SPACE + '\n\n' + MANUAL + '\n```'
     initial_state = GameState.from_instance(instances[0])
 
+    # Define the model to evaluate
     model_to_evaluate = "claude-3-5-sonnet-20241022"
     #model_to_evaluate = "meta-llama/Llama-3.3-70B-Instruct-Turbo"
     #model_to_evaluate = "Qwen/Qwen2.5-72B-Instruct-Turbo"
     #model_to_evaluate = "gpt-4o"
-    version = 332 # 120 and 121 was the last version before this change
+
+    # define the DB version
+    version = 332
     llm_factory = LLMFactory(model=model_to_evaluate)
     version_description = "eval_agentic_supervised"
 
-    result_path = r"C:\Users\martb\Documents\paperpclip_max\supervised_results"
+    result_path = r"src\supervised_tasks"
     task_types = ["electronic_circuit_thresholds_placement"]
     tasks_to_exclude = []
     search_type = "beam_supervised"
