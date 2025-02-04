@@ -1,3 +1,4 @@
+import asyncio
 import atexit
 import atexit
 import enum
@@ -6,12 +7,15 @@ import importlib
 import inspect
 import json
 import os
+import shutil
 import signal
 import sys
 import threading
+import time
 import traceback
 import types
 from concurrent.futures import TimeoutError
+from datetime import datetime
 from pathlib import Path
 from timeit import default_timer as timer
 
@@ -85,8 +89,8 @@ class FactorioInstance:
         self.tcp_port = tcp_port
         self.rcon_client, self.address = self.connect_to_server(address, tcp_port)
         self.all_technologies_researched = all_technologies_researched
-        self.game_state = ObservationState().with_default(vocabulary)
-        self.game_state.fast = fast
+        #self.game_state = ObservationState().with_default(vocabulary)
+        self.fast = fast
         self._speed = 1
         self._ticks_elapsed = 0
 
@@ -97,22 +101,24 @@ class FactorioInstance:
         self.script_dict = {**self.lua_script_manager.action_scripts, **self.lua_script_manager.init_scripts}
 
         # Load the python controllers that correspond to the Lua scripts
-        self.setup_controllers(self.lua_script_manager, self.game_state)
+        self.setup_controllers(self.lua_script_manager)#, self.game_state)
 
         self.initial_inventory = inventory
         self.initialise(fast, **inventory)
+        self.initial_score = 0
+
         try:
-            self.namespace.observe_all()
+            self.namespace.score()
         except Exception as e:
             # Invalidate cache if there is an error
             self.lua_script_manager = FactorioLuaScriptManager(self.rcon_client, False)
             self.script_dict = {**self.lua_script_manager.action_scripts, **self.lua_script_manager.init_scripts}
-            self.setup_controllers(self.lua_script_manager, self.game_state)
+            self.setup_controllers(self.lua_script_manager)#, self.game_state)
             self.initialise(fast, **inventory)
 
         self._tasks = []
 
-        self._initial_score, goal = self.namespace.score()
+        self.initial_score, goal = self.namespace.score()
 
         # Register the cleanup method to be called on exit
         atexit.register(self.cleanup)
@@ -156,9 +162,9 @@ class FactorioInstance:
             pass
 
         try:
-            self.game_state.initial_score, goal = self.namespace.score()
+            self.initial_score, goal = self.namespace.score()
         except Exception as e:
-            self.game_state.initial_score, goal = 0, None
+            self.initial_score, goal = 0, None
 
 
 
@@ -177,7 +183,7 @@ class FactorioInstance:
 
     def speed(self, speed):
         response = self.rcon_client.send_command(f'/c game.speed = {speed}')
-        self.game_state._speed = speed
+        self._speed = speed
 
     def get_elapsed_ticks(self):
         response = self.rcon_client.send_command(f'/c rcon.print(global.elapsed_ticks or 0)')
@@ -251,11 +257,10 @@ class FactorioInstance:
         print(f"Connected to {address} client at tcp/{tcp_port}.")
         return rcon_client, address
 
-    def setup_controllers(self, lua_script_manager, game_state):
+    def setup_controllers(self, lua_script_manager):
         """
         Here we load all the Python controllers into the namespace, e.g `inspect_inventory(), nearest(), ect`
         @param lua_script_manager:
-        @param game_state:
         @return:
         """
         # Define the directory containing the callable class files
@@ -293,7 +298,7 @@ class FactorioInstance:
 
                 # Create an instance of the callable class
                 try:
-                    callable_instance = callable_class(lua_script_manager, game_state)
+                    callable_instance = callable_class(lua_script_manager, self.namespace)
                     self.controllers[module_name.lower()] = callable_instance
                 except Exception as e:
                     raise Exception(f"Could not instantiate {class_name}. {e}")
@@ -341,6 +346,131 @@ class FactorioInstance:
             script = command
         return script
 
+    def calculate_optimal_zoom(self, bounds: BoundingBox, resolution="1920x1080"):
+        """
+        Calculate the optimal zoom level to fit the factory in the screenshot.
+
+        Args:
+            bounds (BoundingBox): Factory bounds containing width and height
+            resolution (str): Screenshot resolution in format "WIDTHxHEIGHT"
+
+        Returns:
+            float: Optimal zoom level
+        """
+        if not bounds:
+            return 1
+
+        # Parse resolution
+        width, height = map(int, resolution.split('x'))
+        aspect_ratio = width / height
+
+        # Get factory dimensions
+        factory_width = bounds.width()
+        factory_height = bounds.height()
+        factory_aspect_ratio = factory_width / factory_height
+
+        # Base tiles visible at zoom level 1
+        # These values are approximate for Factorio's zoom levels
+        BASE_VISIBLE_HEIGHT = 25  # tiles visible vertically at zoom 1
+        BASE_VISIBLE_WIDTH = BASE_VISIBLE_HEIGHT * aspect_ratio
+
+        # Calculate required zoom based on both dimensions
+        zoom_by_width = BASE_VISIBLE_WIDTH / factory_width
+        zoom_by_height = BASE_VISIBLE_HEIGHT / factory_height
+
+        # Use the smaller zoom to ensure entire factory is visible
+        optimal_zoom = min(zoom_by_width, zoom_by_height)
+
+        # Add padding (20% margin)
+        optimal_zoom *= 0.8
+
+        # Clamp zoom to reasonable values
+        # Factorio's min and max zoom levels
+        MIN_ZOOM = 0.1
+        MAX_ZOOM = 4.0
+
+        optimal_zoom = max(MIN_ZOOM, min(MAX_ZOOM, optimal_zoom))
+
+        return round(optimal_zoom, 2)
+
+    def screenshot(self, resolution="1920x1080", save_path=None, zoom=None, center_on_factory=False, script_output_path="/Users/jackhopkins/Library/Application Support/factorio/script-output"):
+        """
+        Take a screenshot in game and optionally save it to a specific location.
+
+        This does nothing in headless mode.
+
+        Args:
+            resolution (str, optional): Screenshot resolution (e.g., "1920x1080")
+            save_path (str, optional): Path where to save the screenshot copy
+            zoom (float, optional): Zoom level for the screenshot (e.g., 0.5 for zoomed out, 2.0 for zoomed in)
+
+        Returns:
+            str: Path to the saved screenshot, or None if failed
+        """
+        # Clear rendering
+        bounds: BoundingBox = self.namespace._get_factory_centroid()
+        POS_STRING = ""
+        if bounds:
+            centroid = bounds.center()
+            POS_STRING = ", position={x="+str(centroid.x)+", y="+str(centroid.y)+"}"
+
+        self.rcon_client.send_command("/c rendering.clear()")
+
+        # Calculate optimal zoom if not specified
+        if zoom is None:
+            zoom = self.calculate_optimal_zoom(bounds, resolution)
+
+        command = "/c game.take_screenshot({player=1, zoom="+str(zoom)+", show_entity_info=true, hide_clouds=true, hide_fog=true "+POS_STRING+"})"
+        response = self.rcon_client.send_command(command)
+        time.sleep(1)
+        # if not response:
+        #     return None
+
+        # Wait for the screenshot file to appear and get its path
+        screenshot_path = self._get_latest_screenshot(script_output_path=script_output_path)
+        if not screenshot_path:
+            print("Screenshot file not found")
+            return None
+
+        # If save_path is provided, copy the screenshot there
+        if save_path:
+            try:
+                # Create directory if it doesn't exist
+                os.makedirs(os.path.dirname(os.path.abspath(save_path)), exist_ok=True)
+
+                # Copy the file
+                shutil.copy2(screenshot_path, save_path)
+                return save_path
+            except Exception as e:
+                print(f"Failed to copy screenshot: {e}")
+                return screenshot_path
+
+        return screenshot_path
+
+    def _get_latest_screenshot(self, script_output_path, max_wait=2):
+        """
+        Get the path to the latest screenshot in the script-output directory.
+        Waits up to max_wait seconds for the file to appear.
+        """
+        start_time = time.time()
+        while time.time() - start_time < max_wait:
+            try:
+                # Get list of screenshot files
+                screenshots = [f for f in os.listdir(script_output_path)
+                               if f.endswith('.png') and f.startswith('screenshot')]
+
+                if screenshots:
+                    # Sort by modification time to get the latest
+                    latest = max(screenshots,
+                                 key=lambda x: os.path.getmtime(os.path.join(script_output_path, x)))
+                    return os.path.join(script_output_path, latest)
+            except Exception as e:
+                print(f"Error checking for screenshots: {e}")
+
+            time.sleep(0.5)  # Wait before checking again
+
+        return None
+
     def _send(self, command, *parameters, trace=False) -> List[str]:
         """
         Send a Lua command to the underlying Factorio instance
@@ -353,16 +483,16 @@ class FactorioInstance:
         # print(lua_response)
         return _lua2python(command, lua_response, start=start)
 
-    def comment(self, comment: str, *args):
-        """
-        Send a comment to the Factorio game console
-        :param comment:
-        :param args:
-        :return:
-        """
-        # game.players[1].print({"","[img=entity/character][color=orange]",{"engineer-title"},": [/color]",{"think-"..thought}})
-        #self.rcon_client.send_command(f'/c game.players[1].print("[img=entity/character][color=orange]" {{"{comment}"}},": ",{args}}})')
-        self.rcon_client.send_command(f"[img=entity/character] " + str(comment) + ", ".join(args))
+    # def comment(self, comment: str, *args):
+    #     """
+    #     Send a comment to the Factorio game console
+    #     :param comment:
+    #     :param args:
+    #     :return:
+    #     """
+    #     # game.players[1].print({"","[img=entity/character][color=orange]",{"engineer-title"},": [/color]",{"think-"..thought}})
+    #     #self.rcon_client.send_command(f'/c game.players[1].print("[img=entity/character][color=orange]" {{"{comment}"}},": ",{args}}})')
+    #     self.rcon_client.send_command(f"[img=entity/character] " + str(comment) + ", ".join(args))
 
     def _reset_static_achievement_counters(self):
         """
