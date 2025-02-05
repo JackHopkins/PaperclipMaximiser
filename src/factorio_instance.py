@@ -157,11 +157,11 @@ class FactorioInstance:
             # Load variables / functions from game state
             self.namespace.load(game_state)
 
-        try:
-            self.namespace.observe_all()
-        except Exception as e:
-            print(e)
-            pass
+        #try:
+        #    self.namespace.observe_all()
+        #except Exception as e:
+        #    print(e)
+        #    pass
 
         try:
             self.initial_score, goal = self.namespace.score()
