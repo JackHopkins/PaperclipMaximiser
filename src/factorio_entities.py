@@ -136,6 +136,13 @@ class Direction(Enum):
     def __repr__(self):
         return f"Direction.{self.name}"
 
+    @classmethod
+    def from_string(cls, direction_string):
+        for status in cls:
+            if status.value == direction_string:
+                return status
+        return None
+
 
 class Position(BaseModel):
     x: float
@@ -179,22 +186,24 @@ class Position(BaseModel):
         # calculates the euclidean distance between two points
         return ((self.x - a.x) ** 2 + (self.y - a.y) ** 2) ** 0.5
     
-    def _modifier(self, args):
+    def _modifier(self, args=1):
+        if isinstance(args, int) and args > 0:
+            return args
         if len(args) > 0 and isinstance(args[0], int):
             return args[0]
         return 1
     def above(self, *args) -> 'Position':
-        return Position(x=self.x, y=self.y - self._modifier(args))
+        return Position(x=self.x, y=self.y - self._modifier(*args))
     def up(self, *args) -> 'Position':
         return self.above(args)
     def below(self, *args) -> 'Position':
-        return Position(x=self.x, y=self.y + self._modifier(args))
+        return Position(x=self.x, y=self.y + self._modifier(*args))
     def down(self, *args) -> 'Position':
         return self.below(args)
     def left(self, *args) -> 'Position':
-        return Position(x=self.x - self._modifier(args), y=self.y)
+        return Position(x=self.x - self._modifier(*args), y=self.y)
     def right(self, *args) -> 'Position':
-        return Position(x=self.x + self._modifier(args), y=self.y)
+        return Position(x=self.x + self._modifier(*args), y=self.y)
 
     def to_bounding_box(self, other: 'Position') -> 'BoundingBox':
         min_x = min(self.x, other.x)
@@ -249,12 +258,30 @@ class BoundingBox(BaseModel):
     right_bottom: Position
     left_bottom: Position
     right_top: Position
-    #center: Position
+
     def center(self) -> Position:
         return Position(
-            x=(self.left_top.x + self.right_bottom.x)//2,
-            y=(self.left_top.y + self.right_bottom.y)//2
+            x=(self.left_top.x + self.right_bottom.x)/2,
+            y=(self.left_top.y + self.right_bottom.y)/2
         )
+
+    def width(self) -> float:
+        """
+        Calculate the width of the bounding box.
+
+        Returns:
+            float: The absolute difference between right and left x-coordinates
+        """
+        return abs(self.right_bottom.x - self.left_top.x)
+
+    def height(self) -> float:
+        """
+        Calculate the height of the bounding box.
+
+        Returns:
+            float: The absolute difference between bottom and top y-coordinates
+        """
+        return abs(self.right_bottom.y - self.left_top.y)
 
 class BuildingBox(BaseModel):
     height: int
@@ -298,11 +325,16 @@ class BurnerType(BaseModel):
         arbitrary_types_allowed = True
     fuel: Inventory = Inventory() # Use this to check the fuel levels of the entity
 
-
-class Entity(BaseModel):
+class EntityCore(BaseModel):
+    #id: Optional[str] = None
     name: str
-    position: Position
     direction: Direction
+    position: Position
+    def __repr__(self):
+        return f"Entity(name='{self.name}', direction={self.direction.name}, position=Position({self.position})"
+
+class Entity(EntityCore):
+
     energy: float
     type: Optional[str] = None
     dimensions: Dimensions
@@ -311,14 +343,15 @@ class Entity(BaseModel):
     health: float
     warnings: List[str] = []
     status: EntityStatus = EntityStatus.NORMAL
+    game: Optional[Any] = None # RCON connection for refreshing attributes
 
     def __repr__(self) -> str:
-        # Only includes the fields we  want to present to the agent
+        # Only includes the fields we want to present to the agent
         # Get all instance attributes
         all_fields = self.__dict__
 
         # Filter out private attributes and excluded fields
-        excluded_fields = {'dimensions', 'prototype', 'type', 'health'}
+        excluded_fields = {'dimensions', 'prototype', 'type', 'health', 'game'}
         rename_fields = {}
         repr_dict = {}
 
@@ -341,6 +374,9 @@ class Entity(BaseModel):
         return f"\n\t{self.__class__.__name__}({', '.join(items)})"
     def _get_prototype(self):
         return self.prototype
+
+class StaticEntity(Entity):
+    neighbours: Optional[Union[Dict, List[EntityCore]]] = []
 
 class Splitter(Entity):
     input_positions: List[Position]
@@ -374,18 +410,19 @@ class EnergySource(BaseModel):
     output_flow_limit: str
     drain: str
 
-class Accumulator(Entity, Electric):
+class Accumulator(StaticEntity, Electric):
     energy_source: Optional[EnergySource] = None
 
-class Inserter(Entity, Electric):
+class Inserter(StaticEntity, Electric):
     pickup_position: Optional[Position] = None
     drop_position: Position
 
 class UndergroundBelt(Entity):
     type: str
 
-class MiningDrill(Entity):
+class MiningDrill(StaticEntity):
     drop_position: Position
+    resources: List[Ingredient]
 
 class ElectricMiningDrill(MiningDrill, Electric):
     pass
@@ -401,16 +438,16 @@ class Ammo(BaseModel):
     magazine_size: Optional[int] = 0
     reload_time: Optional[float] = 0
 
-class GunTurret(Entity):
+class GunTurret(StaticEntity):
     turret_ammo: Inventory = Inventory()
 
-class AssemblingMachine(Entity, Electric):
+class AssemblingMachine(StaticEntity, Electric):
     recipe: Optional[Recipe] = None  # Prototype
     assembling_machine_input: Inventory = Inventory()
     assembling_machine_output: Inventory = Inventory()
     assembling_machine_modules: Inventory = Inventory()
 
-class FluidHandler(Entity):
+class FluidHandler(StaticEntity):
     connection_points: List[Position] = []
     fluid_box: Optional[Union[dict, list]] = []
     fluid_systems: Optional[Union[dict, list]] = []
@@ -487,6 +524,11 @@ class PipeGroup(EntityGroup):
         fluid_suffix = ""
         if self.pipes and self.pipes[0].fluid is not None and self.pipes[0].fluid != "":
             fluid_suffix = f", fluid={self.pipes[0].fluid}"
+        positions = [f"(x={p.position.x},y={p.position.y})" for p in self.pipes]
+        if len(positions) > 6:
+            positions = positions[:3] + ['...'] + positions[-3:]
+        pipe_summary = f"[{','.join(positions)}]"
+
         return f"\n\tPipeGroup(fluid_system={self.id}, position={self.position}, status={self.status}, pipes={pipe_summary}{fluid_suffix})"
 
 class ElectricityGroup(EntityGroup):

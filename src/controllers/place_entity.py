@@ -73,7 +73,7 @@ class PlaceObject(Action):
 
 
         # If we are in `slow` mode, there is a delay between placing the entity and the entity being created
-        if not self.game_state.fast:
+        if not self.game_state.instance.fast:
             sleep(1)
             return self.get_entity(entity, position)
         else:
@@ -87,20 +87,8 @@ class PlaceObject(Action):
             cleaned_response = self.clean_response(response)
 
             try:
-                object = metaclass(prototype=entity.name, **cleaned_response)
+                object = metaclass(prototype=entity.name, game=self.connection, **cleaned_response)
             except Exception as e:
                 raise Exception(f"Could not create {name} object from response: {cleaned_response}", e)
 
-                        # if object is a burner insert, and is missing a pickup_position, calculate it from the position and direction
-            # TODO: Remove and move to
-            # if entity.name == Prototype.BurnerInserter.name:
-            #     if not object.pickup_position:
-            #         if direction == Direction.UP:
-            #             object.pickup_position = Position(x=position.x, y=position.y - 1)
-            #         elif direction == Direction.DOWN:
-            #             object.pickup_position = Position(x=position.x, y=position.y + 1)
-            #         elif direction == Direction.LEFT:
-            #             object.pickup_position = Position(x=position.x - 1, y=position.y)
-            #         elif direction == Direction.RIGHT:
-            #             object.pickup_position = Position(x=position.x + 1, y=position.y)
             return object

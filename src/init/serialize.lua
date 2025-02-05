@@ -524,6 +524,76 @@ function get_boiler_pipe_positions(entity)
     return pipe_positions
 end
 
+-- Helper function to get relative direction of neighbor
+local function get_neighbor_direction(entity, neighbor)
+    local dx = neighbor.position.x - entity.position.x
+    local dy = neighbor.position.y - entity.position.y
+
+    -- Determine primary direction based on which delta is larger
+    if math.abs(dx) > math.abs(dy) then
+        return dx > 0 and defines.direction.east or defines.direction.west
+    else
+        return dy > 0 and defines.direction.south or defines.direction.north
+    end
+end
+
+-- Helper function to expand a bounding box by a given amount
+local function expand_box(box, amount)
+    return {
+        left_top = {
+            x = box.left_top.x - amount,
+            y = box.left_top.y - amount
+        },
+        right_bottom = {
+            x = box.right_bottom.x + amount,
+            y = box.right_bottom.y + amount
+        }
+    }
+end
+
+local function serialize_neighbours(entity)
+    local neighbours = {}
+
+    -- Get entity's prototype collision box
+    local prototype = game.entity_prototypes[entity.name]
+    local collision_box = prototype.collision_box
+
+    -- Create a slightly larger search box
+    local search_box = expand_box(collision_box, 0.707) -- Expand by 0.5 tiles
+
+    -- Convert to world coordinates
+    local world_box = {
+        left_top = {
+            x = entity.position.x + search_box.left_top.x,
+            y = entity.position.y + search_box.left_top.y
+        },
+        right_bottom = {
+            x = entity.position.x + search_box.right_bottom.x,
+            y = entity.position.y + search_box.right_bottom.y
+        }
+    }
+
+    -- Find entities within the expanded collision box
+    local nearby = entity.surface.find_entities_filtered{
+        area = world_box
+    }
+
+    -- Process each nearby entity
+    for _, neighbor in pairs(nearby) do
+        -- Skip if it's the same entity or if it has no unit number
+        if neighbor.unit_number and neighbor.unit_number ~= entity.unit_number then
+            table.insert(neighbours, {
+                unit_number = neighbor.unit_number,
+                direction = get_neighbor_direction(entity, neighbor),
+                name = "\""..neighbor.name.."\"",
+				position = neighbor.position
+                --type = neighbor.type
+            })
+        end
+    end
+
+    return neighbours
+end
 
 function add_burner_inventory(serialized, burner)
 	local fuel_inventory = burner.inventory
@@ -661,7 +731,7 @@ function get_inverse_entity_direction(entity, factorio_direction)
 end
 
 -- Helper function to check if a position is valid (not colliding with water or other impassable tiles)
-local function is_valid_connection_point(surface, position)
+global.utils.is_valid_connection_point = function(surface, position)
     -- Get the tile at the position
     local tile = surface.get_tile(position.x, position.y)
 
@@ -685,7 +755,7 @@ local function filter_connection_points(entity, points)
 
     local filtered_points = {}
     for _, point in ipairs(points) do
-        if is_valid_connection_point(entity.surface, point) then
+        if global.utils.is_valid_connection_point(entity.surface, point) then
             table.insert(filtered_points, point)
         end
     end
@@ -860,6 +930,8 @@ global.utils.serialize_entity = function(entity)
     --        serialized.ammo_inventory = global.utils.serialize_inventory(ammo_inventory)
     --    end
     --end
+	serialized.neighbours = serialize_neighbours(entity)
+
 
 	-- Add input and output locations if the entity is a transport belt
 	if entity.type == "transport-belt" then
@@ -1123,14 +1195,77 @@ global.utils.serialize_entity = function(entity)
 	--game.print("Entity has burner: " .. tostring(entity.burner ~= nil))
 	--game.print("Burner is burning: " .. tostring(entity.burner and entity.burner.currently_burning ~= nil))
 
+	--if entity.type == "mining-drill" then
+	--	serialized.drop_position = {
+	--		x = entity.drop_position.x,
+	--		y = entity.drop_position.y
+	--	}
+	--	serialized.drop_position.x = math.round(serialized.drop_position.x * 2 ) / 2
+	--	serialized.drop_position.y = math.round(serialized.drop_position.y * 2 ) / 2
+	--	game.print("Mining drill drop position: " .. serpent.line(serialized.drop_position))
+	--	local burner = entity.burner
+	--	if burner then
+	--		add_burner_inventory(serialized, burner)
+	--	end
+	--end
+
 	if entity.type == "mining-drill" then
 		serialized.drop_position = {
 			x = entity.drop_position.x,
 			y = entity.drop_position.y
 		}
-		serialized.drop_position.x = math.round(serialized.drop_position.x * 2 ) / 2
-		serialized.drop_position.y = math.round(serialized.drop_position.y * 2 ) / 2
+		serialized.drop_position.x = math.round(serialized.drop_position.x * 2) / 2
+		serialized.drop_position.y = math.round(serialized.drop_position.y * 2) / 2
 		game.print("Mining drill drop position: " .. serpent.line(serialized.drop_position))
+
+		-- Get the mining area
+		local prototype = game.entity_prototypes[entity.name]
+		local mining_area = prototype.mining_drill_radius * 2
+
+		local position = entity.position
+
+		-- Initialize resources table
+		serialized.resources = {}
+
+		-- Calculate the area to check based on mining drill radius
+		local start_x = position.x - mining_area/2
+		local start_y = position.y - mining_area/2
+		local end_x = position.x + mining_area/2
+		local end_y = position.y + mining_area/2
+
+		local resources = game.surfaces[1].find_entities_filtered{
+			area = {{start_x, start_y}, {end_x, end_y}},
+			type = "resource",
+		}
+
+		for _, resource in pairs(resources) do
+			if not serialized.resources[resource.name] then
+				serialized.resources[resource.name] = {
+					name = "\""..resource.name.."\"",
+					count = 0,
+				}
+			end
+
+			-- Add the resource amount and position
+			serialized.resources[resource.name].count = serialized.resources[resource.name].count + resource.amount
+		end
+
+
+		-- Convert resources table to array for consistent ordering
+		local resources_array = {}
+		for _, resource_data in pairs(serialized.resources) do
+			table.insert(resources_array, resource_data)
+		end
+		serialized.resources = resources_array
+
+		-- Add mining status
+		if #resources_array == 0 then
+			serialized.status = "no_minable_resources"
+			if not serialized.warnings then serialized.warnings = {} end
+			table.insert(serialized.warnings, "\"nothing to mine\"")
+		end
+
+		-- Add burner info if applicable
 		local burner = entity.burner
 		if burner then
 			add_burner_inventory(serialized, burner)
@@ -1157,19 +1292,19 @@ global.utils.serialize_entity = function(entity)
 		if entity.direction == defines.direction.north then
 			game.print("Boiler direction is north")
 			serialized.connection_points = {{x = x - 2, y = y + 0.5}, {x = x + 2, y = y + 0.5}}
-			serialized.steam_output_point = {x = x, y = y - 2}
+			serialized.steam_output_point = {x = x, y = y - 1.5}
 		elseif entity.direction == defines.direction.south then
 			game.print("Boiler direction is south")
 			serialized.connection_points = {{x = x - 2, y = y - 0.5}, {x = x + 2, y = y - 0.5}}
-			serialized.steam_output_point = {x = x, y = y + 2}
+			serialized.steam_output_point = {x = x, y = y + 1.5}
 		elseif entity.direction == defines.direction.east then
 			game.print("Boiler direction is east")
 			serialized.connection_points = {{x = x - 0.5, y = y - 2}, {x = x - 0.5, y = y + 2}}
-			serialized.steam_output_point = {x = x + 2, y = y}
+			serialized.steam_output_point = {x = x + 1.5, y = y}
 		elseif entity.direction == defines.direction.west then
 			game.print("Boiler direction is west")
 			serialized.connection_points = {{x = x + 0.5, y = y - 2}, {x = x + 0.5, y = y + 2}}
-			serialized.steam_output_point = {x = x - 2, y = y}
+			serialized.steam_output_point = {x = x - 1.5, y = y}
 		end
 	end
 
@@ -1267,7 +1402,7 @@ global.utils.serialize_entity = function(entity)
     if serialized.connection_points then
         local filtered_points = {}
         for _, point in ipairs(serialized.connection_points) do
-            if is_valid_connection_point(game.surfaces[1], point) then
+            if global.utils.is_valid_connection_point(game.surfaces[1], point) then
                 table.insert(filtered_points, point)
             end
         end
@@ -1293,7 +1428,7 @@ global.utils.serialize_entity = function(entity)
 
     -- Handle special case for boilers which have separate steam output points
     if serialized.steam_output_point then
-        if not is_valid_connection_point(game.surfaces[1], serialized.steam_output_point) then
+        if not global.utils.is_valid_connection_point(game.surfaces[1], serialized.steam_output_point) then
             serialized.steam_output_point = nil
             if not serialized.warnings then
                 serialized.warnings = {}

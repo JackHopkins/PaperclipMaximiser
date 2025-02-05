@@ -131,9 +131,8 @@ Example with beltgroups
 starting_pos = Position(x = 0, y = 12)
 ending_pos = Position(x = 0, y = 8)
 # create the beltgroup
-belts = connect_entity(starting_pos, ending_pos, Prototype.TransportBelt)
-# as connect entities returns a list of beltgroups, we pick up the first beltgroups in this example
-beltgroup_to_be_picked_up = belts[0]
+beltgroup_to_be_picked_up = connect_entities(starting_pos, ending_pos, Prototype.TransportBelt)
+
 # loop through the belts to pick them up separately
 for belt in beltgroup_to_be_picked_up.belts:
     # pick the belt up
@@ -310,10 +309,10 @@ For example, if you want to connect inserter_1 at Position(x = 12, y = 11) to in
 # get the inserter entities
 inserter_1 = get_entity(Prototype.BurnerInserter, position = Position(x = 12, y = 11))
 inserter_2 = get_entity(Prototype.BurnerInserter, position = Position(x = 0, y = 0))
-# connect the two inserters
+# connect the two inserters (source -> target). Passing in the entity will result in them being connected intelligently.
 belts = connect_entities(
-    inserter_1.drop_position,
-    inserter_2.pickup_position,
+    inserter_1, #.drop_position,
+    inserter_2, #.pickup_position,
     Prototype.TransportBelt
 )
 print(f"Connected inserters at {inserter_1.position} and {inserter_2.position} with {belts}")
@@ -390,7 +389,7 @@ machine_input_inserter = insert_item(Prototype.Coal, machine_input_inserter, qua
 
 # connect the furnace output inserter to chest input inserter
 # IMPORTANT: ALWAYS NEED TO CONNECT TRANSPORT BELTS TO A INSERTER, NEVER DIRECTLY CONNECT TO A CHEST OR FURNACE
-connection = connect_entities(furnace_output_inserter.drop_position, machine_input_inserter.pickup_position Prototype.TransportBelt)
+connection = connect_entities(furnace_output_inserter.drop_position, machine_input_inserter.pickup_position, Prototype.TransportBelt)
 print(f"Connected furnace at {furnace.position} to assembling machine at {target_machine.position} with {connection}. This will move copper plates to assembling machine to create copper cables")
 ```
 
@@ -414,7 +413,7 @@ steam_engine = get_entity(Prototype.SteamEngine, position = Position(x=4, y = -2
 assembling_machine = get_entity(Prototype.AssemblingMachine1, position = Position(x = 1, y = 19))
 
 # We then connect with connect entities
-connect_entities(assembling_machine.position, steam_engine.position, Prototype.SmallElectricPole)
+pole_group = connect_entities(assembling_machine.position, steam_engine.position, Prototype.SmallElectricPole)
 # wait for 10 seconds to power up
 sleep(10)
 # check that the power was successful
@@ -425,26 +424,23 @@ assert assembling_machine.energy > 0, f"assembling machine is not getting power"
 ```
 
 ### 7. Belt Systems
-When creating belt systems:
-1. Establish source
-2. Place destination
-3. Connect with belts
-NB: ALWAYS USE INSERTERS TO INSERT ITEMS INTO DESTINATION OR TAKE FROM SOURCE
-Only difference are drills as they have a drop_position that automatically drops resources
+When creating belt systems, ensure that the belts form a straight line wherever possible.
+Straight, grid-aligned belts ensure more predictable item flow and easier maintenance.
+Establish source, place destination, and then connect with belts. 
+NB: ALWAYS USE INSERTERS TO INSERT ITEMS INTO DESTINATION OR TAKE FROM SOURCE.
+IMPORTANT: For best results, align the transport belt segments as straight lines.
 
 Example
 Move items from a chest to a furnace
 ```python
 # log your general idea what you will do next
-print("I will create a chest that transports items to a furnace")
+print("I will create a chest that transports items to a furnace using a straight belt line")
 source_position = Position(0, 0)
 # Belt system pattern
 move_to(source_position)
 # define the BuildingBox for the chest. 
-# chest dimensions are 1x1
-# We add 3 as height as we want to add a inserter that takes items from the chest to the furnace (+1 for inserter, +1 for inserter drop position)
+# chest dimensions are 1x1; add extra space for the inserter
 building_box = BuildingBox(width = 1, height = 3)
-# get the nearest buildable area around the iron_ore_position
 buildable_coordinates = nearest_buildable(Prototype.WoodenChest, building_box, source_position)
 # Place chest on the left_top of the buildable_coordinates
 source_pos = buildable_coordinates.left_top
@@ -486,12 +482,36 @@ print(f"Placed destination_inserter at {destination_inserter.position}")
 # We want it to put items into the destination furnace
 destination_inserter = rotate_entity(destination_inserter, Direction.LEFT)  # Face inserter toward furnace
 
-print(f"Placed a inserter at {destination_inserter.position} that will put items into the furnace at {destination_furnace.position}")
-# IMPORTANT: ALWAYS NEED TO CONNECT TRANSPORT BELTS TO A INSERTER, NEVER DIRECTLY CONNECT TO A CHEST OR FURNACE
-belt = connect_entities(source_inserter.drop_position, destination_inserter.pickup_position, 
-    Prototype.TransportBelt)
-print(f"connected chest inserter at {source_inserter.position} to the destination_inserter at {destination_inserter.position} with {belt}. This will move items from chest at {soruce.position} to the furnace at {destination_furnace.position}")
+# Add inserter (always use 0 spacing for inserters)
+source_inserter = place_entity_next_to(Prototype.BurnerInserter, 
+                                      reference_position=source.position,
+                                      direction=Direction.DOWN,
+                                      spacing=0)
+print(f"Placed an inserter at {source_inserter.position} to extract items from the chest at {source.position}")
+
+# Place a furnace 10 spaces away in a grid-aligned fashion for a straight belt run
+target_position = Position(x = source.position.x + 10, y = source.position.y)
+move_to(target_position)
+building_box = BuildingBox(width = 3, height = 1)
+buildable_coordinates = nearest_buildable(Prototype.StoneFurnace, building_box, target_position)
+furnace_pos = buildable_coordinates.left_top
+move_to(furnace_pos)
+destination_furnace = place_entity(Prototype.StoneFurnace, position=furnace_pos)
+print(f"Placed furnace at {destination_furnace.position}")
+
+# Add inserter next to the furnace (using 0 spacing)
+destination_inserter = place_entity_next_to(Prototype.BurnerInserter, 
+                                           reference_position=destination_furnace.position,
+                                           direction=Direction.RIGHT,
+                                           spacing=0)
+destination_inserter = rotate_entity(destination_inserter, Direction.LEFT)  # Rotate to insert into the furnace
+print(f"Placed inserter at {destination_inserter.position} to feed the furnace at {destination_furnace.position}")
+
+# Connect the two inserters with a straight transport belt line
+belt = connect_entities(source_inserter, destination_inserter, Prototype.TransportBelt)
+print(f"Connected chest inserter at {source_inserter.position} to furnace inserter at {destination_inserter.position} with a straight belt: {belt}")
 ```
+
 ### 8. Many-to-One Connections
 When you need to connect multiple sources to a single target with transport belts
 1. Establish sources and target
@@ -516,7 +536,6 @@ main_connection = connect_entities(source_inserter_1.drop_position,
                                     target_inserter.pickup_position,
                                     Prototype.TransportBelt)
 # Print out the whole connection for logs
-# as main_connection is a list of beltgroups, we print out the whole list
 print(f"Created the main connection between inserter at {source_inserter_1.position} to inserter at {target_inserter.position}: {main_connection}")
 
 # Connect source_inserter_2 and source_inserter_3 to the main connection
@@ -526,7 +545,7 @@ for source in secondary_sources:
     # Use the first beltgroup from the main connection to connect to
     # Also override the main_connection to get the newest belt groups
     main_connection = connect_entities(source.drop_position, 
-                                    main_connection[0],
+                                    main_connection,
                                     Prototype.TransportBelt)
     print(f"Extended main connection to include inserter at {source.position}: {main_connection}")
 print(f"Final connection after connecting all inserters to target: {main_connection}")
@@ -543,14 +562,13 @@ main_power_connection = connect_entities(steam_engine,
                                     drill_1,
                                     Prototype.SmallElectricPole)
 # Print out the whole connection for logs
-# as main_connection is a list of ElectricityGroup, we print out the whole list
 print(f"Created the main connection to power drill at {drill_1.position} with steam engine at {steam_engine.position}: {main_connection}")
 
 # connect the secondary source to the main power connection
 # Use the first ElectricityGroup from the main connection to connect to
 # Also override the main_power_connection to get the newest ElectricityGroups
 main_power_connection = connect_entities(drill_2, 
-                                main_connection[0],
+                                main_connection,
                                 Prototype.SmallElectricPole)
 ```
 
@@ -571,7 +589,7 @@ steam_engine = get_entity(Prototype.SteamEngine, position = Position(x = -10, y 
 
 # connect the steam engine and assembling machine with power poles to power the assembling machine
 # We use connect entities as we're dealing with power poles
-connect_entities(assembling_machine.position, steam_engine.position, Prototype.SmallElectricPole)
+pole_group = connect_entities(assembling_machine.position, steam_engine.position, Prototype.SmallElectricPole)
 # wait for 10 sec to assure assembling machine is powered
 sleep(10)
 # update the assembling machine entity

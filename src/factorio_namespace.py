@@ -7,7 +7,9 @@ from difflib import get_close_matches
 from typing import Optional, Union, List, Dict, Tuple, Set
 
 from exceptions.hinting_name_error import HintingNameError, get_value_type_str
-from factorio_entities import Position, Direction, EntityStatus, BoundingBox, BeltGroup, Recipe, BuildingBox
+from factorio_entities import Position, Direction, EntityStatus, BoundingBox, BeltGroup, Recipe, BuildingBox, PipeGroup, \
+    ElectricityGroup, Pipe
+
 from factorio_types import Prototype, Resource, Technology, prototype_by_name
 from search.model.game_state import SerializableFunction, wrap_for_serialization, GameState, \
     unwrap_after_deserialization
@@ -53,6 +55,7 @@ class FactorioNamespace:
         self.max_sequential_exception_count = 1
         self._sequential_exception_count = 0
         self.log_counter = 0
+        self.player_location = Position(x=0, y=0)
 
         self.loop_context = LoopContext()
 
@@ -73,6 +76,10 @@ class FactorioNamespace:
         self.BeltGroup = BeltGroup
         self.Technology = Technology
         self.Recipe = Recipe
+        self.PipeGroup = PipeGroup
+        self.ElectricityGroup = ElectricityGroup
+        self.BeltGroup = BeltGroup
+        self.Pipe = Pipe
 
         # TODO - We need to add all entity objects to the namespace, e.g 'Chest'
 
@@ -171,10 +178,10 @@ class FactorioNamespace:
                 self.logging_results[self.line_value] = []
             self.logging_results[self.line_value].append(repr(arg))
 
-        if 'error' in repr(arg).lower():
-            print(f"\033[93m{self.tcp_port}: {repr(arg)}")
-        else:
-            print(f"{self.tcp_port}: {repr(arg)}")
+        # if 'error' in repr(arg).lower():
+        #     print(f"\033[93m{self.tcp_port}: {repr(arg)}\x1b[0m")
+        # else:
+        #     print(f"\033[0m{self.tcp_port}: {repr(arg)}\x1b[0m")
         return None  # Return None instead of the args
 
     def _get_suggestions_from_name_error(self, eval_dict, error_msg) -> List[Tuple[str, str]]:
@@ -420,7 +427,7 @@ class FactorioNamespace:
                         value = eval_dict[name]
                         self.persistent_vars[name] = wrap_for_serialization(value)
                         setattr(self, name, value)
-                        print(f"{self.tcp_port}: Stored annotated variable {name} - {type(value)}")
+                        #print(f"{self.tcp_port}: Stored annotated variable {name} - {type(value)}")
 
             return True
 
@@ -482,7 +489,7 @@ class FactorioNamespace:
         Supports try-except blocks, type annotations, and nested control flows.
         """
 
-        def parse_result_into_str(data):
+        def parse_result_into_str(data, max_lines=64):
             result = []
             for key, values in data.items():
                 if self.execution_trace:
@@ -491,6 +498,9 @@ class FactorioNamespace:
                 else:
                     for value in values:
                         result.append(f"{key}: {value}")
+            if len(result) > max_lines:
+                result = [f"{len(result)-max_lines} lines truncated..."] + result[max_lines:]
+
             return "\n".join(result)
 
         def find_actual_line_number(node, code_lines):
