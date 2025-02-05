@@ -1,0 +1,12 @@
+
+{                          
+    "task_type": "debugging_task",
+    "config": {
+        "task":"Put down a furnace that smelts iron plates and feeds them to a chest.",
+        "throughput_entity":"iron-plate",
+        "quota":1,
+        "trace_length": 4,
+        "starting_inventory": {"wooden-chest": 1, "stone-furnace": 1, "transport-belt": 100, "burner-inserter": 2, "coal": 100, "iron-ore": 100},
+        "starting_setup_code_location": "furnace_to_chest_incorrect.py"
+    }
+}

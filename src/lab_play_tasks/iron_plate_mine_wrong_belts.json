@@ -1,0 +1,12 @@
+
+{                          
+    "task_type": "debugging_task",
+    "config": {
+        "task":"Create an automatic iron plate mine that produces 1 iron plates per 60 ingame seconds. Useful information for this task: One burner mining drill mines 15 resources and one electric mining drill mines 30 resources per 60 ingame seconds. One stone furnace smelts 18 iron plates per 60 ingame seconds",
+        "throughput_entity":"iron-plate",
+        "quota":1,
+        "trace_length": 4,
+        "starting_inventory": {"burner-mining-drill": 1, "stone-furnace": 1, "transport-belt": 100, "burner-inserter": 1, "coal": 100},
+        "starting_setup_code_location": "iron_mine_wrong_belt.py"
+    }
+}

@@ -1,0 +1,12 @@
+
+{                          
+    "task_type": "debugging_task",
+    "config": {
+        "task":"Create a electricity generator that creates electricity",
+        "throughput_entity":"steam",
+        "quota":1,
+        "trace_length": 4,
+        "starting_inventory": {"boiler": 1, "steam-engine": 1, "pipe": 100, "offshore-pump": 1, "coal": 100},
+        "starting_setup_code_location": "incorrect_electricity_setup.py"
+    }
+}

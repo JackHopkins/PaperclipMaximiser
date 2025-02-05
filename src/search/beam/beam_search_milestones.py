@@ -10,7 +10,7 @@ from search.mcts.planning_models import PlanOutput, TaskOutput, Step, LanguageOu
 from search.model.game_state import GameState
 from search.model.program import Program
 from factorio_instance import FactorioInstance
-from supervised_tasks.supervised_results.tasks import OpenEndedTaskConfig
+from lab_play_tasks.task_configs import OpenEndedTaskConfig
 from search.mcts.parallel_supervised_config import SupervisedExecutorConfig
 from search.model.conversation import Conversation, GenerationParameters, Message
 from tenacity import retry, wait_exponential
@@ -43,10 +43,6 @@ class MilestonesBeamSearchExecutor(SupervisedTaskExecutorABC):
 
         super().__init__(instances, db_client, llm_factory, config, version, version_description)
 
-        # Initialize other attributes from config
-        self.max_steps_per_objective = config.supervised_kwargs["max_steps_per_objective"]
-
-
         self.model_to_evaluate = config.model_to_evaluate
         self.system_prompt = config.supervised_kwargs["system_prompt"]
         self.formatter = formatter
@@ -55,25 +51,28 @@ class MilestonesBeamSearchExecutor(SupervisedTaskExecutorABC):
         self.beam_unification_steps = config.supervised_kwargs.get("beam_unification_steps", 0)
     async def generate_plans(self, task: OpenEndedTaskConfig, 
                              nr_of_beams: int,
-                             instances,
-                             start_state) -> List[InitialPlanOutput]:
+                             instances) -> List[InitialPlanOutput]:
         
         plan_outputs = {}
         for idx in range(nr_of_beams):
             instance = instances[idx]
-            instance.reset(start_state)
+            instance.reset(task.starting_game_state)
             # plan id coincides with instance id it will be evaluated on
             plan_output = PlanOutput(task=TaskOutput(task=task.task), meta={"plan_id": idx})
             entities = instance.namespace.get_entities()
-            output = f"1: ('Inventory: {start_state.inventory}')\n2: ('Entities on the map: {entities}')"
-            first_dummy_program = Program(code="print(f'Inventory: {inspect_inventory()}')\n"
-                                                              "print(f'Entities: {get_entities()}')\n", 
+            inventory = instance.namespace.inspect_inventory()
+            dummy_program_code = "print(f'Inventory: {inspect_inventory()}')\nprint(f'Entities: {get_entities()}')\n"
+            output = f"('Inventory: {inventory}')\n('Entities on the map: {entities}')"
+            if task.starting_scenario_logs:
+                output = f"{task.starting_scenario_logs}\n{output}"
+                dummy_program_code = f"{task.starting_scenario_code}\n{dummy_program_code}"
+            first_dummy_program = Program(code=dummy_program_code, 
                                                               conversation=Conversation(messages=[]),
                                                               response=output,
                                                               meta = {"type": "initial_dummy"})
             first_step = Step(program=first_dummy_program, 
-                              start_state=self.config.initial_state,
-                              end_state=start_state,)
+                              start_state=task.starting_game_state,
+                              end_state=task.starting_game_state,)
             plan_output.steps.append(first_step)
             plan_outputs[idx] = plan_output
             
@@ -94,18 +93,15 @@ class MilestonesBeamSearchExecutor(SupervisedTaskExecutorABC):
             results = []
             for iteration in range(n_iterations):
                 
-                start_state = self.config.initial_state
-                start_state.inventory = task.starting_inventory
                 saved_step_ids = []
                 output_dicts = {}
-                for step_idx in range(self.max_steps_per_objective):
+                for step_idx in range(task.trace_length):
                     if step_idx == 0:
                         group.plans = await self.generate_plans(task, 
                                                                 nr_of_beams=len(group.active_instances),
-                                                                instances = group.evaluator.instances,
-                                                                start_state=start_state)
+                                                                instances = group.evaluator.instances)
 
-                    plans = await self._process_group_step(group, step_idx, skip_failures, start_state, parent = None, task = task)
+                    plans = await self._process_group_step(group, step_idx, skip_failures, parent = None, task = task)
                     
                     for plan in plans:
                         try:
@@ -236,7 +232,7 @@ class MilestonesBeamSearchExecutor(SupervisedTaskExecutorABC):
     
 
     async def _process_group_step(self, group: PlanningGroupV2, step_idx: int, 
-                                  skip_failures: bool, start_state: GameState, parent: Program,
+                                  skip_failures: bool, parent: Program,
                                   task: OpenEndedTaskConfig) -> List[PlanOutput]:
         """Process a single step for a group"""
         try:
@@ -253,7 +249,6 @@ class MilestonesBeamSearchExecutor(SupervisedTaskExecutorABC):
 
                 eval_futures.append(self._process_last_step(
                     plan=plan,
-                    start_state=start_state,
                     group=group,
                     instance_id=instance_id,
                     parent_id=parent.id if parent else None,
@@ -269,7 +264,6 @@ class MilestonesBeamSearchExecutor(SupervisedTaskExecutorABC):
 
     async def _evaluate_step(self,
                              step: Step,
-                             start_state: GameState,
                              group: PlanningGroupV2,
                              instance_id: int,
                              parent_id) -> Tuple[Step, float, List]:
@@ -356,7 +350,6 @@ class MilestonesBeamSearchExecutor(SupervisedTaskExecutorABC):
         return output_dict
 
     async def _process_last_step(self, plan: PlanOutput,
-                                 start_state: GameState,
                                  group: PlanningGroupV2,
                                  instance_id: int,
                                  parent_id: Optional[int],
@@ -368,7 +361,7 @@ class MilestonesBeamSearchExecutor(SupervisedTaskExecutorABC):
                 # pop the last step from plan
                 plan.steps.pop()
                 return plan
-            step_to_process, entity_list = await self._evaluate_step(step_to_process, start_state, group, instance_id,
+            step_to_process, entity_list = await self._evaluate_step(step_to_process, group, instance_id,
                                                                               parent_id)
             if skip_failures and "error" in step_to_process.program.response.lower():
                 raise Exception("Found error in response. Skipping step.")

@@ -317,8 +317,8 @@ class ConnectEntities(Action):
                         x=(target_entity.position.x) + (x_sign * target_entity.tile_dimensions.tile_width),
                         y=(target_entity.position.y) + (y_sign * target_entity.tile_dimensions.tile_height))
                 else:
-                    target_position = Position(x=target_entity.position.x + x_sign*source_entity.tile_dimensions.tile_width/2,
-                                               y=target_entity.position.y + y_sign*source_entity.tile_dimensions.tile_height/2)
+                    target_position = Position(x=target_entity.position.x + x_sign*target_entity.tile_dimensions.tile_width/2,
+                                               y=target_entity.position.y + y_sign*target_entity.tile_dimensions.tile_height/2)
             elif connection_type.name == Prototype.TransportBelt.name:
                 # If we are connecting a position with a transport belt, we need to add 0.5 to the position to prevent
                 # Weird behaviour from the pathfinding

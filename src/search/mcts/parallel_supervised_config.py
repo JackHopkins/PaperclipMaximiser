@@ -13,12 +13,10 @@ class SupervisedExecutorConfig:
         self.n_parallel = n_parallel
         self.model_to_evaluate = model_to_evaluate
         self.supervised_kwargs = supervised_kwargs or {}
-        self.initial_state = initial_state
     
     def _to_dict(self) -> Dict[str, Any]:
         return {
             "n_parallel": self.n_parallel,
             "model_to_evaluate": self.model_to_evaluate,
             "supervised_kwargs": self.supervised_kwargs,
-            "initial_state": self.initial_state.to_raw()
         }

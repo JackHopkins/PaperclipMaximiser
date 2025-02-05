@@ -20,7 +20,7 @@ from search.mcts.planning_models import PlanOutput, TaskOutput, Step, LanguageOu
 from search.model.game_state import GameState
 from search.model.program import Program
 from factorio_instance import FactorioInstance
-from supervised_tasks.supervised_results.tasks import TaskConfig
+from lab_play_tasks.task_configs import TaskConfig
 logger = logging.basicConfig(level=logging.INFO)
 from abc import ABC, abstractmethod
 

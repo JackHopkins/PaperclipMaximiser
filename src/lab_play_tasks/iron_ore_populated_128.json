@@ -1,0 +1,10 @@
+
+{                          
+    "task_type": "populated_lab_play",
+    "config": {
+        "task":"Create an automatic iron ore mine that produces 128 iron ore per 60 ingame seconds. Useful information for this task: One burner mining drill mines 15 resources and one electric mining drill mines 30 resources per 60 ingame seconds.",
+        "throughput_entity":"iron-ore",
+        "quota":128,
+        "trace_length": 16
+    }
+}
