@@ -281,6 +281,7 @@ class MilestonesBeamSearchExecutor(SupervisedTaskExecutorABC):
                     program,
                     instance
                 )
+                print(f"\nOutput for instance {instance_id}: {result}\n")
                 if not isinstance(program, Program):
                     print(f"Weird program 2: {program}")
                 if error:

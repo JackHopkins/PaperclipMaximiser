@@ -1027,7 +1027,7 @@ def test_achievements_42(): # DEMO
                                 #cache_scripts=False,
                                 inventory=PLACEMENT_STARTING_INVENTORY) 
 
-        test_string_1 = '\niron_ore_loc = nearest(Resource.IronOre)\nprint(f"found iron ore at {iron_ore_loc}")\nmove_to(iron_ore_loc)\nprint(f"Moved to iron ore location")\ndrill = place_entity(Prototype.BurnerMiningDrill, position = iron_ore_loc)\ndrill = insert_item(Prototype.Coal, drill, 30)\nprint(f"Placed drill at iron ore location ({drill.position}) and inserted coal")\nfurnace_pos = Position(x = drill.position.x - 9, y =  drill.position.y)\nmove_to(furnace_pos)\nfurnace = place_entity(Prototype.StoneFurnace, position = furnace_pos)\nfurnace = insert_item(Prototype.Coal, furnace, 30)\nprint(f"Placed furnace to smelt iron ore into plates ({furnace.position}) and inserted coal")\nbelts = connect_entities(drill.drop_position, furnace.position, Prototype.TransportBelt)\nprint(f"Connected drill at {drill.position} to furnace at {furnace.position} with belts {belts}")\n# wait for 10 seconds and check if furnace is smelting plates\nsleep(30)\n# get the updated furnace entity\nfurnace = get_entity(Prototype.StoneFurnace, position = furnace.position)\n# get the inventory\nfurnace_inventory = inspect_inventory(furnace)\n# get the iron plate in furnace inventory\niron_plates_in_chest = furnace_inventory[Prototype.IronPlate]\n# check for iron plates\nprint(get_entities())\nassert iron_plates_in_chest > 0, "No plates in furnace"'
+        test_string_1 = '\niron_ore_loc = nearest(Resource.IronOre)\nprint(f"found iron ore at {iron_ore_loc}")\nmove_to(iron_ore_loc)\nprint(f"Moved to iron ore location")\ndrill = place_entity(Prototype.BurnerMiningDrill, position = iron_ore_loc)\ndrill = insert_item(Prototype.Coal, drill, 30)\nprint(f"Placed drill at iron ore location ({drill.position}) and inserted coal")\nfurnace_pos = Position(x = drill.position.x - 9, y =  drill.position.y)\nbelts = connect_entities(drill.drop_position, furnace_pos, Prototype.TransportBelt)\nprint(f"Connected drill at {drill.position} to {furnace_pos} with belts {belts}")\n# wait for 10 seconds and check if furnace is smelting plates\nsleep(30)\nprint(get_entities())'
         output_list, result, error, achievements = eval_program_with_achievements(instance, test_string_1)
         game_state = GameState.from_instance(instance)
         instance.reset(game_state)
@@ -1065,8 +1065,34 @@ def test_achievements_43(): # DEMO
 
         
         print(f"asd")
+
+
+def test_achievements_44(): # DEMO
+        from search.model.game_state import GameState
+        PLACEMENT_STARTING_INVENTORY = {"coal": 500, "burner-mining-drill": 10, "wooden-chest": 10, "burner-inserter": 10, "transport-belt": 200,
+                                "stone-furnace": 5, "pipe": 10, "boiler": 4, "offshore-pump": 3, "steam-engine": 2,
+                                "iron-gear-wheel": 22, "iron-plate": 19, "copper-plate": 52, "electronic-circuit": 99,
+                                "iron-ore": 62, "stone": 50, "electric-mining-drill": 10, "small-electric-pole": 200, "pipe": 100,
+                                "assembling-machine-1": 5}
+        instance = FactorioInstance(address='localhost',
+                                bounding_box=200,
+                                tcp_port=27015,
+                                fast=True,
+                                #cache_scripts=False,
+                                inventory=PLACEMENT_STARTING_INVENTORY) 
+
+        #test_string_1 = '\n# log your general idea what you will do next\nprint(f"I will create a power generation setup with a steam engine")\n# get the water position\nwater_position = nearest(Resource.Water)\n# moveto water positon\nmove_to(water_position)\n# first place offshore pump on the water system\noffshore_pump = place_entity(Prototype.OffshorePump, position=water_position)\nprint(f"Placed offshore pump to get water at {offshore_pump.position}")\n# place the boiler next to offshore pump\nboiler = place_entity_next_to(Prototype.Boiler, reference_position = offshore_pump.position, spacing = 1, direction = Direction.DOWN)'
+        #output_list, result, error, achievements = eval_program_with_achievements(instance, test_string_1)
+
+        #test_string_1 = '# Use nearest_buildable to find a valid position for the boiler\n# The boiler has a dimension of 2x3, so we need to ensure there is enough space\nboiler_building_box = BuildingBox(width=3, height=2)\noffshore_pump_position = Position(x=-10.5, y=1.5)\noffshore_pump = get_entity(Prototype.OffshorePump, position = offshore_pump_position)\n\n# Find the nearest buildable position for the boiler\nboiler_bounding_box = nearest_buildable(\n    Prototype.Boiler,\n    building_box=boiler_building_box,\n    center_position=offshore_pump_position\n)\n\n# Log the found position for the boiler\nprint(f"Found buildable position for boiler: {boiler_bounding_box.center()}")\n\n# Move to the center of the bounding box and place the boiler\nmove_to(boiler_bounding_box.center())\nboiler = place_entity(Prototype.Boiler, position=boiler_bounding_box.center())\nprint(f"Placed boiler at {boiler.position}")\n\n# Connect the offshore pump to the boiler with pipes\npipes_to_boiler = connect_entities(offshore_pump.position, boiler.position, Prototype.Pipe)\nprint(f"Connected offshore pump to boiler with pipes: {pipes_to_boiler}")\nsleep(2)\nprint(f"Current inventory {inspect_inventory()}")\nprint(f"Updated entities on the map: {get_entities()}")\n'
+        #output_list, result, error, achievements = eval_program_with_achievements(instance, test_string_1)
+
+        test_string_1 = '# Step 1: Locate the nearest water source for power generation\nwater_pos = nearest(Resource.Water)\nprint(f"Found water source at {water_pos}")\n\n# Define a safe area for boiler and steam engine placement\nboiler_steam_box = BuildingBox(width=5, height=5)\nboiler_area = nearest_buildable(Prototype.Boiler, boiler_steam_box, water_pos)\n\n# Place boiler\nboiler_pos = boiler_area.left_top\nmove_to(boiler_pos)\nboiler = place_entity(Prototype.Boiler, position=boiler_pos)\nprint(f"Placed Boiler at {boiler.position}")'
+        output_list, result, error, achievements = eval_program_with_achievements(instance, test_string_1)
+
+        print(f"asd")
 if __name__ == '__main__':
         
     #unittest.main()
-    test_achievements_43()
+    test_achievements_44()
     #test_achievements_38()

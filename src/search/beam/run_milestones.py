@@ -268,7 +268,7 @@ async def main():
     task_folder = r"src\lab_play_tasks"
     starting_scenario_folder = r"src\lab_play_tasks\starting_scenarios"
     result_path = r"src\lab_play_tasks\results"
-    tasks = ["incorrect_electricity_setup"]
+    tasks = ["iron_gear_wheel_populated_1"]
     search_type = "beam_supervised"
     search_iterations = 1
 

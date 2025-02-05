@@ -12,8 +12,9 @@ furnace = place_entity(Prototype.StoneFurnace, position = furnace_pos)
 furnace = insert_item(Prototype.Coal, furnace, 30)
 print(f"Placed furnace to smelt iron ore into plates ({furnace.position}) and inserted coal")
 
+connection_end = Position(x = furnace.position.x - 1, y = furnace.position.y+1)
 
-belts = connect_entities(drill.drop_position, furnace.position, Prototype.TransportBelt)
+belts = connect_entities(drill.drop_position, connection_end, Prototype.TransportBelt)
 print(f"Connected drill at {drill.position} to furnace at {furnace.position} with belts {belts}")
 
 # wait for 30 seconds and check if furnace is smelting plates

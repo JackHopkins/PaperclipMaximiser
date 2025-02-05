@@ -301,7 +301,6 @@ assert entity.position.is_close(expected_position, tolerance=1)
 ```
 
 3. **Drop Positions**
-- Use `drop_position` when connecting output of one entity to another
 - You can place a chest into drills drop position to catch the ore or a furnace to smelt it directly
 - When connecting to a inserter, use the pickup_position of target inserter
 For example, if you want to connect inserter_1 at Position(x = 12, y = 11) to inserter_2 at Position(x = 0, y = 0)
@@ -389,7 +388,7 @@ machine_input_inserter = insert_item(Prototype.Coal, machine_input_inserter, qua
 
 # connect the furnace output inserter to chest input inserter
 # IMPORTANT: ALWAYS NEED TO CONNECT TRANSPORT BELTS TO A INSERTER, NEVER DIRECTLY CONNECT TO A CHEST OR FURNACE
-connection = connect_entities(furnace_output_inserter.drop_position, machine_input_inserter.pickup_position, Prototype.TransportBelt)
+connection = connect_entities(furnace_output_inserter, machine_input_inserter, Prototype.TransportBelt)
 print(f"Connected furnace at {furnace.position} to assembling machine at {target_machine.position} with {connection}. This will move copper plates to assembling machine to create copper cables")
 ```
 
@@ -413,7 +412,7 @@ steam_engine = get_entity(Prototype.SteamEngine, position = Position(x=4, y = -2
 assembling_machine = get_entity(Prototype.AssemblingMachine1, position = Position(x = 1, y = 19))
 
 # We then connect with connect entities
-pole_group = connect_entities(assembling_machine.position, steam_engine.position, Prototype.SmallElectricPole)
+pole_group = connect_entities(assembling_machine, steam_engine, Prototype.SmallElectricPole)
 # wait for 10 seconds to power up
 sleep(10)
 # check that the power was successful
@@ -532,8 +531,8 @@ target_inserter = get_entity(Prototype.BurnerInserter, Position(x = 10, y = 28))
 # log your general idea what you will do next
 print(f"I will create a connection from the inserters at [{source_inserter_1.position}, {source_inserter_2.position}, {source_inserter_3.position}] to the inserter at {target_inserter.position}")
 # create the main connection
-main_connection = connect_entities(source_inserter_1.drop_position, 
-                                    target_inserter.pickup_position,
+main_connection = connect_entities(source_inserter_1, 
+                                    target_inserter,
                                     Prototype.TransportBelt)
 # Print out the whole connection for logs
 print(f"Created the main connection between inserter at {source_inserter_1.position} to inserter at {target_inserter.position}: {main_connection}")
@@ -544,7 +543,7 @@ for source in secondary_sources:
     # connect the source to main connection
     # Use the first beltgroup from the main connection to connect to
     # Also override the main_connection to get the newest belt groups
-    main_connection = connect_entities(source.drop_position, 
+    main_connection = connect_entities(source, 
                                     main_connection,
                                     Prototype.TransportBelt)
     print(f"Extended main connection to include inserter at {source.position}: {main_connection}")
@@ -589,7 +588,7 @@ steam_engine = get_entity(Prototype.SteamEngine, position = Position(x = -10, y 
 
 # connect the steam engine and assembling machine with power poles to power the assembling machine
 # We use connect entities as we're dealing with power poles
-pole_group = connect_entities(assembling_machine.position, steam_engine.position, Prototype.SmallElectricPole)
+pole_group = connect_entities(assembling_machine, steam_engine, Prototype.SmallElectricPole)
 # wait for 10 sec to assure assembling machine is powered
 sleep(10)
 # update the assembling machine entity
@@ -733,8 +732,8 @@ coal_input_inserter = rotate_entity(coal_input_inserter, Direction.DOWN)  # Face
 # 4. Connect with transport belt
 # IMPORTANT: ALWAYS NEED TO CONNECT TRANSPORT BELTS TO A INSERTER, NEVER DIRECTLY CONNECT TO A CHEST OR FURNACE
 belts = connect_entities(
-    drill.drop_position,
-    inserter.pickup_position,
+    drill,
+    inserter,
     Prototype.TransportBelt
 )
 print(f"Conncted BurnerMiningDrill at {drill.position} to inserter at {coal_input_inserter.position} with {belts}")
@@ -863,7 +862,7 @@ Policy 2: Put down the single chest that is the end of the line
     # Now we connect
     main_belt_extended = Fentities(
         belt_end_position,
-        chest_inserter.pickup_position,
+        chest_inserter,
         Prototype.TransportBelt
     )
     # print out all Beltgroup coordinates
