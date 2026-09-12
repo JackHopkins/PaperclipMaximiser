@@ -241,7 +241,6 @@ Analyze the current state and write a Python program using the FLE API to progre
                     # Generate LLM response (host-side)
                     generation_config = {
                         "max_tokens": 4096,
-                        "transforms": ["middle-out"],
                         "reasoning_effort": "minimal",
                     }
                     state.output = await get_model().generate(
