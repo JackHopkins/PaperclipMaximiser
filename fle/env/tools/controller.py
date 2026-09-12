@@ -56,6 +56,51 @@ MAX_PROCESSING_RETRIES = 3
 PROCESSING_RETRY_DELAY = 0.1  # seconds
 
 
+def _lua_escape_string(s: str) -> str:
+    """Pre-escape a string so slpp's Lua encoder always emits a valid literal.
+
+    slpp.encode's string branch does ``'"%s"' % obj.replace('"', '\\"')``:
+    it escapes bare double-quotes but never escapes backslashes first. A
+    string ending in an odd number of backslashes immediately before a
+    quote (e.g. ``a\\" -- payload``) therefore produces Lua text whose
+    string literal closes early, letting a trailing ``--`` comment splice
+    arbitrary Lua into the ``/silent-command`` RCON payload
+    built by ``Controller._execute_once``/``execute2``/``_get_command``.
+
+    Escaping backslashes *before* slpp escapes quotes composes correctly
+    (verified against a real Lua interpreter in
+    tests/unit/test_lua_encoding_security.py) because it's the
+    canonical safe order: no backslash introduced by our escaping can
+    ever combine with a later-inserted quote-escape to form a new
+    meaningful escape sequence.
+
+    Also escapes raw newline/carriage-return bytes. slpp embeds those
+    literally, which is a separate pre-existing bug independent of the
+    security issue: Lua's short string literals are syntactically
+    invalid if they contain a bare newline.
+    """
+    return s.replace("\\", "\\\\").replace("\n", "\\n").replace("\r", "\\r")
+
+
+def _lua_encode_safe(obj):
+    """Recursively pre-escape every string leaf in obj, then it's safe to
+    pass to ``lua.encode``.
+
+    slpp recurses into dict/list/tuple values itself and reuses the same
+    string-encoding branch for every leaf, so nested payloads (e.g.
+    tools that pass dict payloads) need the same treatment as flat
+    scalar args like ``ReportFault``'s ``cause`` string -- a fix that only
+    covers top-level strings would leave nested string values exploitable.
+    """
+    if isinstance(obj, str):
+        return _lua_escape_string(obj)
+    if isinstance(obj, dict):
+        return {k: _lua_encode_safe(v) for k, v in obj.items()}
+    if isinstance(obj, (list, tuple)):
+        return [_lua_encode_safe(v) for v in obj]
+    return obj
+
+
 class RconProcessingError(Exception):
     """Raised when RCON returns [processing] indicating game engine is busy"""
 
@@ -192,7 +237,7 @@ class Controller:
             script = f"{COMMAND} " + self.script_dict[command]
             for index in range(len(parameters)):
                 script = script.replace(
-                    f"arg{index + 1}", lua.encode(parameters[index])
+                    f"arg{index + 1}", lua.encode(_lua_encode_safe(parameters[index]))
                 )
         else:
             script = command
@@ -207,7 +252,7 @@ class Controller:
     def _execute_once(self, *args) -> Tuple[Dict, Any, str]:
         """Execute a single command attempt, returns (result, elapsed, lua_response)"""
         start = time.time()
-        parameters = [lua.encode(arg) for arg in args]
+        parameters = [lua.encode(_lua_encode_safe(arg)) for arg in args]
         invocation = f"pcall(storage.actions.{self.name}{(', ' if parameters else '') + ','.join(parameters)})"
         wrapped = f"{COMMAND} a, b = {invocation}; {_RESPONSE_WRAPPER}"
         lua_response = _decode_response(
@@ -296,7 +341,7 @@ class Controller:
         lua_response = ""
         try:
             start = time.time()
-            parameters = [lua.encode(arg) for arg in args]
+            parameters = [lua.encode(_lua_encode_safe(arg)) for arg in args]
             invocation = f"pcall(storage.actions.{self.name}{(', ' if parameters else '') + ','.join(parameters)})"
             wrapped = f"{COMMAND} a, b = {invocation}; {_RESPONSE_WRAPPER}"
             lua_response = _decode_response(
