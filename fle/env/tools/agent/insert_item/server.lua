@@ -264,7 +264,7 @@ storage.actions.insert_item = function(player_index, insert_item, count, x, y, t
     if inserted > 0 then
         -- Only remove successfully inserted items from player
         player.remove_item{name=insert_item, count=inserted}
-        -- game.print("Successfully inserted " .. inserted .. " items.")
+        if obs_diff_touch then obs_diff_touch(closest_entity) end
         return storage.utils.serialize_entity(closest_entity)
     else
         local inventory_info = get_inventory_info(closest_entity)

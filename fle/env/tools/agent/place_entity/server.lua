@@ -174,6 +174,7 @@ storage.actions.place_entity = function(player_index, entity, direction, x, y, e
                 force = "player",
                 position = position,
                 direction = entity_direction,
+                raise_built = true,
             }
 
             if placed_entity then
@@ -271,6 +272,7 @@ storage.actions.place_entity = function(player_index, entity, direction, x, y, e
                         force = player.force,
                         position = new_position,
                         direction = entity_direction,
+                        raise_built = true,
                     }
                     if have_built then
                         player.remove_item{name = entity, count = 1}
@@ -372,6 +374,7 @@ storage.actions.place_entity = function(player_index, entity, direction, x, y, e
             force = player.force,
             position = position,
             direction = entity_direction,
+            raise_built = true,
         }
 
         if have_built then
