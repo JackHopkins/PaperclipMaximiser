@@ -379,6 +379,15 @@ local function header()
     .. ":" .. px .. ":" .. py
 end
 
+-- Direct visibility hook for FLE tool Lua: after an eventless mutation
+-- (inventory insert, direction assignment), tools may call
+-- obs_diff_touch(entity) to re-row it immediately instead of waiting for
+-- the reconciler sweep. Guarded at call sites, so tools stay compatible
+-- with scenarios that do not load this mod.
+function obs_diff_touch(e)
+  upsert(e)
+end
+
 function obs_diff_drain()
   local s = state()
   if s.ebuf_n == 0 then

@@ -95,7 +95,7 @@ storage.actions.rotate_entity = function(player_index, x, y, direction, entity)
             end
 
             -- Destroy the entity
-            closest_entity.destroy()
+            closest_entity.destroy{raise_destroy = true}
 
             -- Create new entity with target direction
             local new_entity = surface.create_entity{
@@ -103,7 +103,8 @@ storage.actions.rotate_entity = function(player_index, x, y, direction, entity)
                 position = saved_position,
                 direction = target,
                 force = saved_force,
-                create_build_effect_smoke = false
+                create_build_effect_smoke = false,
+                raise_built = true
             }
 
             if new_entity then
@@ -173,6 +174,8 @@ storage.actions.rotate_entity = function(player_index, x, y, direction, entity)
     if entity_position.x ~= aligned_position.x or entity_position.y ~= aligned_position.y then
         closest_entity.teleport(aligned_position)
     end
+
+    if obs_diff_touch then obs_diff_touch(closest_entity) end
 
     local serialized = storage.utils.serialize_entity(closest_entity)
     return serialized
